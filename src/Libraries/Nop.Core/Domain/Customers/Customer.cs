@@ -40,6 +40,16 @@ namespace Nop.Core.Domain.Customers
         public string Email { get; set; }
 
         /// <summary>
+        /// Gets or sets the linkFacebook 1
+        /// </summary>
+        public string LinkFacebook1 { get; set; }
+
+        /// <summary>
+        /// Gets or sets the linkFacebook 2
+        /// </summary>
+        public string LinkFacebook2 { get; set; }
+
+        /// <summary>
         /// Gets or sets the email that should be re-validated. Used in scenarios when a customer is already registered and wants to change an email address.
         /// </summary>
         public string EmailToRevalidate { get; set; }

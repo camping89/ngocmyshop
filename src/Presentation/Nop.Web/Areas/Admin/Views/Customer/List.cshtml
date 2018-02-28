@@ -73,10 +73,10 @@
                             <div class="col-md-5">
                                 <div class="form-group">
                                     <div class="col-md-4">
-                                        <nop-label asp-for="SearchEmail" />
+                                        <nop-label asp-for="LinkFacebookUser" />
                                     </div>
                                     <div class="col-md-8">
-                                        <nop-editor asp-for="SearchEmail" />
+                                        <nop-editor asp-for="LinkFacebookUser" />
                                     </div>
                                 </div>
                                 @if (Model.UsernamesEnabled)
@@ -90,7 +90,7 @@
                                         </div>
                                     </div>
                                 }
-                                <div class="form-group">
+                                @*<div class="form-group">
                                     <div class="col-md-4">
                                         <nop-label asp-for="SearchFirstName" />
                                     </div>
@@ -105,7 +105,7 @@
                                     <div class="col-md-8">
                                         <nop-editor asp-for="SearchLastName" />
                                     </div>
-                                </div>
+                                </div>*@
                                 @if (Model.DateOfBirthEnabled)
                                 {
                                     <div class="form-group">
@@ -173,14 +173,14 @@
                                         </div>
                                     </div>
                                 }
-                                <div class="form-group">
+                                @*<div class="form-group">
                                     <div class="col-md-4">
                                         <nop-label asp-for="SearchIpAddress" />
                                     </div>
                                     <div class="col-md-8">
                                         <nop-editor asp-for="SearchIpAddress" />
                                     </div>
-                                </div>
+                                </div>*@
                                 <div class="form-group">
                                     <div class="col-md-4">
                                         <nop-label asp-for="SearchCustomerRoleIds" />
