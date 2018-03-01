@@ -265,7 +265,11 @@ namespace Nop.Web.Factories
                 model.VatNumber = customer.GetAttribute<string>(SystemCustomerAttributeNames.VatNumber);
                 model.FirstName = customer.GetAttribute<string>(SystemCustomerAttributeNames.FirstName);
                 model.LastName = customer.GetAttribute<string>(SystemCustomerAttributeNames.LastName);
+                model.FullName = customer.GetAttribute<string>(SystemCustomerAttributeNames.FullName);
                 model.Gender = customer.GetAttribute<string>(SystemCustomerAttributeNames.Gender);
+                model.LinkFacebook1 = customer.GetAttribute<string>(SystemCustomerAttributeNames.LinkFacebook1);
+                model.LinkFacebook2 = customer.GetAttribute<string>(SystemCustomerAttributeNames.LinkFacebook2);
+                model.HashUserName = customer.GetAttribute<string>(SystemCustomerAttributeNames.HashUserName);
                 var dateOfBirth = customer.GetAttribute<DateTime?>(SystemCustomerAttributeNames.DateOfBirth);
                 if (dateOfBirth.HasValue)
                 {

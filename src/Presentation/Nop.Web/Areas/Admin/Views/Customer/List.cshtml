@@ -73,10 +73,10 @@
                             <div class="col-md-5">
                                 <div class="form-group">
                                     <div class="col-md-4">
-                                        <nop-label asp-for="LinkFacebookUser" />
+                                        <nop-label asp-for="SearchLinkFacebookUser" />
                                     </div>
                                     <div class="col-md-8">
-                                        <nop-editor asp-for="LinkFacebookUser" />
+                                        <nop-editor asp-for="SearchLinkFacebookUser" />
                                     </div>
                                 </div>
                                 @if (Model.UsernamesEnabled)
@@ -371,6 +371,7 @@
 
         $("".concat("#@Html.IdFor(model => model.SearchEmail),",
             "#@Html.IdFor(model => model.SearchUsername),",
+            "#@Html.IdFor(model => model.SearchLinkFacebookUser),",
             "#@Html.IdFor(model => model.SearchFirstName),",
             "#@Html.IdFor(model => model.SearchLastName),",
             "#@Html.IdFor(model => model.SearchCompany),",
@@ -431,6 +432,7 @@
             SearchCustomerRoleIds: $('#@Html.IdFor(model => model.SearchCustomerRoleIds)').val(),
             SearchEmail: $('#@Html.IdFor(model => model.SearchEmail)').val(),
             SearchUsername: $('#@Html.IdFor(model => model.SearchUsername)').val(),
+            SearchLinkFacebookUser: $('#@Html.IdFor(model => model.SearchLinkFacebookUser)').val(),
             SearchFirstName: $('#@Html.IdFor(model => model.SearchFirstName)').val(),
             SearchLastName: $('#@Html.IdFor(model => model.SearchLastName)').val(),
             SearchDayOfBirth: $('#@Html.IdFor(model => model.SearchDayOfBirth)').val(),

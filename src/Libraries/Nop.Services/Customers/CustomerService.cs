@@ -326,9 +326,16 @@ namespace Nop.Services.Customers
                 query = query.Where(c => c.CustomerRoles.Select(cr => cr.Id).Intersect(customerRoleIds).Any());
             if (!string.IsNullOrWhiteSpace(email))
                 query = query.Where(c => c.Email.Contains(email));
-            //Add filter by link facebook
+            //search by facebook
             if (!string.IsNullOrWhiteSpace(linkFacebook))
-                query = query.Where(c => c.LinkFacebook1.Contains(linkFacebook) || c.LinkFacebook2.Contains(linkFacebook));
+            {
+                query = query
+                    .Join(_gaRepository.Table, x => x.Id, y => y.EntityId, (x, y) => new { Customer = x, Attribute = y })
+                    .Where((z => z.Attribute.KeyGroup == "Customer" &&
+                                 (z.Attribute.Key == SystemCustomerAttributeNames.LinkFacebook1 || z.Attribute.Key == SystemCustomerAttributeNames.LinkFacebook2) &&
+                                 z.Attribute.Value.Contains(linkFacebook)))
+                    .Select(z => z.Customer);
+            }
             if (!string.IsNullOrWhiteSpace(username))
                 query = query.Where(c => c.Username.Contains(username));
             if (!string.IsNullOrWhiteSpace(firstName))

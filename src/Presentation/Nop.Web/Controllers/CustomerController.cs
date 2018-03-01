@@ -17,6 +17,7 @@ using Nop.Core.Domain.Tax;
 using Nop.Services.Authentication;
 using Nop.Services.Authentication.External;
 using Nop.Services.Common;
+using Nop.Services.Configuration;
 using Nop.Services.Customers;
 using Nop.Services.Directory;
 using Nop.Services.Events;
@@ -71,13 +72,14 @@ namespace Nop.Web.Controllers
         private readonly IAddressAttributeParser _addressAttributeParser;
         private readonly IAddressAttributeService _addressAttributeService;
         private readonly IEventPublisher _eventPublisher;
+        private readonly ISettingService _settingService;
 
         private readonly MediaSettings _mediaSettings;
         private readonly IWorkflowMessageService _workflowMessageService;
         private readonly LocalizationSettings _localizationSettings;
         private readonly CaptchaSettings _captchaSettings;
         private readonly StoreInformationSettings _storeInformationSettings;
-
+        
         #endregion
 
         #region Ctor
@@ -115,7 +117,7 @@ namespace Nop.Web.Controllers
             IWorkflowMessageService workflowMessageService,
             LocalizationSettings localizationSettings,
             CaptchaSettings captchaSettings,
-            StoreInformationSettings storeInformationSettings)
+            StoreInformationSettings storeInformationSettings, ISettingService settingService)
         {
             this._addressModelFactory = addressModelFactory;
             this._customerModelFactory = customerModelFactory;
@@ -151,6 +153,7 @@ namespace Nop.Web.Controllers
             this._localizationSettings = localizationSettings;
             this._captchaSettings = captchaSettings;
             this._storeInformationSettings = storeInformationSettings;
+            _settingService = settingService;
         }
 
         #endregion
@@ -884,7 +887,12 @@ namespace Nop.Web.Controllers
             {
                 ModelState.AddModelError("", error);
             }
-
+            if (!string.IsNullOrEmpty(model.FullName))
+            {
+                var customerFirstLastName = StringExtensions.GetFirstLastNameFromFullName(model.FullName);
+                model.FirstName = customerFirstLastName.FirstName;
+                model.LastName = customerFirstLastName.LastName;
+            }
             try
             {
                 if (ModelState.IsValid)
@@ -904,6 +912,7 @@ namespace Nop.Web.Controllers
                                 _authenticationService.SignIn(customer, true);
                         }
                     }
+                    
                     //email
                     if (!customer.Email.Equals(model.Email.Trim(), StringComparison.InvariantCultureIgnoreCase))
                     {
@@ -949,6 +958,7 @@ namespace Nop.Web.Controllers
                         _genericAttributeService.SaveAttribute(customer, SystemCustomerAttributeNames.Gender, model.Gender);
                     _genericAttributeService.SaveAttribute(customer, SystemCustomerAttributeNames.FirstName, model.FirstName);
                     _genericAttributeService.SaveAttribute(customer, SystemCustomerAttributeNames.LastName, model.LastName);
+                    _genericAttributeService.SaveAttribute(customer, SystemCustomerAttributeNames.FullName, model.FullName);
                     if (_customerSettings.DateOfBirthEnabled)
                     {
                         var dateOfBirth = model.ParseDateOfBirth();
@@ -972,7 +982,10 @@ namespace Nop.Web.Controllers
                         _genericAttributeService.SaveAttribute(customer, SystemCustomerAttributeNames.Phone, model.Phone);
                     if (_customerSettings.FaxEnabled)
                         _genericAttributeService.SaveAttribute(customer, SystemCustomerAttributeNames.Fax, model.Fax);
-
+                    _genericAttributeService.SaveAttribute(customer, SystemCustomerAttributeNames.LinkFacebook1, model.LinkFacebook1);
+                    _genericAttributeService.SaveAttribute(customer, SystemCustomerAttributeNames.LinkFacebook2, model.LinkFacebook2);
+                    var hashKey = _settingService.GetSettingByKey("Username.SercurityHashKey", string.Empty);
+                    _genericAttributeService.SaveAttribute(customer, SystemCustomerAttributeNames.HashUserName, StringExtensions.Encrypt(model.Username, true, hashKey));
                     //newsletter
                     if (_customerSettings.NewsletterEnabled)
                     {

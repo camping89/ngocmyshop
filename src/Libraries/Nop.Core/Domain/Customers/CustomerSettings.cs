@@ -38,6 +38,11 @@ namespace Nop.Core.Domain.Customers
         public int PasswordMinLength { get; set; }
 
         /// <summary>
+        /// Gets or sets a default password length
+        /// </summary>
+        public string DefaultPassword { get; set; }
+        
+        /// <summary>
         /// Gets or sets a number of passwords that should not be the same as the previous one; 0 if the customer can use the same password time after time
         /// </summary>
         public int UnduplicatedPasswordsNumber { get; set; }

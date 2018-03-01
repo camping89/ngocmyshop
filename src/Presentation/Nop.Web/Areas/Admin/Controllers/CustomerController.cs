@@ -30,6 +30,7 @@ using Nop.Services.Affiliates;
 using Nop.Services.Authentication.External;
 using Nop.Services.Catalog;
 using Nop.Services.Common;
+using Nop.Services.Configuration;
 using Nop.Services.Customers;
 using Nop.Services.Directory;
 using Nop.Services.ExportImport;
@@ -99,9 +100,9 @@ namespace Nop.Web.Areas.Admin.Controllers
         private readonly IWorkflowMessageService _workflowMessageService;
         private readonly IRewardPointService _rewardPointService;
         private readonly IStaticCacheManager _cacheManager;
-        
+        private readonly ISettingService _settingService;
         #endregion
-        
+
         #region Ctor
 
         public CustomerController(ICustomerService customerService,
@@ -146,7 +147,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             IAffiliateService affiliateService,
             IWorkflowMessageService workflowMessageService,
             IRewardPointService rewardPointService,
-            IStaticCacheManager cacheManager)
+            IStaticCacheManager cacheManager, ISettingService settingService)
         {
             this._customerService = customerService;
             this._newsLetterSubscriptionService = newsLetterSubscriptionService;
@@ -191,6 +192,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             this._workflowMessageService = workflowMessageService;
             this._rewardPointService = rewardPointService;
             this._cacheManager = cacheManager;
+            _settingService = settingService;
         }
         
         #endregion
@@ -810,6 +812,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 username: model.SearchUsername,
                 firstName: model.SearchFirstName,
                 lastName: model.SearchLastName,
+                linkFacebook: model.SearchLinkFacebookUser,
                 dayOfBirth: searchDayOfBirth,
                 monthOfBirth: searchMonthOfBirth,
                 company: model.SearchCompany,
@@ -832,11 +835,13 @@ namespace Nop.Web.Areas.Admin.Controllers
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageCustomers))
                 return AccessDeniedView();
-
+            var storeScope = this.GetActiveStoreScopeConfiguration(_storeService, _workContext);
+            var customerSettings = _settingService.LoadSetting<CustomerSettings>(storeScope);
             var model = new CustomerModel();
             PrepareCustomerModel(model, null, false);
             //default value
             model.Active = true;
+            model.Password = customerSettings.DefaultPassword;
             return View(model);
         }
 
@@ -846,20 +851,29 @@ namespace Nop.Web.Areas.Admin.Controllers
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageCustomers))
                 return AccessDeniedView();
-
-            if (!string.IsNullOrWhiteSpace(model.Email))
+            if (!string.IsNullOrEmpty(model.Phone))
             {
-                var cust2 = _customerService.GetCustomerByEmail(model.Email);
-                if (cust2 != null)
-                    ModelState.AddModelError("", "Email is already registered");
+                model.Username = model.Phone;
             }
+            //if (!string.IsNullOrWhiteSpace(model.Email))
+            //{
+            //    var cust2 = _customerService.GetCustomerByEmail(model.Email);
+            //    if (cust2 != null)
+            //        ModelState.AddModelError("", "Email is already registered");
+            //}
             if (!string.IsNullOrWhiteSpace(model.Username) & _customerSettings.UsernamesEnabled)
             {
                 var cust2 = _customerService.GetCustomerByUsername(model.Username);
                 if (cust2 != null)
-                    ModelState.AddModelError("", "Username is already registered");
+                    ModelState.AddModelError("", _localizationService.GetResource("Admin.Customers.Customers.Error.EmailAlreadyRegisted"));
             }
-
+            if (!string.IsNullOrEmpty(model.FullName))
+            {
+                var customerFirstLastName = StringExtensions.GetFirstLastNameFromFullName(model.FullName);
+                model.FirstName = customerFirstLastName.FirstName;
+                model.LastName = customerFirstLastName.LastName;
+                model.Email = StringExtensions.GenerateEmailAddress(customerFirstLastName.FirstName, customerFirstLastName.LastName);
+            }
             //validate customer roles
             var allCustomerRoles = _customerService.GetAllCustomerRoles(true);
             var newCustomerRoles = new List<CustomerRole>();
@@ -915,6 +929,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                     _genericAttributeService.SaveAttribute(customer, SystemCustomerAttributeNames.Gender, model.Gender);
                 _genericAttributeService.SaveAttribute(customer, SystemCustomerAttributeNames.FirstName, model.FirstName);
                 _genericAttributeService.SaveAttribute(customer, SystemCustomerAttributeNames.LastName, model.LastName);
+                _genericAttributeService.SaveAttribute(customer, SystemCustomerAttributeNames.FullName, model.FullName);
                 if (_customerSettings.DateOfBirthEnabled)
                     _genericAttributeService.SaveAttribute(customer, SystemCustomerAttributeNames.DateOfBirth, model.DateOfBirth);
                 if (_customerSettings.CompanyEnabled)
@@ -936,6 +951,10 @@ namespace Nop.Web.Areas.Admin.Controllers
                 if (_customerSettings.FaxEnabled)
                     _genericAttributeService.SaveAttribute(customer, SystemCustomerAttributeNames.Fax, model.Fax);
 
+                _genericAttributeService.SaveAttribute(customer, SystemCustomerAttributeNames.LinkFacebook1, model.LinkFacebook1);
+                _genericAttributeService.SaveAttribute(customer, SystemCustomerAttributeNames.LinkFacebook2, model.LinkFacebook2);
+                var hashKey = _settingService.GetSettingByKey("Username.SercurityHashKey",string.Empty);
+                _genericAttributeService.SaveAttribute(customer, SystemCustomerAttributeNames.HashUserName, StringExtensions.Encrypt(model.Username,true,hashKey));
                 //custom customer attributes
                 _genericAttributeService.SaveAttribute(customer, SystemCustomerAttributeNames.CustomCustomerAttributes, customerAttributesXml);
                 
