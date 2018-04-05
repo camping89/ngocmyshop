@@ -830,7 +830,15 @@ namespace Nop.Web.Areas.Admin.Controllers
 
             return Json(gridModel);
         }
-        
+
+        [HttpPost]
+        public virtual IActionResult CustomersSearch(string searchTerm)
+        {
+            var customers = _customerService.GetAllCustomers();
+            var customerResult = customers.Select(PrepareCustomerModelForList);
+            var result = customerResult.Where(t => t.FullName.ToLowerInvariant().Contains(searchTerm.ToLowerInvariant())).ToArray();
+            return Json(new { Data = result});
+        }
         public virtual IActionResult Create()
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageCustomers))

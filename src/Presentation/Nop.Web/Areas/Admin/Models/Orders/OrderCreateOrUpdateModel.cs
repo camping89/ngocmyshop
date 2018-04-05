@@ -1,0 +1,23 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Nop.Web.Areas.Admin.Models.Catalog;
+using Nop.Web.Framework.Mvc.ModelBinding;
+
+namespace Nop.Web.Areas.Admin.Models.Orders
+{
+    public partial class OrderCreateOrUpdateModel
+    {
+        public OrderCreateOrUpdateModel()
+        {
+            ProductListModel = new ProductListModel();
+        }
+        [NopResourceDisplayName("Admin.Catalog.Orders.CreateOrder.CustomerName")]
+        public int CustomerId { get; set; }
+        public string CustomerFullName { get; set; }
+        public ProductListModel ProductListModel { get;set; }
+
+        public Web.Models.ShoppingCart.ShoppingCartModel ShoppingCartModel { get; set; }
+    }
+}

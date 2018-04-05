@@ -105,6 +105,7 @@ namespace Nop.Web.Models.Catalog
         public bool DisplayDiscontinuedMessage { get; set; }
 
         public string CurrentStoreName { get; set; }
+        public int CustomerId { get; set; }
 
         #region Nested Classes
 

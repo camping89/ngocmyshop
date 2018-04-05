@@ -22,10 +22,12 @@ using Nop.Core.Domain.Orders;
 using Nop.Core.Domain.Payments;
 using Nop.Core.Domain.Shipping;
 using Nop.Core.Domain.Tax;
+using Nop.Core.Domain.Vendors;
 using Nop.Services;
 using Nop.Services.Affiliates;
 using Nop.Services.Catalog;
 using Nop.Services.Common;
+using Nop.Services.Customers;
 using Nop.Services.Directory;
 using Nop.Services.Discounts;
 using Nop.Services.ExportImport;
@@ -42,7 +44,9 @@ using Nop.Services.Shipping.Tracking;
 using Nop.Services.Stores;
 using Nop.Services.Tax;
 using Nop.Services.Vendors;
+using Nop.Web.Areas.Admin.Models.Catalog;
 using Nop.Web.Extensions;
+using Nop.Web.Factories;
 using Nop.Web.Framework.Controllers;
 using Nop.Web.Framework.Kendoui;
 using Nop.Web.Framework.Mvc;
@@ -95,15 +99,17 @@ namespace Nop.Web.Areas.Admin.Controllers
 	    private readonly IAffiliateService _affiliateService;
 	    private readonly IPictureService _pictureService;
         private readonly ICustomerActivityService _customerActivityService;
+        private readonly ICustomerService _customerService;
+        private readonly IShoppingCartModelFactory _shoppingCartModelFactory;
+        private readonly IStoreContext _storeContext;
 	    private readonly IStaticCacheManager _cacheManager;
-
         private readonly OrderSettings _orderSettings;
         private readonly CurrencySettings _currencySettings;
         private readonly TaxSettings _taxSettings;
         private readonly MeasureSettings _measureSettings;
         private readonly AddressSettings _addressSettings;
 	    private readonly ShippingSettings _shippingSettings;
-        
+        private readonly VendorSettings _vendorSettings;
         #endregion
         
         #region Ctor
@@ -155,7 +161,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             TaxSettings taxSettings,
             MeasureSettings measureSettings,
             AddressSettings addressSettings,
-            ShippingSettings shippingSettings)
+            ShippingSettings shippingSettings, VendorSettings vendorSettings, ICustomerService customerService, IShoppingCartModelFactory shoppingCartModelFactory, IStoreContext storeContext)
 		{
             this._orderService = orderService;
             this._orderReportService = orderReportService;
@@ -205,6 +211,10 @@ namespace Nop.Web.Areas.Admin.Controllers
             this._measureSettings = measureSettings;
             this._addressSettings = addressSettings;
             this._shippingSettings = shippingSettings;
+		    _vendorSettings = vendorSettings;
+		    _customerService = customerService;
+		    _shoppingCartModelFactory = shoppingCartModelFactory;
+		    _storeContext = storeContext;
 		}
         
         #endregion
@@ -1342,7 +1352,7 @@ namespace Nop.Web.Areas.Admin.Controllers
         }
 
         #endregion
-
+        
         #region Export / Import
 
         [HttpPost, ActionName("List")]
