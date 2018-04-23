@@ -127,8 +127,12 @@ namespace Nop.Web.Factories
         public virtual CheckoutBillingAddressModel PrepareBillingAddressModel(IList<ShoppingCartItem> cart,
             int? selectedCountryId = null,
             bool prePopulateNewAddressWithCustomerFields = false,
-            string overrideAttributesXml = "")
+            string overrideAttributesXml = "",Customer customer = null)
         {
+            if (customer == null)
+            {
+                customer = _workContext.CurrentCustomer;
+            }   
             var model = new CheckoutBillingAddressModel
             {
                 ShipToSameAddressAllowed = _shippingSettings.ShipToSameAddress && cart.RequiresShipping(_productService, _productAttributeParser),
@@ -137,7 +141,7 @@ namespace Nop.Web.Factories
             };
 
             //existing addresses
-            var addresses = _workContext.CurrentCustomer.Addresses
+            var addresses = customer.Addresses
                 .Where(a => a.Country == null || 
                     (//published
                     a.Country.Published && 
@@ -152,7 +156,7 @@ namespace Nop.Web.Factories
                 _addressModelFactory.PrepareAddressModel(addressModel,
                     address: address, 
                     excludeProperties: false, 
-                    addressSettings: _addressSettings);
+                    addressSettings: _addressSettings,customer:customer);
                 model.ExistingAddresses.Add(addressModel);
             }
 
@@ -164,7 +168,7 @@ namespace Nop.Web.Factories
                 addressSettings: _addressSettings,
                 loadCountries: () => _countryService.GetAllCountriesForBilling(_workContext.WorkingLanguage.Id),
                 prePopulateWithCustomerFields: prePopulateNewAddressWithCustomerFields,
-                customer: _workContext.CurrentCustomer,
+                customer: customer,
                 overrideAttributesXml: overrideAttributesXml);
             return model;
         }
@@ -177,8 +181,12 @@ namespace Nop.Web.Factories
         /// <param name="overrideAttributesXml">Override attributes xml</param>
         /// <returns>Shipping address model</returns>
         public virtual CheckoutShippingAddressModel PrepareShippingAddressModel(int? selectedCountryId = null,
-            bool prePopulateNewAddressWithCustomerFields = false, string overrideAttributesXml = "")
+            bool prePopulateNewAddressWithCustomerFields = false, string overrideAttributesXml = "",Customer customer = null)
         {
+            if (customer == null)
+            {
+                customer = _workContext.CurrentCustomer;
+            }  
             var model = new CheckoutShippingAddressModel
             {
 
@@ -189,12 +197,12 @@ namespace Nop.Web.Factories
             {
                 model.DisplayPickupPointsOnMap = _shippingSettings.DisplayPickupPointsOnMap;
                 model.GoogleMapsApiKey = _shippingSettings.GoogleMapsApiKey;
-                var pickupPointProviders = _shippingService.LoadActivePickupPointProviders(_workContext.CurrentCustomer, _storeContext.CurrentStore.Id);
+                var pickupPointProviders = _shippingService.LoadActivePickupPointProviders(customer, _storeContext.CurrentStore.Id);
                 if (pickupPointProviders.Any())
                 {
                     var languageId = _workContext.WorkingLanguage.Id;
-                    var pickupPointsResponse = _shippingService.GetPickupPoints(_workContext.CurrentCustomer.BillingAddress,
-                        _workContext.CurrentCustomer, storeId: _storeContext.CurrentStore.Id);
+                    var pickupPointsResponse = _shippingService.GetPickupPoints(customer.BillingAddress,
+                        customer, storeId: _storeContext.CurrentStore.Id);
                     if (pickupPointsResponse.Success)
                         model.PickupPoints = pickupPointsResponse.PickupPoints.Select(point =>
                         {
@@ -218,7 +226,7 @@ namespace Nop.Web.Factories
                             };
                             if (point.PickupFee > 0)
                             {
-                                var amount = _taxService.GetShippingPrice(point.PickupFee, _workContext.CurrentCustomer);
+                                var amount = _taxService.GetShippingPrice(point.PickupFee, customer);
                                 amount = _currencyService.ConvertFromPrimaryStoreCurrency(amount, _workContext.WorkingCurrency);
                                 pickupPointModel.PickupFee = _priceFormatter.FormatShippingPrice(amount, true);
                             }
@@ -231,7 +239,7 @@ namespace Nop.Web.Factories
                 }
 
                 //only available pickup points
-                if (!_shippingService.LoadActiveShippingRateComputationMethods(_workContext.CurrentCustomer, _storeContext.CurrentStore.Id).Any())
+                if (!_shippingService.LoadActiveShippingRateComputationMethods(customer, _storeContext.CurrentStore.Id).Any())
                 {
                     if (!pickupPointProviders.Any())
                     {
@@ -245,7 +253,7 @@ namespace Nop.Web.Factories
             }
             
             //existing addresses
-            var addresses = _workContext.CurrentCustomer.Addresses
+            var addresses = customer.Addresses
                 .Where(a => a.Country == null || 
                     (//published
                     a.Country.Published &&
@@ -260,7 +268,7 @@ namespace Nop.Web.Factories
                 _addressModelFactory.PrepareAddressModel(addressModel,
                     address: address,
                     excludeProperties: false,
-                    addressSettings: _addressSettings);
+                    addressSettings: _addressSettings,customer:customer);
                 model.ExistingAddresses.Add(addressModel);
             }
 
@@ -272,7 +280,7 @@ namespace Nop.Web.Factories
                 addressSettings: _addressSettings,
                 loadCountries: () => _countryService.GetAllCountriesForShipping(_workContext.WorkingLanguage.Id),
                 prePopulateWithCustomerFields: prePopulateNewAddressWithCustomerFields,
-                customer: _workContext.CurrentCustomer,
+                customer: customer,
                 overrideAttributesXml: overrideAttributesXml);
 
             return model;
@@ -284,16 +292,20 @@ namespace Nop.Web.Factories
         /// <param name="cart">Cart</param>
         /// <param name="shippingAddress">Shipping address</param>
         /// <returns>Shipping method model</returns>
-        public virtual CheckoutShippingMethodModel PrepareShippingMethodModel(IList<ShoppingCartItem> cart, Address shippingAddress)
+        public virtual CheckoutShippingMethodModel PrepareShippingMethodModel(IList<ShoppingCartItem> cart, Address shippingAddress,Customer customer = null)
         {
+            if (customer == null)
+            {
+                customer = _workContext.CurrentCustomer;
+            }  
             var model = new CheckoutShippingMethodModel();
 
-            var getShippingOptionResponse = _shippingService.GetShippingOptions(cart, shippingAddress, _workContext.CurrentCustomer, storeId: _storeContext.CurrentStore.Id);
+            var getShippingOptionResponse = _shippingService.GetShippingOptions(cart, shippingAddress, customer, storeId: _storeContext.CurrentStore.Id);
             if (getShippingOptionResponse.Success)
             {
                 //performance optimization. cache returned shipping options.
                 //we'll use them later (after a customer has selected an option).
-                _genericAttributeService.SaveAttribute(_workContext.CurrentCustomer,
+                _genericAttributeService.SaveAttribute(customer,
                                                        SystemCustomerAttributeNames.OfferedShippingOptions,
                                                        getShippingOptionResponse.ShippingOptions,
                                                        _storeContext.CurrentStore.Id);
@@ -311,7 +323,7 @@ namespace Nop.Web.Factories
                     //adjust rate
                     var shippingTotal = _orderTotalCalculationService.AdjustShippingRate(shippingOption.Rate, cart, out List<DiscountForCaching> _);
 
-                    var rateBase = _taxService.GetShippingPrice(shippingTotal, _workContext.CurrentCustomer);
+                    var rateBase = _taxService.GetShippingPrice(shippingTotal, customer);
                     var rate = _currencyService.ConvertFromPrimaryStoreCurrency(rateBase, _workContext.WorkingCurrency);
                     soModel.Fee = _priceFormatter.FormatShippingPrice(rate, true);
 
@@ -319,7 +331,7 @@ namespace Nop.Web.Factories
                 }
 
                 //find a selected (previously) shipping method
-                var selectedShippingOption = _workContext.CurrentCustomer.GetAttribute<ShippingOption>(
+                var selectedShippingOption = customer.GetAttribute<ShippingOption>(
                         SystemCustomerAttributeNames.SelectedShippingOption, _storeContext.CurrentStore.Id);
                 if (selectedShippingOption != null)
                 {
@@ -365,14 +377,18 @@ namespace Nop.Web.Factories
         /// <param name="cart">Cart</param>
         /// <param name="filterByCountryId">Filter by country identifier</param>
         /// <returns>Payment method model</returns>
-        public virtual CheckoutPaymentMethodModel PreparePaymentMethodModel(IList<ShoppingCartItem> cart, int filterByCountryId)
+        public virtual CheckoutPaymentMethodModel PreparePaymentMethodModel(IList<ShoppingCartItem> cart, int filterByCountryId,Customer customer = null)
         {
+            if (customer == null)
+            {
+                customer = _workContext.CurrentCustomer;
+            }  
             var model = new CheckoutPaymentMethodModel();
 
             //reward points
             if (_rewardPointsSettings.Enabled && !cart.IsRecurring())
             {
-                var rewardPointsBalance = _rewardPointService.GetRewardPointsBalance(_workContext.CurrentCustomer.Id, _storeContext.CurrentStore.Id);
+                var rewardPointsBalance = _rewardPointService.GetRewardPointsBalance(customer.Id, _storeContext.CurrentStore.Id);
                 var rewardPointsAmountBase = _orderTotalCalculationService.ConvertRewardPointsToAmount(rewardPointsBalance);
                 var rewardPointsAmount = _currencyService.ConvertFromPrimaryStoreCurrency(rewardPointsAmountBase, _workContext.WorkingCurrency);
                 if (rewardPointsAmount > decimal.Zero && 
@@ -389,7 +405,7 @@ namespace Nop.Web.Factories
 
             //filter by country
             var paymentMethods = _paymentService
-                .LoadActivePaymentMethods(_workContext.CurrentCustomer, _storeContext.CurrentStore.Id, filterByCountryId)
+                .LoadActivePaymentMethods(customer, _storeContext.CurrentStore.Id, filterByCountryId)
                 .Where(pm => pm.PaymentMethodType == PaymentMethodType.Standard || pm.PaymentMethodType == PaymentMethodType.Redirection)
                 .Where(pm => !pm.HidePaymentMethod(cart))
                 .ToList();
@@ -407,7 +423,7 @@ namespace Nop.Web.Factories
                 };
                 //payment method additional fee
                 var paymentMethodAdditionalFee = _paymentService.GetAdditionalHandlingFee(cart, pm.PluginDescriptor.SystemName);
-                var rateBase = _taxService.GetPaymentMethodAdditionalFee(paymentMethodAdditionalFee, _workContext.CurrentCustomer);
+                var rateBase = _taxService.GetPaymentMethodAdditionalFee(paymentMethodAdditionalFee, customer);
                 var rate = _currencyService.ConvertFromPrimaryStoreCurrency(rateBase, _workContext.WorkingCurrency);
                 if (rate > decimal.Zero)
                     pmModel.Fee = _priceFormatter.FormatPaymentMethodAdditionalFee(rate, true);
@@ -416,7 +432,7 @@ namespace Nop.Web.Factories
             }
             
             //find a selected (previously) payment method
-            var selectedPaymentMethodSystemName = _workContext.CurrentCustomer.GetAttribute<string>(
+            var selectedPaymentMethodSystemName = customer.GetAttribute<string>(
                 SystemCustomerAttributeNames.SelectedPaymentMethod,
                 _genericAttributeService, _storeContext.CurrentStore.Id);
             if (!string.IsNullOrEmpty(selectedPaymentMethodSystemName))
@@ -442,8 +458,12 @@ namespace Nop.Web.Factories
         /// </summary>
         /// <param name="paymentMethod">Payment method</param>
         /// <returns>Payment info model</returns>
-        public virtual CheckoutPaymentInfoModel PreparePaymentInfoModel(IPaymentMethod paymentMethod)
+        public virtual CheckoutPaymentInfoModel PreparePaymentInfoModel(IPaymentMethod paymentMethod,Customer customer = null)
         {
+            if (customer == null)
+            {
+                customer = _workContext.CurrentCustomer;
+            }  
             paymentMethod.GetPublicViewComponent(out string viewComponentName);
 
             var model = new CheckoutPaymentInfoModel
@@ -460,8 +480,12 @@ namespace Nop.Web.Factories
         /// </summary>
         /// <param name="cart">Cart</param>
         /// <returns>Confirm order model</returns>
-        public virtual CheckoutConfirmModel PrepareConfirmOrderModel(IList<ShoppingCartItem> cart)
+        public virtual CheckoutConfirmModel PrepareConfirmOrderModel(IList<ShoppingCartItem> cart,Customer customer = null)
         {
+            if (customer == null)
+            {
+                customer = _workContext.CurrentCustomer;
+            }  
             var model = new CheckoutConfirmModel
             {
                 //terms of service
@@ -483,8 +507,12 @@ namespace Nop.Web.Factories
         /// </summary>
         /// <param name="order">Order</param>
         /// <returns>Checkout completed model</returns>
-        public virtual CheckoutCompletedModel PrepareCheckoutCompletedModel(Order order)
+        public virtual CheckoutCompletedModel PrepareCheckoutCompletedModel(Order order,Customer customer = null)
         {
+            if (customer == null)
+            {
+                customer = _workContext.CurrentCustomer;
+            }  
             if (order ==null)
                 throw new ArgumentNullException(nameof(order));
 
@@ -503,8 +531,12 @@ namespace Nop.Web.Factories
         /// </summary>
         /// <param name="step">Step</param>
         /// <returns>Checkout progress model</returns>
-        public virtual CheckoutProgressModel PrepareCheckoutProgressModel(CheckoutProgressStep step)
+        public virtual CheckoutProgressModel PrepareCheckoutProgressModel(CheckoutProgressStep step,Customer customer = null)
         {
+            if (customer == null)
+            {
+                customer = _workContext.CurrentCustomer;
+            }  
             var model = new CheckoutProgressModel {CheckoutProgressStep = step};
             return model;
         }
@@ -514,8 +546,12 @@ namespace Nop.Web.Factories
         /// </summary>
         /// <param name="cart">Cart</param>
         /// <returns>One page checkout model</returns>
-        public virtual OnePageCheckoutModel PrepareOnePageCheckoutModel(IList<ShoppingCartItem> cart)
+        public virtual OnePageCheckoutModel PrepareOnePageCheckoutModel(IList<ShoppingCartItem> cart,Customer customer = null)
         {
+            if (customer == null)
+            {
+                customer = _workContext.CurrentCustomer;
+            }  
             if (cart == null)
                 throw  new ArgumentNullException(nameof(cart));
 
@@ -523,7 +559,7 @@ namespace Nop.Web.Factories
             {
                 ShippingRequired = cart.RequiresShipping(_productService, _productAttributeParser),
                 DisableBillingAddressCheckoutStep = _orderSettings.DisableBillingAddressCheckoutStep,
-                BillingAddress = PrepareBillingAddressModel(cart, prePopulateNewAddressWithCustomerFields: true)
+                BillingAddress = PrepareBillingAddressModel(cart, prePopulateNewAddressWithCustomerFields: true,customer:customer)
             };
             return model;
         }

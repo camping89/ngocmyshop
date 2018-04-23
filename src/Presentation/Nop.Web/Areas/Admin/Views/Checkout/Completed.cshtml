@@ -1,4 +1,4 @@
-﻿@model CheckoutCompletedModel
+﻿@model Nop.Web.Models.Checkout.CheckoutCompletedModel
 @{
     Layout = "_ColumnsOne";
 
@@ -11,7 +11,7 @@
 <div class="page checkout-page order-completed-page">
     @if (!Model.OnePageCheckoutEnabled)
     {
-        @await Component.InvokeAsync("CheckoutProgress",  new { step = CheckoutProgressStep.Complete })
+        @await Component.InvokeAsync("CheckoutProgress",  new { step = Nop.Web.Models.Checkout.CheckoutProgressStep.Complete })
     }
     <div class="page-title">
         <h1>@T("Checkout.ThankYou")</h1>

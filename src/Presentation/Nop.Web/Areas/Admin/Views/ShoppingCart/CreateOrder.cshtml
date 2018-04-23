@@ -51,7 +51,7 @@
 
                                 $(document).ready(function() {
                                     $("#CustomerName").autocomplete({
-                                        delay: 1000,
+                                        delay: 800,
                                         source: function(request, response) {
 
                                             var postData = {
@@ -83,6 +83,9 @@
                                         select: function(event, ui) {
                                             $('#CustomerId').val(ui.item.value);
                                             this.value = ui.item.label;
+                                            setTimeout(function() {
+                                                window.location.href = "@Url.Action("CreateOrder","ShoppingCart")?customerId=" + ui.item.value;
+                                            },500);
                                             return false;
                                         },
                                         focus: function(event, ui) {
@@ -102,14 +105,19 @@
                     </div>
                 </div>
             </div>
-            <nop-tabs id="order-edit">
-                <nop-tab asp-name="tab-info" asp-title="@T("Admin.Orders.ListProductInfo")" asp-default="true">@await Html.PartialAsync("_ListProductInfo", Model.ProductListModel)</nop-tab>
-                @if (Model.ShoppingCartModel != null)
-                    {
-                            <nop-tab asp-name="tab-cart-info" asp-title="@T("Admin.Orders.AdminCart")">@await Html.PartialAsync("_AdminCustomerCart", Model.ShoppingCartModel)</nop-tab>
-                }
+            
+            @if (Model.CustomerId > 0)
+            {
+                <nop-tabs id="order-edit">
+                    <nop-tab asp-name="tab-info" asp-title="@T("Admin.Orders.ListProductInfo")" asp-default="true">@await Html.PartialAsync("_ListProductInfo", Model.ProductListModel)</nop-tab>
+
+               
+                        <nop-tab asp-name="tab-cart-info" asp-title="@T("Admin.Orders.AdminCart")">@await Html.PartialAsync("_AdminCustomerCart", Model.ShoppingCartModel)</nop-tab>
+                </nop-tabs>
+
+            }
             @*<nop-tab asp-name="tab-shipping-info" asp-title="@T("Admin.Orders.ShippingInfo")">@await Html.PartialAsync("_OrderDetails.Shipping", Model)</nop-tab>*@
-            </nop-tabs>
+           
         </div>
     </div>
     <input type="submit" id="btnRefresh" style="display: none"/>

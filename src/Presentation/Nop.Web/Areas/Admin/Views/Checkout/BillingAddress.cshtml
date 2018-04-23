@@ -1,4 +1,4 @@
-﻿@model CheckoutBillingAddressModel
+﻿@model Nop.Web.Models.Checkout.CheckoutBillingAddressModel
 @{
     Layout = "_ColumnsOne";
 
@@ -9,7 +9,7 @@
     Html.AppendPageCssClassParts("html-billing-address-page");
 }
 <div class="page checkout-page billing-address-page">
-    @await Component.InvokeAsync("CheckoutProgress", new { step = CheckoutProgressStep.Address })
+    @await Component.InvokeAsync("CheckoutProgress", new { step = Nop.Web.Models.Checkout.CheckoutProgressStep.Address })
     <div class="page-title">
         <h1>@T("Checkout.BillingAddress")</h1>
     </div>

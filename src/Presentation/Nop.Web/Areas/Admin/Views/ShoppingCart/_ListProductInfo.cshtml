@@ -255,7 +255,7 @@
                 return false;
             }
             var queryUrl = '../ShoppingCart/AddProductToCart_Details?productId=' + productId + '&customerId=' + customerId+'&btnId=btnRefresh&formId=order-form';
-            OpenWindow(queryUrl, 800, 600, true);
+            OpenWindow(queryUrl, 1000, 800, true);
             return true;
         };
         var selectedIds = [];
@@ -410,7 +410,7 @@
                 complete: function(data) {
                     if (data.responseJSON.success === true) {
                         alert('@T("Admin.AddProductToCartSuccess")');
-                        window.location.href = "@(Url.Action("CreateOrder","Order"))?customerId=" + customerId;
+                        window.location.href = "@(Url.Action("CreateOrder","ShoppingCart"))?customerId=" + customerId;
                     } else {
                         //var messeageStr = '<ul>';
                         //var arrMessage = data.responseJSON.message;

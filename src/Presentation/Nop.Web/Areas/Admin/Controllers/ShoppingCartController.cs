@@ -1,52 +1,52 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using System.Text;
+﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Nop.Web.Areas.Admin.Models.ShoppingCart;
-using Nop.Core.Domain.Customers;
-using Nop.Core.Domain.Orders;
-using Nop.Services.Catalog;
-using Nop.Services.Customers;
-using Nop.Services.Helpers;
-using Nop.Services.Localization;
-using Nop.Services.Orders;
-using Nop.Services.Security;
-using Nop.Services.Stores;
-using Nop.Services.Tax;
-using Nop.Web.Framework.Kendoui;
-using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Primitives;
 using Nop.Core;
 using Nop.Core.Caching;
 using Nop.Core.Domain.Catalog;
+using Nop.Core.Domain.Customers;
 using Nop.Core.Domain.Media;
+using Nop.Core.Domain.Orders;
+using Nop.Core.Domain.Vendors;
+using Nop.Services;
+using Nop.Services.Catalog;
 using Nop.Services.Common;
+using Nop.Services.Customers;
 using Nop.Services.Directory;
 using Nop.Services.Discounts;
+using Nop.Services.Helpers;
+using Nop.Services.Localization;
 using Nop.Services.Logging;
 using Nop.Services.Media;
 using Nop.Services.Messages;
+using Nop.Services.Orders;
+using Nop.Services.Security;
 using Nop.Services.Seo;
+using Nop.Services.Shipping;
 using Nop.Services.Shipping.Date;
+using Nop.Services.Stores;
+using Nop.Services.Tax;
+using Nop.Services.Vendors;
+using Nop.Web.Areas.Admin.Helpers;
+using Nop.Web.Areas.Admin.Models.Catalog;
+using Nop.Web.Areas.Admin.Models.Orders;
+using Nop.Web.Areas.Admin.Models.ShoppingCart;
 using Nop.Web.Factories;
 using Nop.Web.Framework.Controllers;
+using Nop.Web.Framework.Kendoui;
 using Nop.Web.Framework.Mvc;
 using Nop.Web.Framework.Mvc.Filters;
 using Nop.Web.Framework.Security;
 using Nop.Web.Framework.Security.Captcha;
 using Nop.Web.Infrastructure.Cache;
 using Nop.Web.Models.Media;
+using System;
+using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Nop.Core.Domain.Vendors;
-using Nop.Services;
-using Nop.Services.Shipping;
-using Nop.Services.Vendors;
-using Nop.Web.Areas.Admin.Helpers;
-using Nop.Web.Areas.Admin.Models.Catalog;
-using Nop.Web.Areas.Admin.Models.Orders;
+using System.Linq;
+using System.Text;
 
 namespace Nop.Web.Areas.Admin.Controllers
 {
@@ -102,9 +102,9 @@ namespace Nop.Web.Areas.Admin.Controllers
             IDateTimeHelper dateTimeHelper,
             IPriceFormatter priceFormatter,
             IStoreService storeService,
-            ITaxService taxService, 
+            ITaxService taxService,
             IPriceCalculationService priceCalculationService,
-            IPermissionService permissionService, 
+            IPermissionService permissionService,
             ILocalizationService localizationService,
             IProductAttributeFormatter productAttributeFormatter, IShoppingCartModelFactory shoppingCartModelFactory, IProductService productService, IWorkContext workContext, IStoreContext storeContext, IShoppingCartService shoppingCartService, IPictureService pictureService, IProductAttributeService productAttributeService, IProductAttributeParser productAttributeParser, ICurrencyService currencyService, ICheckoutAttributeParser checkoutAttributeParser, IDiscountService discountService, IGiftCardService giftCardService, IDateRangeService dateRangeService, ICheckoutAttributeService checkoutAttributeService, IWorkflowMessageService workflowMessageService, IDownloadService downloadService, IStaticCacheManager cacheManager, IWebHelper webHelper, ICustomerActivityService customerActivityService, IGenericAttributeService genericAttributeService, MediaSettings mediaSettings, ShoppingCartSettings shoppingCartSettings, OrderSettings orderSettings, CaptchaSettings captchaSettings, CustomerSettings customerSettings, IProductModelFactory productModelFactory, VendorSettings vendorSettings, ICategoryService categoryService, IVendorService vendorService, IManufacturerService manufacturerService, IShippingService shippingService)
         {
@@ -151,7 +151,7 @@ namespace Nop.Web.Areas.Admin.Controllers
         }
 
         #endregion
-        
+
         #region Methods
 
         //shopping carts
@@ -297,7 +297,7 @@ namespace Nop.Web.Areas.Admin.Controllers
 
         #region Utilities
 
-        protected virtual void ParseAndSaveCheckoutAttributes(List<ShoppingCartItem> cart, IFormCollection form,Customer customer = null)
+        protected virtual void ParseAndSaveCheckoutAttributes(List<ShoppingCartItem> cart, IFormCollection form, Customer customer = null)
         {
             if (customer == null)
             {
@@ -646,7 +646,7 @@ namespace Nop.Web.Areas.Admin.Controllers
 
         protected virtual void SaveItem(ShoppingCartItem updatecartitem, List<string> addToCartWarnings, Product product,
            ShoppingCartType cartType, string attributes, decimal customerEnteredPriceConverted, DateTime? rentalStartDate,
-           DateTime? rentalEndDate, int quantity,Customer customer)
+           DateTime? rentalEndDate, int quantity, Customer customer)
         {
             if (customer != null)
             {
@@ -686,11 +686,11 @@ namespace Nop.Web.Areas.Admin.Controllers
             }
         }
 
-     
+
         #endregion
         #region Admin Create Order Manual
 
-        public virtual IActionResult CreateOrder(int customerId = 0,string activetab = "")
+        public virtual IActionResult CreateOrder(int customerId = 0, string activetab = "")
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageProducts))
                 return AccessDeniedView();
@@ -709,8 +709,8 @@ namespace Nop.Web.Areas.Admin.Controllers
                     .Where(sci => sci.ShoppingCartType == ShoppingCartType.ShoppingCart)
                     .LimitPerStore(_storeContext.CurrentStore.Id)
                     .ToList();
-               var shoppingCartModel = new Web.Models.ShoppingCart.ShoppingCartModel();
-                modelResult.ShoppingCartModel = _shoppingCartModelFactory.PrepareShoppingCartModel(shoppingCartModel, cart,customer: customer);
+                var shoppingCartModel = new Web.Models.ShoppingCart.ShoppingCartModel();
+                modelResult.ShoppingCartModel = _shoppingCartModelFactory.PrepareShoppingCartModel(shoppingCartModel, cart, customer: customer);
                 modelResult.CustomerFullName = customer.GetFullName();
             }
             //categories
@@ -757,6 +757,8 @@ namespace Nop.Web.Areas.Admin.Controllers
             {
                 SaveSelectedTabName(activetab);
             }
+
+            ViewBag.CustomerId = customerId;
             return View(modelResult);
         }
 
@@ -776,7 +778,7 @@ namespace Nop.Web.Areas.Admin.Controllers
         //add product to cart using AJAX
         //currently we use this method on catalog pages (category/manufacturer/etc)
         [HttpPost]
-        public virtual IActionResult AddProductToCart_Catalog(ICollection<int> productIds,int customerId,
+        public virtual IActionResult AddProductToCart_Catalog(ICollection<int> productIds, int customerId,
             int quantity, bool forceredirection = false)
         {
             var cartType = ShoppingCartType.ShoppingCart;
@@ -896,7 +898,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                         message = addToCartWarnings.ToArray()
                     });
                 }
-               
+
                 //now let's try adding product to the cart (now including product attribute validation, etc)
                 addToCartWarnings = _shoppingCartService.AddToCart(customer: customer,
                     product: product,
@@ -912,11 +914,11 @@ namespace Nop.Web.Areas.Admin.Controllers
             });
         }
 
-        public IActionResult AddProductToCart_Details(int productId,int customerId,int updatecartitemid = 0)
+        public IActionResult AddProductToCart_Details(int productId, int customerId, int updatecartitemid = 0)
         {
             var product = _productService.GetProductById(productId);
-            
-           
+
+
             //visible individually?
             if (!product.VisibleIndividually)
             {
@@ -947,7 +949,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                     return RedirectToRoute("Product", new { SeName = product.GetSeName() });
                 }
             }
-            
+
             //activity log
             _customerActivityService.InsertActivity("PublicStore.ViewProduct", _localizationService.GetResource("ActivityLog.PublicStore.ViewProduct"), product.Name);
 
@@ -960,7 +962,7 @@ namespace Nop.Web.Areas.Admin.Controllers
         //add product to cart using AJAX
         //currently we use this method on the product details pages
         [HttpPost]
-        public virtual IActionResult AddProductToCart_Details(int productId, int shoppingCartTypeId,int customerId, IFormCollection form)
+        public virtual IActionResult AddProductToCart_Details(int productId, int shoppingCartTypeId, int customerId, IFormCollection form)
         {
             var product = _productService.GetProductById(productId);
             var customer = _customerService.GetCustomerById(customerId);
@@ -1024,7 +1026,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 //if the item to update is found, then we ignore the specified "shoppingCartTypeId" parameter
                 updatecartitem.ShoppingCartType;
 
-            SaveItem(updatecartitem, addToCartWarnings, product, cartType, attributes, customerEnteredPriceConverted, rentalStartDate, rentalEndDate, quantity,customer);
+            SaveItem(updatecartitem, addToCartWarnings, product, cartType, attributes, customerEnteredPriceConverted, rentalStartDate, rentalEndDate, quantity, customer);
             //activity log
             _customerActivityService.InsertActivity("PublicStore.AddToShoppingCart",
                 _localizationService.GetResource("ActivityLog.PublicStore.AddToShoppingCart"), product.Name);
@@ -1037,15 +1039,79 @@ namespace Nop.Web.Areas.Admin.Controllers
             //model
             var model = _productModelFactory.PrepareProductDetailsModel(product, updatecartitem, false);
             model.CustomerId = customerId;
-            return View(productTemplateViewPath,model);
+            //return View(productTemplateViewPath,model);
             //return result
+            return View(productTemplateViewPath, model);
             //return GetProductToCartDetails(addToCartWarnings, cartType, product);
         }
+        protected virtual IActionResult GetProductToCartDetails(List<string> addToCartWarnings, ShoppingCartType cartType,
+           Product product)
+        {
+            if (addToCartWarnings.Any())
+            {
+                //cannot be added to the cart/wishlist
+                //let's display warnings
+                return Json(new
+                {
+                    success = false,
+                    message = addToCartWarnings.ToArray()
+                });
+            }
 
+            //added to the cart/wishlist
+            switch (cartType)
+            {
+                case ShoppingCartType.Wishlist:
+                    {
+                        //activity log
+                        _customerActivityService.InsertActivity("PublicStore.AddToWishlist",
+                            _localizationService.GetResource("ActivityLog.PublicStore.AddToWishlist"), product.Name);
+
+                        if (_shoppingCartSettings.DisplayWishlistAfterAddingProduct)
+                        {
+                            //redirect to the wishlist page
+                            return Json(new
+                            {
+                                redirect = Url.RouteUrl("Wishlist")
+                            });
+                        }
+
+                        //display notification message and update appropriate blocks
+                        var updatetopwishlistsectionhtml = string.Format(
+                            _localizationService.GetResource("Wishlist.HeaderQuantity"),
+                            _workContext.CurrentCustomer.ShoppingCartItems
+                                .Where(sci => sci.ShoppingCartType == ShoppingCartType.Wishlist)
+                                .LimitPerStore(_storeContext.CurrentStore.Id)
+                                .ToList()
+                                .GetTotalProducts());
+
+                        return Json(new
+                        {
+                            success = true,
+                            message = string.Format(
+                                _localizationService.GetResource("Products.ProductHasBeenAddedToTheWishlist.Link"),
+                                Url.RouteUrl("Wishlist")),
+                            updatetopwishlistsectionhtml
+                        });
+                    }
+                case ShoppingCartType.ShoppingCart:
+                default:
+                    {
+                        //activity log
+                        _customerActivityService.InsertActivity("PublicStore.AddToShoppingCart",
+                            _localizationService.GetResource("ActivityLog.PublicStore.AddToShoppingCart"), product.Name);
+
+                        return Json(new
+                        {
+                            redirect = Url.RouteUrl("ShoppingCart")
+                        });
+                    }
+            }
+        }
         //handle product attribute selection event. this way we return new price, overridden gtin/sku/mpn
         //currently we use this method on the product details pages
         [HttpPost]
-        public virtual IActionResult ProductDetails_AttributeChange(int productId,int customerId, bool validateAttributeConditions,
+        public virtual IActionResult ProductDetails_AttributeChange(int productId, int customerId, bool validateAttributeConditions,
             bool loadPicture, IFormCollection form)
         {
             var product = _productService.GetProductById(productId);
@@ -1175,16 +1241,17 @@ namespace Nop.Web.Areas.Admin.Controllers
         }
 
         [HttpPost]
-        public virtual IActionResult CheckoutAttributeChange(IFormCollection form, bool isEditable)
+        public virtual IActionResult CheckoutAttributeChange(IFormCollection form, bool isEditable, int customerId)
         {
-            var cart = _workContext.CurrentCustomer.ShoppingCartItems
+            var customer = _customerService.GetCustomerById(customerId);
+            var cart = customer.ShoppingCartItems
                 .Where(sci => sci.ShoppingCartType == ShoppingCartType.ShoppingCart)
                 .LimitPerStore(_storeContext.CurrentStore.Id)
                 .ToList();
 
             //save selected attributes
             ParseAndSaveCheckoutAttributes(cart, form);
-            var attributeXml = _workContext.CurrentCustomer.GetAttribute<string>(SystemCustomerAttributeNames.CheckoutAttributes,
+            var attributeXml = customer.GetAttribute<string>(SystemCustomerAttributeNames.CheckoutAttributes,
                 _genericAttributeService, _storeContext.CurrentStore.Id);
 
             //conditions
@@ -1205,7 +1272,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             }
 
             //update blocks
-            var ordetotalssectionhtml = this.RenderViewComponentToString("OrderTotals", new { isEditable });
+            var ordetotalssectionhtml = this.RenderViewComponentToString("OrderTotals", new { isEditable, customerId });
             var selectedcheckoutattributesssectionhtml = this.RenderViewComponentToString("SelectedCheckoutAttributes");
 
             return Json(new
@@ -1379,28 +1446,28 @@ namespace Nop.Web.Areas.Admin.Controllers
             });
         }
 
-       
+
         [HttpsRequirement(SslRequirement.Yes)]
-        public virtual IActionResult AdminCart(int customerId)
+        public virtual IActionResult AdminCart(int customerId, string activetab)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.EnableShoppingCart))
-                return RedirectToRoute("HomePage");
+                return RedirectToAction("Index", "Order");
             var customer = _customerService.GetCustomerById(customerId);
             var cart = customer.ShoppingCartItems
                 .Where(sci => sci.ShoppingCartType == ShoppingCartType.ShoppingCart)
                 .LimitPerStore(_storeContext.CurrentStore.Id)
                 .ToList();
             var model = new Web.Models.ShoppingCart.ShoppingCartModel();
-            model = _shoppingCartModelFactory.PrepareShoppingCartModel(model, cart,customer:customer);
-            return View(model);
+            model = _shoppingCartModelFactory.PrepareShoppingCartModel(model, cart, customer: customer);
+            return RedirectToAction("CreateOrder", new { customerId = customerId, activetab = activetab });
         }
 
         [HttpPost, ActionName("AdminCart")]
         [FormValueRequired("updatecart")]
-        public virtual IActionResult AdminUpdateCart(IFormCollection form,int customerId,string activetab)
+        public virtual IActionResult AdminUpdateCart(IFormCollection form, int customerId, string activetab)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.EnableShoppingCart))
-                return RedirectToRoute("HomePage");
+                return RedirectToAction("Index", "Order");
             var customer = _customerService.GetCustomerById(customerId);
             var cart = customer.ShoppingCartItems
                 .Where(sci => sci.ShoppingCartType == ShoppingCartType.ShoppingCart)
@@ -1438,7 +1505,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             }
 
             //parse and save checkout attributes
-            ParseAndSaveCheckoutAttributes(cart, form,customer);
+            ParseAndSaveCheckoutAttributes(cart, form, customer);
 
             //updated cart
             cart = customer.ShoppingCartItems
@@ -1446,7 +1513,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 .LimitPerStore(_storeContext.CurrentStore.Id)
                 .ToList();
             var model = new Web.Models.ShoppingCart.ShoppingCartModel();
-            model = _shoppingCartModelFactory.PrepareShoppingCartModel(model, cart,customer:customer);
+            model = _shoppingCartModelFactory.PrepareShoppingCartModel(model, cart, customer: customer);
             //update current warnings
             foreach (var kvp in innerWarnings)
             {
@@ -1461,21 +1528,21 @@ namespace Nop.Web.Areas.Admin.Controllers
                             sciModel.Warnings.Add(w);
             }
 
-            return RedirectToAction("CreateOrder", new {customerId = customerId, activetab = activetab});
+            return RedirectToAction("CreateOrder", new { customerId = customerId, activetab = activetab });
         }
 
         [HttpPost, ActionName("AdminCart")]
         [FormValueRequired("checkout")]
-        public virtual IActionResult AdminStartCheckout(IFormCollection form,int customerId)
+        public virtual IActionResult AdminStartCheckout(IFormCollection form, int customerId)
         {
             var customer = _customerService.GetCustomerById(customerId);
-            var cart =customer.ShoppingCartItems
+            var cart = customer.ShoppingCartItems
                 .Where(sci => sci.ShoppingCartType == ShoppingCartType.ShoppingCart)
                 .LimitPerStore(_storeContext.CurrentStore.Id)
                 .ToList();
 
             //parse and save checkout attributes
-            ParseAndSaveCheckoutAttributes(cart, form);
+            ParseAndSaveCheckoutAttributes(cart, form, customer);
 
             //validate attributes
             var checkoutAttributes = customer.GetAttribute<string>(SystemCustomerAttributeNames.CheckoutAttributes, _genericAttributeService, _storeContext.CurrentStore.Id);
@@ -1484,7 +1551,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             {
                 //something wrong, redisplay the page with warnings
                 var model = new Web.Models.ShoppingCart.ShoppingCartModel();
-                model = _shoppingCartModelFactory.PrepareShoppingCartModel(model, cart, validateCheckoutAttributes: true,customer:customer);
+                model = _shoppingCartModelFactory.PrepareShoppingCartModel(model, cart, validateCheckoutAttributes: true, customer: customer);
                 return View(model);
             }
 
@@ -1501,12 +1568,12 @@ namespace Nop.Web.Areas.Admin.Controllers
                 return RedirectToRoute("LoginCheckoutAsGuest", new { returnUrl = Url.RouteUrl("ShoppingCart") });
             }
 
-            return RedirectToAction("Checkout");
+            return RedirectToAction("Index", "Checkout", new { customerId });
         }
 
         [HttpPost, ActionName("AdminCart")]
         [FormValueRequired("applydiscountcouponcode")]
-        public virtual IActionResult ApplyDiscountCoupon(string discountcouponcode,int customerId,string activetab, IFormCollection form)
+        public virtual IActionResult ApplyDiscountCoupon(string discountcouponcode, int customerId, string activetab, IFormCollection form)
         {
             var customer = _customerService.GetCustomerById(customerId);
             //trim
@@ -1520,7 +1587,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 .ToList();
 
             //parse and save checkout attributes
-            ParseAndSaveCheckoutAttributes(cart, form,customer);
+            ParseAndSaveCheckoutAttributes(cart, form, customer);
 
             //var model = new Web.Models.ShoppingCart.ShoppingCartModel();
             //if (!string.IsNullOrWhiteSpace(discountcouponcode))
@@ -1567,12 +1634,12 @@ namespace Nop.Web.Areas.Admin.Controllers
 
             //model = _shoppingCartModelFactory.PrepareShoppingCartModel(model, cart,customer:customer);
 
-            return RedirectToAction("CreateOrder", new {customerId = customerId, activetab = activetab});
+            return RedirectToAction("CreateOrder", new { customerId = customerId, activetab = activetab });
         }
 
         [HttpPost, ActionName("Cart")]
         [FormValueRequired("applygiftcardcouponcode")]
-        public virtual IActionResult ApplyGiftCard(string giftcardcouponcode,int customerId,string activetab, IFormCollection form)
+        public virtual IActionResult ApplyGiftCard(string giftcardcouponcode, int customerId, string activetab, IFormCollection form)
         {
             var customer = _customerService.GetCustomerById(customerId);
             //trim
@@ -1586,7 +1653,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 .ToList();
 
             //parse and save checkout attributes
-            ParseAndSaveCheckoutAttributes(cart, form,customer);
+            ParseAndSaveCheckoutAttributes(cart, form, customer);
 
             //var model = new Web.Models.ShoppingCart.ShoppingCartModel();
             //if (!cart.IsRecurring())
@@ -1621,12 +1688,12 @@ namespace Nop.Web.Areas.Admin.Controllers
 
             //model = _shoppingCartModelFactory.PrepareShoppingCartModel(model, cart,customer:customer);
             //return View(model);
-            return RedirectToAction("CreateOrder", new {customerId = customerId, activetab = activetab});
+            return RedirectToAction("CreateOrder", new { customerId = customerId, activetab = activetab });
         }
 
         [PublicAntiForgery]
         [HttpPost]
-        public virtual IActionResult GetEstimateShipping(int? countryId, int? stateProvinceId, string zipPostalCode,int customerId, IFormCollection form)
+        public virtual IActionResult GetEstimateShipping(int? countryId, int? stateProvinceId, string zipPostalCode, int customerId, IFormCollection form)
         {
             var customer = _customerService.GetCustomerById(customerId);
             var cart = customer.ShoppingCartItems
@@ -1635,7 +1702,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 .ToList();
 
             //parse and save checkout attributes
-            ParseAndSaveCheckoutAttributes(cart, form,customer);
+            ParseAndSaveCheckoutAttributes(cart, form, customer);
 
             var errors = new StringBuilder();
 
@@ -1663,7 +1730,7 @@ namespace Nop.Web.Areas.Admin.Controllers
 
         [HttpPost, ActionName("ShoppingCart")]
         [FormValueRequired(FormValueRequirement.StartsWith, "removediscount-")]
-        public virtual IActionResult RemoveDiscountCoupon(IFormCollection form,int customerId,string activetab)
+        public virtual IActionResult RemoveDiscountCoupon(IFormCollection form, int customerId, string activetab)
         {
             var customer = _customerService.GetCustomerById(customerId);
             var model = new Web.Models.ShoppingCart.ShoppingCartModel();
@@ -1684,12 +1751,12 @@ namespace Nop.Web.Areas.Admin.Controllers
             //    .ToList();
             //model = _shoppingCartModelFactory.PrepareShoppingCartModel(model, cart,customer:customer);
             //return View(model);
-            return RedirectToAction("CreateOrder", new {customerId = customerId, activetab = activetab});
+            return RedirectToAction("CreateOrder", new { customerId = customerId, activetab = activetab });
         }
 
         [HttpPost, ActionName("ShoppingCart")]
         [FormValueRequired(FormValueRequirement.StartsWith, "removegiftcard-")]
-        public virtual IActionResult RemoveGiftCardCode(IFormCollection form,int customerId,string activetab)
+        public virtual IActionResult RemoveGiftCardCode(IFormCollection form, int customerId, string activetab)
         {
             var customer = _customerService.GetCustomerById(customerId);
             //var model = new Web.Models.ShoppingCart.ShoppingCartModel();
@@ -1709,7 +1776,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             //    .ToList();
             //model = _shoppingCartModelFactory.PrepareShoppingCartModel(model, cart, customer: customer);
             //return View(model);
-            return RedirectToAction("CreateOrder", new {customerId = customerId, activetab = activetab});
+            return RedirectToAction("CreateOrder", new { customerId = customerId, activetab = activetab });
         }
 
         #endregion

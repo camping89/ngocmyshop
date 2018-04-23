@@ -1,14 +1,14 @@
-﻿@model OnePageCheckoutModel
+﻿@model Nop.Web.Models.Checkout.OnePageCheckoutModel
 @using Nop.Core
 @inject IWebHelper webHelper
 @{
-    Layout = "_ColumnsOne";
+    Layout = "_AdminLayout";
 
     //scripts
     Html.AddScriptParts(ResourceLocation.Footer, "~/js/public.accordion.js");
     Html.AddScriptParts(ResourceLocation.Footer, "~/js/public.onepagecheckout.js");
 
-    var storeLocation = webHelper.GetStoreLocation();
+    var storeLocation = webHelper.GetStoreLocation() + "Admin/";
 
     //title
     Html.AddTitleParts(T("PageTitle.Checkout").Text);
@@ -16,6 +16,7 @@
     Html.AppendPageCssClassParts("html-checkout-page");
 }
 @{
+    var customerId = Context.Request.Query["customerId"].ToString();
     //step numbers
     var billingAddressStepNumber = 1;
     var shippingAddressStepNumber = 2;
@@ -38,9 +39,17 @@
         confirmOrderStepNumber--;
     }
 }
+<style>
+    ol,ul {
+        list-style: none !important;
+    }
+    .title {
+        margin: 0 !important;
+    }
+</style>
 <div class="page checkout-page">
     <div class="page-title">
-        <h1>@T("Checkout")</h1>
+        <div class="container"><h3>@T("Checkout")</h3></div>
     </div>
     <div class="page-body checkout-data">
         @await Component.InvokeAsync("Widget", new { widgetZone = "opc_content_before" })
@@ -52,13 +61,14 @@
                 </div>
                 <div id="checkout-step-billing" class="step a-item" style="display: none;">
                     <form id="co-billing-form" action="">
+                        <input type="hidden" name="customerId" value="@(customerId)"/>
                         <div id="checkout-billing-load">
                             @await Html.PartialAsync("OpcBillingAddress", Model.BillingAddress)
                             @*billing address content will be loaded here*@
                         </div>
                     </form>
                     <script type="text/javascript" asp-location="Footer">
-                        Billing.init('#co-billing-form', '@(storeLocation)checkout/OpcSaveBilling/', @(Model.DisableBillingAddressCheckoutStep.ToString().ToLowerInvariant()));
+                        Billing.init('#co-billing-form', '@(storeLocation)Checkout/OpcSaveBilling/', @(Model.DisableBillingAddressCheckoutStep.ToString().ToLowerInvariant()));
                         if ($("#billing-address-select").length > 0) {
                             Billing.newAddress(!$('#billing-address-select').val());
                         }
@@ -83,7 +93,7 @@
                             </div>
                         </form>
                         <script type="text/javascript" asp-location="Footer">
-                            Shipping.init('#co-shipping-form', '@(storeLocation)checkout/OpcSaveShipping/');
+                            Shipping.init('#co-shipping-form', '@(storeLocation)Checkout/OpcSaveShipping?customerId=@customerId');
                             if ($("#shipping-address-select").length > 0) {
                                 Shipping.newAddress(!$('#shipping-address-select').val());
                             }
@@ -111,7 +121,7 @@
                                 @*shipping methods content will be loaded here*@
                             </div>
                             <script type="text/javascript" asp-location="Footer">
-                                ShippingMethod.init('#co-shipping-method-form', '@(storeLocation)checkout/OpcSaveShippingMethod/');
+                                ShippingMethod.init('#co-shipping-method-form', '@(storeLocation)Checkout/OpcSaveShippingMethod?customerId=@customerId');
                             </script>
                             <div class="buttons" id="shipping-method-buttons-container">
                                 <p class="back-link">
@@ -135,7 +145,7 @@
                         </div>
                     </form>
                     <script type="text/javascript" asp-location="Footer">
-                        PaymentMethod.init('#co-payment-method-form', '@(storeLocation)checkout/OpcSavePaymentMethod/');
+                        PaymentMethod.init('#co-payment-method-form', '@(storeLocation)Checkout/OpcSavePaymentMethod?customerId=@customerId');
                     </script>
                     <div class="buttons" id="payment-method-buttons-container">
                         <p class="back-link">
@@ -157,7 +167,7 @@
                         </div>
                     </form>
                     <script type="text/javascript" asp-location="Footer">
-                        PaymentInfo.init('#co-payment-info-form', '@(storeLocation)checkout/OpcSavePaymentInfo/');
+                        PaymentInfo.init('#co-payment-info-form', '@(storeLocation)Checkout/OpcSavePaymentInfo?customerId=@customerId');
                     </script>
                     <div class="buttons" id="payment-info-buttons-container">
                         <p class="back-link">
@@ -177,7 +187,7 @@
                         @*confirm order content will be loaded here*@
                     </div>
                     <script type="text/javascript" asp-location="Footer">
-                        ConfirmOrder.init('@(storeLocation)checkout/OpcConfirmOrder/', '@(storeLocation)checkout/completed/');
+                        ConfirmOrder.init('@(storeLocation)Checkout/OpcConfirmOrder?customerId=@customerId', '@(storeLocation)Checkout/Completed?customerId=@customerId');
                     </script>
                     <div class="buttons" id="confirm-order-buttons-container">
                         <p class="back-link">
@@ -193,7 +203,7 @@
     <script type="text/javascript" asp-location="Footer">
         Accordion.init('checkout-steps', '.step-title', true);
         Accordion.openSection('#opc-billing');
-        Checkout.init('@(storeLocation)cart/');
+        Checkout.init('@(storeLocation)/ShoppingCart/CreateOrder?customerId=@customerId');
         if (Billing.disableBillingAddressCheckoutStep)
         {
             Accordion.hideSection('#opc-billing');

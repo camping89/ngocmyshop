@@ -49,6 +49,9 @@
 
     <!-- We copy the \Logs directory -->
     <Content Include="Logs\**" CopyToPublishDirectory="PreserveNewest" />
+    <None Remove="Themes\DefaultClean\Content\css\styles - Copy.rtl.css" />
+    <None Remove="Themes\DefaultClean\Content\css\stylesWEB.css" />
+    <None Include="wwwroot\css\admin\stylesWEB.rtl.css" />
     <Content Update="Areas\Admin\Views\Shared\_GiftCardBox.cshtml">
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </Content>
