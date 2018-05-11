@@ -4,7 +4,7 @@ using Nop.Core;
 using Nop.Core.Domain.Orders;
 using Nop.Core.Domain.Payments;
 using Nop.Core.Plugins;
-using Nop.Plugin.Payments.CashOnDelivery.Controllers;
+using Nop.Plugin.Payments.BankWire.Controllers;
 using Nop.Services.Configuration;
 using Nop.Services.Localization;
 using Nop.Services.Orders;
@@ -12,18 +12,18 @@ using Nop.Services.Payments;
 using Microsoft.AspNetCore.Http;
 using Nop.Services.Catalog;
 
-namespace Nop.Plugin.Payments.CashOnDelivery
+namespace Nop.Plugin.Payments.BankWire
 {
     /// <summary>
-    /// CashOnDelivery payment processor
+    /// BankWire payment processor
     /// </summary>
-    public class CashOnDeliveryPaymentProcessor : BasePlugin, IPaymentMethod
+    public class BankWirePaymentProcessor : BasePlugin, IPaymentMethod
     {
         #region Fields
         
         private readonly ISettingService _settingService;
         private readonly IOrderTotalCalculationService _orderTotalCalculationService;
-        private readonly CashOnDeliveryPaymentSettings _cashOnDeliveryPaymentSettings;
+        private readonly BankWirePaymentSettings _cashOnDeliveryPaymentSettings;
         private readonly ILocalizationService _localizationService;
         private readonly IWebHelper _webHelper;
         private readonly IProductAttributeParser _productAttributeParser;
@@ -31,9 +31,9 @@ namespace Nop.Plugin.Payments.CashOnDelivery
 
         #region Ctor
 
-        public CashOnDeliveryPaymentProcessor(ISettingService settingService, 
+        public BankWirePaymentProcessor(ISettingService settingService, 
             IOrderTotalCalculationService orderTotalCalculationService,
-            CashOnDeliveryPaymentSettings cashOnDeliveryPaymentSettings,
+            BankWirePaymentSettings cashOnDeliveryPaymentSettings,
             ILocalizationService localizationService,
             IWebHelper webHelper, IProductAttributeParser productAttributeParser)
         {
@@ -42,7 +42,7 @@ namespace Nop.Plugin.Payments.CashOnDelivery
             this._cashOnDeliveryPaymentSettings = cashOnDeliveryPaymentSettings;
             this._localizationService = localizationService;
             this._webHelper = webHelper;
-            _productAttributeParser = productAttributeParser;
+            this._productAttributeParser = productAttributeParser;
         }
 
         #endregion
@@ -81,7 +81,7 @@ namespace Nop.Plugin.Payments.CashOnDelivery
             //you can put any logic here
             //for example, hide this payment method if all products in the cart are downloadable
             //or hide this payment method if current customer is from certain country
-            return _cashOnDeliveryPaymentSettings.ShippableProductRequired && !cart.RequiresShipping(productAttributeParser: _productAttributeParser);
+            return _cashOnDeliveryPaymentSettings.ShippableProductRequired && !cart.RequiresShipping(productAttributeParser:_productAttributeParser);
         }
 
         /// <summary>
@@ -198,33 +198,33 @@ namespace Nop.Plugin.Payments.CashOnDelivery
 
         public override string GetConfigurationPageUrl()
         {
-            return $"{_webHelper.GetStoreLocation()}Admin/PaymentCashOnDelivery/Configure";
+            return $"{_webHelper.GetStoreLocation()}Admin/PaymentBankWire/Configure";
         }
         
 
         public Type GetControllerType()
         {
-            return typeof(PaymentCashOnDeliveryController);
+            return typeof(PaymentBankWireController);
         }
 
         public override void Install()
         {
-            var settings = new CashOnDeliveryPaymentSettings
+            var settings = new BankWirePaymentSettings
             {
                 DescriptionText = "<p>In cases where an order is placed, an authorized representative will contact you, personally or over telephone, to confirm the order.<br />After the order is confirmed, it will be processed.<br />Orders once confirmed, cannot be cancelled.</p><p>P.S. You can edit this text from admin panel.</p>"
             };
 
             _settingService.SaveSetting(settings);
 
-            this.AddOrUpdatePluginLocaleResource("Plugins.Payment.CashOnDelivery.DescriptionText", "Description");
-            this.AddOrUpdatePluginLocaleResource("Plugins.Payment.CashOnDelivery.DescriptionText.Hint", "Enter info that will be shown to customers during checkout");
-            this.AddOrUpdatePluginLocaleResource("Plugins.Payment.CashOnDelivery.AdditionalFee", "Additional fee");
-            this.AddOrUpdatePluginLocaleResource("Plugins.Payment.CashOnDelivery.AdditionalFee.Hint", "The additional fee.");
-            this.AddOrUpdatePluginLocaleResource("Plugins.Payment.CashOnDelivery.AdditionalFeePercentage", "Additional fee. Use percentage");
-            this.AddOrUpdatePluginLocaleResource("Plugins.Payment.CashOnDelivery.AdditionalFeePercentage.Hint", "Determines whether to apply a percentage additional fee to the order total. If not enabled, a fixed value is used.");
-            this.AddOrUpdatePluginLocaleResource("Plugins.Payment.CashOnDelivery.ShippableProductRequired", "Shippable product required");
-            this.AddOrUpdatePluginLocaleResource("Plugins.Payment.CashOnDelivery.ShippableProductRequired.Hint", "An option indicating whether shippable products are required in order to display this payment method during checkout.");
-            this.AddOrUpdatePluginLocaleResource("Plugins.Payment.CashOnDelivery.PaymentMethodDescription", "Pay by \"Cash on delivery\"");
+            this.AddOrUpdatePluginLocaleResource("Plugins.Payment.BankWire.DescriptionText", "Description");
+            this.AddOrUpdatePluginLocaleResource("Plugins.Payment.BankWire.DescriptionText.Hint", "Enter info that will be shown to customers during checkout");
+            this.AddOrUpdatePluginLocaleResource("Plugins.Payment.BankWire.AdditionalFee", "Additional fee");
+            this.AddOrUpdatePluginLocaleResource("Plugins.Payment.BankWire.AdditionalFee.Hint", "The additional fee.");
+            this.AddOrUpdatePluginLocaleResource("Plugins.Payment.BankWire.AdditionalFeePercentage", "Additional fee. Use percentage");
+            this.AddOrUpdatePluginLocaleResource("Plugins.Payment.BankWire.AdditionalFeePercentage.Hint", "Determines whether to apply a percentage additional fee to the order total. If not enabled, a fixed value is used.");
+            this.AddOrUpdatePluginLocaleResource("Plugins.Payment.BankWire.ShippableProductRequired", "Shippable product required");
+            this.AddOrUpdatePluginLocaleResource("Plugins.Payment.BankWire.ShippableProductRequired.Hint", "An option indicating whether shippable products are required in order to display this payment method during checkout.");
+            this.AddOrUpdatePluginLocaleResource("Plugins.Payment.BankWire.PaymentMethodDescription", "Pay by \"Bank Wire\"");
             
             base.Install();
         }
@@ -232,25 +232,25 @@ namespace Nop.Plugin.Payments.CashOnDelivery
         public override void Uninstall()
         {
             //settings
-            _settingService.DeleteSetting<CashOnDeliveryPaymentSettings>();
+            _settingService.DeleteSetting<BankWirePaymentSettings>();
 
             //locales
-            this.DeletePluginLocaleResource("Plugins.Payment.CashOnDelivery.DescriptionText");
-            this.DeletePluginLocaleResource("Plugins.Payment.CashOnDelivery.DescriptionText.Hint");
-            this.DeletePluginLocaleResource("Plugins.Payment.CashOnDelivery.AdditionalFee");
-            this.DeletePluginLocaleResource("Plugins.Payment.CashOnDelivery.AdditionalFee.Hint");
-            this.DeletePluginLocaleResource("Plugins.Payment.CashOnDelivery.AdditionalFeePercentage");
-            this.DeletePluginLocaleResource("Plugins.Payment.CashOnDelivery.AdditionalFeePercentage.Hint");
-            this.DeletePluginLocaleResource("Plugins.Payment.CashOnDelivery.ShippableProductRequired");
-            this.DeletePluginLocaleResource("Plugins.Payment.CashOnDelivery.ShippableProductRequired.Hint");
-            this.DeletePluginLocaleResource("Plugins.Payment.CashOnDelivery.PaymentMethodDescription");
+            this.DeletePluginLocaleResource("Plugins.Payment.BankWire.DescriptionText");
+            this.DeletePluginLocaleResource("Plugins.Payment.BankWire.DescriptionText.Hint");
+            this.DeletePluginLocaleResource("Plugins.Payment.BankWire.AdditionalFee");
+            this.DeletePluginLocaleResource("Plugins.Payment.BankWire.AdditionalFee.Hint");
+            this.DeletePluginLocaleResource("Plugins.Payment.BankWire.AdditionalFeePercentage");
+            this.DeletePluginLocaleResource("Plugins.Payment.BankWire.AdditionalFeePercentage.Hint");
+            this.DeletePluginLocaleResource("Plugins.Payment.BankWire.ShippableProductRequired");
+            this.DeletePluginLocaleResource("Plugins.Payment.BankWire.ShippableProductRequired.Hint");
+            this.DeletePluginLocaleResource("Plugins.Payment.BankWire.PaymentMethodDescription");
             
             base.Uninstall();
         }
 
         public void GetPublicViewComponent(out string viewComponentName)
         {
-            viewComponentName = "PaymentCashOnDelivery";
+            viewComponentName = "PaymentBankWire";
         }
 
         #endregion
@@ -339,7 +339,7 @@ namespace Nop.Plugin.Payments.CashOnDelivery
         /// </summary>
         public string PaymentMethodDescription
         {
-            get { return _localizationService.GetResource("Plugins.Payment.CashOnDelivery.PaymentMethodDescription"); }
+            get { return _localizationService.GetResource("Plugins.Payment.BankWire.PaymentMethodDescription"); }
         }
 
         #endregion

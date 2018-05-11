@@ -9,7 +9,7 @@
     <div class="add-to-cart">
         @if (Model.CustomerEntersPrice)
         {
-            <div class="customer-entered-price">
+            <div style="display: none !important;" class="customer-entered-price">
                 <div class="price-input">
                     <label asp-for="CustomerEnteredPrice" asp-postfix=":" class="enter-price-label"></label>
                     @*round price*@

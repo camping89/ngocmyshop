@@ -80,6 +80,11 @@
                             @T("Admin.Orders.PdfInvoices.Selected")
                         </button>
                     </li>
+                    <li>
+                        <button type="button" id="pdf-invoice-vendor-selected">
+                            @T("Admin.Orders.PdfInvoicesVendor.Selected")
+                        </button>
+                    </li>
                 </ul>
             </div>
             @await Component.InvokeAsync("AdminWidget", new { widgetZone = "admin_order_list_buttons" })
@@ -326,6 +331,12 @@
                     title: "@T("Admin.Orders.Fields.CustomOrderNumber")",
                     width: 80
                 },
+                {
+                    field: "PictureThumbnailUrl",
+                    title: "@T("Admin.Catalog.Products.Fields.PictureThumbnailUrl")",
+                    template: '<img src="#=PictureThumbnailUrl#" />',
+                    width: 100
+                },
                 @if (!Model.IsLoggedInAsVendor)
                 {
                     //a vendor does not have access to this functionality
@@ -554,6 +565,11 @@
     <input type="hidden" id="selectedIds" name="selectedIds" value="" />
 </form>
 
+@*Print packaging slips selected (XML). We don't use GET approach because it's limited to 2K-4K chars and won't work for large number of entities*@
+<form asp-controller="Order" asp-action="PdfInvoiceVendorSelected" method="post" id="pdf-invoice-vendor-selected-form">
+    <input type="hidden" id="selectedVendorIds" name="selectedIds" value="" />
+</form>
+
 <script type="text/javascript">
     $(document).ready(function () {
         $('#pdf-invoice-selected').click(function (e) {
@@ -561,6 +577,14 @@
             var ids = selectedIds.join(",");
             $('#pdf-invoice-selected-form #selectedIds').val(ids);
             $('#pdf-invoice-selected-form').submit();
+            return false;
+        });
+        
+        $('#pdf-invoice-vendor-selected').click(function (e) {
+            e.preventDefault();
+            var ids = selectedIds.join(",");
+            $('#pdf-invoice-vendor-selected-form #selectedVendorIds').val(ids);
+            $('#pdf-invoice-vendor-selected-form').submit();
             return false;
         });
     });

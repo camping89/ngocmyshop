@@ -471,7 +471,7 @@ namespace Nop.Web.Factories
                 PaymentViewComponentName = viewComponentName,
                 DisplayOrderTotals = _orderSettings.OnePageCheckoutDisplayOrderTotalsOnPaymentInfoTab
             };
-            
+            model.CustomerId = customer.Id;
             return model;
         }
 
@@ -490,7 +490,8 @@ namespace Nop.Web.Factories
             {
                 //terms of service
                 TermsOfServiceOnOrderConfirmPage = _orderSettings.TermsOfServiceOnOrderConfirmPage,
-                TermsOfServicePopup = _commonSettings.PopupForTermsOfServiceLinks
+                TermsOfServicePopup = _commonSettings.PopupForTermsOfServiceLinks,
+                CustomerId = customer.Id
             };
             //min order amount validation
             var minOrderTotalAmountOk = _orderProcessingService.ValidateMinOrderTotalAmount(cart);

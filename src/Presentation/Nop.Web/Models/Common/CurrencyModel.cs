@@ -7,5 +7,9 @@ namespace Nop.Web.Models.Common
         public string Name { get; set; }
 
         public string CurrencySymbol { get; set; }
+
+        public decimal ExchangeRate { get; set; }
+
+        public bool IsPrimaryExchange { get;set; }
     }
 }

@@ -1667,6 +1667,11 @@ namespace Nop.Web.Areas.Admin.Controllers
                 
                 //error
                 var confirmOrderModel = new CheckoutConfirmModel();
+                confirmOrderModel.CustomerId = customerId;
+                confirmOrderModel.PaymentMethodSystemName = processPaymentRequest.PaymentMethodSystemName;
+                confirmOrderModel.ShippingOptionName = customer.GetAttribute<string>(
+                    SystemCustomerAttributeNames.SelectedShippingOption,
+                    _genericAttributeService, _storeContext.CurrentStore.Id);
                 foreach (var error in placeOrderResult.Errors)
                     confirmOrderModel.Warnings.Add(error); 
                     

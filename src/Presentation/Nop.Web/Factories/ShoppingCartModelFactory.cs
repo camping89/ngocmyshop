@@ -28,6 +28,7 @@ using Nop.Services.Security;
 using Nop.Services.Seo;
 using Nop.Services.Shipping;
 using Nop.Services.Tax;
+using Nop.Web.Areas.Admin.Extensions;
 using Nop.Web.Framework.Security.Captcha;
 using Nop.Web.Infrastructure.Cache;
 using Nop.Web.Models.Common;
@@ -72,7 +73,7 @@ namespace Nop.Web.Factories
         private readonly IWebHelper _webHelper;
         private readonly IGenericAttributeService _genericAttributeService;
         private readonly IHttpContextAccessor _httpContextAccessor;
-
+        private readonly ICommonModelFactory _commonModelFactory;
         private readonly MediaSettings _mediaSettings;
         private readonly ShoppingCartSettings _shoppingCartSettings;
         private readonly CatalogSettings _catalogSettings;
@@ -127,7 +128,7 @@ namespace Nop.Web.Factories
             CaptchaSettings captchaSettings, 
             AddressSettings addressSettings,
             RewardPointsSettings rewardPointsSettings,
-            CustomerSettings customerSettings)
+            CustomerSettings customerSettings, ICommonModelFactory commonModelFactory)
         {
             this._addressModelFactory = addressModelFactory;
             this._workContext = workContext;
@@ -170,6 +171,7 @@ namespace Nop.Web.Factories
             this._addressSettings = addressSettings;
             this._rewardPointsSettings = rewardPointsSettings;
             this._customerSettings = customerSettings;
+            _commonModelFactory = commonModelFactory;
         }
 
         #endregion
@@ -349,6 +351,10 @@ namespace Nop.Web.Factories
                 ProductSeName = sci.Product.GetSeName(),
                 Quantity = sci.Quantity,
                 AttributeInfo = _productAttributeFormatter.FormatAttributes(sci.Product, sci.AttributesXml),
+                ExchangeRate = sci.ExchangeRate,
+                UnitPriceUsd = sci.UnitPriceUsd,
+                SaleOffPercent = sci.SaleOffPercent,
+                OrderingFee = sci.OrderingFee
             };
 
             //allow editing?
@@ -409,8 +415,11 @@ namespace Nop.Web.Factories
             {
                 var shoppingCartUnitPriceWithDiscountBase = _taxService.GetProductPrice(sci.Product, _priceCalculationService.GetUnitPrice(sci), out decimal _);
                 var shoppingCartUnitPriceWithDiscount = _currencyService.ConvertFromPrimaryStoreCurrency(shoppingCartUnitPriceWithDiscountBase, _workContext.WorkingCurrency);
+                cartItemModel.UnitPriceDecimal = shoppingCartUnitPriceWithDiscount;
                 cartItemModel.UnitPrice = _priceFormatter.FormatPrice(shoppingCartUnitPriceWithDiscount);
             }
+
+            
             //subtotal, discount
             if (sci.Product.CallForPrice &&
                 //also check whether the current user is impersonated
@@ -857,7 +866,7 @@ namespace Nop.Web.Factories
 
             //checkout attributes
             model.CheckoutAttributes = PrepareCheckoutAttributeModels(cart,customer);
-    
+            
             //cart items
             foreach (var sci in cart)
             {
@@ -895,7 +904,8 @@ namespace Nop.Web.Factories
             {
                 model.OrderReviewData = PrepareOrderReviewDataModel(cart,customer);
             }
-
+            model.CurrencySelectorModel = _commonModelFactory.PrepareCurrencySelectorModel();
+            model.CustomerId = customer.Id;
             return model;
         }
 
@@ -1078,7 +1088,8 @@ namespace Nop.Web.Factories
             }
             var model = new OrderTotalsModel
             {
-                IsEditable = isEditable
+                IsEditable = isEditable,
+                CustomerId = customer.Id
             };
 
             if (cart.Any())

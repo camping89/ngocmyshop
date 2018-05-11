@@ -281,6 +281,8 @@ namespace Nop.Web.Areas.Admin.Controllers
                 Active = customer.Active,
                 CreatedOn = _dateTimeHelper.ConvertToUserTime(customer.CreatedOnUtc, DateTimeKind.Utc),
                 LastActivityDate = _dateTimeHelper.ConvertToUserTime(customer.LastActivityDateUtc, DateTimeKind.Utc),
+                LinkFacebook1 = customer.GetAttribute<string>(SystemCustomerAttributeNames.LinkFacebook1),
+                LinkFacebook2 = customer.GetAttribute<string>(SystemCustomerAttributeNames.LinkFacebook2),
             };
         }
         
@@ -496,7 +498,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                     model.AdminComment = customer.AdminComment;
                     model.IsTaxExempt = customer.IsTaxExempt;
                     model.Active = customer.Active;
-
+                    model.FullName = customer.GetFullName();
                     if (customer.RegisteredInStoreId == 0 || allStores.All(s => s.Id != customer.RegisteredInStoreId))
                         model.RegisteredInStore = string.Empty;
                     else
@@ -548,6 +550,8 @@ namespace Nop.Web.Areas.Admin.Controllers
                     model.StateProvinceId = customer.GetAttribute<int>(SystemCustomerAttributeNames.StateProvinceId);
                     model.Phone = customer.GetAttribute<string>(SystemCustomerAttributeNames.Phone);
                     model.Fax = customer.GetAttribute<string>(SystemCustomerAttributeNames.Fax);
+                    model.LinkFacebook1 = customer.GetAttribute<string>(SystemCustomerAttributeNames.LinkFacebook1);
+                    model.LinkFacebook2 = customer.GetAttribute<string>(SystemCustomerAttributeNames.LinkFacebook2);
                 }
             }
 
@@ -832,11 +836,29 @@ namespace Nop.Web.Areas.Admin.Controllers
         }
 
         [HttpPost]
-        public virtual IActionResult CustomersSearch(string searchTerm)
+        public virtual IActionResult CustomerSearch(string searchTerm)
         {
             var customers = _customerService.GetAllCustomers();
             var customerResult = customers.Select(PrepareCustomerModelForList);
-            var result = customerResult.Where(t => t.FullName.ToLowerInvariant().Contains(searchTerm.ToLowerInvariant())).ToArray();
+            var result = customerResult.Where(t => t.FullName.ToLowerInvariant().Contains(searchTerm.ToLowerInvariant())).Select(_=>new { Id = _.Id, FullName = _.FullName + " - "+ _.Phone}).ToArray();
+            return Json(new { Data = result});
+        }
+        [HttpPost]
+        public virtual IActionResult CustomerSearchPhone(string searchTerm)
+        {
+            var customers = _customerService.GetAllCustomers();
+            var customerResult = customers.Select(PrepareCustomerModelForList);
+            var result = customerResult.Where(t => !string.IsNullOrEmpty(t.Phone) && t.Phone.ToLowerInvariant().Contains(searchTerm.ToLowerInvariant())).Select(_=>new { Id = _.Id, FullName = _.FullName + " - "+ _.Phone}).ToArray();
+            return Json(new { Data = result});
+        }
+
+        [HttpPost]
+        public virtual IActionResult CustomerSearchFacebook(string searchTerm)
+        {
+            var customers = _customerService.GetAllCustomers();
+            var customerResult = customers.Select(PrepareCustomerModelForList);
+            var result = customerResult.Where(t => (!string.IsNullOrEmpty(t.LinkFacebook1) && t.LinkFacebook1.ToLowerInvariant().Contains(searchTerm.ToLowerInvariant()))
+                                               || (!string.IsNullOrEmpty(t.LinkFacebook2) && t.LinkFacebook2.ToLowerInvariant().Contains(searchTerm.ToLowerInvariant()))).Select(_=>new { Id = _.Id, FullName = _.FullName + " - "+ _.LinkFacebook1}).ToArray();
             return Json(new { Data = result});
         }
         public virtual IActionResult Create()
@@ -1090,6 +1112,12 @@ namespace Nop.Web.Areas.Admin.Controllers
                 return AccessDeniedView();
 
             var customer = _customerService.GetCustomerById(model.Id);
+            if (!string.IsNullOrEmpty(model.FullName))
+            {
+                var customerFirstLastName = StringExtensions.GetFirstLastNameFromFullName(model.FullName);
+                model.FirstName = customerFirstLastName.FirstName;
+                model.LastName = customerFirstLastName.LastName;
+            }
             if (customer == null || customer.Deleted)
                 //No customer found with the specified id
                 return RedirectToAction("List");
@@ -1215,7 +1243,8 @@ namespace Nop.Web.Areas.Admin.Controllers
                         _genericAttributeService.SaveAttribute(customer, SystemCustomerAttributeNames.Phone, model.Phone);
                     if (_customerSettings.FaxEnabled)
                         _genericAttributeService.SaveAttribute(customer, SystemCustomerAttributeNames.Fax, model.Fax);
-
+                    _genericAttributeService.SaveAttribute(customer, SystemCustomerAttributeNames.LinkFacebook1, model.LinkFacebook1);
+                    _genericAttributeService.SaveAttribute(customer, SystemCustomerAttributeNames.LinkFacebook2, model.LinkFacebook2);
                     //custom customer attributes
                     _genericAttributeService.SaveAttribute(customer, SystemCustomerAttributeNames.CustomCustomerAttributes, customerAttributesXml);
 

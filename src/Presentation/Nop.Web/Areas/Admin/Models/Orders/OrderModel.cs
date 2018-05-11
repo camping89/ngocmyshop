@@ -44,7 +44,9 @@ namespace Nop.Web.Areas.Admin.Models.Orders
         public string CustomerFullName { get; set; }
         [NopResourceDisplayName("Admin.Orders.Fields.CustomerIP")]
         public string CustomerIp { get; set; }
-
+        
+        [NopResourceDisplayName("Admin.Catalog.Products.Fields.PictureThumbnailUrl")]
+        public string PictureThumbnailUrl { get; set; }
         [NopResourceDisplayName("Admin.Orders.Fields.CustomValues")]
         public Dictionary<string, object> CustomValues { get; set; }
 

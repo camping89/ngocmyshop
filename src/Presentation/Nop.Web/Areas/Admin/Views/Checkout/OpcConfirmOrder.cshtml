@@ -24,9 +24,16 @@
         </div>
     }
     @await Component.InvokeAsync("Widget", new { widgetZone = "op_checkout_confirm_bottom" })
-    @*<div class="section order-summary">
-        @await Component.InvokeAsync("OrderSummary", new { prepareAndDisplayOrderReviewData = true })
-    </div>*@
+    <div>
+        <ol>
+            <li>@Model.PaymentMethodSystemName</li>
+            <li>@Model.ShippingOptionName</li>
+        </ol>
+    </div>
+        <div class="section order-summary">
+            @*@await Component.InvokeAsync("OrderSummary", new { prepareAndDisplayOrderReviewData = true })*@
+            @await Component.InvokeAsync("OrderSummary", new { prepareAndDisplayOrderReviewData = true , customerId = Model.CustomerId })
+        </div>
     @if (string.IsNullOrEmpty(Model.MinOrderTotalWarning) && Model.TermsOfServiceOnOrderConfirmPage)
     {
         <div id="terms-of-service-warning-box" title="@T("Checkout.TermsOfService")" style="display:none;">

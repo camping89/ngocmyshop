@@ -2405,7 +2405,7 @@ namespace Nop.Web.Areas.Admin.Controllers
 
         #region Product pictures
 
-        public virtual IActionResult ProductPictureAdd(int pictureId, int displayOrder,
+        public virtual IActionResult ProductPictureAdd(int pictureId,string pictureUrl, int displayOrder,
             string overrideAltAttribute, string overrideTitleAttribute,
             int productId)
         {

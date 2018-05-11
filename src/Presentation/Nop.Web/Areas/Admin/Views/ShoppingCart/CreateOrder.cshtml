@@ -7,17 +7,16 @@
     //active menu item (system name)
     Html.SetActiveMenuItemSystemName("Create Order");
 }
-
-<form asp-controller="ShoppingCart" asp-action="CreateOrder" asp-route-customerId="@Model.CustomerId" method="post" id="order-form">
+<link href="~/css/admin/stylesweb.css" rel="stylesheet" />
+<link href="~/css/admin/print.css" rel="stylesheet" />
+<link href="~/css/admin/ie8.css" rel="stylesheet" />
+<div action="#" method="post" id="order-form">
     <div class="content-header clearfix">
         <h1 class="pull-left">
             @T("Admin.Orders.CreateOrderDetails")
         </h1>
         <div class="pull-right">
-            <button type="submit" name="save" class="btn bg-blue">
-                <i class="fa fa-floppy-o"></i>
-                @T("Admin.Common.Save")
-            </button>
+            
             <input type="submit" id="btnRefreshPage" style="display: none" />
             <script type="text/javascript">
                 $(document).ready(function () {
@@ -38,16 +37,34 @@
             <div class="panel-group">
                 <div class="panel panel-default panel-search">
                     <div class="panel-body">
-                        <div class="form-group">
-                            <div class="col-md-4">
-                                <nop-label asp-for="CustomerId" />
-                            </div>
-                            <div class="col-md-8">
+                        <input type="hidden" name="CustomerId" id="CustomerId" class="form-control" value="@(Model.CustomerId > 0 ? Model.CustomerId.ToString() : string.Empty)" />
+                        @if (Model.CustomerId == 0)
+                        {
+                            <div class="form-group">
+                                <div class="col-md-4">
+                                    <nop-label asp-for="CustomerId" />
+                                </div>
+                                <div class="col-md-8">
+                                    <input style="float: left;" type="text" name="CustomerName" id="CustomerName" class="form-control" placeholder="@(T("Admin.Common.PleaseInputSearchData"))" value="@Model.CustomerFullName" />
+                                    @*<button style="float: left; margin-left: 10px;" id="btnCreateOrder" class="btn btn-primary" type="button">@T("Admin.Common.SelectedCustomer.CreateOrder")</button>*@
+                                </div>
+                                <div class="col-md-4">
+                                    <nop-label asp-for="CustomerPhone" />
+                                </div>
+                                <div class="col-md-8">
+                                    <input style="float: left;" type="text" name="CustomerPhone" id="CustomerPhone" class="form-control" placeholder="@(T("Admin.Common.PleaseInputSearchData"))" value="@Model.CustomerPhone" />
+                                </div>
+                                <div class="col-md-4">
+                                    <nop-label asp-for="CustomerFacebook" />
+                                </div>
+                                <div class="col-md-8">
+                                    <input style="float: left;" type="text" name="CustomerFacebook" id="CustomerFacebook" class="form-control" placeholder="@(T("Admin.Common.PleaseInputSearchData"))" value="@Model.CustomerFacebook" />
+                                </div>
+                                <div class="col-md-6">
+                                    <button style="float: right; margin-left: 10px; margin-top: 10px;" id="btnCreateOrder" class="btn btn-primary" type="button">@T("Admin.Common.SelectedCustomer.CreateOrder")</button>
+                                </div>
 
-                                <input type="hidden" name="CustomerId" id="CustomerId" class="form-control" value="@(Model.CustomerId > 0 ? Model.CustomerId.ToString() : string.Empty)" />
-                                <input type="text" name="CustomerName" id="CustomerName" class="form-control" placeholder="@(T("Admin.Common.PleaseInputDataSearch"))" value="@Model.CustomerFullName" />
-                            </div>
-                            <script>
+                                <script>
 
                                 $(document).ready(function() {
                                     $("#CustomerName").autocomplete({
@@ -62,7 +79,7 @@
                                             $.ajax({
                                                 cache: false,
                                                 type: "POST",
-                                                url: "@(Url.Action("CustomersSearch", "Customer"))",
+                                                url: "@(Url.Action("CustomerSearch", "Customer"))",
                                                 data: postData,
                                                 complete: function(result) {
                                                     response($.map(result.responseJSON.Data,
@@ -83,45 +100,161 @@
                                         select: function(event, ui) {
                                             $('#CustomerId').val(ui.item.value);
                                             this.value = ui.item.label;
-                                            setTimeout(function() {
-                                                window.location.href = "@Url.Action("CreateOrder","ShoppingCart")?customerId=" + ui.item.value;
-                                            },500);
+                                            //setTimeout(function() {
+
+                                            //},500);
                                             return false;
                                         },
                                         focus: function(event, ui) {
                                             event.preventDefault();
                                             this.value = ui.item.label;
-                                        },search: function (e, u) {
+                                        },
+                                        search: function(e, u) {
                                             $(this).addClass('ajaxprocessing');
                                         },
-                                        response: function( event, ui ) {
+                                        response: function(event, ui) {
                                             $(this).removeClass('ajaxprocessing');
                                         }
                                     });
+
+                                     $("#CustomerPhone").autocomplete({
+                                        delay: 800,
+                                        source: function(request, response) {
+
+                                            var postData = {
+                                                searchTerm: request.term
+                                            };
+                                            addAntiForgeryToken(postData);
+
+                                            $.ajax({
+                                                cache: false,
+                                                type: "POST",
+                                                url: "@(Url.Action("CustomerSearchPhone", "Customer"))",
+                                                data: postData,
+                                                complete: function(result) {
+                                                    response($.map(result.responseJSON.Data,
+                                                        function(item) {
+                                                            return {
+                                                                label: item.FullName,
+                                                                value: item.Id
+                                                            }
+                                                        }));
+                                                },
+                                                error: function(xhr, ajaxOptions, thrownError) {
+                                                    alert(thrownError);
+                                                },
+                                                traditional: true
+                                            });
+                                        },
+                                        minLength: 2,
+                                        select: function(event, ui) {
+                                            $('#CustomerId').val(ui.item.value);
+                                            this.value = ui.item.label;
+                                            //setTimeout(function() {
+
+                                            //},500);
+                                            return false;
+                                        },
+                                        focus: function(event, ui) {
+                                            event.preventDefault();
+                                            this.value = ui.item.label;
+                                        },
+                                        search: function(e, u) {
+                                            $(this).addClass('ajaxprocessing');
+                                        },
+                                        response: function(event, ui) {
+                                            $(this).removeClass('ajaxprocessing');
+                                        }
+                                    });
+
+                                        $("#CustomerFacebook").autocomplete({
+                                        delay: 800,
+                                        source: function(request, response) {
+
+                                            var postData = {
+                                                searchTerm: request.term
+                                            };
+                                            addAntiForgeryToken(postData);
+
+                                            $.ajax({
+                                                cache: false,
+                                                type: "POST",
+                                                url: "@(Url.Action("CustomerSearchFacebook", "Customer"))",
+                                                data: postData,
+                                                complete: function(result) {
+                                                    response($.map(result.responseJSON.Data,
+                                                        function(item) {
+                                                            return {
+                                                                label: item.FullName,
+                                                                value: item.Id
+                                                            }
+                                                        }));
+                                                },
+                                                error: function(xhr, ajaxOptions, thrownError) {
+                                                    alert(thrownError);
+                                                },
+                                                traditional: true
+                                            });
+                                        },
+                                        minLength: 2,
+                                        select: function(event, ui) {
+                                            $('#CustomerId').val(ui.item.value);
+                                            this.value = ui.item.label;
+                                            //setTimeout(function() {
+
+                                            //},500);
+                                            return false;
+                                        },
+                                        focus: function(event, ui) {
+                                            event.preventDefault();
+                                            this.value = ui.item.label;
+                                        },
+                                        search: function(e, u) {
+                                            $(this).addClass('ajaxprocessing');
+                                        },
+                                        response: function(event, ui) {
+                                            $(this).removeClass('ajaxprocessing');
+                                        }
+                                    });
+
+
+
+
+                                    $('#btnCreateOrder').click(function() {
+                                        if ($('#CustomerId').val() === '' || $('#CustomerId').val() === null) {
+                                            alert('@T("Admin.CreateOrder.AlertChooseCustomer")');
+                                            return;
+                                        }
+                                        window.location.href = "@Url.Action("CreateOrder", "ShoppingCart")?customerId=" +
+                                            $('#CustomerId').val();
+                                    });
                                 })
 
-                            </script>
-                        </div>
+                                </script>
+                            </div>
+                        }
+                        else
+                        {
+                            <h4>@T("Admin.Common.CreateOrder.CustomerFullName"): @Model.CustomerFullName</h4>
+                        }
                     </div>
                 </div>
             </div>
-            
+
             @if (Model.CustomerId > 0)
             {
                 <nop-tabs id="order-edit">
-                    <nop-tab asp-name="tab-info" asp-title="@T("Admin.Orders.ListProductInfo")" asp-default="true">@await Html.PartialAsync("_ListProductInfo", Model.ProductListModel)</nop-tab>
-
-               
-                        <nop-tab asp-name="tab-cart-info" asp-title="@T("Admin.Orders.AdminCart")">@await Html.PartialAsync("_AdminCustomerCart", Model.ShoppingCartModel)</nop-tab>
+                    <nop-tab asp-name="tab-info" asp-title="@T("Admin.Orders.ListProductInfo")" asp-default="true">@await Html.PartialAsync("_ListProductInfo", Model.ProductListModel, new ViewDataDictionary(this.ViewData) { { "ShowProducts", Model.ShoppingCartModel.Items.Count == 0 } })</nop-tab>
+                    <nop-tab asp-name="tab-cart-info" asp-title="@T("Admin.Orders.AdminCart")">@await Html.PartialAsync("_AdminCustomerCart", Model.ShoppingCartModel)</nop-tab>
                 </nop-tabs>
 
             }
             @*<nop-tab asp-name="tab-shipping-info" asp-title="@T("Admin.Orders.ShippingInfo")">@await Html.PartialAsync("_OrderDetails.Shipping", Model)</nop-tab>*@
-           
+
         </div>
     </div>
-    <input type="submit" id="btnRefresh" style="display: none"/>
-    <input type="text" id="setActiveTab" style="display: none" value=""/>
+    <input type="submit" id="btnRefresh" style="display: none" />
+    <input type="text" id="setActiveTab" style="display: none" value="" />
     <script type="text/javascript">
         $(document).ready(function() {
             $('#btnRefresh').click(function() {
@@ -140,4 +273,4 @@
             @eventBlock
         }
     }
-</form>
+</div>

@@ -10,6 +10,7 @@ using iTextSharp.text.pdf;
 using Nop.Core;
 using Nop.Core.Domain.Catalog;
 using Nop.Core.Domain.Common;
+using Nop.Core.Domain.Customers;
 using Nop.Core.Domain.Directory;
 using Nop.Core.Domain.Localization;
 using Nop.Core.Domain.Orders;
@@ -18,6 +19,7 @@ using Nop.Core.Domain.Tax;
 using Nop.Core.Html;
 using Nop.Services.Catalog;
 using Nop.Services.Configuration;
+using Nop.Services.Customers;
 using Nop.Services.Directory;
 using Nop.Services.Helpers;
 using Nop.Services.Localization;
@@ -699,6 +701,185 @@ namespace Nop.Services.Common
         /// <param name="order">Order</param>
         /// <param name="font">Text font</param>
         /// <param name="attributesFont">Product attributes font</param>
+        /// <param name="customerInfo"></param>
+        protected virtual void PrintProductsWithCustomer(int vendorId, Language lang, Font titleFont, Document doc, Order order, Font font, Font attributesFont,string customerInfo)
+        {
+            var orderItems = order.OrderItems;
+
+            var productsTable = new PdfPTable(_catalogSettings.ShowSkuOnProductDetailsPage ? 6 : 5)
+            {
+                RunDirection = GetDirection(lang),
+                WidthPercentage = 100f
+            };
+
+            if (lang.Rtl)
+            {
+                productsTable.SetWidths(_catalogSettings.ShowSkuOnProductDetailsPage
+                    ? new[] { 15,15, 10, 15, 15, 30 }
+                    : new[] { 20,20, 10, 20, 30 });
+            }
+            else
+            {
+                productsTable.SetWidths(_catalogSettings.ShowSkuOnProductDetailsPage
+                    ? new[] { 15, 30, 15, 10, 15, 15 }
+                    : new[] { 20, 30, 10, 20, 20 });
+            }
+            //Customer
+            var cellProductItem = GetPdfCell("PDFInvoice.Customer", lang, font);
+            cellProductItem.BackgroundColor = BaseColor.LIGHT_GRAY;
+            cellProductItem.HorizontalAlignment = Element.ALIGN_CENTER;
+            productsTable.AddCell(cellProductItem);
+
+            //product name
+            cellProductItem = GetPdfCell("PDFInvoice.ProductName", lang, font);
+            cellProductItem.BackgroundColor = BaseColor.LIGHT_GRAY;
+            cellProductItem.HorizontalAlignment = Element.ALIGN_CENTER;
+            productsTable.AddCell(cellProductItem);
+            
+            //SKU
+            if (_catalogSettings.ShowSkuOnProductDetailsPage)
+            {
+                cellProductItem = GetPdfCell("PDFInvoice.SKU", lang, font);
+                cellProductItem.BackgroundColor = BaseColor.LIGHT_GRAY;
+                cellProductItem.HorizontalAlignment = Element.ALIGN_CENTER;
+                productsTable.AddCell(cellProductItem);
+            }
+
+            //price
+            cellProductItem = GetPdfCell("PDFInvoice.ProductPrice", lang, font);
+            cellProductItem.BackgroundColor = BaseColor.LIGHT_GRAY;
+            cellProductItem.HorizontalAlignment = Element.ALIGN_CENTER;
+            productsTable.AddCell(cellProductItem);
+
+            //qty
+            cellProductItem = GetPdfCell("PDFInvoice.ProductQuantity", lang, font);
+            cellProductItem.BackgroundColor = BaseColor.LIGHT_GRAY;
+            cellProductItem.HorizontalAlignment = Element.ALIGN_CENTER;
+            productsTable.AddCell(cellProductItem);
+
+            //total
+            cellProductItem = GetPdfCell("PDFInvoice.ProductTotal", lang, font);
+            cellProductItem.BackgroundColor = BaseColor.LIGHT_GRAY;
+            cellProductItem.HorizontalAlignment = Element.ALIGN_CENTER;
+            productsTable.AddCell(cellProductItem);
+
+            foreach (var orderItem in orderItems)
+            {
+                var p = orderItem.Product;
+
+                //a vendor should have access only to his products
+                if (vendorId > 0 && p.VendorId != vendorId)
+                    continue;
+
+                var pAttribTable = new PdfPTable(1) {RunDirection = GetDirection(lang)};
+                pAttribTable.DefaultCell.Border = Rectangle.NO_BORDER;
+                //Customer
+
+                cellProductItem = GetPdfCell(customerInfo, font);
+                cellProductItem.HorizontalAlignment = Element.ALIGN_LEFT;
+                productsTable.AddCell(cellProductItem);
+
+                //product name
+                var name = p.GetLocalized(x => x.Name, lang.Id);
+                pAttribTable.AddCell(new Paragraph(name, font));
+                cellProductItem.AddElement(new Paragraph(name, font));
+                //attributes
+                if (!string.IsNullOrEmpty(orderItem.AttributeDescription))
+                {
+                    var attributesParagraph =
+                        new Paragraph(HtmlHelper.ConvertHtmlToPlainText(orderItem.AttributeDescription, true, true),
+                            attributesFont);
+                    pAttribTable.AddCell(attributesParagraph);
+                }
+                //rental info
+                if (orderItem.Product.IsRental)
+                {
+                    var rentalStartDate = orderItem.RentalStartDateUtc.HasValue
+                        ? orderItem.Product.FormatRentalDate(orderItem.RentalStartDateUtc.Value)
+                        : "";
+                    var rentalEndDate = orderItem.RentalEndDateUtc.HasValue
+                        ? orderItem.Product.FormatRentalDate(orderItem.RentalEndDateUtc.Value)
+                        : "";
+                    var rentalInfo = string.Format(_localizationService.GetResource("Order.Rental.FormattedDate"),
+                        rentalStartDate, rentalEndDate);
+
+                    var rentalInfoParagraph = new Paragraph(rentalInfo, attributesFont);
+                    pAttribTable.AddCell(rentalInfoParagraph);
+                }
+                productsTable.AddCell(pAttribTable);
+               
+                //SKU
+                if (_catalogSettings.ShowSkuOnProductDetailsPage)
+                {
+                    var sku = p.FormatSku(orderItem.AttributesXml, _productAttributeParser);
+                    cellProductItem = GetPdfCell(sku ?? string.Empty, font);
+                    cellProductItem.HorizontalAlignment = Element.ALIGN_CENTER;
+                    productsTable.AddCell(cellProductItem);
+                }
+
+                //price
+                string unitPrice;
+                if (order.CustomerTaxDisplayType == TaxDisplayType.IncludingTax)
+                {
+                    //including tax
+                    var unitPriceInclTaxInCustomerCurrency =
+                        _currencyService.ConvertCurrency(orderItem.UnitPriceInclTax, order.CurrencyRate);
+                    unitPrice = _priceFormatter.FormatPrice(unitPriceInclTaxInCustomerCurrency, true,
+                        order.CustomerCurrencyCode, lang, true);
+                }
+                else
+                {
+                    //excluding tax
+                    var unitPriceExclTaxInCustomerCurrency =
+                        _currencyService.ConvertCurrency(orderItem.UnitPriceExclTax, order.CurrencyRate);
+                    unitPrice = _priceFormatter.FormatPrice(unitPriceExclTaxInCustomerCurrency, true,
+                        order.CustomerCurrencyCode, lang, false);
+                }
+                cellProductItem = GetPdfCell(unitPrice, font);
+                cellProductItem.HorizontalAlignment = Element.ALIGN_LEFT;
+                productsTable.AddCell(cellProductItem);
+
+                //qty
+                cellProductItem = GetPdfCell(orderItem.Quantity, font);
+                cellProductItem.HorizontalAlignment = Element.ALIGN_LEFT;
+                productsTable.AddCell(cellProductItem);
+
+                //total
+                string subTotal;
+                if (order.CustomerTaxDisplayType == TaxDisplayType.IncludingTax)
+                {
+                    //including tax
+                    var priceInclTaxInCustomerCurrency =
+                        _currencyService.ConvertCurrency(orderItem.PriceInclTax, order.CurrencyRate);
+                    subTotal = _priceFormatter.FormatPrice(priceInclTaxInCustomerCurrency, true, order.CustomerCurrencyCode,
+                        lang, true);
+                }
+                else
+                {
+                    //excluding tax
+                    var priceExclTaxInCustomerCurrency =
+                        _currencyService.ConvertCurrency(orderItem.PriceExclTax, order.CurrencyRate);
+                    subTotal = _priceFormatter.FormatPrice(priceExclTaxInCustomerCurrency, true, order.CustomerCurrencyCode,
+                        lang, false);
+                }
+                cellProductItem = GetPdfCell(subTotal, font);
+                cellProductItem.HorizontalAlignment = Element.ALIGN_LEFT;
+                productsTable.AddCell(cellProductItem);
+            }
+            doc.Add(productsTable);
+        }
+
+
+        /// <summary>
+        /// Print products
+        /// </summary>
+        /// <param name="vendorId">Vendor identifier</param>
+        /// <param name="lang">Language</param>
+        /// <param name="titleFont">Title font</param>
+        /// <param name="doc">Document</param>
+        /// <param name="order">Order</param>
+        /// <param name="font">Text font</param>
+        /// <param name="attributesFont">Product attributes font</param>
         protected virtual void PrintProducts(int vendorId, Language lang, Font titleFont, Document doc, Order order, Font font, Font attributesFont)
         {
             var productsHeader = new PdfPTable(1)
@@ -1224,6 +1405,74 @@ namespace Nop.Services.Common
             doc.Close();
         }
         
+        
+        /// <summary>
+        /// Print orders to PDF
+        /// </summary>
+        /// <param name="stream">Stream</param>
+        /// <param name="orders">Orders</param>
+        /// <param name="languageId">Language identifier; 0 to use a language used when placing an order</param>
+        /// <param name="vendorId">Vendor identifier to limit products; 0 to to print all products. If specified, then totals won't be printed</param>
+        public virtual void PrintOrdersByVendorToPdf(Stream stream, IList<Order> orders, int languageId = 0, int vendorId = 0)
+        {
+            if (stream == null)
+                throw new ArgumentNullException(nameof(stream));
+
+            if (orders == null)
+                throw new ArgumentNullException(nameof(orders));
+
+            var pageSize = PageSize.A4;
+
+            if (_pdfSettings.LetterPageSizeEnabled)
+            {
+                pageSize = PageSize.LETTER;
+            }
+
+            var doc = new Document(pageSize);
+            var pdfWriter = PdfWriter.GetInstance(doc, stream);
+            doc.Open();
+
+            //fonts
+            var titleFont = GetFont();
+            titleFont.SetStyle(Font.BOLD);
+            titleFont.Color = BaseColor.BLACK;
+            var font = GetFont();
+            var attributesFont = GetFont();
+            attributesFont.SetStyle(Font.ITALIC);
+            
+            foreach (var order in orders)
+            {
+                //by default _pdfSettings contains settings for the current active store
+                //and we need PdfSettings for the store which was used to place an order
+                //so let's load it based on a store of the current order
+                var pdfSettingsByStore = _settingService.LoadSetting<PdfSettings>(order.StoreId);
+
+                var lang = _languageService.GetLanguageById(languageId == 0 ? order.CustomerLanguageId : languageId);
+                if (lang == null || !lang.Published)
+                    lang = _workContext.WorkingLanguage;
+
+                //header
+                //PrintHeader(pdfSettingsByStore, lang, order, font, titleFont, doc);
+                
+                var customerInfo = order.Customer.GetFullName() + "\n" + order.Customer.GetAttribute<string>(SystemCustomerAttributeNames.Phone);
+                PrintProductsWithCustomer(vendorId, lang, titleFont, doc, order, font, attributesFont,customerInfo);
+                
+                //checkout attributes
+                //PrintCheckoutAttributes(vendorId, order, doc, lang, font);
+
+                //totals
+                //PrintTotals(vendorId, lang, order, font, titleFont, doc);
+
+                //order notes
+                //PrintOrderNotes(pdfSettingsByStore, order, lang, titleFont, doc, font);
+
+                //footer
+                //PrintFooter(pdfSettingsByStore, pdfWriter, pageSize, lang, font);
+            }
+            doc.Close();
+        }
+        
+
         /// <summary>
         /// Print packaging slips to PDF
         /// </summary>

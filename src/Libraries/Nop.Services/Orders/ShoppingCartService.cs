@@ -1186,12 +1186,17 @@ namespace Nop.Services.Orders
         /// <param name="rentalEndDate">Rental end date</param>
         /// <param name="quantity">New shopping cart item quantity</param>
         /// <param name="resetCheckoutData">A value indicating whether to reset checkout data</param>
+        /// <param name="unitPriceUsd"></param>
+        /// <param name="exchangeRate"></param>
+        /// <param name="orderingFee"></param>
+        /// <param name="saleOffPercent"></param>
         /// <returns>Warnings</returns>
         public virtual IList<string> UpdateShoppingCartItem(Customer customer,
             int shoppingCartItemId, string attributesXml,
             decimal customerEnteredPrice,
             DateTime? rentalStartDate = null, DateTime? rentalEndDate = null, 
-            int quantity = 1, bool resetCheckoutData = true)
+            int quantity = 1, bool resetCheckoutData = true,
+            decimal unitPriceUsd = 0, decimal exchangeRate = 0, decimal orderingFee = 0, double saleOffPercent = 0)
         {
             if (customer == null)
                 throw new ArgumentNullException(nameof(customer));
@@ -1224,6 +1229,10 @@ namespace Nop.Services.Orders
                 shoppingCartItem.RentalStartDateUtc = rentalStartDate;
                 shoppingCartItem.RentalEndDateUtc = rentalEndDate;
                 shoppingCartItem.UpdatedOnUtc = DateTime.UtcNow;
+                shoppingCartItem.ExchangeRate = exchangeRate;
+                shoppingCartItem.UnitPriceUsd = unitPriceUsd;
+                shoppingCartItem.OrderingFee = orderingFee;
+                shoppingCartItem.SaleOffPercent = saleOffPercent;
                 _customerService.UpdateCustomer(customer);
 
                 //event notification

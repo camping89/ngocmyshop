@@ -347,13 +347,14 @@
                     width: 50,
                     headerAttributes: { style: "text-align:center" },
                     attributes: { style: "text-align:center" },
-                    template: '<a class="btn btn-default" href="Edit/#=Id#"><i class="fa fa-pencil"></i>@T("Admin.Common.Edit")</a>'
+                    template: '<a class="btn btn-primary" target="_blank" href="@Url.Action("CreateOrder", "ShoppingCart")?customerId=#=Id#"><i class="fa fa-shopping-cart"></i>@T("Admin.Common.CreateOrder")</a>' +
+                        '<a class="btn btn-default" href="Edit/#=Id#"><i class="fa fa-pencil"></i>@T("Admin.Common.Edit")</a>'
                 }
             ]
         });
     });
                         </script>
-
+                        
                         <script type="text/javascript">
     var selectedIds = [];
 

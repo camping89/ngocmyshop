@@ -39,6 +39,7 @@
         confirmOrderStepNumber--;
     }
 }
+<link href="~/css/admin/stylesweb.css" rel="stylesheet" />
 <style>
     ol,ul {
         list-style: none !important;
@@ -74,7 +75,7 @@
                         }
                     </script>
                     <div class="buttons" id="billing-buttons-container">
-                        <input type="button" title="@T("Common.Continue")" class="button-1 new-address-next-step-button" onclick="Billing.save()" value="@T("Common.Continue")" />
+                        <input type="button" class="button-1 new-address-next-step-button" onclick="Billing.save()" value="@T("Common.Continue")" />
                         <span class="please-wait" id="billing-please-wait" style="display: none;">@T("Common.LoadingNextStep")</span>
                     </div>
                 </div>
@@ -105,7 +106,7 @@
                                     <a href="#" onclick="Checkout.back(); return false; "><small>&laquo; </small>@T("Common.Back")</a>
                                 </p>
                             }
-                            <input type="button" class="button-1 new-address-next-step-button" title="@T("Common.Continue")" onclick="Shipping.save()" value="@T("Common.Continue")" />
+                            <input type="button" class="button-1 new-address-next-step-button" onclick="Shipping.save()" value="@T("Common.Continue")" />
                             <span id="shipping-please-wait" class="please-wait" style="display: none;"> @T("Common.LoadingNextStep")</span>
                         </div>
                     </div>
@@ -167,7 +168,7 @@
                         </div>
                     </form>
                     <script type="text/javascript" asp-location="Footer">
-                        PaymentInfo.init('#co-payment-info-form', '@(storeLocation)Checkout/OpcSavePaymentInfo?customerId=@customerId');
+                        PaymentInfo.init('#co-payment-info-form', '@(storeLocation)/Checkout/OpcSavePaymentInfo?customerId=@customerId');
                     </script>
                     <div class="buttons" id="payment-info-buttons-container">
                         <p class="back-link">

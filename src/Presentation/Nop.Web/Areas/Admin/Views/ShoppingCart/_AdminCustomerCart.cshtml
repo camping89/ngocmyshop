@@ -1,20 +1,27 @@
 ﻿@model Nop.Web.Models.ShoppingCart.ShoppingCartModel
+@using System.Net
 @using Nop.Core
 @using Nop.Core.Domain.Tax
 @inject IWebHelper webHelper
 @inject IWorkContext workContext
+@using Microsoft.AspNetCore.Http
+@inject IHttpContextAccessor httpContextAccessor
 @{
     var customerId = ViewBag.CustomerId;
 }
-<link href="~/css/admin/stylesweb.css" rel="stylesheet" />
-<link href="~/css/admin/print.css" rel="stylesheet" />
-<link href="~/css/admin/ie8.css" rel="stylesheet" />
+
 
 <div class="order-summary-content shopping-cart-page">
     @await Component.InvokeAsync("Widget", new { widgetZone = "order_summary_content_before" })
     @await Html.PartialAsync("_OrderReviewData", Model.OrderReviewData)
     @if (Model.Items.Count > 0)
     {
+        var currencies = Model.CurrencySelectorModel.AvailableCurrencies.Select(x => new SelectListItem
+        {
+            Text = x.Name,
+            Value = x.ExchangeRate.ToString(),
+            Selected = x.Id.Equals(Model.PrimaryCurrencyCurrent.Id)
+        });
         if (Model.Warnings.Count > 0)
         {
             <div class="message-error">
@@ -70,6 +77,19 @@
                             }
                             <th class="product">
                                 @T("ShoppingCart.Product(s)")
+                            </th>
+                            <th class="unit-price">
+                                @T("ShoppingCart.UnitPriceBase")
+                            </th>
+                            <th class="unit-price">
+                                @T("ShoppingCart.ExchangeRate")
+                            </th>
+                            <th class="unit-price">
+                                @T("ShoppingCart.OrderingFee")
+                            </th>
+
+                            <th class="unit-price">
+                                @T("ShoppingCart.SaleOffPercent")
                             </th>
                             <th class="unit-price">
                                 @T("ShoppingCart.UnitPrice")
@@ -154,8 +174,32 @@
                                     }
                                 </td>
                                 <td class="unit-price">
+                                    <label class="td-title"> @T("ShoppingCart.UnitPriceBase"):</label>
+                                    <input name="itempricebase@(item.Id)" type="text" value="@(item.UnitPriceUsd)" class="unit-price-base-input" />
+                                    @*<span class="product-unit-price">@item.UnitPrice</span>*@
+                                </td>
+                                <td class="unit-price">
+                                    <label class="td-title">@T("ShoppingCart.ExchangeRate"):</label>
+                                   
+                                    <select id="customerCurrency" name="customerCurrency" asp-items="@currencies" onchange="changeCurrency(this.value);"></select>
+                                    <input name="itemexchangerate@(item.Id)" type="text" value="@if (Model.PrimaryCurrencyCurrent?.Rate != null)
+                                                                                                {
+                                                                                                    @((float) (Model.CurrencyCurrent.Rate / Model.PrimaryCurrencyCurrent?.Rate))
+                                                                                                }" class="exchangerate-input" />
+                                    @*<span class="product-unit-price">@item.UnitPrice</span>*@
+                                </td>
+                                <td class="unit-price">
+                                    <label class="td-title">@T("ShoppingCart.OrderingFee"):</label>
+                                    <input name="itemfeeship@(item.Id)" type="text" value="@(item.OrderingFee)" class="feeship-input" />
+                                </td>
+                                <td class="unit-price">
+                                    <label class="td-title">@T("ShoppingCart.SaleOffPercent"):</label>
+                                    <input name="itemsaleoff@(item.Id)" type="text" value="@(item.SaleOffPercent)" class="saleoff-input" />
+                                </td>
+                                <td class="unit-price">
                                     <label class="td-title">@T("ShoppingCart.UnitPrice"):</label>
-                                    <span class="product-unit-price">@item.UnitPrice</span>
+                                    <input id="itemprice" name="itemprice@(item.Id)" type="text" value="@(item.UnitPriceDecimal)" class="price-input" />
+                                    @*<span class="product-unit-price">@item.UnitPrice</span>*@
                                 </td>
                                 <td class="quantity">
                                     <label class="td-title">@T("ShoppingCart.Quantity"):</label>
@@ -262,15 +306,15 @@
                                 {
                                     <a class="read" id="read-terms">@T("Checkout.TermsOfService.Read")</a>
                                     <script type="text/javascript" asp-location="Footer">
-                                $(document).ready(function() {
-                                    $('#read-terms').on('click',
-                                        function(e) {
-                                            e.preventDefault();
-                                            displayPopupContentFromUrl(
-                                                '@Url.RouteUrl("TopicPopup", new {SystemName = "conditionsofuse"})',
-                                                '@T("Checkout.TermsOfService")');
+                                        $(document).ready(function() {
+                                            $('#read-terms').on('click',
+                                                function(e) {
+                                                    e.preventDefault();
+                                                    displayPopupContentFromUrl(
+                                                        '@Url.RouteUrl("TopicPopup", new {SystemName = "conditionsofuse"})',
+                                                        '@T("Checkout.TermsOfService")');
+                                                });
                                         });
-                                });
                                     </script>
                                 }
                                 else
@@ -331,6 +375,56 @@
 </div>
 
 <script>
+    function changeCurrency(value) {
+        $(".exchangerate-input").val((parseInt("@(Model.CurrencyCurrent.Rate)")/value));
+        calculatePrice();
+    }
+
+    function calculatePrice() {
+        var baseUnit = $(".unit-price-base-input").val().toFloat();
+        var exchangeRate = $(".exchangerate-input").val().toFloat();
+        var feeship = $(".feeship-input").val().toFloat();
+        var saleoff = $(".saleoff-input").val().toFloat();
+        var totalItem = parseFloat((parseFloat((baseUnit * exchangeRate)) + parseFloat(feeship))*(parseFloat((100 - saleoff))/100));
+        $("#itemprice").val(totalItem);
+        formatCurrency();
+    }
+
+    function formatCurrency() {
+        var base = $(".unit-price-base-input").val().toFloat();
+        $(".unit-price-base-input").val(base.format());
+        var feeShip = $(".feeship-input").val().toFloat();
+        $(".feeship-input").val(feeShip.format());
+        var exhangeRate = $(".exchangerate-input").val().toFloat();
+        $(".exchangerate-input").val(exhangeRate.format());
+        var price = $("#itemprice").val().toFloat();
+        $("#itemprice").val(price.format());
+    }
+
+    $(document).ready(function() {
+        @if (Model.Items.Count > 0)
+        {
+           <text> formatCurrency(); </text>
+        }
+        $(".unit-price-base-input").change(function() {
+            calculatePrice();
+        });
+
+        $(".exchangerate-input").change(function() {
+            calculatePrice();
+        });
+
+        $(".feeship-input").change(function() {
+            calculatePrice();
+        });
+
+        $(".saleoff-input").change(function() {
+            calculatePrice();
+        });
+
+        
+        
+    });
     function ShowPopUpDetailProductUpdate(productId,updatecartitem) {
         var customerId = $('#CustomerId').val();
         if (customerId === null || customerId === '') {

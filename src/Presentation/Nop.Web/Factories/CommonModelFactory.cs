@@ -258,7 +258,8 @@ namespace Nop.Web.Factories
                         {
                             Id = x.Id,
                             Name = x.GetLocalized(y => y.Name),
-                            CurrencySymbol = currencySymbol
+                            CurrencySymbol = currencySymbol,
+                            ExchangeRate = x.Rate
                         };
                         return currencyModel;
                     })

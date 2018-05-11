@@ -64,6 +64,10 @@ namespace Nop.Core.Domain.Orders
         /// </summary>
         public DateTime UpdatedOnUtc { get; set; }
 
+        public decimal UnitPriceUsd {get; set; }
+        public decimal ExchangeRate { get; set; }
+        public decimal OrderingFee { get; set; }
+        public double SaleOffPercent { get; set; }
         /// <summary>
         /// Gets the log type
         /// </summary>

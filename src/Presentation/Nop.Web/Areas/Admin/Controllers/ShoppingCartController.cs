@@ -47,6 +47,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
+using Nop.Core.Domain.Directory;
 
 namespace Nop.Web.Areas.Admin.Controllers
 {
@@ -94,6 +95,7 @@ namespace Nop.Web.Areas.Admin.Controllers
         private readonly IVendorService _vendorService;
         private readonly IManufacturerService _manufacturerService;
         private readonly IShippingService _shippingService;
+        private readonly CurrencySettings _currencySettings;
         #endregion
 
         #region Ctor
@@ -106,7 +108,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             IPriceCalculationService priceCalculationService,
             IPermissionService permissionService,
             ILocalizationService localizationService,
-            IProductAttributeFormatter productAttributeFormatter, IShoppingCartModelFactory shoppingCartModelFactory, IProductService productService, IWorkContext workContext, IStoreContext storeContext, IShoppingCartService shoppingCartService, IPictureService pictureService, IProductAttributeService productAttributeService, IProductAttributeParser productAttributeParser, ICurrencyService currencyService, ICheckoutAttributeParser checkoutAttributeParser, IDiscountService discountService, IGiftCardService giftCardService, IDateRangeService dateRangeService, ICheckoutAttributeService checkoutAttributeService, IWorkflowMessageService workflowMessageService, IDownloadService downloadService, IStaticCacheManager cacheManager, IWebHelper webHelper, ICustomerActivityService customerActivityService, IGenericAttributeService genericAttributeService, MediaSettings mediaSettings, ShoppingCartSettings shoppingCartSettings, OrderSettings orderSettings, CaptchaSettings captchaSettings, CustomerSettings customerSettings, IProductModelFactory productModelFactory, VendorSettings vendorSettings, ICategoryService categoryService, IVendorService vendorService, IManufacturerService manufacturerService, IShippingService shippingService)
+            IProductAttributeFormatter productAttributeFormatter, IShoppingCartModelFactory shoppingCartModelFactory, IProductService productService, IWorkContext workContext, IStoreContext storeContext, IShoppingCartService shoppingCartService, IPictureService pictureService, IProductAttributeService productAttributeService, IProductAttributeParser productAttributeParser, ICurrencyService currencyService, ICheckoutAttributeParser checkoutAttributeParser, IDiscountService discountService, IGiftCardService giftCardService, IDateRangeService dateRangeService, ICheckoutAttributeService checkoutAttributeService, IWorkflowMessageService workflowMessageService, IDownloadService downloadService, IStaticCacheManager cacheManager, IWebHelper webHelper, ICustomerActivityService customerActivityService, IGenericAttributeService genericAttributeService, MediaSettings mediaSettings, ShoppingCartSettings shoppingCartSettings, OrderSettings orderSettings, CaptchaSettings captchaSettings, CustomerSettings customerSettings, IProductModelFactory productModelFactory, VendorSettings vendorSettings, ICategoryService categoryService, IVendorService vendorService, IManufacturerService manufacturerService, IShippingService shippingService, CurrencySettings currencySettings)
         {
             this._customerService = customerService;
             this._dateTimeHelper = dateTimeHelper;
@@ -148,6 +150,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             _vendorService = vendorService;
             _manufacturerService = manufacturerService;
             _shippingService = shippingService;
+            _currencySettings = currencySettings;
         }
 
         #endregion
@@ -710,8 +713,19 @@ namespace Nop.Web.Areas.Admin.Controllers
                     .LimitPerStore(_storeContext.CurrentStore.Id)
                     .ToList();
                 var shoppingCartModel = new Web.Models.ShoppingCart.ShoppingCartModel();
+                shoppingCartModel.CurrencyCurrent = _workContext.WorkingCurrency;
+                try
+                {
+                    var primaryExchangeCurrency = _currencyService.GetCurrencyById(_currencySettings.PrimaryExchangeRateCurrencyId, false);
+                    shoppingCartModel.PrimaryCurrencyCurrent = primaryExchangeCurrency ?? throw new NopException("Primary exchange rate currency is not set");
+                }
+                catch (Exception exc)
+                {
+                    ErrorNotification(exc, false);
+                }
+
                 modelResult.ShoppingCartModel = _shoppingCartModelFactory.PrepareShoppingCartModel(shoppingCartModel, cart, customer: customer);
-                modelResult.CustomerFullName = customer.GetFullName();
+                modelResult.CustomerFullName = $"{customer.GetFullName()} - Phone: {customer.GetAttribute<string>(SystemCustomerAttributeNames.Phone)} - Facebook: {customer.GetAttribute<string>(SystemCustomerAttributeNames.LinkFacebook1)}";
             }
             //categories
             model.AvailableCategories.Add(new SelectListItem { Text = _localizationService.GetResource("Admin.Common.All"), Value = "0" });
@@ -1487,20 +1501,50 @@ namespace Nop.Web.Areas.Admin.Controllers
                     _shoppingCartService.DeleteShoppingCartItem(sci, ensureOnlyActiveCheckoutAttributes: true);
                 else
                 {
+                    int newQuantity = sci.Quantity;
+                    decimal newPrice = sci.CustomerEnteredPrice;
+                    decimal unitPriceUsd = sci.UnitPriceUsd;
+                    decimal exchangeRate = sci.ExchangeRate;
+                    decimal orderingFee = sci.OrderingFee;
+                    double saleOffPercent = sci.SaleOffPercent;
                     foreach (var formKey in form.Keys)
+                    {
+
                         if (formKey.Equals($"itemquantity{sci.Id}", StringComparison.InvariantCultureIgnoreCase))
                         {
-                            int newQuantity;
-                            if (int.TryParse(form[formKey], out newQuantity))
-                            {
-                                var currSciWarnings = _shoppingCartService.UpdateShoppingCartItem(customer,
-                                    sci.Id, sci.AttributesXml, sci.CustomerEnteredPrice,
-                                    sci.RentalStartDateUtc, sci.RentalEndDateUtc,
-                                    newQuantity, true);
-                                innerWarnings.Add(sci.Id, currSciWarnings);
-                            }
-                            break;
+                            int.TryParse(form[formKey], out newQuantity);
                         }
+
+                        if (formKey.Equals($"itemprice{sci.Id}", StringComparison.InvariantCultureIgnoreCase))
+                        {
+                            decimal.TryParse(form[formKey], out newPrice);
+                        }
+                        if (formKey.Equals($"itempricebase{sci.Id}", StringComparison.InvariantCultureIgnoreCase))
+                        {
+                            decimal.TryParse(form[formKey], out unitPriceUsd);
+                        }
+                        if (formKey.Equals($"itemexchangerate{sci.Id}", StringComparison.InvariantCultureIgnoreCase))
+                        {
+                            decimal.TryParse(form[formKey], out exchangeRate);
+                        }
+                        if (formKey.Equals($"itemfeeship{sci.Id}", StringComparison.InvariantCultureIgnoreCase))
+                        {
+                            decimal.TryParse(form[formKey], out orderingFee);
+                        }
+                        if (formKey.Equals($"itemsaleoff{sci.Id}", StringComparison.InvariantCultureIgnoreCase))
+                        {
+                            double.TryParse(form[formKey], out saleOffPercent);
+                        }
+                    }
+
+                    if (newPrice != sci.CustomerEnteredPrice || newQuantity != sci.Quantity)
+                    {
+                        var currSciWarnings = _shoppingCartService.UpdateShoppingCartItem(customer,
+                            sci.Id, sci.AttributesXml, newPrice,
+                            sci.RentalStartDateUtc, sci.RentalEndDateUtc,
+                            newQuantity, true, unitPriceUsd, exchangeRate, orderingFee, saleOffPercent);
+                        innerWarnings.Add(sci.Id, currSciWarnings);
+                    }
                 }
             }
 

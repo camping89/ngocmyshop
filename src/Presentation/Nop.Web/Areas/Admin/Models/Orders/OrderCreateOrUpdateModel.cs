@@ -15,6 +15,10 @@ namespace Nop.Web.Areas.Admin.Models.Orders
         }
         [NopResourceDisplayName("Admin.Catalog.Orders.CreateOrder.CustomerName")]
         public int CustomerId { get; set; }
+        [NopResourceDisplayName("Admin.Catalog.Orders.CreateOrder.CustomerPhone")]
+        public string CustomerPhone { get; set; }
+        [NopResourceDisplayName("Admin.Catalog.Orders.CreateOrder.CustomerFacebook")]
+        public string CustomerFacebook { get; set; }
         public string CustomerFullName { get; set; }
         public ProductListModel ProductListModel { get;set; }
 

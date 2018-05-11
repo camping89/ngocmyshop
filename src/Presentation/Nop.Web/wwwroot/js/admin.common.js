@@ -201,3 +201,22 @@ $(document).ajaxStart(function () {
 }).ajaxStop(function () {
     $('#ajaxBusy').hide();
 });
+Number.prototype.format = function(n, x) {
+    var re = '\\d(?=(\\d{' + (x || 3) + '})+' + (n > 0 ? '\\.' : '$') + ')';
+    return this.toFixed(Math.max(0, ~~n)).replace(new RegExp(re, 'g'), '$&,');
+};
+String.prototype.toInt = function() {
+    if (this != null || this != "") {
+        var c = this.replace(",", "");
+        return parseInt(c);
+    }
+    return 0;
+}
+
+String.prototype.toFloat = function() {
+    if (this != null || this != "") {
+        var c = this.replace(",", "");
+        return parseFloat(c);
+    }
+    return 0;
+}

@@ -232,7 +232,7 @@
                     </div>
                 }
                 <div class="totals">
-                    @await Component.InvokeAsync("OrderTotals", new { isEditable = Model.IsEditable })
+                    @await Component.InvokeAsync("OrderTotals", new { isEditable = Model.IsEditable, customerId = Model.CustomerId })
                     @if (Model.IsEditable)
                     {
                         if (!string.IsNullOrEmpty(Model.MinOrderSubtotalWarning))

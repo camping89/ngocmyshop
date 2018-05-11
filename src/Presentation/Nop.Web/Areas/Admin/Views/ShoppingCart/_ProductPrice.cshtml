@@ -4,7 +4,7 @@
 @inject IWorkContext workContext
 @if (!Model.CustomerEntersPrice)
 {
-    <div class="prices" itemprop="offers" itemscope itemtype="http://schema.org/Offer">
+    <div style="display: none !important" class="prices" itemprop="offers" itemscope itemtype="http://schema.org/Offer">
         @if (Model.CallForPrice)
         {
         @*call for price*@
