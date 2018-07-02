@@ -175,7 +175,7 @@ namespace Nop.Services.Orders
             DateTime? createdFromUtc = null, DateTime? createdToUtc = null,
             List<int> osIds = null, List<int> psIds = null, List<int> ssIds = null,
             string billingEmail = null, string billingLastName = "",
-            string orderNotes = null, int pageIndex = 0, int pageSize = int.MaxValue)
+            string orderNotes = null, int pageIndex = 0, int pageSize = int.MaxValue, OrderSortingEnum orderBy = OrderSortingEnum.CreatedOnDesc)
         {
             var query = _orderRepository.Table;
             if (storeId > 0)
@@ -236,8 +236,27 @@ namespace Nop.Services.Orders
             if (!string.IsNullOrEmpty(orderNotes))
                 query = query.Where(o => o.OrderNotes.Any(on => on.Note.Contains(orderNotes)));
             query = query.Where(o => !o.Deleted);
-            query = query.OrderByDescending(o => o.CreatedOnUtc);
-
+            switch (orderBy)
+            {
+                    case OrderSortingEnum.CreatedOnAsc:
+                        query = query.OrderBy(o => o.CreatedOnUtc);
+                        break;
+                    case OrderSortingEnum.CreatedOnDesc:
+                        query = query.OrderByDescending(o => o.CreatedOnUtc);
+                        break;
+                    case OrderSortingEnum.StatusAsc:
+                        query = query.OrderBy(o => o.OrderStatusId);
+                        break;
+                    case OrderSortingEnum.StatusDesc:
+                        query = query.OrderByDescending(o => o.OrderStatusId);
+                        break;
+                    case OrderSortingEnum.TotalAsc:
+                        query = query.OrderBy(o => o.OrderTotal);
+                        break;
+                    case OrderSortingEnum.TotalDesc:
+                        query = query.OrderByDescending(o => o.OrderTotal);
+                        break;
+            }
             //database layer paging
             return new PagedList<Order>(query, pageIndex, pageSize);
         }

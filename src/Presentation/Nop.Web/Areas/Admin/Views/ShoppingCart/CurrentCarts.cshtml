@@ -76,6 +76,11 @@
                                         field: "TotalItems",
                                         title: "@T("Admin.CurrentCarts.TotalItems")",
                                         width: 150
+                                    },
+                                    {
+                                        field: "CustomerId",
+                                        title: "@T("Admin.CurrentCarts.GotoCart")",
+                                        template: '<a href="@Url.Content("~/Admin/ShoppingCart/CreateOrder?customerId=")#=CustomerId#">@T("Admin.CurrentCarts.GotoCart")</a>'
                                     }
                                 ]
                             });

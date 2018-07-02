@@ -22,139 +22,76 @@ else
 {
     <p>@T("Admin.Catalog.Products.AddNewOrder.AlertOnlyOneProductInOrder")</p>
 }
-    <div style="display: @display">
-        <form asp-controller="Product" asp-action="List" method="post">
-            <div class="content-header clearfix">
-                <h1 class="pull-left">
-                    @T("Admin.Catalog.Products")
-                </h1>
-                <div class="pull-right">
-                    @*<button type="button" id="add-product-to-cart" class="btn bg-blue">
+<div style="">
+    <form asp-controller="Product" asp-action="List" method="post">
+        <div class="content-header clearfix">
+            <h1 class="pull-left">
+                @T("Admin.Catalog.Products")
+            </h1>
+            <div class="pull-right">
+                @*<button type="button" id="add-product-to-cart" class="btn bg-blue">
                         <i class="fa fa-plus-square"></i>
                         @T("Admin.Common.AddToCart")
                     </button>*@
-                    @*<button type="button" id="delete-selected" class="btn bg-red">
+                @*<button type="button" id="delete-selected" class="btn bg-red">
                         <i class="fa fa-trash-o"></i>
                         @T("Admin.Common.Delete.Selected")
                     </button>
                     @await Component.InvokeAsync("AdminWidget", new { widgetZone = "admin_product_list_buttons" })*@
-                </div>
             </div>
+        </div>
 
-            <div class="content">
-                <div class="form-horizontal">
-                    <div class="panel-group">
-                        <div class="panel panel-default panel-search">
-                            <div class="panel-body">
-                                <div class="row">
-                                    <div class="col-md-5">
-                                        <div class="form-group">
-                                            <div class="col-md-4">
-                                                <nop-label asp-for="SearchProductName" />
-                                            </div>
-                                            <div class="col-md-8">
-                                                <nop-editor asp-for="SearchProductName" />
-                                            </div>
+        <div class="content">
+            <div class="form-horizontal">
+                <div class="panel-group">
+                    <div class="panel panel-default panel-search">
+                        <div class="panel-body">
+                            <div class="row">
+                                <div class="col-md-5">
+                                    <div class="form-group">
+                                        <div class="col-md-4">
+                                            <nop-label asp-for="SearchProductName" />
                                         </div>
-                                        <div class="form-group" @(Model.AvailableCategories.SelectionIsNotPossible() ? Html.Raw("style=\"display:none\"") : null)>
-                                            <div class="col-md-4">
-                                                <nop-label asp-for="SearchCategoryId" />
-                                            </div>
-                                            <div class="col-md-8">
-                                                <nop-select asp-for="SearchCategoryId" asp-items="Model.AvailableCategories" />
-                                            </div>
-                                        </div>
-                                        <div class="form-group" @(Model.AvailableCategories.SelectionIsNotPossible() ? Html.Raw("style=\"display:none\"") : null)>
-                                            <div class="col-md-4">
-                                                <nop-label asp-for="SearchIncludeSubCategories" />
-                                            </div>
-                                            <div class="col-md-8">
-                                                <nop-editor asp-for="SearchIncludeSubCategories" />
-                                            </div>
-                                        </div>
-                                        <div class="form-group" @(Model.AvailableManufacturers.SelectionIsNotPossible() ? Html.Raw("style=\"display:none\"") : null)>
-                                            <div class="col-md-4">
-                                                <nop-label asp-for="SearchManufacturerId" />
-                                            </div>
-                                            <div class="col-md-8">
-                                                <nop-select asp-for="SearchManufacturerId" asp-items="Model.AvailableManufacturers" />
-                                            </div>
-                                        </div>
-                                        <div class="form-group" @(Model.AvailableVendors.SelectionIsNotPossible() || Model.IsLoggedInAsVendor ? Html.Raw("style='display: none;'") : null)>
-                                            <div class="col-md-4">
-                                                <nop-label asp-for="SearchVendorId" />
-                                            </div>
-                                            <div class="col-md-8">
-                                                <nop-select asp-for="SearchVendorId" asp-items="Model.AvailableVendors" />
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-7">
-                                        <div class="form-group" @(Model.AvailableStores.SelectionIsNotPossible() ? Html.Raw("style=\"display:none\"") : null)>
-                                            <div class="col-md-4">
-                                                <nop-label asp-for="SearchStoreId" />
-                                            </div>
-                                            <div class="col-md-8">
-                                                <nop-select asp-for="SearchStoreId" asp-items="Model.AvailableStores" />
-                                            </div>
-                                        </div>
-                                        <div class="form-group hidden" @(Model.AvailableWarehouses.SelectionIsNotPossible() ? Html.Raw("style=\"display:none\"") : null)>
-                                            <div class="col-md-4">
-                                                <nop-label asp-for="SearchWarehouseId" />
-                                            </div>
-                                            <div class="col-md-8">
-                                                <nop-select asp-for="SearchWarehouseId" asp-items="Model.AvailableWarehouses" />
-                                            </div>
-                                        </div>
-                                        <div class="form-group">
-                                            <div class="col-md-4">
-                                                <nop-label asp-for="SearchProductTypeId" />
-                                            </div>
-                                            <div class="col-md-8">
-                                                <nop-select asp-for="SearchProductTypeId" asp-items="Model.AvailableProductTypes" />
-                                            </div>
-                                        </div>
-                                        <div class="form-group">
-                                            <div class="col-md-4">
-                                                <nop-label asp-for="SearchPublishedId" />
-                                            </div>
-                                            <div class="col-md-8">
-                                                <nop-select asp-for="SearchPublishedId" asp-items="Model.AvailablePublishedOptions" />
-                                            </div>
-                                        </div>
-                                        <div class="form-group">
-                                            <div class="col-md-4">
-                                                <nop-label asp-for="GoDirectlyToSku" />
-                                            </div>
-                                            <div class="col-md-8">
-                                                <div class="input-group input-group-short">
-                                                    <nop-editor asp-for="GoDirectlyToSku" />
-                                                    <span class="input-group-btn">
-                                                        <button type="submit" id="go-to-product-by-sku" name="go-to-product-by-sku" class="btn btn-info btn-flat">
-                                                            @T("Admin.Common.Go")
-                                                        </button>
-                                                    </span>
-                                                </div>
-                                            </div>
+                                        <div class="col-md-8">
+                                            <nop-editor asp-for="SearchProductName" />
                                         </div>
                                     </div>
                                 </div>
-                                <div class="row">
-                                    <div class="col-md-7 col-md-offset-5">
-                                        <button type="button" id="search-products" class="btn btn-primary btn-search">
-                                            <i class="fa fa-search"></i>
-                                            @T("Admin.Common.Search")
-                                        </button>
+                                <div class="col-md-7">
+
+                                    <div class="form-group">
+                                        <div class="col-md-4">
+                                            <nop-label asp-for="GoDirectlyToSku" />
+                                        </div>
+                                        <div class="col-md-8">
+                                            <div class="input-group input-group-short">
+                                                <nop-editor asp-for="GoDirectlyToSku" />
+                                                <span class="input-group-btn">
+                                                    <button type="submit" id="go-to-product-by-sku" name="go-to-product-by-sku" class="btn btn-info btn-flat">
+                                                        @T("Admin.Common.Go")
+                                                    </button>
+                                                </span>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
+                            <div class="row">
+                                <div class="col-md-7 col-md-offset-5">
+                                    <button type="button" id="search-products" class="btn btn-primary btn-search">
+                                        <i class="fa fa-search"></i>
+                                        @T("Admin.Common.Search")
+                                    </button>
+                                </div>
+                            </div>
                         </div>
+                    </div>
 
-                        <div class="panel panel-default">
-                            <div class="panel-body">
-                                <div id="products-grid"></div>
+                    <div class="panel panel-default">
+                        <div class="panel-body">
+                            <div id="products-grid"></div>
 
-                                <script type="text/javascript">
+                            <script type="text/javascript">
                             $(document).ready(function() {
                                 $("#products-grid").kendoGrid({
                                     dataSource: {
@@ -194,14 +131,6 @@ else
                                     scrollable: false,
                                     dataBound: onDataBound,
                                     columns: [
-                                        //{
-                                        //    field: "Id",
-                                        //    headerTemplate: "<input id='mastercheckbox' type='checkbox'/>",
-                                        //    headerAttributes: { style: "text-align:center" },
-                                        //    attributes: { style: "text-align:center" },
-                                        //    template: "<input type='checkbox' value='#=Id#' class='checkboxGroups'/>",
-                                        //    width: 50
-                                        //},
                                         {
                                             field: "PictureThumbnailUrl",
                                             title: "@T("Admin.Catalog.Products.Fields.PictureThumbnailUrl")",
@@ -209,12 +138,30 @@ else
                                             width: 100
                                         },
                                         {
+                                            field: "Sku",
+                                            title: "@T("Admin.Catalog.Products.Fields.Sku")",
+                                            width: 100
+                                        },
+                                        {
                                             field: "Name",
                                             title: "@T("Admin.Catalog.Products.Fields.Name")",
                                             width: 300
-                                        }, {
-                                            field: "Sku",
-                                            title: "@T("Admin.Catalog.Products.Fields.Sku")",
+                                        },
+                                        {
+                                            field: "UnitPriceUsd",
+                                            title: "@T("Admin.Catalog.Products.Fields.UnitPriceBase")",
+                                            width: 150,
+                                            //if not a grouped product, then display
+                                            template: "# if(ProductTypeId != @((int) ProductType.GroupedProduct)) {# #:UnitPriceUsd# #}  #"
+                                        },
+                                        {
+                                            field: "CurrencyMappedName",
+                                            title: "@T("Admin.Catalog.Products.Fields.Currency")",
+                                            width: 100
+                                        },
+                                        {
+                                            field: "OrderingFee",
+                                            title: "@T("Admin.Catalog.Products.Fields.OrderingFee")",
                                             width: 100
                                         }, {
                                             field: "Price",
@@ -226,11 +173,11 @@ else
                                             field: "StockQuantityStr",
                                             title: "@T("Admin.Catalog.Products.Fields.StockQuantity")",
                                             width: 100
-                                        }, {
+                                        }@*, {
                                             field: "ProductTypeName",
                                             title: "@T("Admin.Catalog.Products.Fields.ProductType")",
                                             width: 100
-                                        }, {
+                                        }*@, {
                                             field: "Published",
                                             title: "@T("Admin.Catalog.Products.Fields.Published")",
                                             width: 100,
@@ -243,19 +190,19 @@ else
                                             attributes: { style: "text-align:center" },
                                             @*template: '<a class="btn btn-default" href="Edit/#=Id#"><i class="fa fa-shopping-cart"></i>@T("Admin.Common.AddToCart")</a>'*@
                                             @*template: '<button type="button" class="btn btn-default" onclick="javascript:OpenWindow(\'../ShoppingCart/ProductToCartDetail/#=Id#?customerId=@(Model.)\', 800, 600, true); return false;"><i class="fa fa-shopping-cart"></i>@T("Admin.Common.AddToCart")</a>'*@
-                                            template: '<button type="button" class="btn btn-default" onclick="ShowPopUpDetailProduct(#=Id#); return true;"><i class="fa fa-shopping-cart"></i>@T("Admin.Common.AddToCart")</a>'
+                                            template: '<button type="button" class="btn btn-default" onclick="ShowPopUpDetailProduct(#=Id#); return true;"><i class="fa fa-shopping-cart"></i>@T("Admin.Common.AddToCart")</button>'
                                         }
                                     ]
                                 });
                             });
-                                </script>
-                            </div>
+                            </script>
                         </div>
                     </div>
                 </div>
             </div>
+        </div>
 
-            <script type="text/javascript">
+        <script type="text/javascript">
         function ShowPopUpDetailProduct(productId) {
             var customerId = $('#CustomerId').val();
             if (customerId === null || customerId === '') {
@@ -381,9 +328,9 @@ else
             var numChkBoxesChecked = $('#products-grid input[type=checkbox][id!=mastercheckbox][class=checkboxGroups]:checked').length;
             $('#mastercheckbox').attr('checked', numChkBoxes == numChkBoxesChecked && numChkBoxes > 0);
         }
-            </script>
-        </form>
-    </div>
+        </script>
+    </form>
+</div>
 
 
 

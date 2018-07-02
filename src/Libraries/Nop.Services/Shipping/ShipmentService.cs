@@ -1,12 +1,12 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using Nop.Core;
 using Nop.Core.Data;
 using Nop.Core.Domain.Catalog;
 using Nop.Core.Domain.Orders;
 using Nop.Core.Domain.Shipping;
 using Nop.Services.Events;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Nop.Services.Shipping
 {
@@ -21,7 +21,7 @@ namespace Nop.Services.Shipping
         private readonly IRepository<ShipmentItem> _siRepository;
         private readonly IRepository<OrderItem> _orderItemRepository;
         private readonly IEventPublisher _eventPublisher;
-        
+
         #endregion
 
         #region Ctor
@@ -62,7 +62,7 @@ namespace Nop.Services.Shipping
             //event notification
             _eventPublisher.EntityDeleted(shipment);
         }
-        
+
         /// <summary>
         /// Search shipments
         /// </summary>
@@ -77,6 +77,7 @@ namespace Nop.Services.Shipping
         /// <param name="createdToUtc">Created date to (UTC); null to load all records</param>
         /// <param name="pageIndex">Page index</param>
         /// <param name="pageSize">Page size</param>
+        /// <param name="customerId"></param>
         /// <returns>Shipments</returns>
         public virtual IPagedList<Shipment> GetAllShipments(int vendorId = 0, int warehouseId = 0,
             int shippingCountryId = 0,
@@ -85,11 +86,15 @@ namespace Nop.Services.Shipping
             string trackingNumber = null,
             bool loadNotShipped = false,
             DateTime? createdFromUtc = null, DateTime? createdToUtc = null,
-            int pageIndex = 0, int pageSize = int.MaxValue)
+            int pageIndex = 0, int pageSize = int.MaxValue, int customerId = 0)
         {
             var query = _shipmentRepository.Table;
             if (!string.IsNullOrEmpty(trackingNumber))
                 query = query.Where(s => s.TrackingNumber.Contains(trackingNumber));
+
+            if (customerId > 0)
+                query = query.Where(s => s.CustomerId.Equals(customerId));
+
             if (shippingCountryId > 0)
                 query = query.Where(s => s.Order.ShippingAddress.CountryId == shippingCountryId);
             if (shippingStateId > 0)
@@ -106,18 +111,18 @@ namespace Nop.Services.Shipping
             if (vendorId > 0)
             {
                 var queryVendorOrderItems = from orderItem in _orderItemRepository.Table
-                    where orderItem.Product.VendorId == vendorId
-                    select orderItem.Id;
+                                            where orderItem.Product.VendorId == vendorId
+                                            select orderItem.Id;
 
                 query = from s in query
-                    where queryVendorOrderItems.Intersect(s.ShipmentItems.Select(si => si.OrderItemId)).Any()
-                    select s;
+                        where queryVendorOrderItems.Intersect(s.ShipmentItems.Select(si => si.OrderItemId)).Any()
+                        select s;
             }
             if (warehouseId > 0)
             {
                 query = from s in query
-                    where s.ShipmentItems.Any(si => si.WarehouseId == warehouseId)
-                    select s;
+                        where s.ShipmentItems.Any(si => si.WarehouseId == warehouseId)
+                        select s;
             }
             query = query.OrderByDescending(s => s.CreatedOnUtc);
 
@@ -192,7 +197,7 @@ namespace Nop.Services.Shipping
             //event notification
             _eventPublisher.EntityUpdated(shipment);
         }
-        
+
         /// <summary>
         /// Deletes a shipment item
         /// </summary>
@@ -220,7 +225,7 @@ namespace Nop.Services.Shipping
 
             return _siRepository.GetById(shipmentItemId);
         }
-        
+
         /// <summary>
         /// Inserts a shipment item
         /// </summary>

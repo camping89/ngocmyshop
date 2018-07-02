@@ -1,9 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using Microsoft.AspNetCore.Mvc.Rendering;
+﻿using Microsoft.AspNetCore.Mvc.Rendering;
 using Nop.Web.Framework.Mvc.ModelBinding;
 using Nop.Web.Framework.Mvc.Models;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace Nop.Web.Areas.Admin.Models.Orders
 {
@@ -28,6 +28,9 @@ namespace Nop.Web.Areas.Admin.Models.Orders
         [NopResourceDisplayName("Admin.Orders.List.EndDate")]
         [UIHint("DateNullable")]
         public DateTime? EndDate { get; set; }
+
+        [NopResourceDisplayName("Admin.Orders.List.TodayFilter")]
+        public bool TodayFilter { get; set; }
 
         [NopResourceDisplayName("Admin.Orders.List.OrderStatus")]
         public int[] OrderStatusIds { get; set; }

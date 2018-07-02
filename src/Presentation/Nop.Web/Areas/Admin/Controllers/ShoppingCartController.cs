@@ -679,7 +679,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                     //update existing item
                     addToCartWarnings.AddRange(_shoppingCartService.UpdateShoppingCartItem(customer,
                         updatecartitem.Id, attributes, customerEnteredPriceConverted,
-                        rentalStartDate, rentalEndDate, quantity, true));
+                        rentalStartDate, rentalEndDate, quantity, true, currencyId: updatecartitem.CurrencyId));
                     if (otherCartItemWithSameParameters != null && !addToCartWarnings.Any())
                     {
                         //delete the same shopping cart item (the other one)
@@ -713,19 +713,18 @@ namespace Nop.Web.Areas.Admin.Controllers
                     .LimitPerStore(_storeContext.CurrentStore.Id)
                     .ToList();
                 var shoppingCartModel = new Web.Models.ShoppingCart.ShoppingCartModel();
-                shoppingCartModel.CurrencyCurrent = _workContext.WorkingCurrency;
+                shoppingCartModel.CurrencyCurrent = _currencyService.GetCurrencyById(_currencySettings.PrimaryStoreCurrencyId, false);
                 try
                 {
-                    var primaryExchangeCurrency = _currencyService.GetCurrencyById(_currencySettings.PrimaryExchangeRateCurrencyId, false);
-                    shoppingCartModel.PrimaryCurrencyCurrent = primaryExchangeCurrency ?? throw new NopException("Primary exchange rate currency is not set");
+                    var primaryStoreCurrency = _currencyService.GetCurrencyById(_currencySettings.PrimaryExchangeRateCurrencyId, false);
+                    shoppingCartModel.PrimaryExchangeCurrency = primaryStoreCurrency ?? throw new NopException("Primary store currency is not set");
                 }
                 catch (Exception exc)
                 {
                     ErrorNotification(exc, false);
                 }
-
                 modelResult.ShoppingCartModel = _shoppingCartModelFactory.PrepareShoppingCartModel(shoppingCartModel, cart, customer: customer);
-                modelResult.CustomerFullName = $"{customer.GetFullName()} - Phone: {customer.GetAttribute<string>(SystemCustomerAttributeNames.Phone)} - Facebook: {customer.GetAttribute<string>(SystemCustomerAttributeNames.LinkFacebook1)}";
+                modelResult.CustomerFullName = $"<strong>{customer.GetFullName()}</strong> - Phone: <strong>{customer.GetAttribute<string>(SystemCustomerAttributeNames.Phone)}</strong> - Facebook: <strong>{customer.GetAttribute<string>(SystemCustomerAttributeNames.LinkFacebook1)}</strong>";
             }
             //categories
             model.AvailableCategories.Add(new SelectListItem { Text = _localizationService.GetResource("Admin.Common.All"), Value = "0" });
@@ -1039,7 +1038,8 @@ namespace Nop.Web.Areas.Admin.Controllers
             var cartType = updatecartitem == null ? (ShoppingCartType)shoppingCartTypeId :
                 //if the item to update is found, then we ignore the specified "shoppingCartTypeId" parameter
                 updatecartitem.ShoppingCartType;
-
+           
+            //product.CurrencyId;
             SaveItem(updatecartitem, addToCartWarnings, product, cartType, attributes, customerEnteredPriceConverted, rentalStartDate, rentalEndDate, quantity, customer);
             //activity log
             _customerActivityService.InsertActivity("PublicStore.AddToShoppingCart",
@@ -1507,6 +1507,8 @@ namespace Nop.Web.Areas.Admin.Controllers
                     decimal exchangeRate = sci.ExchangeRate;
                     decimal orderingFee = sci.OrderingFee;
                     double saleOffPercent = sci.SaleOffPercent;
+                    int currencyId = sci.CurrencyId;
+                    decimal weightCost = sci.WeightCost;
                     foreach (var formKey in form.Keys)
                     {
 
@@ -1535,6 +1537,14 @@ namespace Nop.Web.Areas.Admin.Controllers
                         {
                             double.TryParse(form[formKey], out saleOffPercent);
                         }
+                        if (formKey.Equals($"customerCurrency{sci.Id}", StringComparison.InvariantCultureIgnoreCase))
+                        {
+                            int.TryParse(form[formKey], out currencyId);
+                        }
+                        if (formKey.Equals($"weightcost{sci.Id}", StringComparison.InvariantCultureIgnoreCase))
+                        {
+                            decimal.TryParse(form[formKey], out weightCost);
+                        }
                     }
 
                     if (newPrice != sci.CustomerEnteredPrice || newQuantity != sci.Quantity)
@@ -1542,7 +1552,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                         var currSciWarnings = _shoppingCartService.UpdateShoppingCartItem(customer,
                             sci.Id, sci.AttributesXml, newPrice,
                             sci.RentalStartDateUtc, sci.RentalEndDateUtc,
-                            newQuantity, true, unitPriceUsd, exchangeRate, orderingFee, saleOffPercent);
+                            newQuantity, true, unitPriceUsd, exchangeRate, orderingFee, saleOffPercent,currencyId,weightCost);
                         innerWarnings.Add(sci.Id, currSciWarnings);
                     }
                 }

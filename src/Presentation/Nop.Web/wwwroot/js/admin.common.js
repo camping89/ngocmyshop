@@ -207,7 +207,7 @@ Number.prototype.format = function(n, x) {
 };
 String.prototype.toInt = function() {
     if (this != null || this != "") {
-        var c = this.replace(",", "");
+        var c = this.replace(/,/g, "");
         return parseInt(c);
     }
     return 0;
@@ -215,7 +215,7 @@ String.prototype.toInt = function() {
 
 String.prototype.toFloat = function() {
     if (this != null || this != "") {
-        var c = this.replace(",", "");
+        var c = this.replace(/,/g, "");
         return parseFloat(c);
     }
     return 0;

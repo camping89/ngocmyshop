@@ -61,6 +61,68 @@
                             <div class="col-md-5">
                                 <div class="form-group">
                                     <div class="col-md-4">
+                                        <nop-label asp-for="PhoneShipperNumber" />
+                                    </div>
+                                    <div class="col-md-8">
+                                        <nop-editor asp-for="PhoneShipperNumber" />
+                                    </div>
+                                    <script>
+                                        $(document).ready(function() {
+                                            $("#PhoneShipperNumber").autocomplete({
+                                                delay: 800,
+                                                source: function(request, response) {
+
+                                                    var postData = {
+                                                        searchTerm: request.term
+                                                    };
+                                                    addAntiForgeryToken(postData);
+
+                                                    $.ajax({
+                                                        cache: false,
+                                                        type: "POST",
+                                                        url: "@(Url.Action("CustomerSearchPhone", "Customer"))",
+                                                        data: postData,
+                                                        complete: function(result) {
+                                                            response($.map(result.responseJSON.Data,
+                                                                function(item) {
+                                                                    return {
+                                                                        label: item.FullName,
+                                                                        value: item.Phone
+                                                                    }
+                                                                }));
+                                                        },
+                                                        error: function(xhr, ajaxOptions, thrownError) {
+                                                            alert(thrownError);
+                                                        },
+                                                        traditional: true
+                                                    });
+                                                },
+                                                minLength: 2,
+                                                select: function(event, ui) {
+                                                    $('#CustomerId').val(ui.item.value);
+                                                    this.value = ui.item.value;
+                                                    //setTimeout(function() {
+
+                                                    //},500);
+                                                    return false;
+                                                },
+                                                focus: function(event, ui) {
+                                                    event.preventDefault();
+                                                    this.value = ui.item.value;
+                                                },
+                                                search: function(e, u) {
+                                                    $(this).addClass('ajaxprocessing');
+                                                },
+                                                response: function(event, ui) {
+                                                    $(this).removeClass('ajaxprocessing');
+                                                }
+                                            });
+
+                                        });
+                                    </script>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-md-4">
                                         <nop-label asp-for="StartDate" />
                                     </div>
                                     <div class="col-md-8">
@@ -77,20 +139,28 @@
                                 </div>
                                 <div class="form-group">
                                     <div class="col-md-4">
+                                        <nop-label asp-for="TodayFilter" />
+                                    </div>
+                                    <div class="col-md-8">
+                                        <nop-editor asp-for="TodayFilter" />
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-md-4">
                                         <nop-label asp-for="TrackingNumber" />
                                     </div>
                                     <div class="col-md-8">
                                         <nop-editor asp-for="TrackingNumber" />
                                     </div>
                                 </div>
-                                <div class="form-group">
-                                    <div class="col-md-4">
-                                        <nop-label asp-for="WarehouseId" />
-                                    </div>
-                                    <div class="col-md-8">
-                                        <nop-select asp-for="WarehouseId" asp-items="Model.AvailableWarehouses" />
-                                    </div>
-                                </div>
+                                @*<div class="form-group">
+                                        <div class="col-md-4">
+                                            <nop-label asp-for="WarehouseId" />
+                                        </div>
+                                        <div class="col-md-8">
+                                            <nop-select asp-for="WarehouseId" asp-items="Model.AvailableWarehouses" />
+                                        </div>
+                                    </div>*@
                             </div>
                             <div class="col-md-7">
                                 <div class="form-group">
@@ -203,6 +273,10 @@
                                         title: "@T("Admin.Orders.Shipments.TotalWeight")",
                                         width: 100
                                     }, {
+                                        field: "CustomerFullName",
+                                        title: "@T("Admin.Orders.Shipments.ShipperFullName")",
+                                        width: 200
+                                    }, {
                                         field: "ShippedDate",
                                         title: "@T("Admin.Orders.Shipments.ShippedDate")",
                                         width: 200,
@@ -266,9 +340,13 @@
                                             field: "ProductName",
                                             title: "@T("Admin.Orders.Shipments.Products.ProductName")",
                                             width: 400
+                                        }, {
+                                            field: "OrderItemFee",
+                                            title: "@T("Admin.Orders.Shipments.products.orderitemtotal")",
+                                            width: 150
                                         },{
-                                            field: "ShippedFromWarehouse",
-                                            title: "@T("Admin.Orders.Shipments.Products.Warehouse")",
+                                            field: "ShippingFeeStr",
+                                            title: "@T("Admin.Orders.Shipments.Products.ShippingFee")",
                                             width: 150
                                         },{
                                             field: "QuantityInThisShipment",
@@ -294,6 +372,22 @@
                     var selectedIds = [];
 
                     $(document).ready(function() {
+                        $('#@Html.IdFor(model => model.TodayFilter)').click(function () {
+                            if ($(this).is(':checked')) {
+                                var start = new Date();
+                                start.setHours(0,0,0,0);
+                                var end = new Date();
+                                end.setHours(23,59,59,999);
+                                var startDate = kendo.toString(kendo.parseDate(start), 'MM/dd/yyyy HH:mm tt');
+                                var endDate = kendo.toString(kendo.parseDate(end), 'MM/dd/yyyy HH:mm tt');
+                                $('#@Html.IdFor(model => model.StartDate)').val(startDate);
+                                $('#@Html.IdFor(model => model.EndDate)').val(endDate);
+                            } else {
+                                $('#@Html.IdFor(model => model.StartDate)').val('');
+                                $('#@Html.IdFor(model => model.EndDate)').val('');
+                            }
+                        });
+
                         //load states when changing a country dropdownlist
                         $("#@Html.IdFor(model => model.CountryId)").change(function() {
                             var selectedItem = $(this).val();
@@ -317,11 +411,11 @@
 
                         $("".concat("#@Html.IdFor(model => model.TrackingNumber),",
                             "#@Html.IdFor(model => model.City)")).keydown(function(event) {
-                                if (event.keyCode === 13) {
-                                    $("#search-shipments").click();
-                                    return false;
-                                }
-                            });
+                            if (event.keyCode === 13) {
+                                $("#search-shipments").click();
+                                return false;
+                            }
+                        });
 
                         //search button
                         $('#search-shipments').click(function() {
@@ -417,6 +511,7 @@
 
                     function additionalData() {
                         var data = {
+                            PhoneShipperNumber: $('#@Html.IdFor(model => model.PhoneShipperNumber)').val(),
                             StartDate: $('#@Html.IdFor(model => model.StartDate)').val(),
                             EndDate: $('#@Html.IdFor(model => model.EndDate)').val(),
                             TrackingNumber: $('#@Html.IdFor(model => model.TrackingNumber)').val(),
@@ -450,7 +545,7 @@
             </div>
         </div>
     </div>
- </form>
+</form>
 
 @*export selected (Excel). We don't use GET approach because it's limited to 2K-4K chars and won't work for large number of entities*@
 <form asp-controller="Order" asp-action="PdfPackagingSlipSelected" method="post" id="pdf-packaging-slip-selected-form">
@@ -458,13 +553,13 @@
 </form>
 
 <script type="text/javascript">
-                $(document).ready(function () {
-                    $('#exportpackagingslips-selected').click(function (e) {
-                        e.preventDefault();
-                        var ids = selectedIds.join(",");
-                        $('#pdf-packaging-slip-selected-form #selectedIds').val(ids);
-                        $('#pdf-packaging-slip-selected-form').submit();
-                        return false;
-                    });
-                });
+    $(document).ready(function () {
+        $('#exportpackagingslips-selected').click(function (e) {
+            e.preventDefault();
+            var ids = selectedIds.join(",");
+            $('#pdf-packaging-slip-selected-form #selectedIds').val(ids);
+            $('#pdf-packaging-slip-selected-form').submit();
+            return false;
+        });
+    });
 </script>

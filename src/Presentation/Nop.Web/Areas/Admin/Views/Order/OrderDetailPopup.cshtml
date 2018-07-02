@@ -2,6 +2,7 @@
 @inject IEventPublisher eventPublisher
 
 @{
+    Layout = "_AdminPopupLayout";
     //page title
     ViewBag.Title = T("Admin.Orders.EditOrderDetails").Text;
     //active menu item (system name)
@@ -47,10 +48,11 @@
     <div class="content">
         <div class="form-horizontal">
             <nop-tabs id="order-edit">
+                <nop-tab asp-name="tab-products" asp-title="@T("Admin.Orders.Products")">@await Html.PartialAsync("_OrderDetails.Products", Model)</nop-tab>
                 <nop-tab asp-name="tab-info" asp-title="@T("Admin.Orders.Info")" asp-default="true">@await Html.PartialAsync("_OrderDetails.Info", Model)</nop-tab>
                 <nop-tab asp-name="tab-billing-info" asp-title="@T("Admin.Orders.BillingInfo")">@await Html.PartialAsync("_OrderDetails.Billing", Model)</nop-tab>
                 <nop-tab asp-name="tab-shipping-info" asp-title="@T("Admin.Orders.ShippingInfo")">@await Html.PartialAsync("_OrderDetails.Shipping", Model)</nop-tab>
-                <nop-tab asp-name="tab-products" asp-title="@T("Admin.Orders.Products")">@await Html.PartialAsync("_OrderDetails.Products", Model)</nop-tab>
+
                 @if (!Model.IsLoggedInAsVendor)
     {
             <nop-tab asp-name="tab-order-notes" asp-title="@T("Admin.Orders.OrderNotes")">@await Html.PartialAsync("_OrderDetails.Notes", Model)</nop-tab>

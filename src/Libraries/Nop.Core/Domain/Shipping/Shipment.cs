@@ -1,6 +1,7 @@
+using Nop.Core.Domain.Customers;
+using Nop.Core.Domain.Orders;
 using System;
 using System.Collections.Generic;
-using Nop.Core.Domain.Orders;
 
 namespace Nop.Core.Domain.Shipping
 {
@@ -15,7 +16,7 @@ namespace Nop.Core.Domain.Shipping
         /// Gets or sets the order identifier
         /// </summary>
         public int OrderId { get; set; }
-        
+
         /// <summary>
         /// Gets or sets the tracking number of this shipment
         /// </summary>
@@ -26,6 +27,7 @@ namespace Nop.Core.Domain.Shipping
         /// It's nullable for compatibility with the previous version of nopCommerce where was no such property
         /// </summary>
         public decimal? TotalWeight { get; set; }
+        public decimal TotalShippingFee { get; set; }
 
         /// <summary>
         /// Gets or sets the shipped date and time
@@ -47,6 +49,9 @@ namespace Nop.Core.Domain.Shipping
         /// </summary>
         public DateTime CreatedOnUtc { get; set; }
 
+        public int CustomerId { get; set; }
+
+        public virtual Customer Customer { get; set; }
         /// <summary>
         /// Gets the order
         /// </summary>

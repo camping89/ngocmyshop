@@ -1,4 +1,5 @@
-﻿@model OrderModel
+﻿@using Nop.Services
+@model OrderModel
 
 <div class="panel-group">
     @await Component.InvokeAsync("AdminWidget", new { widgetZone = "admin_order_details_shipping_top", additionalData = Model.Id })
@@ -260,7 +261,11 @@
                                     <div class="form-text-row">@Model.ShippingMethod</div>
                                 </div>
                                 <div id="divShippingMethod">
-                                    <nop-editor asp-for="ShippingMethod" />
+                                    @{
+                                        var selectListShipping = new SelectList(Model.ShippingMethodList, "Name", "Name", Model.ShippingMethod);
+                                        <nop-select asp-for="ShippingMethod" asp-items="selectListShipping" />
+                                    }
+                                    @*<nop-editor asp-for="ShippingMethod" />*@
                                 </div>
                                 <span class="input-group-btn">
                                     <button type="submit" onclick="toggleEditShippingMethod(true);return false;" id="btnEditShippingMethod" class="btn btn-primary">
@@ -301,14 +306,16 @@
             </div>
         </div>
 
-        <div class="panel panel-default">
-            <div class="panel-heading">
-                @T("Admin.Orders.Shipments")
-            </div>
-            <div class="panel-body">
-                <div id="shipments-grid"></div>
+        if (Model.ShippingAddress != null && string.IsNullOrEmpty(Model.ShippingMethod) == false)
+        {
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    @T("Admin.Orders.Shipments")
+                </div>
+                <div class="panel-body">
+                    <div id="shipments-grid"></div>
 
-                <script type="text/javascript">
+                    <script type="text/javascript">
                     $(document).ready(function () {
                         $("#shipments-grid").kendoGrid({
                             dataSource: {
@@ -350,6 +357,10 @@
                                     field: "Id",
                                     title: "@T("Admin.Orders.Shipments.ID")",
                                     width: 50
+                                },{
+                                    field: "CustomerFullName",
+                                    title: "@T("Admin.Orders.Shipments.CustomerFullName")",
+                                    width: 50
                                 }, {
                                     field: "CustomOrderNumber",
                                     title: "@T("Admin.Orders.Shipments.CustomOrderNumber")",
@@ -361,6 +372,10 @@
                                 }, {
                                     field: "TotalWeight",
                                     title: "@T("Admin.Orders.Shipments.TotalWeight")",
+                                    width: 100
+                                }, {
+                                    field: "TotalShippingFee",
+                                    title: "@T("Admin.Orders.Shipments.TotalShippingFee")",
                                     width: 100
                                 }, {
                                     field: "ShippedDate",
@@ -427,9 +442,13 @@
                                     field: "ProductName",
                                     title: "@T("Admin.Orders.Shipments.Products.ProductName")",
                                     width: 400
+                                },{
+                                    field: "OrderItemFee",
+                                    title: "@T("Admin.Orders.Shipments.products.orderitemtotal")",
+                                    width: 150
                                 }, {
-                                    field: "ShippedFromWarehouse",
-                                    title: "@T("Admin.Orders.Shipments.Products.Warehouse")",
+                                    field: "ShippingFeeStr",
+                                    title: "@T("Admin.Orders.Shipments.Products.ShippingFee")",
                                     width: 150
                                 }, {
                                     field: "QuantityInThisShipment",
@@ -447,18 +466,19 @@
                             ]
                         });
                     }
-                </script>
-            </div>
-
-            @if (Model.CanAddNewShipments)
-            {
-                <div class="panel-footer">
-                    <button type="submit" id="btnAddNewShipment" name="btnAddNewShipment" onclick="javascript:setLocation('@(Url.Action("AddShipment", "Order", new {orderId = Model.Id}))'); return false;" class="btn btn-primary">
-                        @T("Admin.Orders.Shipments.AddNew")
-                    </button>
+                    </script>
                 </div>
-            }
-        </div>
+
+                @if (Model.CanAddNewShipments)
+                {
+                    <div class="panel-footer">
+                        <button type="submit" id="btnAddNewShipment" name="btnAddNewShipment" onclick="javascript:setLocation('@(Url.Action("AddShipment", "Order", new {orderId = Model.Id}))'); return false;" class="btn btn-primary">
+                            @T("Admin.Orders.Shipments.AddNew")
+                        </button>
+                    </div>
+                }
+            </div>
+        }
     }
     else
     {

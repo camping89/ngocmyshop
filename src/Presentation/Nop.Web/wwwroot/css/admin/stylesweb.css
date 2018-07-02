@@ -3626,11 +3626,16 @@ label, label + * {
     margin-bottom: 5px;
 }
 
-.shipping-method .method-list,
 .payment-method .method-list {
 	margin: 0 auto 30px;
 	overflow: hidden;
 	text-align: center;
+	font-size: 0;
+}
+.shipping-method .method-list{
+	margin: 0 auto 30px;
+	overflow: hidden;
+	text-align: left;
 	font-size: 0;
 }
 .shipping-method .method-list li,
@@ -3642,6 +3647,7 @@ label, label + * {
 .payment-method .method-list li label {
 	font-size: 13px;
 	font-weight: bold;
+    margin-top: 8px !important;
 	color: #444;
 }
 .shipping-method .method-description {
@@ -5742,6 +5748,12 @@ pre {
 	margin: 20px 2%;
 	vertical-align: top;
 }
+.shipping-method .method-list li{
+	display: list-item;
+	width: 25%;
+	margin: 20px 2%;
+	vertical-align: top;
+}
 .shipping-method .method-name {
 	background-color: #f6f6f6;
 	padding: 10px;
@@ -6907,9 +6919,12 @@ pre {
 /*** CHECKOUT ***/
 
 
-.shipping-method .method-list li,
 .payment-method .method-list li {
 	margin: 20px 1%;
+}
+
+.shipping-method .method-list li{
+	margin: 20px auto;
 }
 .payment-info .info td:first-child {
 	width: 375px !important;
@@ -6932,4 +6947,9 @@ pre {
     max-width: 100%;
 }
 
+}
+
+.skin-blue .sidebar-menu>li>.treeview-menu
+{
+    margin: -7px 0px !important;
 }

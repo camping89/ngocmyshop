@@ -14,11 +14,13 @@ using Nop.Core.Domain.Orders;
 using Nop.Core.Domain.Shipping;
 using Nop.Core.Domain.Tax;
 using Nop.Core.Domain.Vendors;
+using Nop.Core.Html;
 using Nop.Services.Catalog;
 using Nop.Services.Common;
 using Nop.Services.Customers;
 using Nop.Services.Directory;
 using Nop.Services.ExportImport.Help;
+using Nop.Services.Localization;
 using Nop.Services.Media;
 using Nop.Services.Messages;
 using Nop.Services.Seo;
@@ -57,11 +59,15 @@ namespace Nop.Services.ExportImport
         private readonly ICustomerAttributeFormatter _customerAttributeFormatter;
         private readonly OrderSettings _orderSettings;
         private readonly ISpecificationAttributeService _specificationAttributeService;
-
+        private readonly IPriceFormatter _priceFormatter;
+        private readonly ILanguageService _languageService;
+        private readonly ICurrencyService _currencyService;
+        private readonly CurrencySettings _currencySettings;
+        private readonly IProductAttributeParser _productAttributeParser;
         #endregion
 
         #region Ctor
-        
+
         public ExportManager(ICategoryService categoryService,
             IManufacturerService manufacturerService,
             ICustomerService customerService,
@@ -80,7 +86,7 @@ namespace Nop.Services.ExportImport
             IGenericAttributeService genericAttributeService,
             ICustomerAttributeFormatter customerAttributeFormatter,
             OrderSettings orderSettings,
-            ISpecificationAttributeService specificationAttributeService)
+            ISpecificationAttributeService specificationAttributeService, IPriceFormatter priceFormatter, ILanguageService languageService, ICurrencyService currencyService, CurrencySettings currencySettings, IProductAttributeParser productAttributeParser)
         {
             this._categoryService = categoryService;
             this._manufacturerService = manufacturerService;
@@ -101,6 +107,11 @@ namespace Nop.Services.ExportImport
             this._customerAttributeFormatter = customerAttributeFormatter;
             this._orderSettings = orderSettings;
             this._specificationAttributeService = specificationAttributeService;
+            _priceFormatter = priceFormatter;
+            _languageService = languageService;
+            _currencyService = currencyService;
+            _currencySettings = currencySettings;
+            _productAttributeParser = productAttributeParser;
         }
 
         #endregion
@@ -402,7 +413,7 @@ namespace Nop.Services.ExportImport
 
             return new PropertyManager<ExportSpecificationAttribute>(attributeProperties);
         }
-        
+
         private byte[] ExportProductsToXlsxWithAttributes(PropertyByName<Product>[] properties, IEnumerable<Product> itemsToExport)
         {
             var productAttributeManager = GetProductAttributeManager();
@@ -505,7 +516,7 @@ namespace Nop.Services.ExportImport
                 worksheet.Row(row).OutlineLevel = 1;
                 worksheet.Row(row).Collapsed = true;
             }
-            
+
             return row + 1;
         }
 
@@ -515,7 +526,7 @@ namespace Nop.Services.ExportImport
                 psa => new ExportSpecificationAttribute
                 {
                     AttributeTypeId = psa.AttributeTypeId,
-                    CustomValue = psa.CustomValue, 
+                    CustomValue = psa.CustomValue,
                     AllowFiltering = psa.AllowFiltering,
                     ShowOnProductPage = psa.ShowOnProductPage,
                     DisplayOrder = psa.DisplayOrder,
@@ -581,7 +592,7 @@ namespace Nop.Services.ExportImport
                     {
                         manager.CurrentObject = order;
                         manager.WriteToXlsx(worksheet, row++, _catalogSettings.ExportImportUseDropdownlistsForAssociatedEntities);
-                        
+
                         //products
                         var orederItems = order.OrderItems.ToList();
 
@@ -638,7 +649,7 @@ namespace Nop.Services.ExportImport
             xmlWriter.WriteStartDocument();
             xmlWriter.WriteStartElement("Manufacturers");
             xmlWriter.WriteAttributeString("Version", NopVersion.CurrentVersion);
-            
+
             foreach (var manufacturer in manufacturers)
             {
                 xmlWriter.WriteStartElement("Manufacturer");
@@ -1259,12 +1270,12 @@ namespace Nop.Services.ExportImport
 
             var productList = products.ToList();
 
-            var productAdvancedMode=true;
+            var productAdvancedMode = true;
             try
             {
                 productAdvancedMode = _workContext.CurrentCustomer.GetAttribute<bool>("product-advanced-mode");
             }
-            catch(ArgumentNullException)
+            catch (ArgumentNullException)
             {
             }
 
@@ -1478,6 +1489,69 @@ namespace Nop.Services.ExportImport
             };
 
             return _orderSettings.ExportWithProducts ? ExportOrderToXlsxWithProducts(properties, orders) : ExportToXlsx(properties, orders);
+        }
+        public virtual byte[] ExportVendorInvoiesToXlsx(IList<Order> orders)
+        {
+            //a vendor should have access only to part of order information
+
+            var ignore = _workContext.CurrentVendor != null;
+            var orderItemProperties = new[]
+            {
+                new PropertyByName<ExportVendorInvoiceModel>("CustomerInfo", oi => oi.CustomerInfo),
+                new PropertyByName<ExportVendorInvoiceModel>("ProductName", oi => oi.ProductName),
+                new PropertyByName<ExportVendorInvoiceModel>("Sku", oi => oi.Sku),
+                new PropertyByName<ExportVendorInvoiceModel>("PriceBase", oi => oi.PriceBase),
+                new PropertyByName<ExportVendorInvoiceModel>("DiscountPercent", oi => oi.DiscountPercent),
+                new PropertyByName<ExportVendorInvoiceModel>("Price", oi => oi.Price),
+                new PropertyByName<ExportVendorInvoiceModel>("Total", oi => oi.Total),
+                new PropertyByName<ExportVendorInvoiceModel>("VendorProductUrl", oi => oi.VendorProductUrl),
+                new PropertyByName<ExportVendorInvoiceModel>("AdminNote", oi => oi.AdminNote),
+            };
+            List<ExportVendorInvoiceModel> listItem = new List<ExportVendorInvoiceModel>();
+            foreach (var order in orders)
+                    {
+                        var lang = _languageService.GetLanguageById(order.CustomerLanguageId);
+                        if (lang == null || !lang.Published)
+                            lang = _workContext.WorkingLanguage;
+                        //header
+                        //PrintHeader(pdfSettingsByStore, lang, order, font, titleFont, doc);
+                
+                        var customerInfo = order.Customer.GetFullName() + " - " + order.Customer.GetAttribute<string>(SystemCustomerAttributeNames.Phone);
+                        //products
+                        var orederItems = order.OrderItems.ToList();
+
+                        //a vendor should have access only to his products
+                        if (_workContext.CurrentVendor != null)
+                            orederItems = orederItems.Where(p => p.Product.VendorId == _workContext.CurrentVendor.Id).ToList();
+
+                        if (!orederItems.Any())
+                            continue;
+                        
+                        foreach (var orderItem in orederItems)
+                        {
+                            var p = orderItem.Product;
+                            var currency = _currencyService.GetCurrencyById(orderItem.CurrencyId);
+                            var exportVendorInvoiceModel = new ExportVendorInvoiceModel()
+                            {
+                                CustomerInfo = customerInfo,
+                                ProductName =  p.GetLocalized(x => x.Name, lang.Id),
+                                PriceBase = currency == null ? "0" : _priceFormatter.FormatPrice(orderItem.UnitPriceUsd, true, currency.CurrencyCode, lang, true),
+                                AdminNote = order.AdminNote,
+                                VendorProductUrl = p.VendorProductUrl,
+                                DiscountPercent = orderItem.SaleOffPercent,
+                                Price = _priceFormatter.FormatPrice(orderItem.PriceExclTax, true, order.CustomerCurrencyCode, lang, true),
+                                Total = _priceFormatter.FormatPrice(orderItem.PriceExclTax, true, order.CustomerCurrencyCode, lang, true),
+                            };
+                            if (!string.IsNullOrEmpty(orderItem.AttributeDescription))
+                            {
+                                exportVendorInvoiceModel.ProductName  += "\n " + HtmlHelper.ConvertHtmlToPlainText(orderItem.AttributeDescription, true, true);
+                                exportVendorInvoiceModel.Sku = p.FormatSku(orderItem.AttributesXml, _productAttributeParser);
+                            }
+                            listItem.Add(exportVendorInvoiceModel);
+                        }
+                    }
+
+                return ExportToXlsx(orderItemProperties, listItem);
         }
 
         /// <summary>

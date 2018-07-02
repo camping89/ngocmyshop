@@ -63,7 +63,12 @@ namespace Nop.Services.Tests.ExportImport
         private INewsLetterSubscriptionService _newsLetterSubscriptionService;
         private ProductEditorSettings _productEditorSettings;
         private ICustomerAttributeFormatter _customerAttributeFormatter;
-
+        private IPriceFormatter _priceFormatter;
+        private ILanguageService _languageService;
+        
+        private ICurrencyService _currencyService;
+        private CurrencySettings _currencySettings;
+        private IProductAttributeParser _productAttributeParser;
         [SetUp]
         public new void SetUp()
         {
@@ -88,6 +93,12 @@ namespace Nop.Services.Tests.ExportImport
             _newsLetterSubscriptionService = MockRepository.GenerateMock<INewsLetterSubscriptionService>();
             _productEditorSettings = new ProductEditorSettings();
             _customerAttributeFormatter = MockRepository.GenerateMock<ICustomerAttributeFormatter>();
+
+            _priceFormatter = MockRepository.GenerateMock<IPriceFormatter>();
+            _languageService = MockRepository.GenerateMock<ILanguageService>();
+            _currencyService = MockRepository.GenerateMock<ICurrencyService>();
+            _currencySettings = MockRepository.GenerateMock<CurrencySettings>();
+            _productAttributeParser = MockRepository.GenerateMock<IProductAttributeParser>();
 
             var httpContextAccessor = MockRepository.GenerateMock<IHttpContextAccessor>();
             var nopEngine = MockRepository.GenerateMock<NopEngine>();
@@ -132,7 +143,7 @@ namespace Nop.Services.Tests.ExportImport
             serviceProvider.Expect(x => x.GetRequiredService(typeof(IHttpContextAccessor))).Return(httpContextAccessor);
 
             EngineContext.Replace(nopEngine);
-            _exportManager = new ExportManager(_categoryService, _manufacturerService, _customerService, _productAttributeService, _pictureService, _newsLetterSubscriptionService, _storeService, _workContext, _productEditorSettings, _vendorService, _productTemplateService, _dateRangeService, _taxCategoryService, _measureService, _catalogSettings, _genericAttributeService, _customerAttributeFormatter, _orderSettings, _specificationAttributeService);
+            _exportManager = new ExportManager(_categoryService, _manufacturerService, _customerService, _productAttributeService, _pictureService, _newsLetterSubscriptionService, _storeService, _workContext, _productEditorSettings, _vendorService, _productTemplateService, _dateRangeService, _taxCategoryService, _measureService, _catalogSettings, _genericAttributeService, _customerAttributeFormatter, _orderSettings, _specificationAttributeService,_priceFormatter,_languageService,_currencyService,_currencySettings, _productAttributeParser);
         }
 
         #region Utilities

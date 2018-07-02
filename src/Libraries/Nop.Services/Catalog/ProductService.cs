@@ -14,6 +14,7 @@ using Nop.Core.Domain.Stores;
 using Nop.Core.Extensions;
 using Nop.Data;
 using Nop.Services.Customers;
+using Nop.Services.Directory;
 using Nop.Services.Events;
 using Nop.Services.Localization;
 using Nop.Services.Messages;
@@ -72,7 +73,7 @@ namespace Nop.Services.Catalog
         private readonly IEventPublisher _eventPublisher;
         private readonly IAclService _aclService;
         private readonly IStoreMappingService _storeMappingService;
-
+        private readonly ICurrencyService _currencyService;
         #endregion
 
         #region Ctor
@@ -133,7 +134,7 @@ namespace Nop.Services.Catalog
             CatalogSettings catalogSettings,
             IEventPublisher eventPublisher,
             IAclService aclService,
-            IStoreMappingService storeMappingService)
+            IStoreMappingService storeMappingService, ICurrencyService currencyService)
         {
             this._cacheManager = cacheManager;
             this._productRepository = productRepository;
@@ -162,6 +163,7 @@ namespace Nop.Services.Catalog
             this._eventPublisher = eventPublisher;
             this._aclService = aclService;
             this._storeMappingService = storeMappingService;
+            _currencyService = currencyService;
         }
 
         #endregion
@@ -461,6 +463,11 @@ namespace Nop.Services.Catalog
                 //creation date
                 query = query.OrderByDescending(p => p.CreatedOnUtc);
             }
+            else if (orderBy == ProductSortingEnum.UpdatedOn)
+            {
+                //updation date
+                query = query.OrderByDescending(p => p.UpdatedOnUtc);
+            }
             else
             {
                 //actually this code is not reachable
@@ -468,7 +475,7 @@ namespace Nop.Services.Catalog
             }
 
             var products = new PagedList<Product>(query, pageIndex, pageSize);
-
+           
             //return products
             return products;
         }
@@ -1002,7 +1009,17 @@ namespace Nop.Services.Catalog
                 //stored procedures aren't supported. Use LINQ
                 return SearchProductsUseLinq(ref filterableSpecificationAttributeOptionIds, loadFilterableSpecificationAttributeOptionIds, pageIndex, pageSize, categoryIds, manufacturerId, storeId, vendorId, warehouseId, productType, visibleIndividuallyOnly, markedAsNewOnly, featuredProducts, priceMin, priceMax, productTagId, keywords, searchDescriptions, searchManufacturerPartNumber, searchSku, searchProductTags, searchLocalizedValue, allowedCustomerRolesIds, languageId, filteredSpecs, orderBy, showHidden, overridePublished);
             }
-
+            foreach (var product in products)
+            {
+                if (product.CurrencyId > 0)
+                {
+                    var currency = _currencyService.GetCurrencyById(product.CurrencyId);
+                    if (currency != null)
+                    {
+                        product.Currency = currency;
+                    }
+                }
+            }
             return products;
         }
 

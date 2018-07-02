@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Nop.Core;
+using Nop.Core.Domain.Catalog;
 using Nop.Core.Domain.Orders;
 
 namespace Nop.Services.Orders
@@ -67,6 +68,7 @@ namespace Nop.Services.Orders
         /// <param name="orderNotes">Search in order notes. Leave empty to load all records.</param>
         /// <param name="pageIndex">Page index</param>
         /// <param name="pageSize">Page size</param>
+        /// <param name="orderBy"></param>
         /// <returns>Orders</returns>
         IPagedList<Order> SearchOrders(int storeId = 0,
             int vendorId = 0, int customerId = 0,
@@ -75,7 +77,7 @@ namespace Nop.Services.Orders
             DateTime? createdFromUtc = null, DateTime? createdToUtc = null,
             List<int> osIds = null, List<int> psIds = null, List<int> ssIds = null,
             string billingEmail = null, string billingLastName = "", 
-            string orderNotes = null, int pageIndex = 0, int pageSize = int.MaxValue);
+            string orderNotes = null, int pageIndex = 0, int pageSize = int.MaxValue, OrderSortingEnum orderBy = OrderSortingEnum.CreatedOnDesc);
         
         /// <summary>
         /// Inserts an order

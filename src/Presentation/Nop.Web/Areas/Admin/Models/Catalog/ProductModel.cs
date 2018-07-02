@@ -1,10 +1,12 @@
 ﻿using FluentValidation.Attributes;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Nop.Core.Domain.Directory;
 using Nop.Web.Areas.Admin.Models.Settings;
 using Nop.Web.Areas.Admin.Validators.Catalog;
 using Nop.Web.Framework.Localization;
 using Nop.Web.Framework.Mvc.ModelBinding;
 using Nop.Web.Framework.Mvc.Models;
+using Nop.Web.Models.Common;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -291,6 +293,7 @@ namespace Nop.Web.Areas.Admin.Models.Catalog
 
         [NopResourceDisplayName("Admin.Catalog.Products.Fields.Price")]
         public decimal Price { get; set; }
+        public decimal PriceLabel { get; set; }
 
         [NopResourceDisplayName("Admin.Catalog.Products.Fields.OldPrice")]
         public decimal OldPrice { get; set; }
@@ -363,6 +366,37 @@ namespace Nop.Web.Areas.Admin.Models.Catalog
         public string PrimaryStoreCurrencyCode { get; set; }
         public string BaseDimensionIn { get; set; }
         public string BaseWeightIn { get; set; }
+
+        [NopResourceDisplayName("Admin.Catalog.Products.Fields.VendorProductUrl")]
+        public string VendorProductUrl { get; set; }
+
+        [NopResourceDisplayName("Admin.Catalog.Products.Fields.UnitPriceBase")]
+        public decimal UnitPriceUsd { get; set; }
+
+        [NopResourceDisplayName("Admin.Catalog.Products.Fields.Currency")]
+        public int CurrencyId { get; set; }
+        public decimal UnitWeightCost { get; set; }
+        public string CurrencyMappedName { get; set; }
+        [NopResourceDisplayName("Admin.Catalog.Products.Fields.ExchangeRate")]
+        public decimal ExchangeRate { get; set; }
+        [NopResourceDisplayName("Admin.Catalog.Products.Fields.WeightCost")]
+        public decimal WeightCost { get; set; }
+        public decimal WeightCostLabel { get; set; }
+        public Currency CurrencyCurrent { get; set; }
+        public Currency PrimaryExchangeCurrency { get; set; }
+
+        [NopResourceDisplayName("Admin.Catalog.Products.Fields.OrderingFee")]
+        public decimal OrderingFee { get; set; }
+
+        [NopResourceDisplayName("Admin.Catalog.Products.Fields.SaleOffPercent")]
+        public double SaleOffPercent { get; set; }
+
+        [NopResourceDisplayName("Admin.Catalog.Products.Fields.UnitPrice")]
+        public string UnitPrice { get; set; }
+
+        [NopResourceDisplayName("Admin.Catalog.Products.Fields.UnitPriceDecimal")]
+        public decimal UnitPriceDecimal { get; set; }
+        public CurrencySelectorModel CurrencySelectorModel { get; set; }
 
         public IList<ProductLocalizedModel> Locales { get; set; }
 

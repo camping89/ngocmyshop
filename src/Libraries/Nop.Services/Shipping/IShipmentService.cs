@@ -1,8 +1,8 @@
-using System;
-using System.Collections.Generic;
 using Nop.Core;
 using Nop.Core.Domain.Catalog;
 using Nop.Core.Domain.Shipping;
+using System;
+using System.Collections.Generic;
 
 namespace Nop.Services.Shipping
 {
@@ -31,6 +31,7 @@ namespace Nop.Services.Shipping
         /// <param name="createdToUtc">Created date to (UTC); null to load all records</param>
         /// <param name="pageIndex">Page index</param>
         /// <param name="pageSize">Page size</param>
+        /// <param name="customerId"></param>
         /// <returns>Shipments</returns>
         IPagedList<Shipment> GetAllShipments(int vendorId = 0, int warehouseId = 0,
             int shippingCountryId = 0,
@@ -39,8 +40,8 @@ namespace Nop.Services.Shipping
             string trackingNumber = null,
             bool loadNotShipped = false,
             DateTime? createdFromUtc = null, DateTime? createdToUtc = null,
-            int pageIndex = 0, int pageSize = int.MaxValue);
-        
+            int pageIndex = 0, int pageSize = int.MaxValue, int customerId = 0);
+
         /// <summary>
         /// Get shipment by identifiers
         /// </summary>

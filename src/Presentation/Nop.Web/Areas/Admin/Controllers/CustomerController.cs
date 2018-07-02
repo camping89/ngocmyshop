@@ -1,18 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using System.Net;
-using System.Text;
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Primitives;
-using Nop.Web.Areas.Admin.Extensions;
-using Nop.Web.Areas.Admin.Helpers;
-using Nop.Web.Areas.Admin.Models.Common;
-using Nop.Web.Areas.Admin.Models.Customers;
-using Nop.Web.Areas.Admin.Models.ShoppingCart;
 using Nop.Core;
 using Nop.Core.Caching;
 using Nop.Core.Domain.Catalog;
@@ -44,12 +33,23 @@ using Nop.Services.Security;
 using Nop.Services.Stores;
 using Nop.Services.Tax;
 using Nop.Services.Vendors;
+using Nop.Web.Areas.Admin.Extensions;
+using Nop.Web.Areas.Admin.Helpers;
+using Nop.Web.Areas.Admin.Models.Common;
+using Nop.Web.Areas.Admin.Models.Customers;
+using Nop.Web.Areas.Admin.Models.ShoppingCart;
 using Nop.Web.Extensions;
 using Nop.Web.Framework.Controllers;
 using Nop.Web.Framework.Extensions;
 using Nop.Web.Framework.Kendoui;
 using Nop.Web.Framework.Mvc;
 using Nop.Web.Framework.Mvc.Filters;
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
+using System.Net;
+using System.Text;
 
 namespace Nop.Web.Areas.Admin.Controllers
 {
@@ -109,31 +109,31 @@ namespace Nop.Web.Areas.Admin.Controllers
             INewsLetterSubscriptionService newsLetterSubscriptionService,
             IGenericAttributeService genericAttributeService,
             ICustomerRegistrationService customerRegistrationService,
-            ICustomerReportService customerReportService, 
+            ICustomerReportService customerReportService,
             IDateTimeHelper dateTimeHelper,
-            ILocalizationService localizationService, 
+            ILocalizationService localizationService,
             DateTimeSettings dateTimeSettings,
-            TaxSettings taxSettings, 
+            TaxSettings taxSettings,
             RewardPointsSettings rewardPointsSettings,
-            ICountryService countryService, 
-            IStateProvinceService stateProvinceService, 
+            ICountryService countryService,
+            IStateProvinceService stateProvinceService,
             IAddressService addressService,
             CustomerSettings customerSettings,
-            ITaxService taxService, 
+            ITaxService taxService,
             IWorkContext workContext,
             IVendorService vendorService,
             IStoreContext storeContext,
             IPriceFormatter priceFormatter,
-            IOrderService orderService, 
+            IOrderService orderService,
             IExportManager exportManager,
             ICustomerActivityService customerActivityService,
             IBackInStockSubscriptionService backInStockSubscriptionService,
             IPriceCalculationService priceCalculationService,
             IProductAttributeFormatter productAttributeFormatter,
-            IPermissionService permissionService, 
+            IPermissionService permissionService,
             IQueuedEmailService queuedEmailService,
             EmailAccountSettings emailAccountSettings,
-            IEmailAccountService emailAccountService, 
+            IEmailAccountService emailAccountService,
             ForumSettings forumSettings,
             IForumService forumService,
             IExternalAuthenticationService externalAuthenticationService,
@@ -194,11 +194,11 @@ namespace Nop.Web.Areas.Admin.Controllers
             this._cacheManager = cacheManager;
             _settingService = settingService;
         }
-        
+
         #endregion
-        
+
         #region Utilities
-        
+
         protected virtual string GetCustomerRolesNames(IList<CustomerRole> customerRoles, string separator = ",")
         {
             var sb = new StringBuilder();
@@ -213,7 +213,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             }
             return sb.ToString();
         }
-        
+
         protected virtual IList<RegisteredCustomerReportLineModel> GetReportRegisteredCustomersModel()
         {
             var report = new List<RegisteredCustomerReportLineModel>();
@@ -241,7 +241,7 @@ namespace Nop.Web.Areas.Admin.Controllers
 
             return report;
         }
-        
+
         protected virtual IList<CustomerModel.AssociatedExternalAuthModel> GetAssociatedExternalAuthRecords(Customer customer)
         {
             if (customer == null)
@@ -265,7 +265,7 @@ namespace Nop.Web.Areas.Admin.Controllers
 
             return result;
         }
-        
+
         protected virtual CustomerModel PrepareCustomerModelForList(Customer customer)
         {
             return new CustomerModel
@@ -285,7 +285,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 LinkFacebook2 = customer.GetAttribute<string>(SystemCustomerAttributeNames.LinkFacebook2),
             };
         }
-        
+
         protected virtual string ValidateCustomerRoles(IList<CustomerRole> customerRoles)
         {
             if (customerRoles == null)
@@ -303,7 +303,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             //no errors
             return "";
         }
-        
+
         protected virtual void PrepareVendorsModel(CustomerModel model)
         {
             if (model == null)
@@ -358,38 +358,38 @@ namespace Nop.Web.Areas.Admin.Controllers
                         case AttributeControlType.DropdownList:
                         case AttributeControlType.RadioList:
                         case AttributeControlType.Checkboxes:
-                        {
-                            if (!string.IsNullOrEmpty(selectedCustomerAttributes))
                             {
-                                //clear default selection
-                                foreach (var item in attributeModel.Values)
-                                    item.IsPreSelected = false;
-
-                                //select new values
-                                var selectedValues = _customerAttributeParser.ParseCustomerAttributeValues(selectedCustomerAttributes);
-                                foreach (var attributeValue in selectedValues)
+                                if (!string.IsNullOrEmpty(selectedCustomerAttributes))
+                                {
+                                    //clear default selection
                                     foreach (var item in attributeModel.Values)
-                                        if (attributeValue.Id == item.Id)
-                                            item.IsPreSelected = true;
+                                        item.IsPreSelected = false;
+
+                                    //select new values
+                                    var selectedValues = _customerAttributeParser.ParseCustomerAttributeValues(selectedCustomerAttributes);
+                                    foreach (var attributeValue in selectedValues)
+                                        foreach (var item in attributeModel.Values)
+                                            if (attributeValue.Id == item.Id)
+                                                item.IsPreSelected = true;
+                                }
                             }
-                        }
                             break;
                         case AttributeControlType.ReadonlyCheckboxes:
-                        {
-                            //do nothing
-                            //values are already pre-set
-                        }
+                            {
+                                //do nothing
+                                //values are already pre-set
+                            }
                             break;
                         case AttributeControlType.TextBox:
                         case AttributeControlType.MultilineTextbox:
-                        {
-                            if (!string.IsNullOrEmpty(selectedCustomerAttributes))
                             {
-                                var enteredText = _customerAttributeParser.ParseValues(selectedCustomerAttributes, attribute.Id);
-                                if (enteredText.Any())
-                                    attributeModel.DefaultValue = enteredText[0];
+                                if (!string.IsNullOrEmpty(selectedCustomerAttributes))
+                                {
+                                    var enteredText = _customerAttributeParser.ParseValues(selectedCustomerAttributes, attribute.Id);
+                                    if (enteredText.Any())
+                                        attributeModel.DefaultValue = enteredText[0];
+                                }
                             }
-                        }
                             break;
                         case AttributeControlType.Datepicker:
                         case AttributeControlType.ColorSquares:
@@ -404,7 +404,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 model.CustomerAttributes.Add(attributeModel);
             }
         }
-        
+
         protected virtual string ParseCustomCustomerAttributes(IFormCollection form)
         {
             if (form == null)
@@ -435,7 +435,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                             var cblAttributes = form[controlId];
                             if (!StringValues.IsNullOrEmpty(cblAttributes))
                             {
-                                foreach (var item in cblAttributes.ToString().Split(new [] { ',' }, StringSplitOptions.RemoveEmptyEntries))
+                                foreach (var item in cblAttributes.ToString().Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
                                 {
                                     var selectedAttributeId = int.Parse(item);
                                     if (selectedAttributeId > 0)
@@ -483,7 +483,7 @@ namespace Nop.Web.Areas.Admin.Controllers
 
             return attributesXml;
         }
-        
+
         protected virtual void PrepareCustomerModel(CustomerModel model, Customer customer, bool excludeProperties)
         {
             var allStores = _storeService.GetAllStores();
@@ -627,7 +627,7 @@ namespace Nop.Web.Areas.Admin.Controllers
 
             //newsletter subscriptions
             model.AvailableNewsletterSubscriptionStores = allStores
-                .Select(s => new CustomerModel.StoreModel() {Id = s.Id, Name = s.Name })
+                .Select(s => new CustomerModel.StoreModel() { Id = s.Id, Name = s.Name })
                 .ToList();
 
             //customer roles
@@ -752,13 +752,13 @@ namespace Nop.Web.Areas.Admin.Controllers
 
         private bool SecondAdminAccountExists(Customer customer)
         {
-            var customers = _customerService.GetAllCustomers(customerRoleIds: new[] {_customerService.GetCustomerRoleBySystemName(SystemCustomerRoleNames.Administrators).Id});
+            var customers = _customerService.GetAllCustomers(customerRoleIds: new[] { _customerService.GetCustomerRoleBySystemName(SystemCustomerRoleNames.Administrators).Id });
 
             return customers.Any(c => c.Active && c.Id != customer.Id);
         }
-        
+
         #endregion
-        
+
         #region Customers
 
         public virtual IActionResult Index()
@@ -772,7 +772,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 return AccessDeniedView();
 
             //load registered customers by default
-            var defaultRoleIds = new List<int> {_customerService.GetCustomerRoleBySystemName(SystemCustomerRoleNames.Registered).Id};
+            var defaultRoleIds = new List<int> { _customerService.GetCustomerRoleBySystemName(SystemCustomerRoleNames.Registered).Id };
             var model = new CustomerListModel
             {
                 UsernamesEnabled = _customerSettings.UsernamesEnabled,
@@ -809,7 +809,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 searchDayOfBirth = Convert.ToInt32(model.SearchDayOfBirth);
             if (!string.IsNullOrWhiteSpace(model.SearchMonthOfBirth))
                 searchMonthOfBirth = Convert.ToInt32(model.SearchMonthOfBirth);
-            
+
             var customers = _customerService.GetAllCustomers(
                 customerRoleIds: searchCustomerRoleIds,
                 email: model.SearchEmail,
@@ -840,16 +840,17 @@ namespace Nop.Web.Areas.Admin.Controllers
         {
             var customers = _customerService.GetAllCustomers();
             var customerResult = customers.Select(PrepareCustomerModelForList);
-            var result = customerResult.Where(t => t.FullName.ToLowerInvariant().Contains(searchTerm.ToLowerInvariant())).Select(_=>new { Id = _.Id, FullName = _.FullName + " - "+ _.Phone}).ToArray();
-            return Json(new { Data = result});
+            var result = customerResult.Where(t => t.FullName.ToLowerInvariant().Contains(searchTerm.ToLowerInvariant())).Select(_ => new { Id = _.Id, Phone = _.Phone, FullName = _.FullName + " - " + _.Phone }).ToArray();
+            return Json(new { Data = result });
         }
+
         [HttpPost]
         public virtual IActionResult CustomerSearchPhone(string searchTerm)
         {
             var customers = _customerService.GetAllCustomers();
             var customerResult = customers.Select(PrepareCustomerModelForList);
-            var result = customerResult.Where(t => !string.IsNullOrEmpty(t.Phone) && t.Phone.ToLowerInvariant().Contains(searchTerm.ToLowerInvariant())).Select(_=>new { Id = _.Id, FullName = _.FullName + " - "+ _.Phone}).ToArray();
-            return Json(new { Data = result});
+            var result = customerResult.Where(t => !string.IsNullOrEmpty(t.Phone) && t.Phone.ToLowerInvariant().Contains(searchTerm.ToLowerInvariant())).Select(_ => new { Id = _.Id, Phone = _.Phone, FullName = _.FullName + " - " + _.Phone }).ToArray();
+            return Json(new { Data = result });
         }
 
         [HttpPost]
@@ -858,8 +859,8 @@ namespace Nop.Web.Areas.Admin.Controllers
             var customers = _customerService.GetAllCustomers();
             var customerResult = customers.Select(PrepareCustomerModelForList);
             var result = customerResult.Where(t => (!string.IsNullOrEmpty(t.LinkFacebook1) && t.LinkFacebook1.ToLowerInvariant().Contains(searchTerm.ToLowerInvariant()))
-                                               || (!string.IsNullOrEmpty(t.LinkFacebook2) && t.LinkFacebook2.ToLowerInvariant().Contains(searchTerm.ToLowerInvariant()))).Select(_=>new { Id = _.Id, FullName = _.FullName + " - "+ _.LinkFacebook1}).ToArray();
-            return Json(new { Data = result});
+                                               || (!string.IsNullOrEmpty(t.LinkFacebook2) && t.LinkFacebook2.ToLowerInvariant().Contains(searchTerm.ToLowerInvariant()))).Select(_ => new { Id = _.Id, FullName = _.FullName + " - " + _.LinkFacebook1 }).ToArray();
+            return Json(new { Data = result });
         }
         public virtual IActionResult Create()
         {
@@ -983,11 +984,11 @@ namespace Nop.Web.Areas.Admin.Controllers
 
                 _genericAttributeService.SaveAttribute(customer, SystemCustomerAttributeNames.LinkFacebook1, model.LinkFacebook1);
                 _genericAttributeService.SaveAttribute(customer, SystemCustomerAttributeNames.LinkFacebook2, model.LinkFacebook2);
-                var hashKey = _settingService.GetSettingByKey("Username.SercurityHashKey",string.Empty);
-                _genericAttributeService.SaveAttribute(customer, SystemCustomerAttributeNames.HashUserName, StringExtensions.Encrypt(model.Username,true,hashKey));
+                var hashKey = _settingService.GetSettingByKey("Username.SercurityHashKey", string.Empty);
+                _genericAttributeService.SaveAttribute(customer, SystemCustomerAttributeNames.HashUserName, StringExtensions.Encrypt(model.Username, true, hashKey));
                 //custom customer attributes
                 _genericAttributeService.SaveAttribute(customer, SystemCustomerAttributeNames.CustomCustomerAttributes, customerAttributesXml);
-                
+
                 //newsletter subscriptions
                 if (!string.IsNullOrEmpty(customer.Email))
                 {
@@ -1039,14 +1040,14 @@ namespace Nop.Web.Areas.Admin.Controllers
                 foreach (var customerRole in newCustomerRoles)
                 {
                     //ensure that the current customer cannot add to "Administrators" system role if he's not an admin himself
-                    if (customerRole.SystemName == SystemCustomerRoleNames.Administrators && 
+                    if (customerRole.SystemName == SystemCustomerRoleNames.Administrators &&
                         !_workContext.CurrentCustomer.IsAdmin())
                         continue;
 
                     customer.CustomerRoles.Add(customerRole);
                 }
                 _customerService.UpdateCustomer(customer);
-                
+
 
                 //ensure that a customer with a vendor associated is not in "Administrators" role
                 //otherwise, he won't have access to other functionality in admin area
@@ -1079,7 +1080,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                     //selected tab
                     SaveSelectedTabName();
 
-                    return RedirectToAction("Edit", new {id = customer.Id});
+                    return RedirectToAction("Edit", new { id = customer.Id });
                 }
                 return RedirectToAction("List");
             }
@@ -1200,15 +1201,15 @@ namespace Nop.Web.Areas.Admin.Controllers
                         {
                             if (!model.VatNumber.Equals(prevVatNumber, StringComparison.InvariantCultureIgnoreCase))
                             {
-                                _genericAttributeService.SaveAttribute(customer, 
-                                    SystemCustomerAttributeNames.VatNumberStatusId, 
+                                _genericAttributeService.SaveAttribute(customer,
+                                    SystemCustomerAttributeNames.VatNumberStatusId,
                                     (int)_taxService.GetVatNumberStatus(model.VatNumber));
                             }
                         }
                         else
                         {
                             _genericAttributeService.SaveAttribute(customer,
-                                SystemCustomerAttributeNames.VatNumberStatusId, 
+                                SystemCustomerAttributeNames.VatNumberStatusId,
                                 (int)VatNumberStatus.Empty);
                         }
                     }
@@ -1344,7 +1345,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                         //selected tab
                         SaveSelectedTabName();
 
-                        return RedirectToAction("Edit",  new {id = customer.Id});
+                        return RedirectToAction("Edit", new { id = customer.Id });
                     }
                     return RedirectToAction("List");
                 }
@@ -1390,9 +1391,9 @@ namespace Nop.Web.Areas.Admin.Controllers
                         ErrorNotification(error);
             }
 
-            return RedirectToAction("Edit",  new {id = customer.Id});
+            return RedirectToAction("Edit", new { id = customer.Id });
         }
-        
+
         [HttpPost, ActionName("Edit")]
         [FormValueRequired("markVatNumberAsValid")]
         public virtual IActionResult MarkVatNumberAsValid(CustomerModel model)
@@ -1405,11 +1406,11 @@ namespace Nop.Web.Areas.Admin.Controllers
                 //No customer found with the specified id
                 return RedirectToAction("List");
 
-            _genericAttributeService.SaveAttribute(customer, 
+            _genericAttributeService.SaveAttribute(customer,
                 SystemCustomerAttributeNames.VatNumberStatusId,
                 (int)VatNumberStatus.Valid);
 
-            return RedirectToAction("Edit",  new {id = customer.Id});
+            return RedirectToAction("Edit", new { id = customer.Id });
         }
 
         [HttpPost, ActionName("Edit")]
@@ -1427,8 +1428,8 @@ namespace Nop.Web.Areas.Admin.Controllers
             _genericAttributeService.SaveAttribute(customer,
                 SystemCustomerAttributeNames.VatNumberStatusId,
                 (int)VatNumberStatus.Invalid);
-            
-            return RedirectToAction("Edit",  new {id = customer.Id});
+
+            return RedirectToAction("Edit", new { id = customer.Id });
         }
 
         [HttpPost, ActionName("Edit")]
@@ -1442,7 +1443,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             if (customer == null)
                 //No customer found with the specified id
                 return RedirectToAction("List");
-            
+
             customer.AffiliateId = 0;
             _customerService.UpdateCustomer(customer);
 
@@ -1609,7 +1610,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                     Subject = model.SendEmail.Subject,
                     Body = model.SendEmail.Body,
                     CreatedOnUtc = DateTime.UtcNow,
-                    DontSendBeforeDateUtc = (model.SendEmail.SendImmediately || !model.SendEmail.DontSendBeforeDate.HasValue) ? 
+                    DontSendBeforeDateUtc = (model.SendEmail.SendImmediately || !model.SendEmail.DontSendBeforeDate.HasValue) ?
                         null : (DateTime?)_dateTimeHelper.ConvertToUtcTime(model.SendEmail.DontSendBeforeDate.Value)
                 };
                 _queuedEmailService.InsertQueuedEmail(email);
@@ -1668,9 +1669,9 @@ namespace Nop.Web.Areas.Admin.Controllers
 
             return RedirectToAction("Edit", new { id = customer.Id });
         }
-        
+
         #endregion
-        
+
         #region Reward points history
 
         [HttpPost]
@@ -1721,9 +1722,9 @@ namespace Nop.Web.Areas.Admin.Controllers
 
             return Json(new { Result = true });
         }
-        
+
         #endregion
-       
+
         #region Addresses
 
         [HttpPost]
@@ -1794,7 +1795,7 @@ namespace Nop.Web.Areas.Admin.Controllers
 
             return new NullJsonResult();
         }
-        
+
         public virtual IActionResult AddressCreate(int customerId)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageCustomers))
@@ -1911,11 +1912,11 @@ namespace Nop.Web.Areas.Admin.Controllers
 
             return View(model);
         }
-        
+
         #endregion
 
         #region Orders
-        
+
         [HttpPost]
         public virtual IActionResult OrderList(int customerId, DataSourceRequest command)
         {
@@ -1932,7 +1933,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                         var store = _storeService.GetStoreById(order.StoreId);
                         var orderModel = new CustomerModel.OrderModel
                         {
-                            Id = order.Id, 
+                            Id = order.Id,
                             OrderStatus = order.OrderStatus.GetLocalizedEnum(_localizationService, _workContext),
                             OrderStatusId = order.OrderStatusId,
                             PaymentStatus = order.PaymentStatus.GetLocalizedEnum(_localizationService, _workContext),
@@ -1949,7 +1950,7 @@ namespace Nop.Web.Areas.Admin.Controllers
 
             return Json(gridModel);
         }
-        
+
         #endregion
 
         #region Reports
@@ -1983,7 +1984,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             model.BestCustomersByOrderTotal.AvailablePaymentStatuses.Insert(0, new SelectListItem { Text = _localizationService.GetResource("Admin.Common.All"), Value = "0" });
             model.BestCustomersByOrderTotal.AvailableShippingStatuses = ShippingStatus.NotYetShipped.ToSelectList(false).ToList();
             model.BestCustomersByOrderTotal.AvailableShippingStatuses.Insert(0, new SelectListItem { Text = _localizationService.GetResource("Admin.Common.All"), Value = "0" });
-            
+
             return View(model);
         }
 
@@ -2178,7 +2179,7 @@ namespace Nop.Web.Areas.Admin.Controllers
         }
 
         #endregion
-        
+
         #region Current shopping cart/ wishlist
 
         [HttpPost]
@@ -2214,9 +2215,9 @@ namespace Nop.Web.Areas.Admin.Controllers
 
             return Json(gridModel);
         }
-        
+
         #endregion
-        
+
         #region Activity log
 
         [HttpPost]
@@ -2246,9 +2247,9 @@ namespace Nop.Web.Areas.Admin.Controllers
 
             return Json(gridModel);
         }
-        
+
         #endregion
-        
+
         #region Back in stock subscriptions
 
         [HttpPost]
@@ -2281,9 +2282,9 @@ namespace Nop.Web.Areas.Admin.Controllers
 
             return Json(gridModel);
         }
-        
+
         #endregion
-        
+
         #region Export / Import
 
         [HttpPost, ActionName("List")]
@@ -2335,7 +2336,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             if (selectedIds != null)
             {
                 var ids = selectedIds
-                    .Split(new [] { ',' }, StringSplitOptions.RemoveEmptyEntries)
+                    .Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
                     .Select(x => Convert.ToInt32(x))
                     .ToArray();
                 customers.AddRange(_customerService.GetCustomersByIds(ids));
@@ -2402,7 +2403,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             if (selectedIds != null)
             {
                 var ids = selectedIds
-                    .Split(new [] { ',' }, StringSplitOptions.RemoveEmptyEntries)
+                    .Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
                     .Select(x => Convert.ToInt32(x))
                     .ToArray();
                 customers.AddRange(_customerService.GetCustomersByIds(ids));
@@ -2411,7 +2412,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             var xml = _exportManager.ExportCustomersToXml(customers);
             return File(Encoding.UTF8.GetBytes(xml), "application/xml", "customers.xml");
         }
-        
+
         #endregion
     }
 }

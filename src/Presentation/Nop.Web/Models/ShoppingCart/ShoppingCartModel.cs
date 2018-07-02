@@ -1,10 +1,10 @@
-﻿using System.Collections.Generic;
-using Microsoft.AspNetCore.Mvc.Rendering;
+﻿using Microsoft.AspNetCore.Mvc.Rendering;
 using Nop.Core.Domain.Catalog;
 using Nop.Core.Domain.Directory;
 using Nop.Web.Framework.Mvc.Models;
 using Nop.Web.Models.Common;
 using Nop.Web.Models.Media;
+using System.Collections.Generic;
 
 namespace Nop.Web.Models.ShoppingCart
 {
@@ -29,7 +29,7 @@ namespace Nop.Web.Models.ShoppingCart
         public bool IsEditable { get; set; }
         public IList<ShoppingCartItemModel> Items { get; set; }
         public Currency CurrencyCurrent { get; set; }
-        public Currency PrimaryCurrencyCurrent { get; set; }
+        public Currency PrimaryExchangeCurrency { get; set; }
         public IList<CheckoutAttributeModel> CheckoutAttributes { get; set; }
 
         public IList<string> Warnings { get; set; }
@@ -45,7 +45,7 @@ namespace Nop.Web.Models.ShoppingCart
         public IList<string> ButtonPaymentMethodViewComponentNames { get; set; }
 
         public bool HideCheckoutButton { get; set; }
-        public CurrencySelectorModel CurrencySelectorModel { get;set; }
+        public CurrencySelectorModel CurrencySelectorModel { get; set; }
         #region Nested Classes
 
         public partial class ShoppingCartItemModel : BaseNopEntityModel
@@ -59,20 +59,22 @@ namespace Nop.Web.Models.ShoppingCart
 
             public string Sku { get; set; }
 
-            public PictureModel Picture {get;set;}
+            public PictureModel Picture { get; set; }
 
             public int ProductId { get; set; }
 
             public string ProductName { get; set; }
 
             public string ProductSeName { get; set; }
-            public decimal UnitPriceUsd {get; set; }
+            public decimal UnitPriceUsd { get; set; }
             public decimal ExchangeRate { get; set; }
             public decimal OrderingFee { get; set; }
             public double SaleOffPercent { get; set; }
             public string UnitPrice { get; set; }
             public decimal UnitPriceDecimal { get; set; }
-            
+            public int CurrencyId { get; set; }
+            public string Weight { get; set; }
+            public decimal WeightCost { get; set; }
             public string SubTotal { get; set; }
 
             public string Discount { get; set; }
@@ -80,7 +82,7 @@ namespace Nop.Web.Models.ShoppingCart
 
             public int Quantity { get; set; }
             public List<SelectListItem> AllowedQuantities { get; set; }
-            
+
             public string AttributeInfo { get; set; }
 
             public string RecurringInfo { get; set; }
@@ -144,7 +146,7 @@ namespace Nop.Web.Models.ShoppingCart
             public bool IsPreSelected { get; set; }
         }
 
-        public partial class DiscountBoxModel: BaseNopModel
+        public partial class DiscountBoxModel : BaseNopModel
         {
             public DiscountBoxModel()
             {
@@ -177,7 +179,7 @@ namespace Nop.Web.Models.ShoppingCart
                 this.BillingAddress = new AddressModel();
                 this.ShippingAddress = new AddressModel();
                 this.PickupAddress = new AddressModel();
-                this.CustomValues= new Dictionary<string, object>();
+                this.CustomValues = new Dictionary<string, object>();
             }
             public bool Display { get; set; }
 

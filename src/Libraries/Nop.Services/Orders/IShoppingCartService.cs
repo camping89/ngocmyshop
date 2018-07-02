@@ -183,13 +183,15 @@ namespace Nop.Services.Orders
         /// <param name="exchangeRate"></param>
         /// <param name="orderingFee"></param>
         /// <param name="saleOffPercent"></param>
+        /// <param name="currencyId"></param>
+        /// <param name="weightCost"></param>
         /// <returns>Warnings</returns>
         IList<string> UpdateShoppingCartItem(Customer customer,
             int shoppingCartItemId, string attributesXml,
             decimal customerEnteredPrice,
             DateTime? rentalStartDate = null, DateTime? rentalEndDate = null,
             int quantity = 1, bool resetCheckoutData = true,
-            decimal unitPriceUsd = 0, decimal exchangeRate = 0, decimal orderingFee = 0, double saleOffPercent = 0);
+            decimal unitPriceUsd = 0, decimal exchangeRate = 0, decimal orderingFee = 0, double saleOffPercent = 0,int currencyId = 0,decimal weightCost = 0 );
         
         /// <summary>
         /// Migrate shopping cart

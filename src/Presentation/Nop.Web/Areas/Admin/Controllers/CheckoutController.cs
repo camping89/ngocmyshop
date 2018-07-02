@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Nop.Core;
 using Nop.Core.Domain.Common;
@@ -24,12 +21,14 @@ using Nop.Web.Extensions;
 using Nop.Web.Factories;
 using Nop.Web.Framework.Controllers;
 using Nop.Web.Framework.Mvc.Filters;
-using Nop.Web.Framework.Security;
 using Nop.Web.Models.Checkout;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Nop.Web.Areas.Admin.Controllers
 {
-    [AdminAntiForgery(ignore:true)]
+    [AdminAntiForgery(ignore: true)]
     public partial class CheckoutController : BaseAdminController
     {
         #region Fields
@@ -64,21 +63,21 @@ namespace Nop.Web.Areas.Admin.Controllers
 
         #endregion
 
-		#region Ctor
+        #region Ctor
 
         public CheckoutController(ICheckoutModelFactory checkoutModelFactory,
             IWorkContext workContext,
             IStoreContext storeContext,
-            IShoppingCartService shoppingCartService, 
+            IShoppingCartService shoppingCartService,
             ILocalizationService localizationService,
             IProductAttributeParser productAttributeParser,
-            IProductService productService, 
+            IProductService productService,
             IOrderProcessingService orderProcessingService,
-            ICustomerService customerService, 
+            ICustomerService customerService,
             IGenericAttributeService genericAttributeService,
             ICountryService countryService,
             IStateProvinceService stateProvinceService,
-            IShippingService shippingService, 
+            IShippingService shippingService,
             IPaymentService paymentService,
             IPluginFinder pluginFinder,
             ILogger logger,
@@ -86,7 +85,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             IWebHelper webHelper,
             IAddressAttributeParser addressAttributeParser,
             IAddressAttributeService addressAttributeService,
-            OrderSettings orderSettings, 
+            OrderSettings orderSettings,
             RewardPointsSettings rewardPointsSettings,
             PaymentSettings paymentSettings,
             ShippingSettings shippingSettings,
@@ -154,7 +153,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 .LimitPerStore(_storeContext.CurrentStore.Id)
                 .ToList();
             if (!cart.Any())
-                return RedirectToAction("CreateOrder","ShoppingCart",new {customerId});
+                return RedirectToAction("CreateOrder", "ShoppingCart", new { customerId });
 
             var downloadableProductsRequireRegistration =
                 _customerSettings.RequireRegistrationForDownloadableProducts && cart.Any(sci => sci.Product.IsDownload);
@@ -178,7 +177,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 .Where(pm => pm.PaymentMethodType == PaymentMethodType.Button)
                 .ToList();
             if (!nonButtonPaymentMethods.Any() && buttonPaymentMethods.Any())
-                return RedirectToAction("CreateOrder","ShoppingCart",new {customerId});
+                return RedirectToAction("CreateOrder", "ShoppingCart", new { customerId });
 
             //reset checkout data
             _customerService.ResetCheckoutData(customer, _storeContext.CurrentStore.Id);
@@ -187,7 +186,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             var checkoutAttributesXml = customer.GetAttribute<string>(SystemCustomerAttributeNames.CheckoutAttributes, _genericAttributeService, _storeContext.CurrentStore.Id);
             var scWarnings = _shoppingCartService.GetShoppingCartWarnings(cart, checkoutAttributesXml, true);
             if (scWarnings.Any())
-                return RedirectToAction("CreateOrder","ShoppingCart",new {customerId});
+                return RedirectToAction("CreateOrder", "ShoppingCart", new { customerId });
             //validation (each shopping cart item)
             foreach (var sci in cart)
             {
@@ -202,18 +201,18 @@ namespace Nop.Web.Areas.Admin.Controllers
                     sci.Quantity,
                     false);
                 if (sciWarnings.Any())
-                     return RedirectToAction("CreateOrder","ShoppingCart",new {customerId});
+                    return RedirectToAction("CreateOrder", "ShoppingCart", new { customerId });
             }
 
             if (_orderSettings.OnePageCheckoutEnabled)
-                return RedirectToAction("OnePageCheckout",new {customerId});;
-            
+                return RedirectToAction("OnePageCheckout", new { customerId }); ;
+
             return RedirectToAction("BillingAddress");
         }
 
-        public virtual IActionResult Completed(int? orderId,int customerId)
+        public virtual IActionResult Completed(int? orderId, int customerId)
         {
-            return RedirectToAction("List","Order");
+            return RedirectToAction("List", "Order");
             //var customer = _customerService.GetCustomerById(customerId);
             ////validation
             //if (customer.IsGuest() && !_orderSettings.AnonymousCheckoutAllowed)
@@ -260,16 +259,16 @@ namespace Nop.Web.Areas.Admin.Controllers
                 .LimitPerStore(_storeContext.CurrentStore.Id)
                 .ToList();
             if (!cart.Any())
-                 return RedirectToAction("CreateOrder","ShoppingCart",new {customerId});
+                return RedirectToAction("CreateOrder", "ShoppingCart", new { customerId });
 
             if (_orderSettings.OnePageCheckoutEnabled)
-                return RedirectToAction("OnePageCheckout",new {customerId});;
+                return RedirectToAction("OnePageCheckout", new { customerId }); ;
 
             if (customer.IsGuest() && !_orderSettings.AnonymousCheckoutAllowed)
                 return Challenge();
 
             //model
-            var model = _checkoutModelFactory.PrepareBillingAddressModel(cart, prePopulateNewAddressWithCustomerFields: true,customer:customer);
+            var model = _checkoutModelFactory.PrepareBillingAddressModel(cart, prePopulateNewAddressWithCustomerFields: true, customer: customer);
 
             //check whether "billing address" step is enabled
             if (_orderSettings.DisableBillingAddressCheckoutStep)
@@ -282,13 +281,13 @@ namespace Nop.Web.Areas.Admin.Controllers
 
                 TryValidateModel(model);
                 TryValidateModel(model.BillingNewAddress);
-                return NewBillingAddress(model,customerId);
+                return NewBillingAddress(model, customerId);
             }
 
             return View(model);
         }
 
-        public virtual IActionResult SelectBillingAddress(int addressId, bool shipToSameAddress = false,int customerId = 0)
+        public virtual IActionResult SelectBillingAddress(int addressId, bool shipToSameAddress = false, int customerId = 0)
         {
             var customer = _customerService.GetCustomerById(customerId);
             var address = customer.Addresses.FirstOrDefault(a => a.Id == addressId);
@@ -320,7 +319,7 @@ namespace Nop.Web.Areas.Admin.Controllers
 
         [HttpPost, ActionName("BillingAddress")]
         [FormValueRequired("nextstep")]
-        public virtual IActionResult NewBillingAddress(CheckoutBillingAddressModel model,int customerId)
+        public virtual IActionResult NewBillingAddress(CheckoutBillingAddressModel model, int customerId)
         {
             var customer = _customerService.GetCustomerById(customerId);
             //validation
@@ -329,10 +328,10 @@ namespace Nop.Web.Areas.Admin.Controllers
                 .LimitPerStore(_storeContext.CurrentStore.Id)
                 .ToList();
             if (!cart.Any())
-                 return RedirectToAction("CreateOrder","ShoppingCart",new {customerId});
+                return RedirectToAction("CreateOrder", "ShoppingCart", new { customerId });
 
             if (_orderSettings.OnePageCheckoutEnabled)
-                return RedirectToAction("OnePageCheckout",new {customerId});;
+                return RedirectToAction("OnePageCheckout", new { customerId }); ;
 
             if (customer.IsGuest() && !_orderSettings.AnonymousCheckoutAllowed)
                 return Challenge();
@@ -390,7 +389,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             //If we got this far, something failed, redisplay form
             model = _checkoutModelFactory.PrepareBillingAddressModel(cart,
                 selectedCountryId: newAddress.CountryId,
-                overrideAttributesXml: customAttributes,customer:customer);
+                overrideAttributesXml: customAttributes, customer: customer);
             return View(model);
         }
 
@@ -403,10 +402,10 @@ namespace Nop.Web.Areas.Admin.Controllers
                 .LimitPerStore(_storeContext.CurrentStore.Id)
                 .ToList();
             if (!cart.Any())
-                 return RedirectToAction("CreateOrder","ShoppingCart",new {customerId});
+                return RedirectToAction("CreateOrder", "ShoppingCart", new { customerId });
 
             if (_orderSettings.OnePageCheckoutEnabled)
-                return RedirectToAction("OnePageCheckout",new {customerId});;
+                return RedirectToAction("OnePageCheckout", new { customerId }); ;
 
             if (customer.IsGuest() && !_orderSettings.AnonymousCheckoutAllowed)
                 return Challenge();
@@ -419,11 +418,11 @@ namespace Nop.Web.Areas.Admin.Controllers
             }
 
             //model
-            var model = _checkoutModelFactory.PrepareShippingAddressModel(prePopulateNewAddressWithCustomerFields: true,customer:customer);
+            var model = _checkoutModelFactory.PrepareShippingAddressModel(prePopulateNewAddressWithCustomerFields: true, customer: customer);
             return View(model);
         }
 
-        public virtual IActionResult SelectShippingAddress(int addressId,int customerId)
+        public virtual IActionResult SelectShippingAddress(int addressId, int customerId)
         {
             var customer = _customerService.GetCustomerById(customerId);
             var address = customer.Addresses.FirstOrDefault(a => a.Id == addressId);
@@ -444,7 +443,7 @@ namespace Nop.Web.Areas.Admin.Controllers
 
         [HttpPost, ActionName("ShippingAddress")]
         [FormValueRequired("nextstep")]
-        public virtual IActionResult NewShippingAddress(CheckoutShippingAddressModel model,int customerId)
+        public virtual IActionResult NewShippingAddress(CheckoutShippingAddressModel model, int customerId)
         {
             var customer = _customerService.GetCustomerById(customerId);
             //validation
@@ -453,10 +452,10 @@ namespace Nop.Web.Areas.Admin.Controllers
                 .LimitPerStore(_storeContext.CurrentStore.Id)
                 .ToList();
             if (!cart.Any())
-                 return RedirectToAction("CreateOrder","ShoppingCart",new {customerId});
+                return RedirectToAction("CreateOrder", "ShoppingCart", new { customerId });
 
             if (_orderSettings.OnePageCheckoutEnabled)
-                return RedirectToAction("OnePageCheckout",new {customerId});;
+                return RedirectToAction("OnePageCheckout", new { customerId }); ;
 
             if (customer.IsGuest() && !_orderSettings.AnonymousCheckoutAllowed)
                 return Challenge();
@@ -542,10 +541,10 @@ namespace Nop.Web.Areas.Admin.Controllers
             //If we got this far, something failed, redisplay form
             model = _checkoutModelFactory.PrepareShippingAddressModel(
                 selectedCountryId: newAddress.CountryId,
-                overrideAttributesXml: customAttributes,customer:customer);
+                overrideAttributesXml: customAttributes, customer: customer);
             return View(model);
         }
-        
+
         public virtual IActionResult ShippingMethod(int customerId)
         {
             var customer = _customerService.GetCustomerById(customerId);
@@ -555,10 +554,10 @@ namespace Nop.Web.Areas.Admin.Controllers
                 .LimitPerStore(_storeContext.CurrentStore.Id)
                 .ToList();
             if (!cart.Any())
-                 return RedirectToAction("CreateOrder","ShoppingCart",new {customerId});
+                return RedirectToAction("CreateOrder", "ShoppingCart", new { customerId });
 
             if (_orderSettings.OnePageCheckoutEnabled)
-                return RedirectToAction("OnePageCheckout",new {customerId});;
+                return RedirectToAction("OnePageCheckout", new { customerId }); ;
 
             if (customer.IsGuest() && !_orderSettings.AnonymousCheckoutAllowed)
                 return Challenge();
@@ -567,20 +566,20 @@ namespace Nop.Web.Areas.Admin.Controllers
             {
                 _genericAttributeService.SaveAttribute<ShippingOption>(customer, SystemCustomerAttributeNames.SelectedShippingOption, null, _storeContext.CurrentStore.Id);
                 return RedirectToRoute("CheckoutPaymentMethod");
-                }
-            
+            }
+
             //model
-            var model = _checkoutModelFactory.PrepareShippingMethodModel(cart, customer.ShippingAddress,customer:customer);
+            var model = _checkoutModelFactory.PrepareShippingMethodModel(cart, customer.ShippingAddress, customer: customer);
 
             if (_shippingSettings.BypassShippingMethodSelectionIfOnlyOne &&
                 model.ShippingMethods.Count == 1)
             {
                 //if we have only one shipping method, then a customer doesn't have to choose a shipping method
-                _genericAttributeService.SaveAttribute(customer, 
+                _genericAttributeService.SaveAttribute(customer,
                     SystemCustomerAttributeNames.SelectedShippingOption,
                     model.ShippingMethods.First().ShippingOption,
                     _storeContext.CurrentStore.Id);
-            
+
                 return RedirectToRoute("CheckoutPaymentMethod");
             }
 
@@ -589,7 +588,7 @@ namespace Nop.Web.Areas.Admin.Controllers
 
         [HttpPost, ActionName("ShippingMethod")]
         [FormValueRequired("nextstep")]
-        public virtual IActionResult SelectShippingMethod(string shippingoption,int customerId)
+        public virtual IActionResult SelectShippingMethod(string shippingoption, int customerId)
         {
             var customer = _customerService.GetCustomerById(customerId);
             //validation
@@ -598,10 +597,10 @@ namespace Nop.Web.Areas.Admin.Controllers
                 .LimitPerStore(_storeContext.CurrentStore.Id)
                 .ToList();
             if (!cart.Any())
-                 return RedirectToAction("CreateOrder","ShoppingCart",new {customerId});
+                return RedirectToAction("CreateOrder", "ShoppingCart", new { customerId });
 
             if (_orderSettings.OnePageCheckoutEnabled)
-                return RedirectToAction("OnePageCheckout",new {customerId});;
+                return RedirectToAction("OnePageCheckout", new { customerId }); ;
 
             if (customer.IsGuest() && !_orderSettings.AnonymousCheckoutAllowed)
                 return Challenge();
@@ -616,12 +615,12 @@ namespace Nop.Web.Areas.Admin.Controllers
             //parse selected method 
             if (string.IsNullOrEmpty(shippingoption))
                 return ShippingMethod(customerId);
-            var splittedOption = shippingoption.Split(new [] { "___" }, StringSplitOptions.RemoveEmptyEntries);
+            var splittedOption = shippingoption.Split(new[] { "___" }, StringSplitOptions.RemoveEmptyEntries);
             if (splittedOption.Length != 2)
                 return ShippingMethod(customerId);
             var selectedName = splittedOption[0];
             var shippingRateComputationMethodSystemName = splittedOption[1];
-            
+
             //find it
             //performance optimization. try cache first
             var shippingOptions = customer.GetAttribute<List<ShippingOption>>(SystemCustomerAttributeNames.OfferedShippingOptions, _storeContext.CurrentStore.Id);
@@ -645,10 +644,10 @@ namespace Nop.Web.Areas.Admin.Controllers
 
             //save
             _genericAttributeService.SaveAttribute(customer, SystemCustomerAttributeNames.SelectedShippingOption, shippingOption, _storeContext.CurrentStore.Id);
-            
+
             return RedirectToRoute("CheckoutPaymentMethod");
         }
-        
+
         public virtual IActionResult PaymentMethod(int customerId)
         {
             var customer = _customerService.GetCustomerById(customerId);
@@ -658,10 +657,10 @@ namespace Nop.Web.Areas.Admin.Controllers
                 .LimitPerStore(_storeContext.CurrentStore.Id)
                 .ToList();
             if (!cart.Any())
-                 return RedirectToAction("CreateOrder","ShoppingCart",new {customerId});
+                return RedirectToAction("CreateOrder", "ShoppingCart", new { customerId });
 
             if (_orderSettings.OnePageCheckoutEnabled)
-                return RedirectToAction("OnePageCheckout",new {customerId});;
+                return RedirectToAction("OnePageCheckout", new { customerId }); ;
 
             if (customer.IsGuest() && !_orderSettings.AnonymousCheckoutAllowed)
                 return Challenge();
@@ -686,7 +685,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             }
 
             //model
-            var paymentMethodModel = _checkoutModelFactory.PreparePaymentMethodModel(cart, filterByCountryId,customer);
+            var paymentMethodModel = _checkoutModelFactory.PreparePaymentMethodModel(cart, filterByCountryId, customer);
 
             if (_paymentSettings.BypassPaymentMethodSelectionIfOnlyOne &&
                 paymentMethodModel.PaymentMethods.Count == 1 && !paymentMethodModel.DisplayRewardPoints)
@@ -695,7 +694,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 //so customer doesn't have to choose a payment method
 
                 _genericAttributeService.SaveAttribute(customer,
-                    SystemCustomerAttributeNames.SelectedPaymentMethod, 
+                    SystemCustomerAttributeNames.SelectedPaymentMethod,
                     paymentMethodModel.PaymentMethods[0].PaymentMethodSystemName,
                     _storeContext.CurrentStore.Id);
                 return RedirectToRoute("CheckoutPaymentInfo");
@@ -706,7 +705,7 @@ namespace Nop.Web.Areas.Admin.Controllers
 
         [HttpPost, ActionName("PaymentMethod")]
         [FormValueRequired("nextstep")]
-        public virtual IActionResult SelectPaymentMethod(string paymentmethod,int customerId, CheckoutPaymentMethodModel model)
+        public virtual IActionResult SelectPaymentMethod(string paymentmethod, int customerId, CheckoutPaymentMethodModel model)
         {
             var customer = _customerService.GetCustomerById(customerId);
             //validation
@@ -715,10 +714,10 @@ namespace Nop.Web.Areas.Admin.Controllers
                 .LimitPerStore(_storeContext.CurrentStore.Id)
                 .ToList();
             if (!cart.Any())
-                 return RedirectToAction("CreateOrder","ShoppingCart",new {customerId});
+                return RedirectToAction("CreateOrder", "ShoppingCart", new { customerId });
 
             if (_orderSettings.OnePageCheckoutEnabled)
-                return RedirectToAction("OnePageCheckout",new {customerId});;
+                return RedirectToAction("OnePageCheckout", new { customerId }); ;
 
             if (customer.IsGuest() && !_orderSettings.AnonymousCheckoutAllowed)
                 return Challenge();
@@ -744,7 +743,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 return PaymentMethod(customerId);
 
             var paymentMethodInst = _paymentService.LoadPaymentMethodBySystemName(paymentmethod);
-            if (paymentMethodInst == null || 
+            if (paymentMethodInst == null ||
                 !paymentMethodInst.IsPaymentMethodActive(_paymentSettings) ||
                 !_pluginFinder.AuthenticateStore(paymentMethodInst.PluginDescriptor, _storeContext.CurrentStore.Id) ||
                 !_pluginFinder.AuthorizedForUser(paymentMethodInst.PluginDescriptor, customer))
@@ -753,7 +752,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             //save
             _genericAttributeService.SaveAttribute(customer,
                 SystemCustomerAttributeNames.SelectedPaymentMethod, paymentmethod, _storeContext.CurrentStore.Id);
-            
+
             return RedirectToRoute("CheckoutPaymentInfo");
         }
 
@@ -766,10 +765,10 @@ namespace Nop.Web.Areas.Admin.Controllers
                 .LimitPerStore(_storeContext.CurrentStore.Id)
                 .ToList();
             if (!cart.Any())
-                 return RedirectToAction("CreateOrder","ShoppingCart",new {customerId});
+                return RedirectToAction("CreateOrder", "ShoppingCart", new { customerId });
 
             if (_orderSettings.OnePageCheckoutEnabled)
-                return RedirectToAction("OnePageCheckout",new {customerId});;
+                return RedirectToAction("OnePageCheckout", new { customerId }); ;
 
             if (customer.IsGuest() && !_orderSettings.AnonymousCheckoutAllowed)
                 return Challenge();
@@ -790,7 +789,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 return RedirectToRoute("CheckoutPaymentMethod");
 
             //Check whether payment info should be skipped
-            if (paymentMethod.SkipPaymentInfo || 
+            if (paymentMethod.SkipPaymentInfo ||
                 (paymentMethod.PaymentMethodType == PaymentMethodType.Redirection && _paymentSettings.SkipPaymentInfoStepForRedirectionPaymentMethods))
             {
                 //skip payment info page
@@ -803,13 +802,13 @@ namespace Nop.Web.Areas.Admin.Controllers
             }
 
             //model
-            var model = _checkoutModelFactory.PreparePaymentInfoModel(paymentMethod,customer);
+            var model = _checkoutModelFactory.PreparePaymentInfoModel(paymentMethod, customer);
             return View(model);
         }
 
         [HttpPost, ActionName("PaymentInfo")]
         [FormValueRequired("nextstep")]
-        public virtual IActionResult EnterPaymentInfo(IFormCollection form,int customerId)
+        public virtual IActionResult EnterPaymentInfo(IFormCollection form, int customerId)
         {
             var customer = _customerService.GetCustomerById(customerId);
             //validation
@@ -818,10 +817,10 @@ namespace Nop.Web.Areas.Admin.Controllers
                 .LimitPerStore(_storeContext.CurrentStore.Id)
                 .ToList();
             if (!cart.Any())
-                 return RedirectToAction("CreateOrder","ShoppingCart",new {customerId});
+                return RedirectToAction("CreateOrder", "ShoppingCart", new { customerId });
 
             if (_orderSettings.OnePageCheckoutEnabled)
-                return RedirectToAction("OnePageCheckout",new {customerId});;
+                return RedirectToAction("OnePageCheckout", new { customerId }); ;
 
             if (customer.IsGuest() && !_orderSettings.AnonymousCheckoutAllowed)
                 return Challenge();
@@ -855,10 +854,10 @@ namespace Nop.Web.Areas.Admin.Controllers
 
             //If we got this far, something failed, redisplay form
             //model
-            var model = _checkoutModelFactory.PreparePaymentInfoModel(paymentMethod,customer);
+            var model = _checkoutModelFactory.PreparePaymentInfoModel(paymentMethod, customer);
             return View(model);
         }
-        
+
         public virtual IActionResult Confirm(int customerId)
         {
             var customer = _customerService.GetCustomerById(customerId);
@@ -868,16 +867,16 @@ namespace Nop.Web.Areas.Admin.Controllers
                 .LimitPerStore(_storeContext.CurrentStore.Id)
                 .ToList();
             if (!cart.Any())
-                 return RedirectToAction("CreateOrder","ShoppingCart",new {customerId});
+                return RedirectToAction("CreateOrder", "ShoppingCart", new { customerId });
 
             if (_orderSettings.OnePageCheckoutEnabled)
-                return RedirectToAction("OnePageCheckout",new {customerId});;
+                return RedirectToAction("OnePageCheckout", new { customerId }); ;
 
             if (customer.IsGuest() && !_orderSettings.AnonymousCheckoutAllowed)
                 return Challenge();
 
             //model
-            var model = _checkoutModelFactory.PrepareConfirmOrderModel(cart,customer);
+            var model = _checkoutModelFactory.PrepareConfirmOrderModel(cart, customer);
             return View(model);
         }
 
@@ -891,16 +890,16 @@ namespace Nop.Web.Areas.Admin.Controllers
                 .LimitPerStore(_storeContext.CurrentStore.Id)
                 .ToList();
             if (!cart.Any())
-                 return RedirectToAction("CreateOrder","ShoppingCart",new {customerId});
+                return RedirectToAction("CreateOrder", "ShoppingCart", new { customerId });
 
             if (_orderSettings.OnePageCheckoutEnabled)
-                return RedirectToAction("OnePageCheckout",new {customerId});;
+                return RedirectToAction("OnePageCheckout", new { customerId }); ;
 
             if (customer.IsGuest() && !_orderSettings.AnonymousCheckoutAllowed)
                 return Challenge();
 
             //model
-            var model = _checkoutModelFactory.PrepareConfirmOrderModel(cart,customer);
+            var model = _checkoutModelFactory.PrepareConfirmOrderModel(cart, customer);
             try
             {
                 var processPaymentRequest = HttpContext.Session.Get<ProcessPaymentRequest>("OrderPaymentInfo");
@@ -909,10 +908,10 @@ namespace Nop.Web.Areas.Admin.Controllers
                     //Check whether payment workflow is required
                     if (_orderProcessingService.IsPaymentWorkflowRequired(cart))
                         return RedirectToRoute("CheckoutPaymentInfo");
-                    
+
                     processPaymentRequest = new ProcessPaymentRequest();
                 }
-                
+
                 //prevent 2 orders being placed within an X seconds time frame
                 if (!IsMinimumOrderPlacementIntervalValid(customer))
                     throw new Exception(_localizationService.GetResource("Checkout.MinOrderPlacementInterval"));
@@ -938,10 +937,10 @@ namespace Nop.Web.Areas.Admin.Controllers
                         //redirection or POST has been done in PostProcessPayment
                         return Content("Redirected");
                     }
-                    
+
                     return RedirectToRoute("CheckoutCompleted", new { orderId = placeOrderResult.PlacedOrder.Id });
                 }
-                
+
                 foreach (var error in placeOrderResult.Errors)
                     model.Warnings.Add(error);
             }
@@ -958,11 +957,11 @@ namespace Nop.Web.Areas.Admin.Controllers
         #endregion
 
         #region Methods (one page checkout)
-        
-        protected virtual JsonResult OpcLoadStepAfterShippingAddress(int customerId,List<ShoppingCartItem> cart)
+
+        protected virtual JsonResult OpcLoadStepAfterShippingAddress(int customerId, List<ShoppingCartItem> cart)
         {
             var customer = _customerService.GetCustomerById(customerId);
-            var shippingMethodModel = _checkoutModelFactory.PrepareShippingMethodModel(cart, customer.ShippingAddress,customer);
+            var shippingMethodModel = _checkoutModelFactory.PrepareShippingMethodModel(cart, customer.ShippingAddress, customer);
             if (_shippingSettings.BypassShippingMethodSelectionIfOnlyOne &&
                 shippingMethodModel.ShippingMethods.Count == 1)
             {
@@ -973,7 +972,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                     _storeContext.CurrentStore.Id);
 
                 //load next step
-                return OpcLoadStepAfterShippingMethod(cart,customer);
+                return OpcLoadStepAfterShippingMethod(cart, customer);
             }
 
             return Json(new
@@ -987,7 +986,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             });
         }
 
-        protected virtual JsonResult OpcLoadStepAfterShippingMethod(List<ShoppingCartItem> cart,Customer customer)
+        protected virtual JsonResult OpcLoadStepAfterShippingMethod(List<ShoppingCartItem> cart, Customer customer)
         {
             //Check whether payment workflow is required
             //we ignore reward points during cart total calculation
@@ -1004,7 +1003,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 }
 
                 //payment is required
-                var paymentMethodModel = _checkoutModelFactory.PreparePaymentMethodModel(cart, filterByCountryId,customer);
+                var paymentMethodModel = _checkoutModelFactory.PreparePaymentMethodModel(cart, filterByCountryId, customer);
 
                 if (_paymentSettings.BypassPaymentMethodSelectionIfOnlyOne &&
                     paymentMethodModel.PaymentMethods.Count == 1 && !paymentMethodModel.DisplayRewardPoints)
@@ -1024,9 +1023,9 @@ namespace Nop.Web.Areas.Admin.Controllers
                         !_pluginFinder.AuthorizedForUser(paymentMethodInst.PluginDescriptor, customer))
                         throw new Exception("Selected payment method can't be parsed");
 
-                    return OpcLoadStepAfterPaymentMethod(paymentMethodInst, cart,customer);
+                    return OpcLoadStepAfterPaymentMethod(paymentMethodInst, cart, customer);
                 }
-                
+
                 //customer have to choose a payment method
                 return Json(new
                 {
@@ -1043,7 +1042,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             _genericAttributeService.SaveAttribute<string>(customer,
                 SystemCustomerAttributeNames.SelectedPaymentMethod, null, _storeContext.CurrentStore.Id);
 
-            var confirmOrderModel = _checkoutModelFactory.PrepareConfirmOrderModel(cart,customer);
+            var confirmOrderModel = _checkoutModelFactory.PrepareConfirmOrderModel(cart, customer);
             return Json(new
             {
                 update_section = new UpdateSectionJsonModel
@@ -1066,7 +1065,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 //session save
                 HttpContext.Session.Set("OrderPaymentInfo", paymentInfo);
 
-                var confirmOrderModel = _checkoutModelFactory.PrepareConfirmOrderModel(cart,customer);
+                var confirmOrderModel = _checkoutModelFactory.PrepareConfirmOrderModel(cart, customer);
                 return Json(new
                 {
                     update_section = new UpdateSectionJsonModel
@@ -1079,7 +1078,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             }
 
             //return payment info page
-            var paymenInfoModel = _checkoutModelFactory.PreparePaymentInfoModel(paymentMethod,customer);
+            var paymenInfoModel = _checkoutModelFactory.PreparePaymentInfoModel(paymentMethod, customer);
             return Json(new
             {
                 update_section = new UpdateSectionJsonModel
@@ -1101,7 +1100,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 .ToList();
 
             if (!cart.Any())
-                 return RedirectToAction("CreateOrder","ShoppingCart",new {customerId});
+                return RedirectToAction("CreateOrder", "ShoppingCart", new { customerId });
 
             if (!_orderSettings.OnePageCheckoutEnabled)
                 return RedirectToRoute("Checkout");
@@ -1109,16 +1108,16 @@ namespace Nop.Web.Areas.Admin.Controllers
             if (customer.IsGuest() && !_orderSettings.AnonymousCheckoutAllowed)
                 return Challenge();
 
-            var model = _checkoutModelFactory.PrepareOnePageCheckoutModel(cart,customer);
+            var model = _checkoutModelFactory.PrepareOnePageCheckoutModel(cart, customer);
             return View(model);
         }
-        
+
         public virtual IActionResult OpcSaveBilling(int customerId, CheckoutBillingAddressModel model)
         {
             var customer = _customerService.GetCustomerById(customerId);
             try
             {
-               
+
                 //validation
                 var cart = customer.ShoppingCartItems
                     .Where(sci => sci.ShoppingCartType == ShoppingCartType.ShoppingCart)
@@ -1164,7 +1163,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                         //model is not valid. redisplay the form with errors
                         var billingAddressModel = _checkoutModelFactory.PrepareBillingAddressModel(cart,
                             selectedCountryId: newAddress.CountryId,
-                            overrideAttributesXml: customAttributes,customer:customer);
+                            overrideAttributesXml: customAttributes, customer: customer);
                         billingAddressModel.NewAddressPreselected = true;
                         return Json(new
                         {
@@ -1217,11 +1216,11 @@ namespace Nop.Web.Areas.Admin.Controllers
                         _genericAttributeService.SaveAttribute<ShippingOption>(customer, SystemCustomerAttributeNames.SelectedShippingOption, null, _storeContext.CurrentStore.Id);
                         _genericAttributeService.SaveAttribute<PickupPoint>(customer, SystemCustomerAttributeNames.SelectedPickupPoint, null, _storeContext.CurrentStore.Id);
                         //limitation - "Ship to the same address" doesn't properly work in "pick up in store only" case (when no shipping plugins are available) 
-                        return OpcLoadStepAfterShippingAddress(customerId,cart);
+                        return OpcLoadStepAfterShippingAddress(customerId, cart);
                     }
 
                     //do not ship to the same address
-                    var shippingAddressModel = _checkoutModelFactory.PrepareShippingAddressModel(prePopulateNewAddressWithCustomerFields: true,customer:customer);
+                    var shippingAddressModel = _checkoutModelFactory.PrepareShippingAddressModel(prePopulateNewAddressWithCustomerFields: true, customer: customer);
 
                     return Json(new
                     {
@@ -1241,7 +1240,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 _genericAttributeService.SaveAttribute<ShippingOption>(customer, SystemCustomerAttributeNames.SelectedShippingOption, null, _storeContext.CurrentStore.Id);
 
                 //load next step
-                return OpcLoadStepAfterShippingMethod(cart,customer);
+                return OpcLoadStepAfterShippingMethod(cart, customer);
             }
             catch (Exception exc)
             {
@@ -1250,7 +1249,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             }
         }
 
-        public virtual IActionResult OpcSaveShipping(CheckoutShippingAddressModel model,int customerId)
+        public virtual IActionResult OpcSaveShipping(CheckoutShippingAddressModel model, int customerId)
         {
             var customer = _customerService.GetCustomerById(customerId);
             try
@@ -1299,7 +1298,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                         _genericAttributeService.SaveAttribute(customer, SystemCustomerAttributeNames.SelectedPickupPoint, selectedPoint, _storeContext.CurrentStore.Id);
 
                         //load next step
-                        return OpcLoadStepAfterShippingMethod(cart,customer);
+                        return OpcLoadStepAfterShippingMethod(cart, customer);
                     }
 
                     //set value indicating that "pick up in store" option has not been chosen
@@ -1337,7 +1336,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                         //model is not valid. redisplay the form with errors
                         var shippingAddressModel = _checkoutModelFactory.PrepareShippingAddressModel(
                             selectedCountryId: newAddress.CountryId,
-                            overrideAttributesXml: customAttributes,customer:customer);
+                            overrideAttributesXml: customAttributes, customer: customer);
                         shippingAddressModel.NewAddressPreselected = true;
                         return Json(new
                         {
@@ -1381,7 +1380,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                     _customerService.UpdateCustomer(customer);
                 }
 
-                return OpcLoadStepAfterShippingAddress(customerId,cart);
+                return OpcLoadStepAfterShippingAddress(customerId, cart);
             }
             catch (Exception exc)
             {
@@ -1390,7 +1389,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             }
         }
 
-        public virtual IActionResult OpcSaveShippingMethod(string shippingoption,int customerId)
+        public virtual IActionResult OpcSaveShippingMethod(string shippingoption, int customerId)
         {
             var customer = _customerService.GetCustomerById(customerId);
             try
@@ -1408,26 +1407,26 @@ namespace Nop.Web.Areas.Admin.Controllers
 
                 if (customer.IsGuest() && !_orderSettings.AnonymousCheckoutAllowed)
                     throw new Exception("Anonymous checkout is not allowed");
-                
+
                 if (!cart.RequiresShipping(_productService, _productAttributeParser))
                     throw new Exception("Shipping is not required");
 
                 //parse selected method 
                 if (string.IsNullOrEmpty(shippingoption))
                     throw new Exception("Selected shipping method can't be parsed");
-                var splittedOption = shippingoption.Split(new [] { "___" }, StringSplitOptions.RemoveEmptyEntries);
+                var splittedOption = shippingoption.Split(new[] { "___" }, StringSplitOptions.RemoveEmptyEntries);
                 if (splittedOption.Length != 2)
                     throw new Exception("Selected shipping method can't be parsed");
                 var selectedName = splittedOption[0];
                 var shippingRateComputationMethodSystemName = splittedOption[1];
-                
+
                 //find it
                 //performance optimization. try cache first
                 var shippingOptions = customer.GetAttribute<List<ShippingOption>>(SystemCustomerAttributeNames.OfferedShippingOptions, _storeContext.CurrentStore.Id);
                 if (shippingOptions == null || !shippingOptions.Any())
                 {
                     //not found? let's load them using shipping service
-                    shippingOptions = _shippingService.GetShippingOptions(cart, customer.ShippingAddress, 
+                    shippingOptions = _shippingService.GetShippingOptions(cart, customer.ShippingAddress,
                         customer, shippingRateComputationMethodSystemName, _storeContext.CurrentStore.Id).ShippingOptions.ToList();
                 }
                 else
@@ -1436,7 +1435,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                     shippingOptions = shippingOptions.Where(so => so.ShippingRateComputationMethodSystemName.Equals(shippingRateComputationMethodSystemName, StringComparison.InvariantCultureIgnoreCase))
                         .ToList();
                 }
-                
+
                 var shippingOption = shippingOptions
                     .Find(so => !string.IsNullOrEmpty(so.Name) && so.Name.Equals(selectedName, StringComparison.InvariantCultureIgnoreCase));
                 if (shippingOption == null)
@@ -1446,7 +1445,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 _genericAttributeService.SaveAttribute(customer, SystemCustomerAttributeNames.SelectedShippingOption, shippingOption, _storeContext.CurrentStore.Id);
 
                 //load next step
-                return OpcLoadStepAfterShippingMethod(cart,customer);
+                return OpcLoadStepAfterShippingMethod(cart, customer);
             }
             catch (Exception exc)
             {
@@ -1455,7 +1454,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             }
         }
 
-        public virtual IActionResult OpcSavePaymentMethod(string paymentmethod,int customerId, CheckoutPaymentMethodModel model)
+        public virtual IActionResult OpcSavePaymentMethod(string paymentmethod, int customerId, CheckoutPaymentMethodModel model)
         {
             var customer = _customerService.GetCustomerById(customerId);
             try
@@ -1494,7 +1493,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                     _genericAttributeService.SaveAttribute<string>(customer,
                         SystemCustomerAttributeNames.SelectedPaymentMethod, null, _storeContext.CurrentStore.Id);
 
-                    var confirmOrderModel = _checkoutModelFactory.PrepareConfirmOrderModel(cart,customer);
+                    var confirmOrderModel = _checkoutModelFactory.PrepareConfirmOrderModel(cart, customer);
                     return Json(new
                     {
                         update_section = new UpdateSectionJsonModel
@@ -1517,7 +1516,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 _genericAttributeService.SaveAttribute(customer,
                     SystemCustomerAttributeNames.SelectedPaymentMethod, paymentmethod, _storeContext.CurrentStore.Id);
 
-                return OpcLoadStepAfterPaymentMethod(paymentMethodInst, cart,customer);
+                return OpcLoadStepAfterPaymentMethod(paymentMethodInst, cart, customer);
             }
             catch (Exception exc)
             {
@@ -1526,7 +1525,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             }
         }
 
-        public virtual IActionResult OpcSavePaymentInfo(IFormCollection form,int customerId)
+        public virtual IActionResult OpcSavePaymentInfo(IFormCollection form, int customerId)
         {
             var customer = _customerService.GetCustomerById(customerId);
             try
@@ -1550,7 +1549,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 var paymentMethod = _paymentService.LoadPaymentMethodBySystemName(paymentMethodSystemName);
                 if (paymentMethod == null)
                     throw new Exception("Payment method is not selected");
-                
+
                 var warnings = paymentMethod.ValidatePaymentForm(form);
                 foreach (var warning in warnings)
                     ModelState.AddModelError("", warning);
@@ -1562,7 +1561,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                     //session save
                     HttpContext.Session.Set("OrderPaymentInfo", paymentInfo);
 
-                    var confirmOrderModel = _checkoutModelFactory.PrepareConfirmOrderModel(cart,customer);
+                    var confirmOrderModel = _checkoutModelFactory.PrepareConfirmOrderModel(cart, customer);
                     return Json(new
                     {
                         update_section = new UpdateSectionJsonModel
@@ -1575,7 +1574,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 }
 
                 //If we got this far, something failed, redisplay form
-                var paymenInfoModel = _checkoutModelFactory.PreparePaymentInfoModel(paymentMethod,customer);
+                var paymenInfoModel = _checkoutModelFactory.PreparePaymentInfoModel(paymentMethod, customer);
                 return Json(new
                 {
                     update_section = new UpdateSectionJsonModel
@@ -1593,6 +1592,106 @@ namespace Nop.Web.Areas.Admin.Controllers
         }
 
         public virtual IActionResult OpcConfirmOrder(int customerId)
+        {
+            var customer = _customerService.GetCustomerById(customerId);
+            try
+            {
+                //validation
+                var cart = customer.ShoppingCartItems
+                    .Where(sci => sci.ShoppingCartType == ShoppingCartType.ShoppingCart)
+                    .LimitPerStore(_storeContext.CurrentStore.Id)
+                    .ToList();
+                if (!cart.Any())
+                    throw new Exception("Your cart is empty");
+
+                if (!_orderSettings.OnePageCheckoutEnabled)
+                    throw new Exception("One page checkout is disabled");
+
+                if (customer.IsGuest() && !_orderSettings.AnonymousCheckoutAllowed)
+                    throw new Exception("Anonymous checkout is not allowed");
+
+                //prevent 2 orders being placed within an X seconds time frame
+                if (!IsMinimumOrderPlacementIntervalValid(customer))
+                    throw new Exception(_localizationService.GetResource("Checkout.MinOrderPlacementInterval"));
+
+                //place order
+                var processPaymentRequest = HttpContext.Session.Get<ProcessPaymentRequest>("OrderPaymentInfo");
+                if (processPaymentRequest == null)
+                {
+                    //Check whether payment workflow is required
+                    //if (_orderProcessingService.IsPaymentWorkflowRequired(cart))
+                    //{
+                    //    throw new Exception("Payment information is not entered");
+                    //}
+
+                    processPaymentRequest = new ProcessPaymentRequest();
+                }
+
+                processPaymentRequest.StoreId = _storeContext.CurrentStore.Id;
+                processPaymentRequest.CustomerId = customer.Id;
+                processPaymentRequest.PaymentMethodSystemName = customer.GetAttribute<string>(
+                    SystemCustomerAttributeNames.SelectedPaymentMethod,
+                    _genericAttributeService, _storeContext.CurrentStore.Id);
+                var placeOrderResult = _orderProcessingService.PlaceOrder(processPaymentRequest);
+                if (placeOrderResult.Success)
+                {
+                    HttpContext.Session.Set<ProcessPaymentRequest>("OrderPaymentInfo", null);
+                    var postProcessPaymentRequest = new PostProcessPaymentRequest
+                    {
+                        Order = placeOrderResult.PlacedOrder
+                    };
+
+                    var paymentMethod = _paymentService.LoadPaymentMethodBySystemName(placeOrderResult.PlacedOrder.PaymentMethodSystemName);
+                    if (paymentMethod == null)
+                        //payment method could be null if order total is 0
+                        //success
+                        return Json(new { success = 1 });
+
+                    if (paymentMethod.PaymentMethodType == PaymentMethodType.Redirection)
+                    {
+                        //Redirection will not work because it's AJAX request.
+                        //That's why we don't process it here (we redirect a user to another page where he'll be redirected)
+
+                        //redirect
+                        return Json(new
+                        {
+                            redirect = $"{_webHelper.GetStoreLocation()}/Admin/Checkout/OpcCompleteRedirectionPayment"
+                        });
+                    }
+
+                    _paymentService.PostProcessPayment(postProcessPaymentRequest);
+                    //success
+                    return Json(new { success = 1 });
+                }
+
+                //error
+                var confirmOrderModel = new CheckoutConfirmModel();
+                confirmOrderModel.CustomerId = customerId;
+                confirmOrderModel.PaymentMethodSystemName = processPaymentRequest.PaymentMethodSystemName;
+                confirmOrderModel.ShippingOptionName = customer.GetAttribute<string>(
+                    SystemCustomerAttributeNames.SelectedShippingOption,
+                    _genericAttributeService, _storeContext.CurrentStore.Id);
+                foreach (var error in placeOrderResult.Errors)
+                    confirmOrderModel.Warnings.Add(error);
+
+                return Json(new
+                {
+                    update_section = new UpdateSectionJsonModel
+                    {
+                        name = "confirm-order",
+                        html = RenderPartialViewToString("OpcConfirmOrder", confirmOrderModel)
+                    },
+                    goto_section = "confirm_order"
+                });
+            }
+            catch (Exception exc)
+            {
+                _logger.Warning(exc.Message, exc, customer);
+                return Json(new { error = 1, message = exc.Message });
+            }
+        }
+
+        public virtual IActionResult OpcConfirmOrderWithoutPayment(int customerId)
         {
             var customer = _customerService.GetCustomerById(customerId);
             try
@@ -1662,9 +1761,9 @@ namespace Nop.Web.Areas.Admin.Controllers
 
                     _paymentService.PostProcessPayment(postProcessPaymentRequest);
                     //success
-                    return Json(new {success = 1});
+                    return Json(new { success = 1 });
                 }
-                
+
                 //error
                 var confirmOrderModel = new CheckoutConfirmModel();
                 confirmOrderModel.CustomerId = customerId;
@@ -1673,8 +1772,8 @@ namespace Nop.Web.Areas.Admin.Controllers
                     SystemCustomerAttributeNames.SelectedShippingOption,
                     _genericAttributeService, _storeContext.CurrentStore.Id);
                 foreach (var error in placeOrderResult.Errors)
-                    confirmOrderModel.Warnings.Add(error); 
-                    
+                    confirmOrderModel.Warnings.Add(error);
+
                 return Json(new
                 {
                     update_section = new UpdateSectionJsonModel
@@ -1692,6 +1791,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             }
         }
 
+
         public virtual IActionResult OpcCompleteRedirectionPayment(int customerId)
         {
             var customer = _customerService.GetCustomerById(customerId);
@@ -1699,7 +1799,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             {
                 //validation
                 if (!_orderSettings.OnePageCheckoutEnabled)
-                    return RedirectToAction("Index","Order");
+                    return RedirectToAction("Index", "Order");
 
                 if (customer.IsGuest() && !_orderSettings.AnonymousCheckoutAllowed)
                     return Challenge();
@@ -1709,17 +1809,17 @@ namespace Nop.Web.Areas.Admin.Controllers
                 customerId: customer.Id, pageSize: 1)
                     .FirstOrDefault();
                 if (order == null)
-                    return RedirectToAction("Index","Order");
-                
+                    return RedirectToAction("Index", "Order");
+
                 var paymentMethod = _paymentService.LoadPaymentMethodBySystemName(order.PaymentMethodSystemName);
                 if (paymentMethod == null)
-                    return RedirectToAction("Index","Order");
+                    return RedirectToAction("Index", "Order");
                 if (paymentMethod.PaymentMethodType != PaymentMethodType.Redirection)
-                    return RedirectToAction("Index","Order");
+                    return RedirectToAction("Index", "Order");
 
                 //ensure that order has been just placed
                 if ((DateTime.UtcNow - order.CreatedOnUtc).TotalMinutes > 3)
-                    return RedirectToAction("Index","Order");
+                    return RedirectToAction("Index", "Order");
 
                 //Redirection will not work on one page checkout page because it's AJAX request.
                 //That's why we process it here
@@ -1735,10 +1835,10 @@ namespace Nop.Web.Areas.Admin.Controllers
                     //redirection or POST has been done in PostProcessPayment
                     return Content("Redirected");
                 }
-                
+
                 //if no redirection has been done (to a third-party payment page)
                 //theoretically it's not possible
-                return RedirectToAction("Index","Order");
+                return RedirectToAction("Index", "Order");
             }
             catch (Exception exc)
             {
@@ -1746,7 +1846,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 return Content(exc.Message);
             }
         }
-        
+
         #endregion
     }
 }
