@@ -14,5 +14,7 @@ namespace Nop.Web.Framework.UI
         /// Footer
         /// </summary>
         Footer,
+
+        AfterFooter
     }
 }

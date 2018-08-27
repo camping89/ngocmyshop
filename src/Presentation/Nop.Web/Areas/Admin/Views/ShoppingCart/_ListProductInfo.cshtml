@@ -152,7 +152,7 @@ else
                                             title: "@T("Admin.Catalog.Products.Fields.UnitPriceBase")",
                                             width: 150,
                                             //if not a grouped product, then display
-                                            template: "# if(ProductTypeId != @((int) ProductType.GroupedProduct)) {# #:UnitPriceUsd# #}  #"
+                                            template: '# if(ProductTypeId != @((int) ProductType.GroupedProduct)) {# #: kendo.toString(UnitPriceUsd, "n0")# #} #'
                                         },
                                         {
                                             field: "CurrencyMappedName",
@@ -162,27 +162,28 @@ else
                                         {
                                             field: "OrderingFee",
                                             title: "@T("Admin.Catalog.Products.Fields.OrderingFee")",
-                                            width: 100
+                                            width: 100,
+                                            template: '# if(ProductTypeId != @((int) ProductType.GroupedProduct)) {# #: kendo.toString(OrderingFee, "n0")# #} #'
                                         }, {
                                             field: "Price",
                                             title: "@T("Admin.Catalog.Products.Fields.Price")",
                                             width: 150,
                                             //if not a grouped product, then display
-                                            template: "# if(ProductTypeId != @((int) ProductType.GroupedProduct)) {# #:Price# #}  #"
-                                        }, {
+                                            template: '# if(ProductTypeId != @((int) ProductType.GroupedProduct)) {# #: kendo.toString(Price, "n0")# #} #'
+                                        }@*, {
                                             field: "StockQuantityStr",
                                             title: "@T("Admin.Catalog.Products.Fields.StockQuantity")",
                                             width: 100
-                                        }@*, {
+                                        }, {
                                             field: "ProductTypeName",
                                             title: "@T("Admin.Catalog.Products.Fields.ProductType")",
                                             width: 100
-                                        }*@, {
+                                        }, {
                                             field: "Published",
                                             title: "@T("Admin.Catalog.Products.Fields.Published")",
                                             width: 100,
                                             template: '# if(Published) {# <i class="fa fa-check true-icon"></i> #} else {# <i class="fa fa-close false-icon"></i> #} #'
-                                        }, {
+                                        }*@, {
                                             field: "Id",
                                             title: "@T("Admin.Common.Edit")",
                                             width: 100,

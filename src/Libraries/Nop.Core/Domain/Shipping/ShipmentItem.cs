@@ -25,7 +25,7 @@ namespace Nop.Core.Domain.Shipping
         /// </summary>
         public int WarehouseId { get; set; }
 
-        public string PackageItemId { get; set; }
+
         public decimal ShippingFee { get; set; }
         /// <summary>
         /// Gets the shipment

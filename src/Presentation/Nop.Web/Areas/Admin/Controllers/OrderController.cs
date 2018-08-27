@@ -520,7 +520,9 @@ namespace Nop.Web.Areas.Admin.Controllers
                     .Where(orderItem => orderItem.Product.VendorId == _workContext.CurrentVendor.Id)
                     .ToList();
             }
-
+            //measures
+            var baseWeight = _measureService.GetMeasureWeightById(_measureSettings.BaseWeightId);
+            var baseWeightIn = baseWeight != null ? baseWeight.Name : "";
             foreach (var orderItem in products)
             {
                 if (orderItem.Product.IsDownload)
@@ -529,6 +531,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 var orderItemModel = new OrderModel.OrderItemModel
                 {
                     Id = orderItem.Id,
+                    OrderId = order.Id,
                     ProductId = orderItem.ProductId,
                     ProductName = orderItem.Product.Name,
                     Sku = orderItem.Product.FormatSku(orderItem.AttributesXml, _productAttributeParser),
@@ -536,7 +539,14 @@ namespace Nop.Web.Areas.Admin.Controllers
                     IsDownload = orderItem.Product.IsDownload,
                     DownloadCount = orderItem.DownloadCount,
                     DownloadActivationType = orderItem.Product.DownloadActivationType,
-                    IsDownloadActivated = orderItem.IsDownloadActivated
+                    IsDownloadActivated = orderItem.IsDownloadActivated,
+                    WeightCost = _priceFormatter.FormatPrice(orderItem.WeightCost, true,
+                        primaryStoreCurrency, _workContext.WorkingLanguage, true, true),
+                    TotalWithoutWeightCost = _priceFormatter.FormatPrice((orderItem.PriceInclTax - orderItem.WeightCost), true,
+                        primaryStoreCurrency, _workContext.WorkingLanguage, true, true),
+                    PackageId = orderItem.PackageId,
+                    PackageItemId = orderItem.PackageItemId
+
                 };
                 //picture
                 var orderItemPicture =
@@ -1613,6 +1623,69 @@ namespace Nop.Web.Areas.Admin.Controllers
             }
         }
 
+        [HttpPost]
+        [HttpPost, ActionName("List")]
+        [FormValueRequired("exportexcel-orderbasic-all")]
+        public virtual IActionResult ExportExcelOrdersBasicAll(OrderListModel model)
+        {
+            if (!_permissionService.Authorize(StandardPermissionProvider.ManageOrders))
+                return AccessDeniedView();
+
+            var startDateValue = (model.StartDate == null) ? null
+                            : (DateTime?)_dateTimeHelper.ConvertToUtcTime(model.StartDate.Value, _dateTimeHelper.CurrentTimeZone);
+
+            var endDateValue = (model.EndDate == null) ? null
+                            : (DateTime?)_dateTimeHelper.ConvertToUtcTime(model.EndDate.Value, _dateTimeHelper.CurrentTimeZone).AddDays(1);
+
+            //a vendor should have access only to his products
+            if (_workContext.CurrentVendor != null)
+            {
+                model.VendorId = _workContext.CurrentVendor.Id;
+            }
+
+            var orderStatusIds = model.OrderStatusIds != null && !model.OrderStatusIds.Contains(0)
+                ? model.OrderStatusIds.ToList()
+                : null;
+            var paymentStatusIds = model.PaymentStatusIds != null && !model.PaymentStatusIds.Contains(0)
+                ? model.PaymentStatusIds.ToList()
+                : null;
+            var shippingStatusIds = model.ShippingStatusIds != null && !model.ShippingStatusIds.Contains(0)
+                ? model.ShippingStatusIds.ToList()
+                : null;
+
+            var filterByProductId = 0;
+            var product = _productService.GetProductById(model.ProductId);
+            if (product != null && HasAccessToProduct(product))
+                filterByProductId = model.ProductId;
+
+            //load orders
+            var orders = _orderService.SearchOrders(storeId: model.StoreId,
+                vendorId: model.VendorId,
+                productId: filterByProductId,
+                warehouseId: model.WarehouseId,
+                paymentMethodSystemName: model.PaymentMethodSystemName,
+                createdFromUtc: startDateValue,
+                createdToUtc: endDateValue,
+                osIds: orderStatusIds,
+                psIds: paymentStatusIds,
+                ssIds: shippingStatusIds,
+                billingEmail: model.BillingEmail,
+                billingLastName: model.BillingLastName,
+                billingCountryId: model.BillingCountryId,
+                orderNotes: model.OrderNotes);
+
+            try
+            {
+                var bytes = _exportManager.ExportOrdersToXlsxBasic(orders);
+                return File(bytes, MimeTypes.TextXlsx, $"order-basic-{DateTime.Now.ToShortDateString()}.xlsx");
+            }
+            catch (Exception exc)
+            {
+                ErrorNotification(exc);
+                return RedirectToAction("List");
+            }
+        }
+
         #endregion
 
         #region Order details
@@ -2438,6 +2511,8 @@ namespace Nop.Web.Areas.Admin.Controllers
                     orderItem.DiscountAmountExclTax = discountExclTax;
                     orderItem.PriceInclTax = priceInclTax;
                     orderItem.PriceExclTax = priceExclTax;
+                    orderItem.PackageId = form["pvPackageId" + orderItemId];
+                    orderItem.PackageItemId = form["pvPackageItemId" + orderItemId];
                     _orderService.UpdateOrder(order);
                 }
 
@@ -3282,6 +3357,51 @@ namespace Nop.Web.Areas.Admin.Controllers
         }
 
         [HttpPost]
+        public virtual IActionResult OrderItemsByOrderId(int orderId, DataSourceRequest command)
+        {
+            if (!_permissionService.Authorize(StandardPermissionProvider.ManageOrders))
+                return AccessDeniedKendoGridJson();
+
+            var order = _orderService.GetOrderById(orderId);
+
+            if (order == null)
+                throw new ArgumentException("No order found with the specified id");
+
+            //a vendor should have access only to his products
+            if (_workContext.CurrentVendor != null && !HasAccessToOrder(order))
+                return Content("");
+
+            var model = new OrderModel();
+            PrepareOrderDetailsModel(model, order);
+            var gridModel = new DataSourceResult
+            {
+                Data = model.Items,
+                Total = model.Items.Count
+            };
+
+            return Json(gridModel);
+        }
+
+        [HttpPost]
+        public virtual IActionResult UpdateOrderItem(OrderModel.OrderItemModelBasic orderItemModel)
+        {
+            if (!_permissionService.Authorize(StandardPermissionProvider.ManageOrders))
+                return AccessDeniedView();
+
+            var order = _orderService.GetOrderById(orderItemModel.OrderId);
+            if (order == null)
+                //No order found with the specified id
+                return RedirectToAction("List");
+            var orderItem = order.OrderItems.FirstOrDefault(x => x.Id == orderItemModel.Id);
+            if (orderItem == null)
+                throw new ArgumentException("No order item found with the specified id");
+            orderItem.PackageId = orderItemModel.PackageId;
+            orderItem.PackageItemId = orderItemModel.PackageItemId;
+            _orderService.UpdateOrder(order);
+            return new NullJsonResult();
+        }
+
+        [HttpPost]
         public virtual IActionResult ShipmentsItemsByShipmentId(int shipmentId, DataSourceRequest command)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageOrders))
@@ -3313,7 +3433,6 @@ namespace Nop.Web.Areas.Admin.Controllers
 
             return Json(gridModel);
         }
-
         public virtual IActionResult AddShipment(int orderId)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageOrders))

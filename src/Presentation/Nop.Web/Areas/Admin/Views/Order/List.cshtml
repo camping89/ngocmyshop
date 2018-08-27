@@ -14,7 +14,11 @@
     //active menu item (system name)
     Html.SetActiveMenuItemSystemName("Orders");
 }
-
+<style>
+    .k-hierarchy-cell:hover, .k-hierarchy-cell:focus {
+        cursor: pointer;
+    }
+</style>
 
 
 <form asp-controller="Order" asp-action="List" method="post">
@@ -62,6 +66,12 @@
                         <button type="button" id="exportexcel-invoice-vendor-selected">
                             <i class="fa fa-file-excel-o"></i>
                             @T("Admin.Common.ExportToExcel.VendorInvoices.Selected")
+                        </button>
+                    </li>
+                    <li>
+                        <button type="submit" name="exportexcel-orderbasic-all">
+                            <i class="fa fa-file-excel-o"></i>
+                            @T("Admin.Common.ExportToExcel.VendorInvoices.All")
                         </button>
                     </li>
                 </ul>
@@ -222,28 +232,36 @@
                                 </div>
                                 <div class="form-group">
                                     <div class="col-md-4">
+                                        <nop-label asp-for="BillingPhone" />
+                                    </div>
+                                    <div class="col-md-8">
+                                        <nop-editor asp-for="BillingPhone" />
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-md-4">
                                         <nop-label asp-for="BillingLastName" />
                                     </div>
                                     <div class="col-md-8">
                                         <nop-editor asp-for="BillingLastName" />
                                     </div>
                                 </div>
-                                <div class="form-group" @(Model.AvailableCountries.SelectionIsNotPossible() ? Html.Raw("style=\"display:none\"") : null)>
-                                    <div class="col-md-4">
-                                        <nop-label asp-for="BillingCountryId" />
+                                @*<div class="form-group" @(Model.AvailableCountries.SelectionIsNotPossible() ? Html.Raw("style=\"display:none\"") : null)>
+                                        <div class="col-md-4">
+                                            <nop-label asp-for="BillingCountryId" />
+                                        </div>
+                                        <div class="col-md-8">
+                                            <nop-select asp-for="BillingCountryId" asp-items="Model.AvailableCountries" />
+                                        </div>
                                     </div>
-                                    <div class="col-md-8">
-                                        <nop-select asp-for="BillingCountryId" asp-items="Model.AvailableCountries" />
-                                    </div>
-                                </div>
-                                <div class="form-group" @(Model.AvailablePaymentMethods.SelectionIsNotPossible() || Model.IsLoggedInAsVendor ? Html.Raw("style='display: none;'") : null)>
-                                    <div class="col-md-4">
-                                        <nop-label asp-for="PaymentMethodSystemName" />
-                                    </div>
-                                    <div class="col-md-8">
-                                        <nop-select asp-for="PaymentMethodSystemName" asp-items="Model.AvailablePaymentMethods" />
-                                    </div>
-                                </div>
+                                    <div class="form-group" @(Model.AvailablePaymentMethods.SelectionIsNotPossible() || Model.IsLoggedInAsVendor ? Html.Raw("style='display: none;'") : null)>
+                                        <div class="col-md-4">
+                                            <nop-label asp-for="PaymentMethodSystemName" />
+                                        </div>
+                                        <div class="col-md-8">
+                                            <nop-select asp-for="PaymentMethodSystemName" asp-items="Model.AvailablePaymentMethods" />
+                                        </div>
+                                    </div>*@
                                 <div class="form-group">
                                     <div class="col-md-4">
                                         <nop-label asp-for="OrderNotes" />
@@ -282,11 +300,13 @@
 
                 <div class="panel panel-default">
                     <div class="panel-body">
+                        @*<button class="k-button" id="expand">@T("Admin.Common.ExpandAll")</button>*@
+                        <button type="button" class="k-button" id="collapse" style="margin-bottom: 10px;">@T("Admin.Common.CollapseAll")</button>
                         <div id="orders-grid"></div>
 
                         <script type="text/javascript">
                             $(document).ready(function() {
-                                $("#orders-grid").kendoGrid({
+                              var grid =   $("#orders-grid").kendoGrid({
                                     dataSource: {
                                         type: "json",
                                         transport: {
@@ -302,7 +322,7 @@
                                             total: "Total",
                                             errors: "Errors"
                                         },
-                                        requestEnd: function (e) {
+                                        requestEnd: function(e) {
                                             if (e.type == "read") {
                                                 var response = e.response;
                                                 if (response) {
@@ -334,6 +354,8 @@
                                         confirmation: "@T("Admin.Common.DeleteConfirmation")",
                                         mode: "inline"
                                     },
+                                    //details grid
+                                    detailInit: detailInit,
                                     scrollable: false,
                                     dataBound: onDataBound,
                                     columns: [
@@ -352,9 +374,9 @@
                                             sortable: false
                                         },
                                         @if (!Model.IsLoggedInAsVendor)
-                {
-                    //a vendor does not have access to this functionality
-                    <text>{
+                                        {
+                                            //a vendor does not have access to this functionality
+                                            <text>{
                                             field: "OrderStatus",
                                             title: "@T("Admin.Orders.Fields.OrderStatus")",
                                             width: 150,
@@ -366,7 +388,7 @@
                                                 '# if(OrderStatusId == 40) {# red #} #' +
                                                 '">#=OrderStatus#</span>'
                                         },</text>
-                }
+                                        }
                                         {
                                             field: "PaymentStatus",
                                             title: "@T("Admin.Orders.Fields.PaymentStatus")",
@@ -374,15 +396,15 @@
                                             sortable: false
                                         },
                                         @if (!Model.IsLoggedInAsVendor)
-                {
-                    //a vendor does not have access to this functionality
-                    <text>{
+                                        {
+                                            //a vendor does not have access to this functionality
+                                            <text>{
                                             field: "ShippingStatus",
                                             title: "@T("Admin.Orders.Fields.ShippingStatus")",
                                             width: 150,
                                             sortable: false
                                         },</text>
-                }
+                                        }
                                         {
                                             field: "CustomerEmail",
                                             title: "@T("Admin.Orders.Fields.Customer")",
@@ -404,14 +426,6 @@
                                             type: "date",
                                             format: "{0:G}",
                                             sortable: true
-                                        },
-                                        {
-                                            field: "PictureThumbnailUrl",
-                                            title: "@T("Admin.Catalog.Products.Fields.PictureThumbnailUrl")",
-                                            template: '<img src="#=PictureThumbnailUrl#" />'+
-                                                '<p>#=ProductAttributeInfo#</p>',
-                                            width: 200,
-                                            sortable: false
                                         }, {
                                             field: "OrderTotalWithoutWeightCost",
                                             title: "@T("Admin.Orders.Fields.OrderTotalWithoutWeightCost")",
@@ -430,16 +444,17 @@
                                         {
                                             //a vendor does not have access to this functionality
                                             <text>{
-                                                                    field: "OrderTotal",
-                                                                    title: "@T("Admin.Orders.Fields.OrderTotal")",
-                                                                    width: 250,
-                                                                    sortable: true,
-                                                                    footerTemplate: '<div><strong>@T("Admin.Orders.Report.Summary")</strong></div>' +
-                                                                        '<div>@T("Admin.Orders.Report.Profit") <span id=\"aggregator-profit-block\"></span></div>' +
-                                                                        '<div>@T("Admin.Orders.Report.Shipping") <span id=\"aggregator-shipping-block\"></span></div>' +
-                                                                        '<div>@T("Admin.Orders.Report.Tax") <span id=\"aggregator-tax-block\"></span></div>' +
-                                                                        '<div>@T("Admin.Orders.Report.Total") <span id=\"aggregator-total-block\"></span></div>'
-                                                                },</text>
+                                            field: "OrderTotal",
+                                            title: "@T("Admin.Orders.Fields.OrderTotal")",
+                                            width: 250,
+                                            sortable: true,
+                                            footerTemplate:
+                                                '<div><strong>@T("Admin.Orders.Report.Summary")</strong></div>' +
+                                                    '<div>@T("Admin.Orders.Report.Profit") <span id=\"aggregator-profit-block\"></span></div>' +
+                                                    '<div>@T("Admin.Orders.Report.Shipping") <span id=\"aggregator-shipping-block\"></span></div>' +
+                                                    '<div>@T("Admin.Orders.Report.Tax") <span id=\"aggregator-tax-block\"></span></div>' +
+                                                    '<div>@T("Admin.Orders.Report.Total") <span id=\"aggregator-total-block\"></span></div>'
+                                        },</text>
                                         }
                                         {
                                             field: "AdminNote",
@@ -454,11 +469,155 @@
                                             width: 50,
                                             headerAttributes: { style: "text-align:center" },
                                             attributes: { style: "text-align:center" },
-                                            template: '<a class="btn btn-default" href="Edit/#=Id#"><i class="fa fa-eye"></i>@T("Admin.Common.View")</a>',
+                                            template:
+                                                '<a class="btn btn-default" href="Edit/#=Id#"><i class="fa fa-eye"></i>@T("Admin.Common.View")</a>',
                                             sortable: false
                                         }
                                     ]
-                                } );
+                                });
+
+                                // handle grid row clicks for detail row expansion
+                                grid.on("click","td.k-hierarchy-cell",function(e) {
+                                    var $target = $(e.target);
+                                    // if you have links or other things in your rows that you don't want to
+                                    // trigger the detail row expansion, use an if statement to ignore them.
+                                    if (!$target.hasClass("sample-link")){
+                                        var $this = $(this);
+                                        var $link = $this.find(".k-icon");
+                                        $link.click();
+                                    }
+                                });
+                            });
+
+
+                            //details grid
+                            function detailInit(e) {
+                                $("<div/>").appendTo(e.detailCell).kendoGrid({
+                                    dataSource: {
+                                        type: "json",
+                                        transport: {
+                                            read: {
+                                                url: "@Html.Raw(Url.Action("OrderItemsByOrderId", "Order"))?orderId=" +
+                                                    e.data.Id,
+                                                type: "POST",
+                                                dataType: "json",
+                                                data: addAntiForgeryToken
+                                            },
+                                            update: {
+                                                url: "@Html.Raw(Url.Action("UpdateOrderItem", "Order"))",
+                                                type: "POST",
+                                                dataType: "json",
+                                                data: addAntiForgeryToken
+                                            }
+                                        },
+                                        schema: {
+                                            data: "Data",
+                                            total: "Total",
+                                            errors: "Errors",
+                                            model: {
+                                                id: "Id",
+                                                fields: {
+                                                    OrderId: { editable: false, type: "number" },
+                                                    PackageId: { editable: true, type: "string" },
+                                                    PackageItemId: { editable: true, type: "string" },
+                                                    PictureThumbnailUrl: { editable: false, type: "string" },
+                                                    ProductName: { editable: false, type: "string" },
+                                                    TotalWithoutWeightCost: { editable: false, type: "string" },
+                                                    WeightCost: { editable: false, type: "string" },
+                                                    SubTotalInclTax: { editable: false, type: "string" }
+                                                }
+                                            }
+
+                                        },
+                                        requestEnd: function(e) {
+                                            if (e.type == "update") {
+                                                this.read();
+                                            }
+                                        },
+                                        error: function(e) {
+                                            display_kendoui_grid_error(e);
+                                            // Cancel the changes
+                                            this.cancelChanges();
+                                        },
+                                        serverPaging: true,
+                                        serverFiltering: true,
+                                        serverSorting: true
+                                    },
+
+                                    editable: {
+                                        confirmation: "@T("Admin.Common.DeleteConfirmation")",
+                                        mode: "inline"
+                                    },
+                                    scrollable: false,
+                                    sortable: true,
+                                    pageable: {
+                                        refresh: true,
+                                        numeric: false,
+                                        previousNext: false,
+                                        info: false,
+                                        @await Html.PartialAsync("_GridPagerMessages")
+                                    },
+                                    columns: [
+                                        {
+                                            field: "PictureThumbnailUrl",
+                                            title: "@T("Admin.Orders.Products.Picture")",
+                                            template: '<img src="#=PictureThumbnailUrl#" />',
+                                            width: 400
+                                        }, {
+                                            field: "ProductName",
+                                            title: "@T("Admin.Orders.Products.ProductName")",
+                                            template: 'Product name: #=ProductName#' +
+                                                '<p>#=AttributeInfo#</p>' +
+                                                '<p>#=RecurringInfo#</p>',
+                                            width: 250
+                                        }, {
+                                            field: "TotalWithoutWeightCost",
+                                            title: "@T("Admin.Orders.Products.TotalWithoutWeightCost")",
+                                            width: 100
+                                        }, {
+                                            field: "WeightCost",
+                                            title: "@T("Admin.Orders.Products.WeightCost")",
+                                            width: 100
+                                        }, {
+                                            field: "SubTotalInclTax",
+                                            title: "@T("Admin.Orders.Products.Total")",
+                                            width: 100
+                                        }, {
+                                            field: "PackageId",
+                                            title: "@T("Admin.Orders.Products.PackageId")",
+                                            width: 100
+                                        }, {
+                                            field: "PackageItemId",
+                                            title: "@T("Admin.Orders.Products.PackageItemId")",
+                                            width: 100
+                                        }, {
+                                            command: {
+                                                name: "edit",
+                                                text: {
+                                                    edit: "@T("Admin.Common.Edit")",
+                                                    update: "@T("Admin.Common.Update")",
+                                                    cancel: "@T("Admin.Common.Cancel")"
+                                                }
+                                            },
+                                            title: "@T("Admin.Common.Edit")",
+                                            width: 150
+                                        }
+                                    ]
+                                });
+                            }
+
+                            //$('#expand').click(function(e) {
+                            //    var grid = $("#orders-grid").data("kendoGrid");
+                            //    $(".k-master-row").each(function(index) {
+                            //        grid.expandRow(this);
+                            //    });
+                            //});
+
+                            $('#collapse').click(function(e) {
+                                var grid = $("#orders-grid").data("kendoGrid");
+                                $(".k-master-row").each(function(index) {
+                                    grid.collapseRow(this);
+                                });
                             });
                         </script>
 
@@ -466,13 +625,13 @@
                             var selectedIds = [];
                             var reportAggregates = "";
 
-                            $(document).ready(function () {
-                                $('#@Html.IdFor(model => model.TodayFilter)').click(function () {
+                            $(document).ready(function() {
+                                $('#@Html.IdFor(model => model.TodayFilter)').click(function() {
                                     if ($(this).is(':checked')) {
                                         var start = new Date();
-                                        start.setHours(0,0,0,0);
+                                        start.setHours(0, 0, 0, 0);
                                         var end = new Date();
-                                        end.setHours(23,59,59,999);
+                                        end.setHours(23, 59, 59, 999);
                                         var startDate = kendo.toString(kendo.parseDate(start), 'MM/dd/yyyy HH:mm tt');
                                         var endDate = kendo.toString(kendo.parseDate(end), 'MM/dd/yyyy HH:mm tt');
                                         $('#@Html.IdFor(model => model.StartDate)').val(startDate);
@@ -484,7 +643,7 @@
                                 });
 
                                 //search button
-                                $('#search-orders').click(function () {
+                                $('#search-orders').click(function() {
                                     //search
                                     var grid = $('#orders-grid').data('kendoGrid');
                                     grid.dataSource.page(1); //new search. Set page size to 1
@@ -497,45 +656,48 @@
 
                                 $("".concat("#@Html.IdFor(model => model.BillingEmail),",
                                     "#@Html.IdFor(model => model.BillingLastName),",
-                                    "#@Html.IdFor(model => model.OrderNotes)")).keydown(function (event) {
+                                    "#@Html.IdFor(model => model.OrderNotes)")).keydown(function(event) {
                                     if (event.keyCode === 13) {
                                         $("#search-orders").click();
                                         return false;
                                     }
                                 });
 
-                                $("#@Html.IdFor(model => model.GoDirectlyToCustomOrderNumber)").keydown(function(event) {
-                                    if (event.keyCode === 13) {
-                                        $("#go-to-order-by-number").click();
-                                        return false;
-                                    }
-                                });
+                                $("#@Html.IdFor(model => model.GoDirectlyToCustomOrderNumber)").keydown(
+                                    function(event) {
+                                        if (event.keyCode === 13) {
+                                            $("#go-to-order-by-number").click();
+                                            return false;
+                                        }
+                                    });
 
-                                $('#mastercheckbox').click(function () {
+                                $('#mastercheckbox').click(function() {
                                     $('.checkboxGroups').attr('checked', $(this).is(':checked')).change();
                                 });
 
                                 //wire up checkboxes.
-                                $('#orders-grid').on('change', 'input[type=checkbox][id!=mastercheckbox][class=checkboxGroups]', function (e) {
-                                    var $check = $(this);
-                                    if ($check.is(":checked") == true) {
-                                        var checked = jQuery.inArray($check.val(), selectedIds);
-                                        if (checked == -1) {
-                                            //add id to selectedIds.
-                                            selectedIds.push($check.val());
+                                $('#orders-grid').on('change',
+                                    'input[type=checkbox][id!=mastercheckbox][class=checkboxGroups]',
+                                    function(e) {
+                                        var $check = $(this);
+                                        if ($check.is(":checked") == true) {
+                                            var checked = jQuery.inArray($check.val(), selectedIds);
+                                            if (checked == -1) {
+                                                //add id to selectedIds.
+                                                selectedIds.push($check.val());
+                                            }
+                                        } else {
+                                            var checked = jQuery.inArray($check.val(), selectedIds);
+                                            if (checked > -1) {
+                                                //remove id from selectedIds.
+                                                selectedIds = $.grep(selectedIds,
+                                                    function(item, index) {
+                                                        return item != $check.val();
+                                                    });
+                                            }
                                         }
-                                    }
-                                    else {
-                                        var checked = jQuery.inArray($check.val(), selectedIds);
-                                        if (checked > -1) {
-                                            //remove id from selectedIds.
-                                            selectedIds = $.grep(selectedIds, function (item, index) {
-                                                return item != $check.val();
-                                            });
-                                        }
-                                    }
-                                    updateMasterCheckbox();
-                                });
+                                        updateMasterCheckbox();
+                                    });
                             });
 
                             function additionalData() {
@@ -551,7 +713,8 @@
                                     BillingEmail: $('#@Html.IdFor(model => model.BillingEmail)').val(),
                                     BillingLastName: $('#@Html.IdFor(model => model.BillingLastName)').val(),
                                     BillingCountryId: $('#@Html.IdFor(model => model.BillingCountryId)').val(),
-                                    PaymentMethodSystemName: $('#@Html.IdFor(model => model.PaymentMethodSystemName)').val(),
+                                    PaymentMethodSystemName: $('#@Html.IdFor(model => model.PaymentMethodSystemName)')
+                                        .val(),
                                     ProductId: $('#@Html.IdFor(model => model.ProductId)').val(),
                                     OrderNotes: $('#@Html.IdFor(model => model.OrderNotes)').val()
                                 };
@@ -560,12 +723,14 @@
                             }
 
                             function onDataBound(e) {
-                                $('#orders-grid input[type=checkbox][id!=mastercheckbox][class=checkboxGroups]').each(function () {
-                                    var currentId = $(this).val();
-                                    var checked = jQuery.inArray(currentId, selectedIds);
-                                    //set checked based on if current checkbox's value is in selectedIds.
-                                    $(this).attr('checked', checked > -1);
-                                });
+                                //this.expandRow(this.tbody.find("tr.k-master-row").first());
+                                $('#orders-grid input[type=checkbox][id!=mastercheckbox][class=checkboxGroups]').each(
+                                    function() {
+                                        var currentId = $(this).val();
+                                        var checked = jQuery.inArray(currentId, selectedIds);
+                                        //set checked based on if current checkbox's value is in selectedIds.
+                                        $(this).attr('checked', checked > -1);
+                                    });
 
                                 updateMasterCheckbox();
 
@@ -581,9 +746,15 @@
                             }
 
                             function updateMasterCheckbox() {
-                                var numChkBoxes = $('#orders-grid input[type=checkbox][id!=mastercheckbox][class=checkboxGroups]').length;
-                                var numChkBoxesChecked = $('#orders-grid input[type=checkbox][id!=mastercheckbox][class=checkboxGroups]:checked').length;
-                                $('#mastercheckbox').attr('checked', numChkBoxes == numChkBoxesChecked && numChkBoxes > 0);
+                                var numChkBoxes =
+                                    $('#orders-grid input[type=checkbox][id!=mastercheckbox][class=checkboxGroups]')
+                                        .length;
+                                var numChkBoxesChecked =
+                                    $(
+                                            '#orders-grid input[type=checkbox][id!=mastercheckbox][class=checkboxGroups]:checked')
+                                        .length;
+                                $('#mastercheckbox').attr('checked',
+                                    numChkBoxes == numChkBoxesChecked && numChkBoxes > 0);
                             }
                         </script>
                     </div>

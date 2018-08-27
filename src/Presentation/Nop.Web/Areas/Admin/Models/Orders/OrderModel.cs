@@ -246,7 +246,13 @@ namespace Nop.Web.Areas.Admin.Models.Orders
         public bool CanVoidOffline { get; set; }
 
         #region Nested Classes
-
+        public partial class OrderItemModelBasic
+        {
+            public int OrderId { get; set; }
+            public int Id { get; set; }
+            public string PackageId { get; set; }
+            public string PackageItemId { get; set; }
+        }
         public partial class OrderItemModel : BaseNopEntityModel
         {
             public OrderItemModel()
@@ -254,6 +260,7 @@ namespace Nop.Web.Areas.Admin.Models.Orders
                 PurchasedGiftCardIds = new List<int>();
                 ReturnRequests = new List<ReturnRequestBriefModel>();
             }
+            public int OrderId { get; set; }
             public int ProductId { get; set; }
             public string ProductName { get; set; }
             public string VendorName { get; set; }
@@ -289,6 +296,11 @@ namespace Nop.Web.Areas.Admin.Models.Orders
             public DownloadActivationType DownloadActivationType { get; set; }
             public bool IsDownloadActivated { get; set; }
             public Guid LicenseDownloadGuid { get; set; }
+
+            public string WeightCost { get; set; }
+            public string TotalWithoutWeightCost { get; set; }
+            public string PackageId { get; set; }
+            public string PackageItemId { get; set; }
 
             #region Nested Classes
 

@@ -208,7 +208,11 @@ Number.prototype.format = function(n, x) {
 String.prototype.toInt = function() {
     if (this != null || this != "") {
         var c = this.replace(/,/g, "");
-        return parseInt(c);
+        var parseValue = parseInt(c);
+        if ($.isNumeric(parseValue) == false) {
+            parseValue = 0;
+        }
+        return parseValue;
     }
     return 0;
 }
@@ -216,7 +220,11 @@ String.prototype.toInt = function() {
 String.prototype.toFloat = function() {
     if (this != null || this != "") {
         var c = this.replace(/,/g, "");
-        return parseFloat(c);
+        var parseValue = parseFloat(c);
+        if ($.isNumeric(parseValue) == false) {
+            parseValue = 0;
+        }
+        return parseValue;
     }
     return 0;
 }

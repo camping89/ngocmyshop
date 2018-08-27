@@ -7,16 +7,14 @@
     //active menu item (system name)
     Html.SetActiveMenuItemSystemName("Create Order");
 }
-<link href="~/css/admin/stylesweb.css" rel="stylesheet" />
-<link href="~/css/admin/print.css" rel="stylesheet" />
-<link href="~/css/admin/ie8.css" rel="stylesheet" />
+
 <div action="#" method="post" id="order-form">
     <div class="content-header clearfix">
         <h1 class="pull-left">
             @T("Admin.Orders.CreateOrderDetails")
         </h1>
         <div class="pull-right">
-            
+
             <input type="submit" id="btnRefreshPage" style="display: none" />
             <script type="text/javascript">
                 $(document).ready(function () {

@@ -6,6 +6,7 @@ using Nop.Core;
 using Nop.Core.Caching;
 using Nop.Core.Domain.Catalog;
 using Nop.Core.Domain.Customers;
+using Nop.Core.Domain.Directory;
 using Nop.Core.Domain.Media;
 using Nop.Core.Domain.Orders;
 using Nop.Core.Domain.Vendors;
@@ -47,7 +48,6 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
-using Nop.Core.Domain.Directory;
 
 namespace Nop.Web.Areas.Admin.Controllers
 {
@@ -1038,7 +1038,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             var cartType = updatecartitem == null ? (ShoppingCartType)shoppingCartTypeId :
                 //if the item to update is found, then we ignore the specified "shoppingCartTypeId" parameter
                 updatecartitem.ShoppingCartType;
-           
+
             //product.CurrencyId;
             SaveItem(updatecartitem, addToCartWarnings, product, cartType, attributes, customerEnteredPriceConverted, rentalStartDate, rentalEndDate, quantity, customer);
             //activity log
@@ -1537,11 +1537,11 @@ namespace Nop.Web.Areas.Admin.Controllers
                         {
                             double.TryParse(form[formKey], out saleOffPercent);
                         }
-                        if (formKey.Equals($"customerCurrency{sci.Id}", StringComparison.InvariantCultureIgnoreCase))
+                        if (formKey.Equals($"itemcustomerCurrency{sci.Id}", StringComparison.InvariantCultureIgnoreCase))
                         {
                             int.TryParse(form[formKey], out currencyId);
                         }
-                        if (formKey.Equals($"weightcost{sci.Id}", StringComparison.InvariantCultureIgnoreCase))
+                        if (formKey.Equals($"itemweightcost{sci.Id}", StringComparison.InvariantCultureIgnoreCase))
                         {
                             decimal.TryParse(form[formKey], out weightCost);
                         }
@@ -1552,7 +1552,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                         var currSciWarnings = _shoppingCartService.UpdateShoppingCartItem(customer,
                             sci.Id, sci.AttributesXml, newPrice,
                             sci.RentalStartDateUtc, sci.RentalEndDateUtc,
-                            newQuantity, true, unitPriceUsd, exchangeRate, orderingFee, saleOffPercent,currencyId,weightCost);
+                            newQuantity, true, unitPriceUsd, exchangeRate, orderingFee, saleOffPercent, currencyId, weightCost);
                         innerWarnings.Add(sci.Id, currSciWarnings);
                     }
                 }

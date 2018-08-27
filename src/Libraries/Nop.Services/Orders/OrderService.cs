@@ -1,12 +1,12 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using Nop.Core;
 using Nop.Core.Data;
 using Nop.Core.Domain.Catalog;
 using Nop.Core.Domain.Customers;
 using Nop.Core.Domain.Orders;
 using Nop.Services.Events;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Nop.Services.Orders
 {
@@ -44,7 +44,7 @@ namespace Nop.Services.Orders
             IRepository<OrderNote> orderNoteRepository,
             IRepository<Product> productRepository,
             IRepository<RecurringPayment> recurringPaymentRepository,
-            IRepository<Customer> customerRepository, 
+            IRepository<Customer> customerRepository,
             IEventPublisher eventPublisher)
         {
             this._orderRepository = orderRepository;
@@ -84,7 +84,7 @@ namespace Nop.Services.Orders
         {
             if (string.IsNullOrEmpty(customOrderNumber))
                 return null;
-           
+
             return _orderRepository.Table.FirstOrDefault(o => o.CustomOrderNumber == customOrderNumber);
         }
 
@@ -164,9 +164,11 @@ namespace Nop.Services.Orders
         /// <param name="ssIds">Shipping status identifiers; null to load all orders</param>
         /// <param name="billingEmail">Billing email. Leave empty to load all records.</param>
         /// <param name="billingLastName">Billing last name. Leave empty to load all records.</param>
+        /// <param name="billingPhone"></param>
         /// <param name="orderNotes">Search in order notes. Leave empty to load all records.</param>
         /// <param name="pageIndex">Page index</param>
         /// <param name="pageSize">Page size</param>
+        /// <param name="orderBy"></param>
         /// <returns>Orders</returns>
         public virtual IPagedList<Order> SearchOrders(int storeId = 0,
             int vendorId = 0, int customerId = 0,
@@ -174,7 +176,7 @@ namespace Nop.Services.Orders
             int billingCountryId = 0, string paymentMethodSystemName = null,
             DateTime? createdFromUtc = null, DateTime? createdToUtc = null,
             List<int> osIds = null, List<int> psIds = null, List<int> ssIds = null,
-            string billingEmail = null, string billingLastName = "",
+            string billingEmail = null, string billingLastName = "", string billingPhone = "",
             string orderNotes = null, int pageIndex = 0, int pageSize = int.MaxValue, OrderSortingEnum orderBy = OrderSortingEnum.CreatedOnDesc)
         {
             var query = _orderRepository.Table;
@@ -202,7 +204,7 @@ namespace Nop.Services.Orders
                     .Any(orderItem =>
                         //"Use multiple warehouses" enabled
                         //we search in each warehouse
-                        (orderItem.Product.ManageInventoryMethodId == manageStockInventoryMethodId && 
+                        (orderItem.Product.ManageInventoryMethodId == manageStockInventoryMethodId &&
                         orderItem.Product.UseMultipleWarehouses &&
                         orderItem.Product.ProductWarehouseInventory.Any(pwi => pwi.WarehouseId == warehouseId))
                         ||
@@ -232,30 +234,33 @@ namespace Nop.Services.Orders
             if (!string.IsNullOrEmpty(billingEmail))
                 query = query.Where(o => o.BillingAddress != null && !string.IsNullOrEmpty(o.BillingAddress.Email) && o.BillingAddress.Email.Contains(billingEmail));
             if (!string.IsNullOrEmpty(billingLastName))
-                query = query.Where(o => o.BillingAddress != null && !string.IsNullOrEmpty(o.BillingAddress.LastName) && o.BillingAddress.LastName.Contains(billingLastName));
-            if (!string.IsNullOrEmpty(orderNotes))
-                query = query.Where(o => o.OrderNotes.Any(on => on.Note.Contains(orderNotes)));
+                query = query.Where(o => o.BillingAddress != null && (!string.IsNullOrEmpty(o.BillingAddress.LastName) && o.BillingAddress.LastName.Contains(billingLastName)) || !string.IsNullOrEmpty(o.BillingAddress.FirstName) && o.BillingAddress.FirstName.Contains(billingLastName));
+            if (!string.IsNullOrEmpty(billingPhone))
+                query = query.Where(o => o.BillingAddress != null && !string.IsNullOrEmpty(o.BillingAddress.PhoneNumber) && o.BillingAddress.PhoneNumber.Contains(billingPhone));
+            if (!string.IsNullOrEmpty(billingLastName))
+                if (!string.IsNullOrEmpty(orderNotes))
+                    query = query.Where(o => o.OrderNotes.Any(on => on.Note.Contains(orderNotes)));
             query = query.Where(o => !o.Deleted);
             switch (orderBy)
             {
-                    case OrderSortingEnum.CreatedOnAsc:
-                        query = query.OrderBy(o => o.CreatedOnUtc);
-                        break;
-                    case OrderSortingEnum.CreatedOnDesc:
-                        query = query.OrderByDescending(o => o.CreatedOnUtc);
-                        break;
-                    case OrderSortingEnum.StatusAsc:
-                        query = query.OrderBy(o => o.OrderStatusId);
-                        break;
-                    case OrderSortingEnum.StatusDesc:
-                        query = query.OrderByDescending(o => o.OrderStatusId);
-                        break;
-                    case OrderSortingEnum.TotalAsc:
-                        query = query.OrderBy(o => o.OrderTotal);
-                        break;
-                    case OrderSortingEnum.TotalDesc:
-                        query = query.OrderByDescending(o => o.OrderTotal);
-                        break;
+                case OrderSortingEnum.CreatedOnAsc:
+                    query = query.OrderBy(o => o.CreatedOnUtc);
+                    break;
+                case OrderSortingEnum.CreatedOnDesc:
+                    query = query.OrderByDescending(o => o.CreatedOnUtc);
+                    break;
+                case OrderSortingEnum.StatusAsc:
+                    query = query.OrderBy(o => o.OrderStatusId);
+                    break;
+                case OrderSortingEnum.StatusDesc:
+                    query = query.OrderByDescending(o => o.OrderStatusId);
+                    break;
+                case OrderSortingEnum.TotalAsc:
+                    query = query.OrderBy(o => o.OrderTotal);
+                    break;
+                case OrderSortingEnum.TotalDesc:
+                    query = query.OrderByDescending(o => o.OrderTotal);
+                    break;
             }
             //database layer paging
             return new PagedList<Order>(query, pageIndex, pageSize);
@@ -297,21 +302,21 @@ namespace Nop.Services.Orders
         /// <param name="authorizationTransactionId">Authorization transaction ID</param>
         /// <param name="paymentMethodSystemName">Payment method system name</param>
         /// <returns>Order</returns>
-        public virtual Order GetOrderByAuthorizationTransactionIdAndPaymentMethod(string authorizationTransactionId, 
+        public virtual Order GetOrderByAuthorizationTransactionIdAndPaymentMethod(string authorizationTransactionId,
             string paymentMethodSystemName)
-        { 
+        {
             var query = _orderRepository.Table;
             if (!string.IsNullOrWhiteSpace(authorizationTransactionId))
                 query = query.Where(o => o.AuthorizationTransactionId == authorizationTransactionId);
-            
+
             if (!string.IsNullOrWhiteSpace(paymentMethodSystemName))
                 query = query.Where(o => o.PaymentMethodSystemName == paymentMethodSystemName);
-            
+
             query = query.OrderByDescending(o => o.CreatedOnUtc);
             var order = query.FirstOrDefault();
             return order;
         }
-        
+
         #endregion
 
         #region Orders items
@@ -345,7 +350,7 @@ namespace Nop.Services.Orders
             var item = query.FirstOrDefault();
             return item;
         }
-        
+
         /// <summary>
         /// Gets all downloadable order items
         /// </summary>
@@ -446,7 +451,7 @@ namespace Nop.Services.Orders
             if (recurringPaymentId == 0)
                 return null;
 
-           return _recurringPaymentRepository.GetById(recurringPaymentId);
+            return _recurringPaymentRepository.GetById(recurringPaymentId);
         }
 
         /// <summary>
@@ -499,23 +504,23 @@ namespace Nop.Services.Orders
                 initialOrderStatusId = (int)initialOrderStatus.Value;
 
             var query1 = from rp in _recurringPaymentRepository.Table
-                join c in _customerRepository.Table on rp.InitialOrder.CustomerId equals c.Id
-                where
-                (!rp.Deleted) &&
-                (showHidden || !rp.InitialOrder.Deleted) &&
-                (showHidden || !c.Deleted) &&
-                (showHidden || rp.IsActive) &&
-                (customerId == 0 || rp.InitialOrder.CustomerId == customerId) &&
-                (storeId == 0 || rp.InitialOrder.StoreId == storeId) &&
-                (initialOrderId == 0 || rp.InitialOrder.Id == initialOrderId) &&
-                (!initialOrderStatusId.HasValue || initialOrderStatusId.Value == 0 ||
-                 rp.InitialOrder.OrderStatusId == initialOrderStatusId.Value)
-                select rp.Id;
+                         join c in _customerRepository.Table on rp.InitialOrder.CustomerId equals c.Id
+                         where
+                         (!rp.Deleted) &&
+                         (showHidden || !rp.InitialOrder.Deleted) &&
+                         (showHidden || !c.Deleted) &&
+                         (showHidden || rp.IsActive) &&
+                         (customerId == 0 || rp.InitialOrder.CustomerId == customerId) &&
+                         (storeId == 0 || rp.InitialOrder.StoreId == storeId) &&
+                         (initialOrderId == 0 || rp.InitialOrder.Id == initialOrderId) &&
+                         (!initialOrderStatusId.HasValue || initialOrderStatusId.Value == 0 ||
+                          rp.InitialOrder.OrderStatusId == initialOrderStatusId.Value)
+                         select rp.Id;
 
             var query2 = from rp in _recurringPaymentRepository.Table
-                where query1.Contains(rp.Id)
-                orderby rp.StartDateUtc, rp.Id
-                select rp;
+                         where query1.Contains(rp.Id)
+                         orderby rp.StartDateUtc, rp.Id
+                         select rp;
 
             var recurringPayments = new PagedList<RecurringPayment>(query2, pageIndex, pageSize);
             return recurringPayments;
