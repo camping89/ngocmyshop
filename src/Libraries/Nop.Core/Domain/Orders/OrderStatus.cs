@@ -6,6 +6,10 @@ namespace Nop.Core.Domain.Orders
     public enum OrderStatus
     {
         /// <summary>
+        /// Hold
+        /// </summary>
+        Hold = 5,
+        /// <summary>
         /// Pending
         /// </summary>
         Pending = 10,

@@ -115,8 +115,12 @@ namespace Nop.Core.Domain.Orders
         public int CurrencyId { get; set; }
         public decimal WeightCost { get; set; }
 
-        public string PackageId { get; set; }
-        public string PackageItemId { get; set; }
+        public int? PackageOrderId { get; set; }
+        public virtual PackageOrder PackageOrder { get; set; }
+
+        public string PackageItemCode { get; set; }
+
+        public DateTime? PackageItemProcessedDatetime { get; set; }
 
         /// <summary>
         /// Gets the order

@@ -1193,5 +1193,22 @@ namespace Nop.Web.Areas.Admin.Extensions
 
         #endregion
 
+        #region OrderPackage
+
+        public static PackageOrder ToEntity(this PackageOrderModel model)
+        {
+            return model.MapTo<PackageOrderModel, PackageOrder>();
+        }
+        public static PackageOrder ToEntity(this PackageOrderModel model, PackageOrder destination)
+        {
+            return model.MapTo(destination);
+        }
+
+        public static PackageOrderModel ToModel(this PackageOrder entity)
+        {
+            return entity.MapTo<PackageOrder, PackageOrderModel>();
+        }
+
+        #endregion
     }
 }

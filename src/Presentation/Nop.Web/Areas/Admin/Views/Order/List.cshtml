@@ -180,7 +180,7 @@
                                         </script>
                                     </div>
                                 </div>
-                                <div class="form-group" @(Model.IsLoggedInAsVendor ? Html.Raw("style='display: none;'") : null)>
+                                <div class="form-group" @(Model.IsLoggedInAsVendor ? Html.Raw("style='display: none;' ") : null)>
                                     <div class="col-md-4">
                                         <nop-label asp-for="OrderStatusIds" />
                                     </div>
@@ -196,7 +196,7 @@
                                         <nop-select asp-for="PaymentStatusIds" asp-items="Model.AvailablePaymentStatuses" asp-multiple="true" />
                                     </div>
                                 </div>
-                                <div class="form-group" @(Model.IsLoggedInAsVendor ? Html.Raw("style='display: none;'") : null)>
+                                <div class="form-group" @(Model.IsLoggedInAsVendor ? Html.Raw("style='display: none;' ") : null)>
                                     <div class="col-md-4">
                                         <nop-label asp-for="ShippingStatusIds" />
                                     </div>
@@ -214,7 +214,7 @@
                                         <nop-select asp-for="StoreId" asp-items="Model.AvailableStores" />
                                     </div>
                                 </div>
-                                <div class="form-group" @(Model.AvailableVendors.SelectionIsNotPossible() || Model.IsLoggedInAsVendor ? Html.Raw("style='display: none;'") : null)>
+                                <div class="form-group" @(Model.AvailableVendors.SelectionIsNotPossible() || Model.IsLoggedInAsVendor ? Html.Raw("style='display: none;' ") : null)>
                                     <div class="col-md-4">
                                         <nop-label asp-for="VendorId" />
                                     </div>
@@ -254,7 +254,7 @@
                                             <nop-select asp-for="BillingCountryId" asp-items="Model.AvailableCountries" />
                                         </div>
                                     </div>
-                                    <div class="form-group" @(Model.AvailablePaymentMethods.SelectionIsNotPossible() || Model.IsLoggedInAsVendor ? Html.Raw("style='display: none;'") : null)>
+                                    <div class="form-group" @(Model.AvailablePaymentMethods.SelectionIsNotPossible() || Model.IsLoggedInAsVendor ? Html.Raw("style='display: none;' ") : null)>
                                         <div class="col-md-4">
                                             <nop-label asp-for="PaymentMethodSystemName" />
                                         </div>
@@ -306,7 +306,7 @@
 
                         <script type="text/javascript">
                             $(document).ready(function() {
-                              var grid =   $("#orders-grid").kendoGrid({
+                                var grid =   $("#orders-grid").kendoGrid({
                                     dataSource: {
                                         type: "json",
                                         transport: {
@@ -374,21 +374,22 @@
                                             sortable: false
                                         },
                                         @if (!Model.IsLoggedInAsVendor)
-                                        {
-                                            //a vendor does not have access to this functionality
-                                            <text>{
+                            {
+                                //a vendor does not have access to this functionality
+<text>{
                                             field: "OrderStatus",
                                             title: "@T("Admin.Orders.Fields.OrderStatus")",
                                             width: 150,
                                             sortable: true,
                                             template: '<span class="grid-report-item ' +
+                                                '# if(OrderStatusId == 5) {# gray #} #' +
                                                 '# if(OrderStatusId == 10) {# yellow #} #' +
                                                 '# if(OrderStatusId == 20) {# blue #} #' +
                                                 '# if(OrderStatusId == 30) {# green #} #' +
                                                 '# if(OrderStatusId == 40) {# red #} #' +
                                                 '">#=OrderStatus#</span>'
                                         },</text>
-                                        }
+                        }
                                         {
                                             field: "PaymentStatus",
                                             title: "@T("Admin.Orders.Fields.PaymentStatus")",
@@ -396,15 +397,15 @@
                                             sortable: false
                                         },
                                         @if (!Model.IsLoggedInAsVendor)
-                                        {
-                                            //a vendor does not have access to this functionality
-                                            <text>{
+                            {
+                                //a vendor does not have access to this functionality
+<text>{
                                             field: "ShippingStatus",
                                             title: "@T("Admin.Orders.Fields.ShippingStatus")",
                                             width: 150,
                                             sortable: false
                                         },</text>
-                                        }
+                        }
                                         {
                                             field: "CustomerEmail",
                                             title: "@T("Admin.Orders.Fields.Customer")",
@@ -441,9 +442,9 @@
                                             sortable: false
                                         },
                                         @if (!Model.IsLoggedInAsVendor)
-                                        {
-                                            //a vendor does not have access to this functionality
-                                            <text>{
+                            {
+                                //a vendor does not have access to this functionality
+<text>{
                                             field: "OrderTotal",
                                             title: "@T("Admin.Orders.Fields.OrderTotal")",
                                             width: 250,
@@ -455,7 +456,7 @@
                                                     '<div>@T("Admin.Orders.Report.Tax") <span id=\"aggregator-tax-block\"></span></div>' +
                                                     '<div>@T("Admin.Orders.Report.Total") <span id=\"aggregator-total-block\"></span></div>'
                                         },</text>
-                                        }
+                        }
                                         {
                                             field: "AdminNote",
                                             title: "@T("Admin.Orders.Fields.AdminNote")",
@@ -519,7 +520,9 @@
                                                 fields: {
                                                     OrderId: { editable: false, type: "number" },
                                                     PackageId: { editable: true, type: "string" },
-                                                    PackageItemId: { editable: true, type: "string" },
+                                                    PackageOrderId: { editable: true, type: "string" },
+                                                    PackageItemCode: { editable: true, type: "string" },
+                                                    PackageItemProcessedDatetime: { editable: true, type: "date" },
                                                     PictureThumbnailUrl: { editable: false, type: "string" },
                                                     ProductName: { editable: false, type: "string" },
                                                     TotalWithoutWeightCost: { editable: false, type: "string" },
@@ -541,15 +544,13 @@
                                         },
                                         serverPaging: true,
                                         serverFiltering: true,
-                                        serverSorting: true
                                     },
 
                                     editable: {
                                         confirmation: "@T("Admin.Common.DeleteConfirmation")",
-                                        mode: "inline"
+                                        mode: "popup"
                                     },
                                     scrollable: false,
-                                    sortable: true,
                                     pageable: {
                                         refresh: true,
                                         numeric: false,
@@ -562,7 +563,7 @@
                                             field: "PictureThumbnailUrl",
                                             title: "@T("Admin.Orders.Products.Picture")",
                                             template: '<img src="#=PictureThumbnailUrl#" />',
-                                            width: 400
+                                            width: 100
                                         }, {
                                             field: "ProductName",
                                             title: "@T("Admin.Orders.Products.ProductName")",
@@ -583,13 +584,29 @@
                                             title: "@T("Admin.Orders.Products.Total")",
                                             width: 100
                                         }, {
-                                            field: "PackageId",
-                                            title: "@T("Admin.Orders.Products.PackageId")",
-                                            width: 100
+                                            field: "PackageOrderId",
+                                            title: "@T("Admin.Orders.Products.PackageOrderId")",
+                                            width: 100,
+                                            editor: editPackageOrderId,
+                                            template: "# if (PackageOrder != null) { #" +
+                                                      "<p>#=PackageOrder.PackageCode# - #=PackageOrder.PackageName# </p>" +
+                                                      "#} else {#" +
+                                                      "<p>None</p>" +
+                                                      "# } #"
+
                                         }, {
-                                            field: "PackageItemId",
-                                            title: "@T("Admin.Orders.Products.PackageItemId")",
+                                            field: "PackageItemCode",
+                                            title: "@T("Admin.Orders.Products.PackageItemCode")",
                                             width: 100
+                                            //template: '<>'
+                                        }, {
+                                            field: "PackageItemProcessedDatetime",
+                                            title: "@T("Admin.Orders.Products.PackageItemProcessedDatetime")",
+                                            width: 150,
+                                            //format: "{0:G}",
+                                            //type: "date",
+                                            editor: dateTimeEditorCustom,
+                                            template: "#= kendo.toString(kendo.parseDate(PackageItemProcessedDatetime, 'yyyy-MM-dd'), 'MM/dd/yyyy') #"
                                         }, {
                                             command: {
                                                 name: "edit",
@@ -604,6 +621,35 @@
                                         }
                                     ]
                                 });
+                            }
+
+                            function dateTimeEditorCustom(container, options) {
+
+                                $('<input data-text-field="' + options.field + '" data-value-field="' + options.field + '" data-bind="value:' + options.field + '" />')
+                                    .appendTo(container)
+                                    .kendoDatePicker({
+                                        value: kendo.toString(kendo.parseDate(options.model.PackageItemProcessedDatetime, 'yyyy-MM-dd'), 'MM/dd/yyyy')
+                                    });
+                            }
+                            function editPackageOrderId(container, options) {
+                                $('<input data-text-field="PackageOrderName" data-value-field="' + options.field + '" data-bind="value:' + options.field + '" />')
+                                    .appendTo(container)
+                                    .kendoDropDownList({
+                                        autoBind: false,
+                                        dataTextField: "PackageOrderName",
+                                        dataValueField: "PackageOrderId",
+                                        dataSource: {
+                                            type: "json",
+                                            serverFiltering: true,
+                                            transport: {
+                                                read: {
+                                                    url: "@Html.Raw(Url.Action("GetsPackageOrderAvailble", "Order"))",
+                                                    type: "GET",
+                                                    dataType: "json"
+                                                }
+                                            }
+                                        }
+                                    });
                             }
 
                             //$('#expand').click(function(e) {

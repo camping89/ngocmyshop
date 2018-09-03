@@ -50,6 +50,8 @@
     <!-- AdminLTE Skins (choose a skin from the css/skins) -->
     Html.AppendCssFileParts("~/lib/adminLTE/skins/_all-skins.min.css");
 
+    Html.AppendCssFileParts("~/chosen_v1.8.7/chosen.min.css");
+
     //scripts
     Html.AppendScriptParts($"~/lib/kendo/{kendoVersion}/kendo.web.min.js");
     Html.AppendScriptParts("~/js/admin.search.js");
@@ -63,9 +65,12 @@
     Html.AppendScriptParts("~/lib/adminLTE/app.min.js");
     Html.AppendScriptParts("~/lib/bootstrap/bootstrap.min.js");
     Html.AppendScriptParts("~/lib/bootstrap-touchspin/jquery.bootstrap-touchspin.min.js");
-    Html.AppendScriptParts("~/lib/jquery-1.10.2.min.js");
+
 
     Html.AppendScriptParts("~/js/admin.customer.order.js");
+    Html.AppendScriptParts("~/chosen_v1.8.7/chosen.jquery.js");
+
+    Html.AppendScriptParts("~/lib/jquery-1.10.2.min.js");
     //page title
     string adminPageTitle = !string.IsNullOrWhiteSpace(ViewBag.Title) ? ViewBag.Title + " / " : "";
     adminPageTitle += T("Admin.PageTitle").Text;

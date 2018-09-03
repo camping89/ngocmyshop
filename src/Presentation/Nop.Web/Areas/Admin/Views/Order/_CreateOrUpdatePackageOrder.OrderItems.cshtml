@@ -1,0 +1,169 @@
+﻿@model PackageOrderModel
+@inject AdminAreaSettings adminAreaSettings
+@{
+    var defaultGridPageSize = adminAreaSettings.DefaultGridPageSize;
+    var gridPageSizes = adminAreaSettings.GridPageSizes;
+}
+<div class="panel-group">
+    @await Component.InvokeAsync("AdminWidget", new { widgetZone = "admin_category_details_products_top", additionalData = Model.Id })
+    @if (Model.Id > 0)
+    {
+        <div class="panel panel-default">
+            <div class="panel-body">
+                <div id="products-grid"></div>
+
+                <script type="text/javascript">
+                        $(document).ready(function() {
+                            $("#products-grid").kendoGrid({
+                                    dataSource: {
+                                        type: "json",
+                                        transport: {
+                                            read: {
+                                                url: "@Html.Raw(Url.Action("OrderItemsByPackageId", "Order", new { packageId = Model.Id}))",
+                                                type: "POST",
+                                                dataType: "json",
+                                                data: addAntiForgeryToken
+                                            },
+                                            update: {
+                                                url: "@Html.Raw(Url.Action("UpdateOrderItem", "Order"))",
+                                                type: "POST",
+                                                dataType: "json",
+                                                data: addAntiForgeryToken
+                                            }
+                                        },
+                                        schema: {
+                                            data: "Data",
+                                            total: "Total",
+                                            errors: "Errors",
+                                            model: {
+                                                id: "Id",
+                                                fields: {
+                                                    OrderId: { editable: false, type: "number" },
+                                                    PackageId: { editable: true, type: "string" },
+                                                    PackageOrderId: { editable: true, type: "string" },
+                                                    PackageItemCode: { editable: true, type: "string" },
+                                                    PackageItemProcessedDatetime: { editable: true, type: "date" },
+                                                    PictureThumbnailUrl: { editable: false, type: "string" },
+                                                    ProductName: { editable: false, type: "string" },
+                                                    TotalWithoutWeightCost: { editable: false, type: "string" },
+                                                    WeightCost: { editable: false, type: "string" },
+                                                    SubTotalInclTax: { editable: false, type: "string" }
+                                                }
+                                            }
+
+                                        },
+                                        requestEnd: function(e) {
+                                            if (e.type == "update") {
+                                                this.read();
+                                            }
+                                        },
+                                        error: function(e) {
+                                            display_kendoui_grid_error(e);
+                                            // Cancel the changes
+                                            this.cancelChanges();
+                                        },
+                                        serverPaging: true,
+                                        serverFiltering: true
+                                    },
+
+                                    editable: {
+                                        confirmation: "@T("Admin.Common.DeleteConfirmation")",
+                                        mode: "popup"
+                                    },
+                                    scrollable: false,
+                                    pageable: {
+                                        refresh: true,
+                                        numeric: false,
+                                        previousNext: false,
+                                        info: false,
+                                        @await Html.PartialAsync("_GridPagerMessages")
+                                    },
+                                    columns: [
+                                        {
+                                            field: "PictureThumbnailUrl",
+                                            title: "@T("Admin.Orders.Products.Picture")",
+                                            template: '<img src="#=PictureThumbnailUrl#" />',
+                                            width: 100
+                                        }, {
+                                            field: "ProductName",
+                                            title: "@T("Admin.Orders.Products.ProductName")",
+                                            template: 'Product name: #=ProductName#' +
+                                                '<p>#=AttributeInfo#</p>' +
+                                                '<p>#=RecurringInfo#</p>',
+                                            width: 250
+                                        }, {
+                                            field: "TotalWithoutWeightCost",
+                                            title: "@T("Admin.Orders.Products.TotalWithoutWeightCost")",
+                                            width: 100
+                                        }, {
+                                            field: "WeightCost",
+                                            title: "@T("Admin.Orders.Products.WeightCost")",
+                                            width: 100
+                                        }, {
+                                            field: "SubTotalInclTax",
+                                            title: "@T("Admin.Orders.Products.Total")",
+                                            width: 100
+                                        }, {
+                                            field: "PackageItemCode",
+                                            title: "@T("Admin.Orders.Products.PackageItemCode")",
+                                            width: 100
+                                            //template: '<>'
+                                        }, {
+                                            field: "PackageItemProcessedDatetime",
+                                            title: "@T("Admin.Orders.Products.PackageItemProcessedDatetime")",
+                                            width: 150,
+                                            //format: "{0:G}",
+                                            //type: "date",
+                                            editor: dateTimeEditorCustom,
+                                            template: "#= kendo.toString(kendo.parseDate(PackageItemProcessedDatetime, 'yyyy-MM-dd'), 'MM/dd/yyyy') #"
+                                        }, {
+                                            command: {
+                                                name: "edit",
+                                                text: {
+                                                    edit: "@T("Admin.Common.Edit")",
+                                                    update: "@T("Admin.Common.Update")",
+                                                    cancel: "@T("Admin.Common.Cancel")"
+                                                }
+                                            },
+                                            title: "@T("Admin.Common.Edit")",
+                                            width: 150
+                                        }
+                                    ]
+                                });
+                        });
+
+                        function dateTimeEditorCustom(container, options) {
+
+                            $('<input data-text-field="' + options.field + '" data-value-field="' + options.field + '" data-bind="value:' + options.field + '" />')
+                                .appendTo(container)
+                                .kendoDatePicker({
+                                    value: kendo.toString(kendo.parseDate(options.model.PackageItemProcessedDatetime, 'yyyy-MM-dd'), 'MM/dd/yyyy')
+                                });
+                        }
+                </script>
+            </div>
+
+            @*<div class="panel-footer">
+                    <button type="submit" id="btnAddNewProduct"
+                            onclick="javascript:OpenWindow('@(Url.Action("ProductAddPopup", "Category", new {categoryId = Model.Id, btnId = "btnRefreshProducts", formId = "category-form"}))', 800, 800, true); return false;"
+                            class="btn btn-primary">
+                        @T("Admin.Catalog.Categories.Products.AddNew")
+                    </button>
+                    <input type="submit" id="btnRefreshProducts" style="display: none" />
+                    <script type="text/javascript">
+                        $(document).ready(function () {
+                            $('#btnRefreshProducts').click(function () {
+                                //refresh grid
+                                var grid = $("#products-grid").data('kendoGrid');
+                                grid.dataSource.read();
+
+                                //return false to don't reload a page
+                                return false;
+                            });
+                        });
+                    </script>
+                </div>*@
+        </div>
+    }
+
+</div>

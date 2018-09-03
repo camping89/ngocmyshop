@@ -23,6 +23,8 @@ namespace Nop.Web.Areas.Admin.Models.Orders
         public string TotalWeight { get; set; }
         [NopResourceDisplayName("Admin.Orders.Shipments.TotalShippingFee")]
         public string TotalShippingFee { get; set; }
+        [NopResourceDisplayName("Admin.Orders.Shipments.TotalOrderFee")]
+        public string TotalOrderFee { get; set; }
         [NopResourceDisplayName("Admin.Orders.Shipments.TrackingNumber")]
         public string TrackingNumber { get; set; }
         public string TrackingNumberUrl { get; set; }
@@ -32,7 +34,7 @@ namespace Nop.Web.Areas.Admin.Models.Orders
         public bool CanShip { get; set; }
         public DateTime? ShippedDateUtc { get; set; }
 
-        [NopResourceDisplayName("Admin.Orders.Shipments.DeliveryDate")]
+        [NopResourceDisplayName("Admin.Orders.Shipments.ReceivedDate")]
         public string DeliveryDate { get; set; }
         public bool CanDeliver { get; set; }
         public DateTime? DeliveryDateUtc { get; set; }
@@ -70,6 +72,7 @@ namespace Nop.Web.Areas.Admin.Models.Orders
             public string RentalInfo { get; set; }
             public bool ShipSeparately { get; set; }
 
+            public string ImageUrl { get; set; }
             //weight of one item (product)
             [NopResourceDisplayName("Admin.Orders.Shipments.Products.ItemWeight")]
             public string ItemWeight { get; set; }

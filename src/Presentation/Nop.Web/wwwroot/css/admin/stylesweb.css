@@ -8,9 +8,9 @@ input[type="email"],
 input[type="tel"],
 input[type="password"],
 textarea, select {
-    height: 36px; /*safari padding fix*/
+    height: 34px; /*safari padding fix*/
     border: 1px solid #ddd;
-    padding: 8px;
+    padding: 5px;
     vertical-align: middle;
 }
 input, textarea, select {

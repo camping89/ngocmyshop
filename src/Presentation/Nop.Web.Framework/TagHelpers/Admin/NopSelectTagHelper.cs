@@ -1,10 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using Microsoft.AspNetCore.Html;
+﻿using Microsoft.AspNetCore.Html;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.AspNetCore.Razor.TagHelpers;
 using Nop.Web.Framework.Extensions;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Nop.Web.Framework.TagHelpers.Admin
 {
@@ -19,6 +20,7 @@ namespace Nop.Web.Framework.TagHelpers.Admin
         private const string ItemsAttributeName = "asp-items";
         private const string DisabledAttributeName = "asp-multiple";
         private const string RequiredAttributeName = "asp-required";
+        private const string ChoseAttributeName = "asp-chose";
 
         private readonly IHtmlHelper _htmlHelper;
 
@@ -51,6 +53,10 @@ namespace Nop.Web.Framework.TagHelpers.Admin
         /// </summary>
         [HtmlAttributeName(DisabledAttributeName)]
         public string IsMultiple { set; get; }
+
+
+        [HtmlAttributeName(ChoseAttributeName)]
+        public string IsChose { set; get; }
 
         /// <summary>
         /// ViewContext
@@ -109,7 +115,8 @@ namespace Nop.Web.Framework.TagHelpers.Admin
                     !attribute.Name.Equals(NameAttributeName) &&
                     !attribute.Name.Equals(ItemsAttributeName) &&
                     !attribute.Name.Equals(DisabledAttributeName) &&
-                    !attribute.Name.Equals(RequiredAttributeName))
+                    !attribute.Name.Equals(RequiredAttributeName) &&
+                    !attribute.Name.Equals(ChoseAttributeName))
                 {
                     htmlAttributes.Add(attribute.Name, attribute.Value);
                 }
@@ -123,7 +130,7 @@ namespace Nop.Web.Framework.TagHelpers.Admin
                 IHtmlContent selectList;
                 if (multiple)
                 {
-                    selectList = _htmlHelper.Editor(tagName, "MultiSelect", new {htmlAttributes, SelectList = Items});
+                    selectList = _htmlHelper.Editor(tagName, "MultiSelect", new { htmlAttributes, SelectList = Items });
                 }
                 else
                 {
@@ -134,7 +141,18 @@ namespace Nop.Web.Framework.TagHelpers.Admin
 
                     selectList = _htmlHelper.DropDownList(tagName, Items, htmlAttributes);
                 }
-                output.Content.SetHtmlContent(selectList.RenderHtmlContent());
+
+                var renderHtml = selectList.RenderHtmlContent();
+                if (multiple == false && Items != null && Items.Count() > 10)
+                {
+                    renderHtml += "<script type='text/javascript'>" +
+                                  "$(function () {" +
+                                  $"$('#{tagName}').chosen();" +
+                                  "});" +
+                                  "</script>";
+                }
+
+                output.Content.SetHtmlContent(renderHtml);
             }
         }
     }

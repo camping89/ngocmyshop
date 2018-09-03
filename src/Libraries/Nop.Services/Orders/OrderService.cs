@@ -374,6 +374,22 @@ namespace Nop.Services.Orders
             return orderItems;
         }
 
+
+        public virtual IList<OrderItem> GetOrderItemsByPackageId(int packageId)
+        {
+            if (packageId == 0)
+                throw new ArgumentOutOfRangeException("packageId");
+
+            var query = from orderItem in _orderItemRepository.Table
+                        join o in _orderRepository.Table on orderItem.OrderId equals o.Id
+                        where packageId == orderItem.PackageOrderId && !o.Deleted
+                        orderby o.CreatedOnUtc descending, orderItem.Id
+                        select orderItem;
+
+            var orderItems = query.ToList();
+            return orderItems;
+        }
+
         /// <summary>
         /// Delete an order item
         /// </summary>

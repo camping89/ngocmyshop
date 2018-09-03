@@ -18,6 +18,7 @@ using Nop.Services.Helpers;
 using Nop.Services.Localization;
 using Nop.Services.Media;
 using Nop.Services.Messages;
+using Nop.Services.Orders;
 using Nop.Services.Seo;
 using Nop.Services.Shipping.Date;
 using Nop.Services.Stores;
@@ -67,6 +68,7 @@ namespace Nop.Services.ExportImport
         private readonly CurrencySettings _currencySettings;
         private readonly IProductAttributeParser _productAttributeParser;
         private readonly IDateTimeHelper _dateTimeHelper;
+        private readonly IPackageOrderService _packageOrderService;
         #endregion
 
         #region Ctor
@@ -89,7 +91,7 @@ namespace Nop.Services.ExportImport
             IGenericAttributeService genericAttributeService,
             ICustomerAttributeFormatter customerAttributeFormatter,
             OrderSettings orderSettings,
-            ISpecificationAttributeService specificationAttributeService, IPriceFormatter priceFormatter, ILanguageService languageService, ICurrencyService currencyService, CurrencySettings currencySettings, IProductAttributeParser productAttributeParser, IDateTimeHelper dateTimeHelper)
+            ISpecificationAttributeService specificationAttributeService, IPriceFormatter priceFormatter, ILanguageService languageService, ICurrencyService currencyService, CurrencySettings currencySettings, IProductAttributeParser productAttributeParser, IDateTimeHelper dateTimeHelper, IPackageOrderService packageOrderService)
         {
             this._categoryService = categoryService;
             this._manufacturerService = manufacturerService;
@@ -116,6 +118,7 @@ namespace Nop.Services.ExportImport
             _currencySettings = currencySettings;
             _productAttributeParser = productAttributeParser;
             _dateTimeHelper = dateTimeHelper;
+            _packageOrderService = packageOrderService;
         }
 
         #endregion
@@ -567,8 +570,8 @@ namespace Nop.Services.ExportImport
                 new PropertyByName<OrderItem>("Quantity", oi => oi.Quantity),
                 new PropertyByName<OrderItem>("WeightCost", oi => oi.WeightCost),
                 new PropertyByName<OrderItem>("Total", oi => oi.PriceExclTax + oi.WeightCost),
-                new PropertyByName<OrderItem>("PackageId", oi => oi.PackageId),
-                new PropertyByName<OrderItem>("PackageItemId", oi => oi.PackageItemId)
+                new PropertyByName<OrderItem>("PackageOrderCode", oi => oi.PackageOrder.PackageCode),
+                new PropertyByName<OrderItem>("PackageItemCode", oi => oi.PackageItemCode)
             };
 
             var orderItemsManager = new PropertyManager<OrderItem>(orderItemProperties);
@@ -1458,8 +1461,8 @@ namespace Nop.Services.ExportImport
                 new PropertyByName<OrderItem>("Quantity", oi => oi.Quantity),
                 new PropertyByName<OrderItem>("WeightCost", oi => oi.WeightCost),
                 new PropertyByName<OrderItem>("Total", oi => oi.PriceExclTax + oi.WeightCost),
-                new PropertyByName<OrderItem>("PackageId", oi => oi.PackageId),
-                new PropertyByName<OrderItem>("PackageItemId", oi => oi.PackageItemId)
+                new PropertyByName<OrderItem>("PackageOrderCode", oi => oi.PackageOrder.PackageCode),
+                new PropertyByName<OrderItem>("PackageItemCode", oi => oi.PackageItemCode)
             };
 
             var orderItemsManager = new PropertyManager<OrderItem>(orderItemProperties);
@@ -1504,8 +1507,17 @@ namespace Nop.Services.ExportImport
                         foreach (var orederItem in orederItems)
                         {
                             row++;
+                            if (orederItem.PackageOrder == null)
+                            {
+                                orederItem.PackageOrder = new PackageOrder { PackageCode = "None" };
+                            }
+
+                            if (orederItem.PackageOrderId.HasValue)
+                            {
+                                orederItem.PackageOrder = _packageOrderService.GetById(orederItem.PackageOrderId.Value);
+                            }
                             orderItemsManager.CurrentObject = orederItem;
-                            orderItemsManager.WriteToXlsx(worksheet, row, _catalogSettings.ExportImportUseDropdownlistsForAssociatedEntities, 2, fpWorksheet);
+                            orderItemsManager.WriteToXlsx(worksheet, row, _catalogSettings.ExportImportUseDropdownlistsForAssociatedEntities, 1, fpWorksheet);
                             worksheet.Row(row).OutlineLevel = 1;
                             worksheet.Row(row).Collapsed = true;
                         }

@@ -44,14 +44,20 @@
                                 </div>
                                 <div class="col-md-8">
                                     <input style="float: left;" type="text" name="CustomerName" id="CustomerName" class="form-control" placeholder="@(T("Admin.Common.PleaseInputSearchData"))" value="@Model.CustomerFullName" />
-                                    @*<button style="float: left; margin-left: 10px;" id="btnCreateOrder" class="btn btn-primary" type="button">@T("Admin.Common.SelectedCustomer.CreateOrder")</button>*@
                                 </div>
+
+                            </div>
+                            <div class="form-group">
                                 <div class="col-md-4">
                                     <nop-label asp-for="CustomerPhone" />
                                 </div>
                                 <div class="col-md-8">
                                     <input style="float: left;" type="text" name="CustomerPhone" id="CustomerPhone" class="form-control" placeholder="@(T("Admin.Common.PleaseInputSearchData"))" value="@Model.CustomerPhone" />
                                 </div>
+                            </div>
+                            <div class="form-group">
+
+
                                 <div class="col-md-4">
                                     <nop-label asp-for="CustomerFacebook" />
                                 </div>
@@ -253,12 +259,19 @@
     </div>
     <input type="submit" id="btnRefresh" style="display: none" />
     <input type="text" id="setActiveTab" style="display: none" value="" />
+    <input type="text" id="setUpdateOrder" style="display: none" value="@Model.SetUpdateOrder" />
     <script type="text/javascript">
         $(document).ready(function() {
+
+            if ('@Model.SetUpdateOrder.ToString().ToLowerInvariant()' == 'true') {
+                $("#btnUpdateCartAdmin").trigger("click");
+            }
+
             $('#btnRefresh').click(function() {
                 var customerId = $('#CustomerId').val();
                 var activeTab = $('#setActiveTab').val();
-                window.location.href = "@Url.Action("CreateOrder","ShoppingCart")?customerId=" + customerId+"&activetab="+activeTab;
+                var udOrder = $('#setUpdateOrder').val();
+                window.location.href = "@Url.Action("CreateOrder","ShoppingCart")?customerId=" + customerId + "&activetab=" + activeTab +"&udOrder="+udOrder;
             });
         });
     </script>

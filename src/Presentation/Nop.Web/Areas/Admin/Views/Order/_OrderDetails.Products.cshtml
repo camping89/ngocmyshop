@@ -14,16 +14,31 @@
                         <script type="text/javascript">
                             $(document).ready(function () {
                                 toggleOrderItemEdit@(item.Id)(false);
+                                $("#pvPackageOrderId@(item.Id)").chosen({ width: "95%" });
+
+                                $("#pvPackageOrderId@(item.Id)").chosen().change(function() {
+                                    //ajax call
+                                });
+
+                                $("#pvPackageItemProcessedDatetime@(item.Id)").kendoDatePicker({
+                                    popup: {
+                                        position: "bottom right",
+                                        origin: "top right"
+                                    }
+                                });
                             });
                         </script>
 
                         <script type="text/javascript">
                             function toggleOrderItemEdit@(item.Id)(editMode) {
+
+
                                 if (editMode) {
                                     $('#pnlEditPvUnitPrice@(item.Id)').show();
                                     $('#pnlEditPvQuantity@(item.Id)').show();
-                                    $('#pnlEditPvPackageId@(item.Id)').show();
-                                    $('#pnlEditPvPackageItemId@(item.Id)').show();
+                                    $('#pnlEditPvPackageOrderId@(item.Id)').show();
+                                    $('#pnlEditPvPackageItemCode@(item.Id)').show();
+                                    $('#pnlEditPvPackageItemProcessedDatetime@(item.Id)').show();
                                     $('#pnlEditPvDiscount@(item.Id)').show();
                                     $('#pnlEditPvPrice@(item.Id)').show();
                                     $('#btnEditOrderItem@(item.Id)').hide();
@@ -33,8 +48,9 @@
                                 } else {
                                     $('#pnlEditPvUnitPrice@(item.Id)').hide();
                                     $('#pnlEditPvQuantity@(item.Id)').hide();
-                                    $('#pnlEditPvPackageId@(item.Id)').hide();
-                                    $('#pnlEditPvPackageItemId@(item.Id)').hide();
+                                    $('#pnlEditPvPackageOrderId@(item.Id)').hide();
+                                    $('#pnlEditPvPackageItemCode@(item.Id)').hide();
+                                    $('#pnlEditPvPackageItemProcessedDatetime@(item.Id)').hide();
                                     $('#pnlEditPvDiscount@(item.Id)').hide();
                                     $('#pnlEditPvPrice@(item.Id)').hide();
                                     $('#btnEditOrderItem@(item.Id)').show();
@@ -88,10 +104,13 @@
                                     @T("Admin.Orders.Products.Total")
                                 </th>
                                 <th>
-                                    @T("Admin.Orders.Products.PackageId")
+                                    @T("Admin.Orders.Products.PackageOrderId")
                                 </th>
                                 <th>
-                                    @T("Admin.Orders.Products.PackageItemId")
+                                    @T("Admin.Orders.Products.PackageItemCode")
+                                </th>
+                                <th>
+                                    @T("Admin.Orders.Products.PackageItemProcessedDatetime")
                                 </th>
                                 @if (!Model.IsLoggedInAsVendor)
                                 {
@@ -238,18 +257,18 @@
                                         }
                                         <div id="pnlEditPvUnitPrice@(item.Id)">
                                             <div class="form-group">
-                                                <div class="col-md-5">
-                                                    @T("Admin.Orders.Products.Edit.InclTax")
-                                                </div>
-                                                <div class="col-md-7">
+                                                @*<div class="col-md-12">
+                                                        @T("Admin.Orders.Products.Edit.InclTax")
+                                                    </div>*@
+                                                <div class="col-md-12">
                                                     <input name="pvUnitPriceInclTax@(item.Id)" type="text" value="@item.UnitPriceInclTaxValue" id="pvUnitPriceInclTax@(item.Id)" class="form-control input-sm" />
                                                 </div>
                                             </div>
-                                            <div class="form-group">
-                                                <div class="col-md-5">
+                                            <div class="form-group display-none">
+                                                <div class="col-md-12">
                                                     @T("Admin.Orders.Products.Edit.ExclTax")
                                                 </div>
-                                                <div class="col-md-7">
+                                                <div class="col-md-12">
                                                     <input name="pvUnitPriceExclTax@(item.Id)" type="text" value="@item.UnitPriceExclTaxValue" id="pvUnitPriceExclTax@(item.Id)" class="form-control input-sm" />
                                                 </div>
                                             </div>
@@ -259,7 +278,7 @@
                                         <div>@item.Quantity</div>
                                         <div id="pnlEditPvQuantity@(item.Id)">
                                             <div class="form-group">
-                                                <div class="col-md-8 col-md-offset-2">
+                                                <div class="col-md-12">
                                                     <input name="pvQuantity@(item.Id)" type="text" value="@item.Quantity" id="pvQuantity@(item.Id)" class="form-control input-sm" />
                                                 </div>
                                             </div>
@@ -291,18 +310,18 @@
                                         }
                                         <div id="pnlEditPvDiscount@(item.Id)">
                                             <div class="form-group">
-                                                <div class="col-md-5">
-                                                    @T("Admin.Orders.Products.Edit.InclTax")
-                                                </div>
-                                                <div class="col-md-7">
+                                                @*<div class="col-md-12">
+                                                        @T("Admin.Orders.Products.Edit.InclTax")
+                                                    </div>*@
+                                                <div class="col-md-12">
                                                     <input name="pvDiscountInclTax@(item.Id)" type="text" value="@item.DiscountInclTaxValue" id="pvDiscountInclTax@(item.Id)" class="form-control input-sm" />
                                                 </div>
                                             </div>
-                                            <div class="form-group">
-                                                <div class="col-md-5">
+                                            <div class="form-group display-none">
+                                                <div class="col-md-12">
                                                     @T("Admin.Orders.Products.Edit.ExclTax")
                                                 </div>
-                                                <div class="col-md-7">
+                                                <div class="col-md-12">
                                                     <input name="pvDiscountExclTax@(item.Id)" type="text" value="@item.DiscountExclTaxValue" id="pvDiscountExclTax@(item.Id)" class="form-control input-sm" />
                                                 </div>
                                             </div>
@@ -334,39 +353,62 @@
                                         }
                                         <div id="pnlEditPvPrice@(item.Id)">
                                             <div class="form-group">
-                                                <div class="col-md-5">
-                                                    @T("Admin.Orders.Products.Edit.InclTax")
-                                                </div>
-                                                <div class="col-md-7">
+                                                @*<div class="col-md-12">
+                                                        @T("Admin.Orders.Products.Edit.InclTax")
+                                                    </div>*@
+                                                <div class="col-md-12">
                                                     <input name="pvPriceInclTax@(item.Id)" type="text" value="@item.SubTotalInclTaxValue" id="pvPriceInclTax@(item.Id)" class="form-control input-sm" />
                                                 </div>
                                             </div>
-                                            <div class="form-group">
-                                                <div class="col-md-5">
+                                            <div class="form-group display-none">
+                                                <div class="col-md-12">
                                                     @T("Admin.Orders.Products.Edit.ExclTax")
                                                 </div>
-                                                <div class="col-md-7">
+                                                <div class="col-md-12">
                                                     <input name="pvPriceExclTax@(item.Id)" type="text" value="@item.SubTotalExclTaxValue" id="pvPriceExclTax@(item.Id)" class="form-control input-sm" />
                                                 </div>
                                             </div>
                                         </div>
                                     </td>
-                                    <td style="width: 10%;">
-                                        <div>@item.PackageId</div>
-                                        <div id="pnlEditPvPackageId@(item.Id)">
+                                    <td>
+                                        <div>@(item.PackageOrder != null ? item.PackageOrder.PackageCode : string.Empty )</div>
+                                        <div id="pnlEditPvPackageOrderId@(item.Id)">
                                             <div class="form-group">
-                                                <div class="col-md-8 col-md-offset-2">
-                                                    <input name="pvPackageId@(item.Id)" type="text" value="@item.PackageId" id="pvPackageId@(item.Id)" class="form-control input-sm" />
+                                                <div class="col-md-12">
+                                                    @*<input name="pvPackageOrderId@(item.Id)" type="text" value="@item.PackageOrderId" id="pvPackageId@(item.Id)" class="form-control input-sm" />*@
+                                                    <select id="pvPackageOrderId@(item.Id)" name="pvPackageOrderId@(item.Id)">
+                                                        @foreach (var packitem in Model.PackageOrderModels)
+                                                        {
+                                                            if (packitem.Id == item.PackageOrderId)
+                                                            {
+                                                                <option selected="selected" value="@packitem.Id">@($"{packitem.PackageCode } - {packitem.PackageName}")</option>
+                                                            }
+                                                            else
+                                                            {
+                                                                <option value="@packitem.Id">@($"{packitem.PackageCode } - {packitem.PackageName}")</option>
+                                                            }
+                                                        }
+                                                    </select>
                                                 </div>
                                             </div>
                                         </div>
                                     </td>
                                     <td style="width: 10%;">
-                                        <div>@item.PackageItemId</div>
-                                        <div id="pnlEditPvPackageItemId@(item.Id)">
+                                        <div>@item.PackageItemCode</div>
+                                        <div id="pnlEditPvPackageItemCode@(item.Id)">
                                             <div class="form-group">
-                                                <div class="col-md-8 col-md-offset-2">
-                                                    <input name="pvPackageItemId@(item.Id)" type="text" value="@item.PackageItemId" id="pvPackageItemId@(item.Id)" class="form-control input-sm" />
+                                                <div class="col-md-12">
+                                                    <input name="pvPackageItemCode@(item.Id)" type="text" value="@item.PackageItemCode" id="pvPackageItemCode@(item.Id)" class="form-control input-sm" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td style="width: 10%;">
+                                        <div>@item.PackageItemProcessedDatetime</div>
+                                        <div id="pnlEditPvPackageItemProcessedDatetime@(item.Id)">
+                                            <div class="form-group">
+                                                <div class="col-md-12">
+                                                    <input name="pvPackageItemProcessedDatetime@(item.Id)" type="text" value="@item.PackageItemProcessedDatetime" id="pvPackageItemProcessedDatetime@(item.Id)" />
                                                 </div>
                                             </div>
                                         </div>

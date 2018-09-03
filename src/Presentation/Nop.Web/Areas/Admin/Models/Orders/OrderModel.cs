@@ -20,6 +20,7 @@ namespace Nop.Web.Areas.Admin.Models.Orders
             GiftCards = new List<GiftCard>();
             Items = new List<OrderItemModel>();
             UsedDiscounts = new List<UsedDiscountModel>();
+            PackageOrderModels = new List<PackageOrderModel>();
         }
 
         public bool IsLoggedInAsVendor { get; set; }
@@ -208,6 +209,7 @@ namespace Nop.Web.Areas.Admin.Models.Orders
         //items
         public bool HasDownloadableProducts { get; set; }
         public IList<OrderItemModel> Items { get; set; }
+        public IList<PackageOrderModel> PackageOrderModels { get; set; }
 
         //creation date
         [NopResourceDisplayName("Admin.Orders.Fields.CreatedOn")]
@@ -250,8 +252,9 @@ namespace Nop.Web.Areas.Admin.Models.Orders
         {
             public int OrderId { get; set; }
             public int Id { get; set; }
-            public string PackageId { get; set; }
-            public string PackageItemId { get; set; }
+            public int PackageOrderId { get; set; }
+            public string PackageItemCode { get; set; }
+            public string PackageItemProcessedDatetime { get; set; }
         }
         public partial class OrderItemModel : BaseNopEntityModel
         {
@@ -299,8 +302,11 @@ namespace Nop.Web.Areas.Admin.Models.Orders
 
             public string WeightCost { get; set; }
             public string TotalWithoutWeightCost { get; set; }
-            public string PackageId { get; set; }
-            public string PackageItemId { get; set; }
+            public int PackageOrderId { get; set; }
+
+            public PackageOrderModel PackageOrder { get; set; }
+            public string PackageItemCode { get; set; }
+            public DateTime? PackageItemProcessedDatetime { get; set; }
 
             #region Nested Classes
 

@@ -1,4 +1,8 @@
-﻿/* COMMON */
+﻿
+.display-none {
+    display: none !important;
+}
+/* COMMON */
 ul, ol {
     margin-bottom: 0;
 }
@@ -1095,6 +1099,10 @@ span.grid-report-item.yellow {
     background-color: #f39c12;
     color: #fff;
 }
+span.grid-report-item.gray {
+    background-color: #c1c1c1;
+    color: #fff;
+}
 span.grid-report-item.blue {
     background-color: #00c0ef;
     color: #fff;
@@ -1579,7 +1587,7 @@ span.grid-report-item.red {
     border-style: solid;
     border-color: transparent #ddd #ddd;
     background-color: #fff;
-    padding: 20px;
+    padding:10px 5px;
     color: #444;
 }
 
@@ -2125,7 +2133,7 @@ span.grid-report-item.red {
 }
 
 .attributes {
-	margin: 20px 0;
+	margin: 0;
 }
 .attributes dl {
 	overflow: hidden; 

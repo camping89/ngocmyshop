@@ -35,6 +35,8 @@
     <script type="text/javascript">
         try {
             window.opener.document.getElementById('@(Context.Request.Query["btnId"])').click();
+            window.opener.document.getElementById('setUpdateOrder').value = true;
+
         } catch (e) {
             console.log(e);
         }

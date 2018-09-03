@@ -693,7 +693,7 @@ namespace Nop.Web.Areas.Admin.Controllers
         #endregion
         #region Admin Create Order Manual
 
-        public virtual IActionResult CreateOrder(int customerId = 0, string activetab = "")
+        public virtual IActionResult CreateOrder(int customerId = 0, string activetab = "", bool udOrder = false)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageProducts))
                 return AccessDeniedView();
@@ -766,6 +766,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             model.AvailablePublishedOptions.Add(new SelectListItem { Text = _localizationService.GetResource("Admin.Catalog.Products.List.SearchPublished.PublishedOnly"), Value = "1" });
             model.AvailablePublishedOptions.Add(new SelectListItem { Text = _localizationService.GetResource("Admin.Catalog.Products.List.SearchPublished.UnpublishedOnly"), Value = "2" });
             modelResult.ProductListModel = model;
+            modelResult.SetUpdateOrder = udOrder;
             if (!string.IsNullOrEmpty(activetab))
             {
                 SaveSelectedTabName(activetab);

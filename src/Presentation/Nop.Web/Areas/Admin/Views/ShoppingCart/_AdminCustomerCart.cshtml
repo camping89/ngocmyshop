@@ -199,8 +199,8 @@
                                 </td>
                                 <td class="unit-price">
 
-                                    <p>@T("shoppingcart.itemweight"): @item.Weight</p>
-                                    <input name="itemweightcost@(item.Id)" type="text" data-item-id="@item.Id" value="@(item.WeightCost)" class="weightcost-input-@(item.Id)" />
+                                    <p style="margin-top: -30px;">@T("shoppingcart.itemweight"): <strong>@item.Weight</strong></p>
+                                    <input disabled="disabled" name="itemweightcost@(item.Id)" type="text" data-item-id="@item.Id" value="@(item.WeightCost)" class="weightcost-input-@(item.Id)" />
                                 </td>
                                 <td class="unit-price">
 
@@ -300,15 +300,15 @@
                                 {
                                     <a class="read" id="read-terms">@T("Checkout.TermsOfService.Read")</a>
                                     <script type="text/javascript" asp-location="Footer">
-                                        $(document).ready(function() {
-                                            $('#read-terms').on('click',
-                                                function(e) {
-                                                    e.preventDefault();
-                                                    displayPopupContentFromUrl(
-                                                        '@Url.RouteUrl("TopicPopup", new {SystemName = "conditionsofuse"})',
-                                                        '@T("Checkout.TermsOfService")');
-                                                });
-                                        });
+                                    $(document).ready(function() {
+                                        $('#read-terms').on('click',
+                                            function(e) {
+                                                e.preventDefault();
+                                                displayPopupContentFromUrl(
+                                                    '@Url.RouteUrl("TopicPopup", new {SystemName = "conditionsofuse"})',
+                                                    '@T("Checkout.TermsOfService")');
+                                            });
+                                    });
                                     </script>
                                 }
                                 else
@@ -358,6 +358,12 @@
                 @await Component.InvokeAsync("CrossSellProducts")
             }
         </form>
+
+        @*<script type="text/javascript">
+                $(function () {
+                    $("#shopping-cart-form").submit();
+                });
+            </script>*@
     }
     else
     {
@@ -399,8 +405,12 @@
         var feeship = $(".feeship-input-" + itemid).val().toFloat();
         var saleoff = $(".saleoff-input-" + itemid).val().toFloat();
         var weightcost = $(".weightcost-input-" + itemid).val().toFloat();
-        var totalItem = parseFloat((parseFloat((baseUnit * exchangeRate)) + parseFloat(feeship) + parseFloat(weightcost))*(parseFloat((100 - saleoff))/100));
-        $("#itemprice" + itemid).val(totalItem);
+        if (weightcost > 0) {
+            var totalItem = parseFloat((parseFloat((baseUnit * exchangeRate)) + parseFloat(feeship) + parseFloat(weightcost))*(parseFloat((100 - saleoff))/100));
+            $("#itemprice" + itemid).val(totalItem);
+        } else {
+            $("#itemprice" + itemid).val(0);
+        }
     }
 
     function formatCurrency() {

@@ -125,6 +125,8 @@ namespace Nop.Services.Orders
         /// <returns>Order items</returns>
         IList<OrderItem> GetDownloadableOrderItems(int customerId);
 
+        IList<OrderItem> GetOrderItemsByPackageId(int packageId);
+
         /// <summary>
         /// Delete an order item
         /// </summary>

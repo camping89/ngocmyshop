@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using Nop.Web.Areas.Admin.Models.Customers;
+using System;
 using System.Configuration;
-using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-using Nop.Web.Areas.Admin.Models.Customers;
 
 namespace Nop.Web.Extensions
 {
@@ -17,8 +14,8 @@ namespace Nop.Web.Extensions
             var index = fullName.LastIndexOf(' ');
             return new CustomerFirstLastName
             {
-                LastName = fullName.Substring(index+1),
-                FirstName = fullName.Substring(0,index)
+                LastName = fullName.Substring(index + 1),
+                FirstName = fullName.Substring(0, index)
             };
         }
         public static string RemoveWhitespace(string str)
@@ -33,7 +30,7 @@ namespace Nop.Web.Extensions
             return regex.Replace(temp, String.Empty).Replace('\u0111', 'd').Replace('\u0110', 'D');
         }
 
-        public static string GenerateEmailAddress(string firstName,string lastName)
+        public static string GenerateEmailAddress(string firstName, string lastName)
         {
             var random = new Random();
             firstName = ConvertToUnSign3(firstName.Trim());
@@ -41,14 +38,14 @@ namespace Nop.Web.Extensions
             return $"{lastName.ToLower()}.{firstName.ToLower()}{random.Next(100, 999)}@gmail.com";
         }
 
-        public static string Encrypt(string toEncrypt, bool useHashing,string keyEncryptUserName)
+        public static string Encrypt(string toEncrypt, bool useHashing, string keyEncryptUserName)
         {
             byte[] keyArray;
             byte[] toEncryptArray = UTF8Encoding.UTF8.GetBytes(toEncrypt);
 
             System.Configuration.AppSettingsReader settingsReader =
                 new AppSettingsReader();
-            
+
             //If hashing use get hashcode regards to your key
             if (useHashing)
             {
@@ -128,6 +125,20 @@ namespace Nop.Web.Extensions
             tdes.Clear();
             //return the Clear decrypted TEXT
             return UTF8Encoding.UTF8.GetString(resultArray);
+        }
+
+        public static DateTime? StringToDateTime(string dataString)
+        {
+            if (string.IsNullOrEmpty(dataString))
+            {
+                return null;
+            }
+            var registerDateString = dataString;
+            var timeZoneIndex = registerDateString.IndexOf("(", System.StringComparison.Ordinal);
+            var timeZoneId = registerDateString.Substring(timeZoneIndex);
+            var dateTimeString = registerDateString.Substring(0, timeZoneIndex - 1);
+            var formattedDate = DateTime.ParseExact(dateTimeString, "ddd MMM dd yyyy HH:mm:ss 'GMT'zzz", System.Globalization.CultureInfo.InvariantCulture);
+            return formattedDate;
         }
     }
 }

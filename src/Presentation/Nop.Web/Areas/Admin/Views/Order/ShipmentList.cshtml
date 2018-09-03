@@ -269,8 +269,8 @@
                                         title: "@T("Admin.Orders.Shipments.TrackingNumber")",
                                         width: 100
                                     }, {
-                                        field: "TotalWeight",
-                                        title: "@T("Admin.Orders.Shipments.TotalWeight")",
+                                            field: "AdminComment",
+                                        title: "@T("Admin.Orders.Shipments.AdminComment")",
                                         width: 100
                                     }, {
                                         field: "CustomerFullName",
@@ -284,10 +284,16 @@
                                         format: "{0:G}"
                                     }, {
                                         field: "DeliveryDate",
-                                        title: "@T("Admin.Orders.Shipments.DeliveryDate")",
+                                        title: "@T("Admin.Orders.Shipments.ReceivedDate")",
                                         width: 200,
                                         type: "date",
                                         format: "{0:G}"
+                                    }, {
+                                        field: "TotalOrderFee",
+                                        title: "@T("Admin.Orders.Shipments.TotalOrderFee")",
+                                        width: 150,
+                                            template: '<strong>#=TotalOrderFee#</strong><br/>'+
+                                                '<p>@T("Admin.Orders.Shipments.TotalOrderFeeNote")</p>'
                                     }, {
                                         field: "Id",
                                         title: "@T("Admin.Common.View")",
@@ -337,8 +343,11 @@
                                     },
                                     columns: [
                                         {
-                                            field: "ProductName",
+                                            field: "ImageUrl",
                                             title: "@T("Admin.Orders.Shipments.Products.ProductName")",
+                                            template: '<p>#=ProductName#</p>' +
+                                                 '<p><b>Sku: #=Sku#</b></p>' +
+                                                '<img src="#=ImageUrl#" />',
                                             width: 400
                                         }, {
                                             field: "OrderItemFee",

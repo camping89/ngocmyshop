@@ -15,7 +15,9 @@
     <script type="text/javascript">
         try {
             window.opener.document.getElementById('setActiveTab').value = 'tab-cart-info';
+            window.opener.document.getElementById('setUpdateOrder').value = true;
             window.opener.document.getElementById('@(Context.Request.Query["btnId"])').click();
+
         } catch (e) {
             console.log(e);
         }
