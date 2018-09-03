@@ -23,6 +23,7 @@ using Nop.Services.Helpers;
 using Nop.Services.Localization;
 using Nop.Services.Media;
 using Nop.Services.Messages;
+using Nop.Services.Orders;
 using Nop.Services.Seo;
 using Nop.Services.Shipping.Date;
 using Nop.Services.Stores;
@@ -71,6 +72,7 @@ namespace Nop.Services.Tests.ExportImport
         private CurrencySettings _currencySettings;
         private IProductAttributeParser _productAttributeParser;
         private IDateTimeHelper _dateTimeHelper;
+        private IPackageOrderService _packageOrderService;
         [SetUp]
         public new void SetUp()
         {
@@ -102,6 +104,7 @@ namespace Nop.Services.Tests.ExportImport
             _currencySettings = MockRepository.GenerateMock<CurrencySettings>();
             _productAttributeParser = MockRepository.GenerateMock<IProductAttributeParser>();
             _dateTimeHelper = MockRepository.GenerateMock<IDateTimeHelper>();
+            _packageOrderService = MockRepository.GenerateMock<IPackageOrderService>();
 
             var httpContextAccessor = MockRepository.GenerateMock<IHttpContextAccessor>();
             var nopEngine = MockRepository.GenerateMock<NopEngine>();
@@ -146,7 +149,7 @@ namespace Nop.Services.Tests.ExportImport
             serviceProvider.Expect(x => x.GetRequiredService(typeof(IHttpContextAccessor))).Return(httpContextAccessor);
 
             EngineContext.Replace(nopEngine);
-            _exportManager = new ExportManager(_categoryService, _manufacturerService, _customerService, _productAttributeService, _pictureService, _newsLetterSubscriptionService, _storeService, _workContext, _productEditorSettings, _vendorService, _productTemplateService, _dateRangeService, _taxCategoryService, _measureService, _catalogSettings, _genericAttributeService, _customerAttributeFormatter, _orderSettings, _specificationAttributeService, _priceFormatter, _languageService, _currencyService, _currencySettings, _productAttributeParser, _dateTimeHelper);
+            _exportManager = new ExportManager(_categoryService, _manufacturerService, _customerService, _productAttributeService, _pictureService, _newsLetterSubscriptionService, _storeService, _workContext, _productEditorSettings, _vendorService, _productTemplateService, _dateRangeService, _taxCategoryService, _measureService, _catalogSettings, _genericAttributeService, _customerAttributeFormatter, _orderSettings, _specificationAttributeService, _priceFormatter, _languageService, _currencyService, _currencySettings, _productAttributeParser, _dateTimeHelper, _packageOrderService);
         }
 
         #region Utilities
