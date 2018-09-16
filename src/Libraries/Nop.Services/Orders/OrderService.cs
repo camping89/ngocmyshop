@@ -169,15 +169,16 @@ namespace Nop.Services.Orders
         /// <param name="pageIndex">Page index</param>
         /// <param name="pageSize">Page size</param>
         /// <param name="orderBy"></param>
+        /// <param name="isOrderCheckout"></param>
         /// <returns>Orders</returns>
         public virtual IPagedList<Order> SearchOrders(int storeId = 0,
             int vendorId = 0, int customerId = 0,
             int productId = 0, int affiliateId = 0, int warehouseId = 0,
             int billingCountryId = 0, string paymentMethodSystemName = null,
             DateTime? createdFromUtc = null, DateTime? createdToUtc = null,
-            List<int> osIds = null, List<int> psIds = null, List<int> ssIds = null,
-            string billingEmail = null, string billingLastName = "", string billingPhone = "",
-            string orderNotes = null, int pageIndex = 0, int pageSize = int.MaxValue, OrderSortingEnum orderBy = OrderSortingEnum.CreatedOnDesc)
+            List<int> osIds = null, List<int> psIds = null, List<int> ssIds = null, List<int> procIds = null,
+            string billingEmail = null, List<int> custIdsByLinkFace = null, string billingFullName = null, string billingPhone = null, string packageOrderItemCode = null,
+            string orderNotes = null, int pageIndex = 0, int pageSize = int.MaxValue, OrderSortingEnum orderBy = OrderSortingEnum.CreatedOnDesc, bool? isOrderCheckout = null)
         {
             var query = _orderRepository.Table;
             if (storeId > 0)
@@ -196,6 +197,21 @@ namespace Nop.Services.Orders
                     .Where(o => o.OrderItems
                     .Any(orderItem => orderItem.Product.Id == productId));
             }
+
+            if (procIds != null && procIds.Any())
+            {
+                query = query
+                    .Where(o => o.OrderItems
+                        .Any(orderItem => procIds.Contains(orderItem.Product.Id)));
+            }
+
+            if (string.IsNullOrEmpty(packageOrderItemCode) == false)
+            {
+                query = query
+                    .Where(o => o.OrderItems
+                        .Any(orderItem => orderItem.PackageItemCode.Contains(packageOrderItemCode)));
+            }
+
             if (warehouseId > 0)
             {
                 var manageStockInventoryMethodId = (int)ManageInventoryMethod.ManageStock;
@@ -231,16 +247,32 @@ namespace Nop.Services.Orders
                 query = query.Where(o => psIds.Contains(o.PaymentStatusId));
             if (ssIds != null && ssIds.Any())
                 query = query.Where(o => ssIds.Contains(o.ShippingStatusId));
+
+            if (custIdsByLinkFace != null && custIdsByLinkFace.Any())
+                query = query.Where(o => custIdsByLinkFace.Contains(o.CustomerId));
+
             if (!string.IsNullOrEmpty(billingEmail))
                 query = query.Where(o => o.BillingAddress != null && !string.IsNullOrEmpty(o.BillingAddress.Email) && o.BillingAddress.Email.Contains(billingEmail));
-            if (!string.IsNullOrEmpty(billingLastName))
-                query = query.Where(o => o.BillingAddress != null && (!string.IsNullOrEmpty(o.BillingAddress.LastName) && o.BillingAddress.LastName.Contains(billingLastName)) || !string.IsNullOrEmpty(o.BillingAddress.FirstName) && o.BillingAddress.FirstName.Contains(billingLastName));
+            if (!string.IsNullOrEmpty(billingFullName))
+            {
+                var listKeywords = billingFullName.Split(' ').ToList();
+                query = query.Where(o => o.BillingAddress != null && (listKeywords.Contains(o.BillingAddress.FirstName) || listKeywords.Contains(o.BillingAddress.LastName)));
+            }
+
+            //query = query.Where(o => o.BillingAddress != null && (!string.IsNullOrEmpty(o.BillingAddress.LastName) && o.BillingAddress.LastName.Contains(billingLastName)) || !string.IsNullOrEmpty(o.BillingAddress.FirstName) && o.BillingAddress.FirstName.Contains(billingLastName));
             if (!string.IsNullOrEmpty(billingPhone))
                 query = query.Where(o => o.BillingAddress != null && !string.IsNullOrEmpty(o.BillingAddress.PhoneNumber) && o.BillingAddress.PhoneNumber.Contains(billingPhone));
-            if (!string.IsNullOrEmpty(billingLastName))
+            if (!string.IsNullOrEmpty(orderNotes))
                 if (!string.IsNullOrEmpty(orderNotes))
                     query = query.Where(o => o.OrderNotes.Any(on => on.Note.Contains(orderNotes)));
             query = query.Where(o => !o.Deleted);
+
+            //filter is checkout order
+            if (isOrderCheckout.HasValue)
+            {
+                query = query.Where(o => o.IsOrderCheckout == isOrderCheckout.Value);
+            }
+
             switch (orderBy)
             {
                 case OrderSortingEnum.CreatedOnAsc:
@@ -262,6 +294,7 @@ namespace Nop.Services.Orders
                     query = query.OrderByDescending(o => o.OrderTotal);
                     break;
             }
+
             //database layer paging
             return new PagedList<Order>(query, pageIndex, pageSize);
         }

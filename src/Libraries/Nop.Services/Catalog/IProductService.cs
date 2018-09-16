@@ -1,9 +1,9 @@
-using System;
-using System.Collections.Generic;
 using Nop.Core;
 using Nop.Core.Domain.Catalog;
 using Nop.Core.Domain.Orders;
 using Nop.Core.Domain.Shipping;
+using System;
+using System.Collections.Generic;
 
 namespace Nop.Services.Catalog
 {
@@ -31,14 +31,14 @@ namespace Nop.Services.Catalog
         /// </summary>
         /// <returns>Products</returns>
         IList<Product> GetAllProductsDisplayedOnHomePage();
-        
+
         /// <summary>
         /// Gets product
         /// </summary>
         /// <param name="productId">Product identifier</param>
         /// <returns>Product</returns>
         Product GetProductById(int productId);
-        
+
         /// <summary>
         /// Gets products by identifier
         /// </summary>
@@ -185,9 +185,9 @@ namespace Nop.Services.Catalog
             bool searchDescriptions = false,
             bool searchManufacturerPartNumber = true,
             bool searchSku = true,
-            bool searchProductTags = false, 
+            bool searchProductTags = false,
             int languageId = 0,
-            IList<int> filteredSpecs = null, 
+            IList<int> filteredSpecs = null,
             ProductSortingEnum orderBy = ProductSortingEnum.Position,
             bool showHidden = false,
             bool? overridePublished = null);
@@ -399,7 +399,7 @@ namespace Nop.Services.Catalog
         /// </summary>
         /// <param name="crossSellProduct">Cross-sell product</param>
         void UpdateCrossSellProduct(CrossSellProduct crossSellProduct);
-        
+
         /// <summary>
         /// Gets a cross-sells
         /// </summary>
@@ -409,7 +409,7 @@ namespace Nop.Services.Catalog
         IList<Product> GetCrosssellProductsByShoppingCart(IList<ShoppingCartItem> cart, int numberOfProducts);
 
         #endregion
-        
+
         #region Tier prices
 
         /// <summary>
@@ -478,7 +478,7 @@ namespace Nop.Services.Catalog
         /// </summary>
         /// <param name="productsIds">Products IDs</param>
         /// <returns>All picture identifiers grouped by product ID</returns>
-        IDictionary<int, int[]> GetProductsImagesIds(int [] productsIds);
+        IDictionary<int, int[]> GetProductsImagesIds(int[] productsIds);
 
         #endregion
 
@@ -502,6 +502,8 @@ namespace Nop.Services.Catalog
             DateTime? fromUtc = null, DateTime? toUtc = null,
             string message = null, int storeId = 0, int productId = 0, int vendorId = 0,
             int pageIndex = 0, int pageSize = int.MaxValue);
+
+        IList<Product> GetProductsByVendorProductUrl(string vendorProductUrl);
 
         /// <summary>
         /// Gets product review

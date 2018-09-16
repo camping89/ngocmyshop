@@ -406,15 +406,17 @@
         var saleoff = $(".saleoff-input-" + itemid).val().toFloat();
         var weightcost = $(".weightcost-input-" + itemid).val().toFloat();
         if (weightcost > 0) {
-            var totalItem = parseFloat((parseFloat((baseUnit * exchangeRate)) + parseFloat(feeship) + parseFloat(weightcost))*(parseFloat((100 - saleoff))/100));
+            var totalItem = parseFloat((parseFloat((baseUnit * exchangeRate) * (parseFloat((100 - saleoff)) / 100)) + parseFloat(feeship) + parseFloat(weightcost)));
             $("#itemprice" + itemid).val(totalItem);
         } else {
             $("#itemprice" + itemid).val(0);
         }
+
+        formatCurrency();
     }
 
     function formatCurrency() {
-        $('.cart input[type="text"]').map(function () {
+        $('.cart input[type="text"],.cart input[type="number"]').map(function () {
 
             var formatCurrency = this.value.toFloat().format();
             $(this).val(formatCurrency);
@@ -423,6 +425,14 @@
 
     $(document).ready(function() {
 
+        $("#btnUpdateCartAdmin").on('click', function() {
+            $('.cart input[type="text"],.cart input[type="number"]').map(function () {
+
+                    var convertData = this.value.toFloat();
+                    $(this).val(convertData);
+                });
+            $('#shopping-cart-form').submit();
+            });
 
         $('.item-check-remove').map(function () {
             var itemId = $(this).data("item-id");
@@ -430,7 +440,7 @@
         });
 
 
-        $('.cart input[type="text"]').change(function() {
+        $('.cart input[type="text"],.cart input[type="number"]').change(function() {
             var itemId = $(this).data("item-id");
             calculatePrice(itemId);
         });

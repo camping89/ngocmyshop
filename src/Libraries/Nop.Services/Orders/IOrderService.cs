@@ -70,15 +70,16 @@ namespace Nop.Services.Orders
         /// <param name="pageIndex">Page index</param>
         /// <param name="pageSize">Page size</param>
         /// <param name="orderBy"></param>
+        /// <param name="isOrderCheckout"></param>
         /// <returns>Orders</returns>
         IPagedList<Order> SearchOrders(int storeId = 0,
             int vendorId = 0, int customerId = 0,
             int productId = 0, int affiliateId = 0, int warehouseId = 0,
             int billingCountryId = 0, string paymentMethodSystemName = null,
             DateTime? createdFromUtc = null, DateTime? createdToUtc = null,
-            List<int> osIds = null, List<int> psIds = null, List<int> ssIds = null,
-            string billingEmail = null, string billingLastName = "", string billingPhone = "",
-            string orderNotes = null, int pageIndex = 0, int pageSize = int.MaxValue, OrderSortingEnum orderBy = OrderSortingEnum.CreatedOnDesc);
+            List<int> osIds = null, List<int> psIds = null, List<int> ssIds = null, List<int> procIds = null,
+            string billingEmail = null, List<int> custIdsByLinkFace = null, string billingFullName = null, string billingPhone = null, string packageOrderItemCode = null,
+            string orderNotes = null, int pageIndex = 0, int pageSize = int.MaxValue, OrderSortingEnum orderBy = OrderSortingEnum.CreatedOnDesc, bool? isOrderCheckout = null);
 
         /// <summary>
         /// Inserts an order

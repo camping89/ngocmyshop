@@ -1,13 +1,15 @@
 ﻿using Microsoft.AspNetCore.Mvc.Rendering;
 using Nop.Core.Domain.Catalog;
+using Nop.Core.Domain.Directory;
 using Nop.Core.Domain.Shipping;
 using Nop.Core.Domain.Tax;
-using Nop.Web.Areas.Admin.Models.Common;
 using Nop.Web.Framework.Mvc.ModelBinding;
 using Nop.Web.Framework.Mvc.Models;
+using Nop.Web.Models.Common;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using AddressModel = Nop.Web.Areas.Admin.Models.Common.AddressModel;
 
 namespace Nop.Web.Areas.Admin.Models.Orders
 {
@@ -230,6 +232,12 @@ namespace Nop.Web.Areas.Admin.Models.Orders
         [UIHint("Download")]
         public int AddOrderNoteDownloadId { get; set; }
 
+        [NopResourceDisplayName("Admin.Orders.OrderNotes.Fields.IsOrderCheckout")]
+        public bool IsOrderCheckout { get; set; }
+
+        [NopResourceDisplayName("Admin.Orders.OrderNotes.Fields.OrderCheckoutDatetime")]
+        public DateTime? OrderCheckoutDatetime { get; set; }
+
         //refund info
         [NopResourceDisplayName("Admin.Orders.Fields.PartialRefund.AmountToRefund")]
         public decimal AmountToRefund { get; set; }
@@ -399,6 +407,7 @@ namespace Nop.Web.Areas.Admin.Models.Orders
                     ProductAttributes = new List<ProductAttributeModel>();
                     GiftCard = new GiftCardModel();
                     Warnings = new List<string>();
+                    CurrencySelectorModel = new CurrencySelectorModel();
                 }
 
                 public int ProductId { get; set; }
@@ -421,9 +430,23 @@ namespace Nop.Web.Areas.Admin.Models.Orders
                 public decimal SubTotalInclTax { get; set; }
                 [NopResourceDisplayName("Admin.Orders.Products.AddNew.SubTotalExclTax")]
                 public decimal SubTotalExclTax { get; set; }
+                [NopResourceDisplayName("Admin.Orders.Products.AddNew.UnitPriceUsd")]
+                public decimal UnitPriceUsd { get; set; }
+                public decimal ExchangeRate { get; set; }
+                public decimal OrderingFee { get; set; }
+                public double SaleOffPercent { get; set; }
+                public int CurrencyId { get; set; }
+                public Currency Currency { get; set; }
+                public Currency CurrencyCurrent { get; set; }
+                public string Weight { get; set; }
+
+                [NopResourceDisplayName("Admin.Orders.Products.AddNew.WeightCost")]
+                public decimal WeightCost { get; set; }
 
                 //product attributes
                 public IList<ProductAttributeModel> ProductAttributes { get; set; }
+
+                public CurrencySelectorModel CurrencySelectorModel { get; set; }
                 //gift card info
                 public GiftCardModel GiftCard { get; set; }
                 //rental

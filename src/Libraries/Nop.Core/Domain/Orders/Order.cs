@@ -350,7 +350,8 @@ namespace Nop.Core.Domain.Orders
         public decimal WeightCost { get; set; }
         public decimal OrderCurrentSubtotal { get; set; }
 
-
+        public bool IsOrderCheckout { get; set; }
+        public DateTime? OrderCheckoutDatetime { get; set; }
         #endregion
 
         #region Navigation properties

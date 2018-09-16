@@ -16,6 +16,7 @@ namespace Nop.Web.Areas.Admin.Models.Orders
             AvailableShippingStatuses = new List<SelectListItem>();
             AvailableStores = new List<SelectListItem>();
             AvailableVendors = new List<SelectListItem>();
+            AvailableOrderCheckoutStatus = new List<SelectListItem>();
             AvailableWarehouses = new List<SelectListItem>();
             AvailablePaymentMethods = new List<SelectListItem>();
             AvailableCountries = new List<SelectListItem>();
@@ -56,13 +57,22 @@ namespace Nop.Web.Areas.Admin.Models.Orders
         [NopResourceDisplayName("Admin.Orders.List.Product")]
         public int ProductId { get; set; }
 
+        [NopResourceDisplayName("Admin.Orders.List.PackageOrderItemCode")]
+        public string PackageOrderItemCode { get; set; }
+
         [NopResourceDisplayName("Admin.Orders.List.BillingEmail")]
         public string BillingEmail { get; set; }
+
+        [NopResourceDisplayName("Admin.Orders.List.LinkSourceProduct")]
+        public string LinkSourceProduct { get; set; }
+
+        [NopResourceDisplayName("Admin.Orders.List.LinkFacebook")]
+        public string LinkFacebook { get; set; }
         [NopResourceDisplayName("Admin.Orders.List.BillingPhone")]
         public string BillingPhone { get; set; }
 
-        [NopResourceDisplayName("Admin.Orders.List.BillingLastName")]
-        public string BillingLastName { get; set; }
+        [NopResourceDisplayName("Admin.Orders.List.BillingFullName")]
+        public string BillingFullName { get; set; }
 
         [NopResourceDisplayName("Admin.Orders.List.BillingCountry")]
         public int BillingCountryId { get; set; }
@@ -75,11 +85,19 @@ namespace Nop.Web.Areas.Admin.Models.Orders
 
         public bool IsLoggedInAsVendor { get; set; }
 
+        [NopResourceDisplayName("Admin.Orders.List.IsOrderCheckout")]
+        public bool? IsOrderCheckout { get; set; }
+
+        [NopResourceDisplayName("Admin.Orders.List.OrderCheckoutDatetime")]
+        public DateTime? OrderCheckoutDatetime { get; set; }
+
+
         public IList<SelectListItem> AvailableOrderStatuses { get; set; }
         public IList<SelectListItem> AvailablePaymentStatuses { get; set; }
         public IList<SelectListItem> AvailableShippingStatuses { get; set; }
         public IList<SelectListItem> AvailableStores { get; set; }
         public IList<SelectListItem> AvailableVendors { get; set; }
+        public IList<SelectListItem> AvailableOrderCheckoutStatus { get; set; }
         public IList<SelectListItem> AvailableWarehouses { get; set; }
         public IList<SelectListItem> AvailablePaymentMethods { get; set; }
         public IList<SelectListItem> AvailableCountries { get; set; }

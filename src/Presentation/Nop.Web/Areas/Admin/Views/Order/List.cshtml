@@ -27,6 +27,10 @@
             @T("Admin.Orders")
         </h1>
         <div class="pull-right">
+            <button type="button" class="btn btn-success" id="btn-set-isordercheckout-selected">
+                <i class="fa fa-save"></i>
+                @T("Admin.Common.SetIsOrderCheckoutSelected")
+            </button>
             <div class="btn-group">
                 <button type="button" class="btn btn-success">
                     <i class="fa fa-download"></i>
@@ -50,18 +54,18 @@
                         </button>
                     </li>
                     <li class="divider"></li>
-                    <li>
-                        <button type="submit" name="exportexcel-all">
-                            <i class="fa fa-file-excel-o"></i>
-                            @T("Admin.Common.ExportToExcel.All")
-                        </button>
-                    </li>
-                    <li>
-                        <button type="button" id="exportexcel-selected">
-                            <i class="fa fa-file-excel-o"></i>
-                            @T("Admin.Common.ExportToExcel.Selected")
-                        </button>
-                    </li>
+                    @*<li>
+                            <button type="submit" name="exportexcel-all">
+                                <i class="fa fa-file-excel-o"></i>
+                                @T("Admin.Common.ExportToExcel.All")
+                            </button>
+                        </li>
+                        <li>
+                            <button type="button" id="exportexcel-selected">
+                                <i class="fa fa-file-excel-o"></i>
+                                @T("Admin.Common.ExportToExcel.Selected")
+                            </button>
+                        </li>*@
                     <li>
                         <button type="button" id="exportexcel-invoice-vendor-selected">
                             <i class="fa fa-file-excel-o"></i>
@@ -180,6 +184,14 @@
                                         </script>
                                     </div>
                                 </div>
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <nop-label asp-for="LinkSourceProduct" />
+                                    </div>
+                                    <div class="col-md-8">
+                                        <nop-editor asp-for="LinkSourceProduct" />
+                                    </div>
+                                </div>
                                 <div class="form-group" @(Model.IsLoggedInAsVendor ? Html.Raw("style='display: none;' ") : null)>
                                     <div class="col-md-4">
                                         <nop-label asp-for="OrderStatusIds" />
@@ -206,6 +218,14 @@
                                 </div>
                             </div>
                             <div class="col-md-7">
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <nop-label asp-for="IsOrderCheckout" />
+                                    </div>
+                                    <div class="col-md-8">
+                                        <nop-select asp-for="IsOrderCheckout" asp-items="Model.AvailableOrderCheckoutStatus" />
+                                    </div>
+                                </div>
                                 <div class="form-group" @(Model.AvailableStores.SelectionIsNotPossible() ? Html.Raw("style=\"display:none\"") : null)>
                                     <div class="col-md-4">
                                         <nop-label asp-for="StoreId" />
@@ -224,10 +244,18 @@
                                 </div>
                                 <div class="form-group">
                                     <div class="col-md-4">
-                                        <nop-label asp-for="BillingEmail" />
+                                        <nop-label asp-for="PackageOrderItemCode" />
                                     </div>
                                     <div class="col-md-8">
-                                        <nop-editor asp-for="BillingEmail" />
+                                        <nop-editor asp-for="PackageOrderItemCode" />
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <nop-label asp-for="LinkFacebook" />
+                                    </div>
+                                    <div class="col-md-8">
+                                        <nop-editor asp-for="LinkFacebook" />
                                     </div>
                                 </div>
                                 <div class="form-group">
@@ -240,10 +268,10 @@
                                 </div>
                                 <div class="form-group">
                                     <div class="col-md-4">
-                                        <nop-label asp-for="BillingLastName" />
+                                        <nop-label asp-for="BillingFullName" />
                                     </div>
                                     <div class="col-md-8">
-                                        <nop-editor asp-for="BillingLastName" />
+                                        <nop-editor asp-for="BillingFullName" />
                                     </div>
                                 </div>
                                 @*<div class="form-group" @(Model.AvailableCountries.SelectionIsNotPossible() ? Html.Raw("style=\"display:none\"") : null)>
@@ -407,7 +435,7 @@
                                         },</text>
                         }
                                         {
-                                            field: "CustomerEmail",
+                                            field: "CustomerFullName",
                                             title: "@T("Admin.Orders.Fields.Customer")",
                                             width: 150,
                                             template: '<p>#=CustomerFullName#</p>' +
@@ -701,7 +729,9 @@
                                 });
 
                                 $("".concat("#@Html.IdFor(model => model.BillingEmail),",
-                                    "#@Html.IdFor(model => model.BillingLastName),",
+                                    "#@Html.IdFor(model => model.BillingFullName),",
+                                    "#@Html.IdFor(model => model.LinkFacebook),",
+                                    "#@Html.IdFor(model => model.BillingPhone),",
                                     "#@Html.IdFor(model => model.OrderNotes)")).keydown(function(event) {
                                     if (event.keyCode === 13) {
                                         $("#search-orders").click();
@@ -756,13 +786,17 @@
                                     StoreId: $('#@Html.IdFor(model => model.StoreId)').val(),
                                     VendorId: $('#@Html.IdFor(model => model.VendorId)').val(),
                                     WarehouseId: $('#@Html.IdFor(model => model.WarehouseId)').val(),
-                                    BillingEmail: $('#@Html.IdFor(model => model.BillingEmail)').val(),
-                                    BillingLastName: $('#@Html.IdFor(model => model.BillingLastName)').val(),
+                                    LinkSourceProduct: $.trim($('#@Html.IdFor(model => model.LinkSourceProduct)').val()),
+                                    PackageOrderItemCode: $.trim($('#@Html.IdFor(model => model.PackageOrderItemCode)').val()),
+                                    BillingEmail: $.trim($('#@Html.IdFor(model => model.BillingEmail)').val()),
+                                    BillingPhone: $.trim($('#@Html.IdFor(model => model.BillingPhone)').val()),
+                                    LinkFacebook: $.trim($('#@Html.IdFor(model => model.LinkFacebook)').val()),
+                                    BillingFullName: $.trim($('#@Html.IdFor(model => model.BillingFullName)').val()),
                                     BillingCountryId: $('#@Html.IdFor(model => model.BillingCountryId)').val(),
-                                    PaymentMethodSystemName: $('#@Html.IdFor(model => model.PaymentMethodSystemName)')
-                                        .val(),
+                                    PaymentMethodSystemName: $('#@Html.IdFor(model => model.PaymentMethodSystemName)').val(),
                                     ProductId: $('#@Html.IdFor(model => model.ProductId)').val(),
-                                    OrderNotes: $('#@Html.IdFor(model => model.OrderNotes)').val()
+                                    IsOrderCheckout: $('#@Html.IdFor(model => model.IsOrderCheckout)').val(),
+                                    OrderNotes: $.trim($('#@Html.IdFor(model => model.OrderNotes)').val())
                                 };
                                 addAntiForgeryToken(data);
                                 return data;
@@ -809,6 +843,23 @@
         </div>
     </div>
 </form>
+
+@*set is order checkout selectedids*@
+<form asp-controller="Order" asp-action="SetIsOrderCheckoutSelected" method="post" id="set-isordercheckout-selected-form">
+    <input type="hidden" id="selectedIds" name="selectedIds" value="" />
+</form>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('#btn-set-isordercheckout-selected').click(function (e) {
+            e.preventDefault();
+            var ids = selectedIds.join(",");
+            $('#set-isordercheckout-selected-form #selectedIds').val(ids);
+            $('#set-isordercheckout-selected-form').submit();
+            return false;
+        });
+    });
+</script>
 
 @*export selected (XML). We don't use GET approach because it's limited to 2K-4K chars and won't work for large number of entities*@
 <form asp-controller="Order" asp-action="ExportXmlSelected" method="post" id="export-xml-selected-form">

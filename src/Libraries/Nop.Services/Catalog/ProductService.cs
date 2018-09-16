@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using Nop.Core;
 using Nop.Core.Caching;
 using Nop.Core.Data;
@@ -20,6 +17,9 @@ using Nop.Services.Localization;
 using Nop.Services.Messages;
 using Nop.Services.Security;
 using Nop.Services.Stores;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Nop.Services.Catalog
 {
@@ -118,7 +118,7 @@ namespace Nop.Services.Catalog
             IRepository<AclRecord> aclRepository,
             IRepository<StoreMapping> storeMappingRepository,
             IRepository<ProductSpecificationAttribute> productSpecificationAttributeRepository,
-            IRepository<ProductReview>  productReviewRepository,
+            IRepository<ProductReview> productReviewRepository,
             IRepository<ProductWarehouseInventory> productWarehouseInventoryRepository,
             IRepository<SpecificationAttributeOption> specificationAttributeOptionRepository,
             IRepository<StockQuantityHistory> stockQuantityHistoryRepository,
@@ -126,10 +126,10 @@ namespace Nop.Services.Catalog
             IProductAttributeParser productAttributeParser,
             ILanguageService languageService,
             IWorkflowMessageService workflowMessageService,
-            IDataProvider dataProvider, 
+            IDataProvider dataProvider,
             IDbContext dbContext,
             IWorkContext workContext,
-            LocalizationSettings localizationSettings, 
+            LocalizationSettings localizationSettings,
             CommonSettings commonSettings,
             CatalogSettings catalogSettings,
             IEventPublisher eventPublisher,
@@ -475,7 +475,7 @@ namespace Nop.Services.Catalog
             }
 
             var products = new PagedList<Product>(query, pageIndex, pageSize);
-           
+
             //return products
             return products;
         }
@@ -613,7 +613,7 @@ namespace Nop.Services.Catalog
             //get filterable specification attribute option identifier
             var filterableSpecificationAttributeOptionIdsStr =
                 pFilterableSpecificationAttributeOptionIds.Value != DBNull.Value
-                    ? (string) pFilterableSpecificationAttributeOptionIds.Value
+                    ? (string)pFilterableSpecificationAttributeOptionIds.Value
                     : "";
 
             if (loadFilterableSpecificationAttributeOptionIds &&
@@ -691,7 +691,7 @@ namespace Nop.Services.Catalog
             var products = query.ToList();
             return products;
         }
-        
+
         /// <summary>
         /// Gets product
         /// </summary>
@@ -701,7 +701,7 @@ namespace Nop.Services.Catalog
         {
             if (productId == 0)
                 return null;
-            
+
             var key = string.Format(PRODUCTS_BY_ID_KEY, productId);
             return _cacheManager.Get(key, () => _productRepository.GetById(productId));
         }
@@ -745,7 +745,7 @@ namespace Nop.Services.Catalog
 
             //clear cache
             _cacheManager.RemoveByPattern(PRODUCTS_PATTERN_KEY);
-            
+
             //event notification
             _eventPublisher.EntityInserted(product);
         }
@@ -990,7 +990,7 @@ namespace Nop.Services.Catalog
             }
 
             //validate "categoryIds" parameter
-            if (categoryIds !=null && categoryIds.Contains(0))
+            if (categoryIds != null && categoryIds.Contains(0))
                 categoryIds.Remove(0);
 
             //Access control list. Allowed customer roles
@@ -1058,7 +1058,7 @@ namespace Nop.Services.Catalog
             if (!showHidden)
             {
                 query = query.Where(x => x.Published);
-            
+
                 //The function 'CurrentUtcDateTime' is not supported by SQL Server Compact. 
                 //That's why we pass the date value
                 var nowUtc = DateTime.UtcNow;
@@ -1090,7 +1090,7 @@ namespace Nop.Services.Catalog
 
             return products;
         }
-        
+
         /// <summary>
         /// Update product review totals
         /// </summary>
@@ -1101,7 +1101,7 @@ namespace Nop.Services.Catalog
                 throw new ArgumentNullException(nameof(product));
 
             var approvedRatingSum = 0;
-            var notApprovedRatingSum = 0; 
+            var notApprovedRatingSum = 0;
             var approvedTotalReviews = 0;
             var notApprovedTotalReviews = 0;
             var reviews = product.ProductReviews;
@@ -1110,7 +1110,7 @@ namespace Nop.Services.Catalog
                 if (pr.IsApproved)
                 {
                     approvedRatingSum += pr.Rating;
-                    approvedTotalReviews ++;
+                    approvedTotalReviews++;
                 }
                 else
                 {
@@ -1138,17 +1138,17 @@ namespace Nop.Services.Catalog
         {
             //Track inventory for product
             var query = from p in _productRepository.Table
-                         orderby p.MinStockQuantity
-                         where !p.Deleted &&
-                         p.ManageInventoryMethodId == (int)ManageInventoryMethod.ManageStock &&
-                         //ignore grouped products
-                         p.ProductTypeId != (int)ProductType.GroupedProduct &&
-                         p.MinStockQuantity >= (
-                            p.UseMultipleWarehouses ?
-                            p.ProductWarehouseInventory.Sum(pwi => pwi.StockQuantity - pwi.ReservedQuantity) : 
-                            p.StockQuantity) &&
-                         (vendorId == 0 || p.VendorId == vendorId)
-                         select p;
+                        orderby p.MinStockQuantity
+                        where !p.Deleted &&
+                        p.ManageInventoryMethodId == (int)ManageInventoryMethod.ManageStock &&
+                        //ignore grouped products
+                        p.ProductTypeId != (int)ProductType.GroupedProduct &&
+                        p.MinStockQuantity >= (
+                           p.UseMultipleWarehouses ?
+                           p.ProductWarehouseInventory.Sum(pwi => pwi.StockQuantity - pwi.ReservedQuantity) :
+                           p.StockQuantity) &&
+                        (vendorId == 0 || p.VendorId == vendorId)
+                        select p;
 
             return new PagedList<Product>(query, pageIndex, pageSize);
         }
@@ -1165,12 +1165,12 @@ namespace Nop.Services.Catalog
         {
             //Track inventory for product by product attributes
             var query = from p in _productRepository.Table
-                         from c in p.ProductAttributeCombinations
-                         where !p.Deleted &&
-                         p.ManageInventoryMethodId == (int)ManageInventoryMethod.ManageStockByAttributes &&
-                         c.StockQuantity <= 0 &&
-                         (vendorId == 0 || p.VendorId == vendorId)
-                         select c;
+                        from c in p.ProductAttributeCombinations
+                        where !p.Deleted &&
+                        p.ManageInventoryMethodId == (int)ManageInventoryMethod.ManageStockByAttributes &&
+                        c.StockQuantity <= 0 &&
+                        (vendorId == 0 || p.VendorId == vendorId)
+                        select c;
             query = query.OrderBy(c => c.ProductId);
             return new PagedList<ProductAttributeCombination>(query, pageIndex, pageSize);
         }
@@ -1273,7 +1273,7 @@ namespace Nop.Services.Catalog
 
             if (quantityToChange == 0)
                 return;
-            
+
             if (product.ManageInventoryMethod == ManageInventoryMethod.ManageStock)
             {
                 //previous stock
@@ -1534,7 +1534,7 @@ namespace Nop.Services.Catalog
 
             if (shipmentItem == null)
                 throw new ArgumentNullException(nameof(shipmentItem));
-            
+
             //only products with "use multiple warehouses" are handled this way
             if (product.ManageInventoryMethod != ManageInventoryMethod.ManageStock)
                 return 0;
@@ -1613,7 +1613,7 @@ namespace Nop.Services.Catalog
         {
             if (relatedProductId == 0)
                 return null;
-            
+
             return _relatedProductRepository.GetById(relatedProductId);
         }
 
@@ -1674,7 +1674,7 @@ namespace Nop.Services.Catalog
         /// <returns>Cross-sell products</returns>
         public virtual IList<CrossSellProduct> GetCrossSellProductsByProductId1(int productId1, bool showHidden = false)
         {
-            return GetCrossSellProductsByProductIds(new[] {productId1}, showHidden);
+            return GetCrossSellProductsByProductIds(new[] { productId1 }, showHidden);
         }
 
         /// <summary>
@@ -1689,12 +1689,12 @@ namespace Nop.Services.Catalog
                 return new List<CrossSellProduct>();
 
             var query = from csp in _crossSellProductRepository.Table
-                join p in _productRepository.Table on csp.ProductId2 equals p.Id
-                where productIds.Contains(csp.ProductId1) &&
-                      !p.Deleted &&
-                      (showHidden || p.Published)
-                orderby csp.Id
-                select csp;
+                        join p in _productRepository.Table on csp.ProductId2 equals p.Id
+                        where productIds.Contains(csp.ProductId1) &&
+                              !p.Deleted &&
+                              (showHidden || p.Published)
+                        orderby csp.Id
+                        select csp;
             var crossSellProducts = query.ToList();
             return crossSellProducts;
         }
@@ -1790,9 +1790,9 @@ namespace Nop.Services.Catalog
         }
 
         #endregion
-        
+
         #region Tier prices
-        
+
         /// <summary>
         /// Deletes a tier price
         /// </summary>
@@ -1819,7 +1819,7 @@ namespace Nop.Services.Catalog
         {
             if (tierPriceId == 0)
                 return null;
-            
+
             return _tierPriceRepository.GetById(tierPriceId);
         }
 
@@ -1939,7 +1939,7 @@ namespace Nop.Services.Catalog
         /// </summary>
         /// <param name="productsIds">Products IDs</param>
         /// <returns>All picture identifiers grouped by product ID</returns>
-        public IDictionary<int, int[]> GetProductsImagesIds(int [] productsIds)
+        public IDictionary<int, int[]> GetProductsImagesIds(int[] productsIds)
         {
             return _productPictureRepository.Table.Where(p => productsIds.Contains(p.ProductId))
                 .GroupBy(p => p.ProductId).ToDictionary(p => p.Key, p => p.Select(p1 => p1.PictureId).ToArray());
@@ -1991,6 +1991,13 @@ namespace Nop.Services.Catalog
             var productReviews = new PagedList<ProductReview>(query, pageIndex, pageSize);
 
             return productReviews;
+        }
+
+        public IList<Product> GetProductsByVendorProductUrl(string vendorProductUrl)
+        {
+            var query = _productRepository.Table;
+            query = query.Where(_ => _.VendorProductUrl.Contains(vendorProductUrl));
+            return query.ToList();
         }
 
         /// <summary>
