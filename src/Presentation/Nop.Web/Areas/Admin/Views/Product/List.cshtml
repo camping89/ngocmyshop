@@ -292,7 +292,8 @@
                                             title: "@T("Admin.Catalog.Products.Fields.Total")",
                                             width: 100,
                                             template: '# if(ProductTypeId != @((int) ProductType.GroupedProduct)) {# #: kendo.toString((WeightCost + Price + OrderingFee), "n0")# #}  #'
-                                        }, {
+                                        },
+                                        @*{
                                             field: "StockQuantityStr",
                                             title: "@T("Admin.Catalog.Products.Fields.StockQuantity")",
                                             width: 100
@@ -300,12 +301,14 @@
                                             field: "ProductTypeName",
                                             title: "@T("Admin.Catalog.Products.Fields.ProductType")",
                                             width: 100
-                                        }, {
+                                        },
+                                        {
                                             field: "Published",
                                             title: "@T("Admin.Catalog.Products.Fields.Published")",
                                             width: 100,
                                             template: '# if(Published) {# <i class="fa fa-check true-icon"></i> #} else {# <i class="fa fa-close false-icon"></i> #} #'
-                                        }, {
+                                        },*@
+                                        {
                                             field: "Id",
                                             title: "@T("Admin.Common.Edit")",
                                             width: 100,
