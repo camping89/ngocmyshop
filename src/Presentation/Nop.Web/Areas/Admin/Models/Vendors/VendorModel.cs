@@ -1,12 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using FluentValidation.Attributes;
+﻿using FluentValidation.Attributes;
 using Nop.Web.Areas.Admin.Models.Common;
 using Nop.Web.Areas.Admin.Validators.Vendors;
 using Nop.Web.Framework.Localization;
 using Nop.Web.Framework.Mvc.ModelBinding;
 using Nop.Web.Framework.Mvc.Models;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace Nop.Web.Areas.Admin.Models.Vendors
 {
@@ -49,7 +49,7 @@ namespace Nop.Web.Areas.Admin.Models.Vendors
 
         [NopResourceDisplayName("Admin.Vendors.Fields.DisplayOrder")]
         public int DisplayOrder { get; set; }
-        
+
 
         [NopResourceDisplayName("Admin.Vendors.Fields.MetaKeywords")]
         public string MetaKeywords { get; set; }
@@ -80,7 +80,7 @@ namespace Nop.Web.Areas.Admin.Models.Vendors
         //vendor notes
         [NopResourceDisplayName("Admin.Vendors.VendorNotes.Fields.Note")]
         public string AddVendorNoteMessage { get; set; }
-        
+
         #region Nested classes
 
         public class AssociatedCustomerInfo : BaseNopEntityModel

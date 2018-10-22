@@ -714,8 +714,8 @@ namespace Nop.Web.Areas.Admin.Controllers
             model.Address.FirstNameRequired = true;
             model.Address.LastNameEnabled = true;
             model.Address.LastNameRequired = true;
-            model.Address.EmailEnabled = true;
-            model.Address.EmailRequired = true;
+            model.Address.EmailEnabled = false;
+            model.Address.EmailRequired = false;
             model.Address.CompanyEnabled = _addressSettings.CompanyEnabled;
             model.Address.CompanyRequired = _addressSettings.CompanyRequired;
             model.Address.CountryEnabled = _addressSettings.CountryEnabled;
@@ -953,6 +953,19 @@ namespace Nop.Web.Areas.Admin.Controllers
                 };
                 _customerService.InsertCustomer(customer);
 
+                //Create Address Default
+                var addressCustomer = new Address
+                {
+                    FirstName = model.FirstName,
+                    LastName = model.LastName,
+                    Address1 = "Chưa xác định",
+                    PhoneNumber = model.Phone
+                };
+                _addressService.InsertAddress(addressCustomer);
+                customer.Addresses.Add(addressCustomer);
+                customer.BillingAddress = addressCustomer;
+                customer.ShippingAddress = addressCustomer;
+
                 //form fields
                 if (_dateTimeSettings.AllowCustomersToSetTimeZone)
                     _genericAttributeService.SaveAttribute(customer, SystemCustomerAttributeNames.TimeZoneId, model.TimeZoneId);
@@ -1113,6 +1126,8 @@ namespace Nop.Web.Areas.Admin.Controllers
                 return AccessDeniedView();
 
             var customer = _customerService.GetCustomerById(model.Id);
+
+
             if (!string.IsNullOrEmpty(model.FullName))
             {
                 var customerFirstLastName = StringExtensions.GetFirstLastNameFromFullName(model.FullName);
@@ -1313,6 +1328,23 @@ namespace Nop.Web.Areas.Admin.Controllers
                                 customer.CustomerRoles.Remove(customerRole);
                         }
                     }
+
+                    if (customer.Addresses != null || customer.Addresses.Count == 0)
+                    {
+                        //Create Address Default
+                        var addressCustomer = new Address()
+                        {
+                            FirstName = model.FirstName,
+                            LastName = model.LastName,
+                            Address1 = "Chưa xác định",
+                            PhoneNumber = model.Phone
+                        };
+                        _addressService.InsertAddress(addressCustomer);
+                        customer.Addresses.Add(addressCustomer);
+                        customer.BillingAddress = addressCustomer;
+                        customer.ShippingAddress = addressCustomer;
+                    }
+
                     _customerService.UpdateCustomer(customer);
 
                     //ensure that a customer with a vendor associated is not in "Administrators" role
@@ -1965,7 +1997,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 //customers by number of orders
                 BestCustomersByNumberOfOrders = new BestCustomersReportModel
                 {
-                    AvailableOrderStatuses = OrderStatus.Pending.ToSelectList(false).ToList()
+                    AvailableOrderStatuses = OrderStatus.Confirmed.ToSelectList(false).ToList()
                 }
             };
             model.BestCustomersByNumberOfOrders.AvailableOrderStatuses.Insert(0, new SelectListItem { Text = _localizationService.GetResource("Admin.Common.All"), Value = "0" });
@@ -1977,7 +2009,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             //customers by order total
             model.BestCustomersByOrderTotal = new BestCustomersReportModel
             {
-                AvailableOrderStatuses = OrderStatus.Pending.ToSelectList(false).ToList()
+                AvailableOrderStatuses = OrderStatus.Confirmed.ToSelectList(false).ToList()
             };
             model.BestCustomersByOrderTotal.AvailableOrderStatuses.Insert(0, new SelectListItem { Text = _localizationService.GetResource("Admin.Common.All"), Value = "0" });
             model.BestCustomersByOrderTotal.AvailablePaymentStatuses = PaymentStatus.Pending.ToSelectList(false).ToList();

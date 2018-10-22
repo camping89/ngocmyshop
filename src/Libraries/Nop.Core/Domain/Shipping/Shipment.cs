@@ -43,7 +43,12 @@ namespace Nop.Core.Domain.Shipping
         /// Gets or sets the admin comment
         /// </summary>
         public string AdminComment { get; set; }
+        /// <summary>
+        /// Admin note 
+        /// </summary>
+        public string ShipmentNote { get; set; }
 
+        public decimal Deposit { get; set; }
         /// <summary>
         /// Gets or sets the entity creation date
         /// </summary>

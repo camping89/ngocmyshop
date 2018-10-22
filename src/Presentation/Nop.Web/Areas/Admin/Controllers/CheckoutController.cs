@@ -53,7 +53,7 @@ namespace Nop.Web.Areas.Admin.Controllers
         private readonly IWebHelper _webHelper;
         private readonly IAddressAttributeParser _addressAttributeParser;
         private readonly IAddressAttributeService _addressAttributeService;
-
+        private readonly IAddressService _addressService;
         private readonly OrderSettings _orderSettings;
         private readonly RewardPointsSettings _rewardPointsSettings;
         private readonly PaymentSettings _paymentSettings;
@@ -90,7 +90,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             PaymentSettings paymentSettings,
             ShippingSettings shippingSettings,
             AddressSettings addressSettings,
-            CustomerSettings customerSettings)
+            CustomerSettings customerSettings, IAddressService addressService)
         {
             this._checkoutModelFactory = checkoutModelFactory;
             this._workContext = workContext;
@@ -119,6 +119,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             this._shippingSettings = shippingSettings;
             this._addressSettings = addressSettings;
             this._customerSettings = customerSettings;
+            _addressService = addressService;
         }
 
         #endregion
@@ -253,6 +254,23 @@ namespace Nop.Web.Areas.Admin.Controllers
         public virtual IActionResult BillingAddress(int customerId)
         {
             var customer = _customerService.GetCustomerById(customerId);
+
+            if (customer.Addresses.Count == 0)
+            {
+                //Create Address Default
+                var addressCustomer = new Address
+                {
+                    FirstName = customer.GetAttribute<string>(SystemCustomerAttributeNames.FirstName),
+                    LastName = customer.GetAttribute<string>(SystemCustomerAttributeNames.LastName),
+                    Address1 = "Chưa xác định",
+                    PhoneNumber = customer.GetAttribute<string>(SystemCustomerAttributeNames.Phone)
+                };
+                _addressService.InsertAddress(addressCustomer);
+                customer.Addresses.Add(addressCustomer);
+                customer.BillingAddress = addressCustomer;
+                customer.ShippingAddress = addressCustomer;
+                _customerService.UpdateCustomer(customer);
+            }
             //validation
             var cart = customer.ShoppingCartItems
                 .Where(sci => sci.ShoppingCartType == ShoppingCartType.ShoppingCart)

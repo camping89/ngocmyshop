@@ -66,6 +66,9 @@
     <Content Update="Areas\Admin\Views\Order\EditPackageOrder.cshtml">
       <Pack>$(IncludeRazorContentInPack)</Pack>
     </Content>
+    <Content Update="Areas\Admin\Views\Order\OrderItemsVendorCheckout.cshtml">
+      <Pack>$(IncludeRazorContentInPack)</Pack>
+    </Content>
     <Content Update="Areas\Admin\Views\Order\ListPackageOrder.cshtml">
       <Pack>$(IncludeRazorContentInPack)</Pack>
     </Content>
@@ -79,6 +82,9 @@
       <Pack>$(IncludeRazorContentInPack)</Pack>
     </Content>
     <Content Update="Areas\Admin\Views\Order\_CreateOrUpdatePackageOrder.OrderItems.cshtml">
+      <Pack>$(IncludeRazorContentInPack)</Pack>
+    </Content>
+    <Content Update="Areas\Admin\Views\Order\_OrderDetails.ProductsKendo.cshtml">
       <Pack>$(IncludeRazorContentInPack)</Pack>
     </Content>
     <Content Update="Areas\Admin\Views\Shared\_GiftCardBox.cshtml">

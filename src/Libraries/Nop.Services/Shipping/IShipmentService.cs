@@ -40,7 +40,7 @@ namespace Nop.Services.Shipping
             string trackingNumber = null,
             bool loadNotShipped = false,
             DateTime? createdFromUtc = null, DateTime? createdToUtc = null,
-            int pageIndex = 0, int pageSize = int.MaxValue, int customerId = 0);
+            int pageIndex = 0, int pageSize = int.MaxValue, int customerId = 0, int orderId = 0);
 
         /// <summary>
         /// Get shipment by identifiers
@@ -56,6 +56,7 @@ namespace Nop.Services.Shipping
         /// <returns>Shipment</returns>
         Shipment GetShipmentById(int shipmentId);
 
+        bool CheckExistTrackingNumber(string trackingNumber);
         /// <summary>
         /// Inserts a shipment
         /// </summary>

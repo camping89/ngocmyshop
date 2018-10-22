@@ -9,14 +9,19 @@ namespace Nop.Core.Domain.Orders
         /// Hold
         /// </summary>
         Hold = 5,
-        /// <summary>
-        /// Pending
-        /// </summary>
-        Pending = 10,
-        /// <summary>
-        /// Processing
-        /// </summary>
-        Processing = 20,
+        ///// <summary>
+        ///// Pending
+        ///// </summary>
+        //Pending = 10,
+        ///// <summary>
+        ///// Processing
+        ///// </summary>
+        //Processing = 20,
+
+        Confirmed = 10,
+
+        PartiallyShipped = 20,
+
         /// <summary>
         /// Complete
         /// </summary>

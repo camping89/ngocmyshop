@@ -1686,6 +1686,70 @@ namespace Nop.Services.ExportImport
 
             return ExportToXlsx(orderItemProperties, listItem);
         }
+        
+        public virtual byte[] ExportOrderItemsToXlsxBasic(IList<OrderItem> orderItems)
+        {
+            //a vendor should have access only to part of order information
+
+            var ignore = _workContext.CurrentVendor != null;
+            var orderItemProperties = new[]
+            {
+                new PropertyByName<ExportVendorInvoiceItemModel>("OrderId", oi => oi.OrderId),
+                new PropertyByName<ExportVendorInvoiceItemModel>("CustomerInfo", oi => oi.CustomerInfo),
+                new PropertyByName<ExportVendorInvoiceItemModel>("CreatedDate", oi => oi.CreatedDate),
+                new PropertyByName<ExportVendorInvoiceItemModel>("VendorProductUrl", oi => oi.VendorProductUrl),
+                new PropertyByName<ExportVendorInvoiceItemModel>("ProductName", oi => oi.ProductName),
+                new PropertyByName<ExportVendorInvoiceItemModel>("Quantity", oi => oi.Quantity),
+                new PropertyByName<ExportVendorInvoiceItemModel>("TotalWithoutWeightCost", oi => oi.TotalWithoutWeightCost),
+                new PropertyByName<ExportVendorInvoiceItemModel>("WeightCost", oi => oi.WeightCost),
+                new PropertyByName<ExportVendorInvoiceItemModel>("TotalCost", oi => oi.TotalCost),
+                new PropertyByName<ExportVendorInvoiceItemModel>("PackageOrderCode", oi => oi.PackageOrderCode),
+                new PropertyByName<ExportVendorInvoiceItemModel>("PackageOrderItemCode", oi => oi.PackageOrderItemCode),
+                new PropertyByName<ExportVendorInvoiceItemModel>("PackageItemProcessedDatetime", oi => oi.PackageItemProcessedDatetime),
+                new PropertyByName<ExportVendorInvoiceItemModel>("IsVendorCheckout", oi => oi.IsVendorCheckout)
+            };
+            
+            List<ExportVendorInvoiceItemModel> listItem = new List<ExportVendorInvoiceItemModel>();
+            foreach (var orderItem in orderItems)
+            {
+                var customerOrder = _customerService.GetCustomerById(orderItem.Order.CustomerId);
+                var customerInfo = string.Empty;
+                if (customerOrder != null)
+                {
+                    var linkFacebook = customerOrder.GetAttribute<string>(SystemCustomerAttributeNames.LinkFacebook1);
+
+                    customerInfo = customerOrder.GetFullName()
+                                   + $"\n {customerOrder.GetAttribute<string>(SystemCustomerAttributeNames.Phone)}"
+                                   + $"\n {linkFacebook}";
+                }
+
+                //var currency = _currencyService.GetCurrencyById(orderItem.CurrencyId);
+                var exportVendorInvoiceModel = new ExportVendorInvoiceItemModel()
+                {
+                    OrderId = orderItem.OrderId.ToString(),
+                    CustomerInfo = customerInfo,
+                    ProductName = orderItem.Product.GetLocalized(x => x.Name, _workContext.WorkingLanguage.Id),
+                    CreatedDate = orderItem.Order.CreatedOnUtc.ToString("g"),
+                    VendorProductUrl = orderItem.Product.VendorProductUrl,
+                    Quantity = orderItem.Quantity,
+                    TotalWithoutWeightCost = orderItem.PriceExclTax - orderItem.WeightCost,
+                    WeightCost = orderItem.WeightCost,
+                    TotalCost = orderItem.PriceExclTax,
+                    PackageOrderCode = orderItem.PackageOrder != null ? $"{orderItem.PackageOrder.PackageCode} - {orderItem.PackageOrder.PackageName}" : string.Empty,
+                    PackageOrderItemCode = orderItem.PackageItemCode,
+                    PackageItemProcessedDatetime = orderItem.PackageItemProcessedDatetime?.ToString("g"),
+                    IsVendorCheckout = orderItem.IsOrderCheckout.ToString()
+                };
+                if (!string.IsNullOrEmpty(orderItem.AttributeDescription))
+                {
+                    exportVendorInvoiceModel.ProductName += "\n " + HtmlHelper.ConvertHtmlToPlainText(orderItem.AttributeDescription, true, true);
+                    exportVendorInvoiceModel.Sku = orderItem.Product.FormatSku(orderItem.AttributesXml, _productAttributeParser);
+                }
+                listItem.Add(exportVendorInvoiceModel);
+            }
+
+            return ExportToXlsx(orderItemProperties, listItem);
+        }
 
         /// <summary>
         /// Export customer list to XLSX

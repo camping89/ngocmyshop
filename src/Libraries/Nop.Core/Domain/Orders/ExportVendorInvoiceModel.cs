@@ -28,4 +28,26 @@ namespace Nop.Core.Domain.Orders
         public string AdminNote { get; set; }
 
     }
+
+    public class ExportVendorInvoiceItemModel
+    {
+        public string OrderId { get; set; }
+        public string CustomerInfo { get; set; }
+        public string CreatedDate { get; set; }
+        public string VendorProductUrl { get; set; }
+        public string Sku { get; set; }
+        public string ProductName { get; set; }
+        public int Quantity { get; set; }
+        public decimal TotalWithoutWeightCost { get; set; }
+        public decimal WeightCost { get; set; }
+        public decimal TotalCost { get; set; }
+        public string PackageOrderCode { get; set; }
+        public string PackageOrderItemCode { get; set; }
+
+        public string PackageItemProcessedDatetime { get; set; }
+
+        public string IsVendorCheckout { get; set; }
+
+
+    }
 }

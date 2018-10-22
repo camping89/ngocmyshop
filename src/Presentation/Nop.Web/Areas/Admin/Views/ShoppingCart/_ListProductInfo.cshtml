@@ -164,12 +164,22 @@ else
                                             title: "@T("Admin.Catalog.Products.Fields.OrderingFee")",
                                             width: 100,
                                             template: '# if(ProductTypeId != @((int) ProductType.GroupedProduct)) {# #: kendo.toString(OrderingFee, "n0")# #} #'
+                                        },{
+                                            field: "WeightCost",
+                                            title: "@T("Admin.Catalog.Products.Fields.WeightCost")",
+                                            width: 100,
+                                            template: '# if(ProductTypeId != @((int) ProductType.GroupedProduct)) {# #: kendo.toString(WeightCost, "n0")# #}  #'
                                         }, {
                                             field: "Price",
-                                            title: "@T("Admin.Catalog.Products.Fields.Price")",
+                                            title: "@T("Admin.Catalog.Products.Fields.PriceVnd")",
                                             width: 150,
                                             //if not a grouped product, then display
-                                            template: '# if(ProductTypeId != @((int) ProductType.GroupedProduct)) {# #: kendo.toString(Price, "n0")# #} #'
+                                            template: '# if(ProductTypeId != @((int) ProductType.GroupedProduct)) {# #:kendo.toString(Price, "n0")# #}  #'
+                                        },
+                                        {
+                                            title: "@T("Admin.Catalog.Products.Fields.Total")",
+                                            width: 100,
+                                            template: '# if(ProductTypeId != @((int) ProductType.GroupedProduct)) {# #: kendo.toString((WeightCost + Price + OrderingFee), "n0")# #}  #'
                                         }@*, {
                                             field: "StockQuantityStr",
                                             title: "@T("Admin.Catalog.Products.Fields.StockQuantity")",

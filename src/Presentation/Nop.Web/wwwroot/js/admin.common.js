@@ -202,8 +202,14 @@ $(document).ajaxStart(function () {
     $('#ajaxBusy').hide();
 });
 Number.prototype.format = function(n, x) {
-    var re = '\\d(?=(\\d{' + (x || 3) + '})+' + (n > 0 ? '\\.' : '$') + ')';
-    return this.toFixed(Math.max(0, ~~n)).replace(new RegExp(re, 'g'), '$&,');
+    //var re = '\\d(?=(\\d{' + (x || 3) + '})+' + (n > 0 ? '\\.' : '$') + ')';
+    //return this.toFixed(Math.max(0, ~~n)).replace(new RegExp(re, 'g'), '$&,');
+    var str = this.toFixed(2);
+    if (this > 0) {
+        return str.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    } else {
+        return str;
+    }
 };
 String.prototype.toInt = function() {
     if (this != null || this != "") {

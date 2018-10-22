@@ -411,6 +411,7 @@ namespace Nop.Services.Orders
         /// <returns>Details</returns>
         protected virtual PlaceOrderContainer PreparePlaceOrderDetails(ProcessPaymentRequest processPaymentRequest)
         {
+
             var details = new PlaceOrderContainer
             {
 
@@ -426,8 +427,8 @@ namespace Nop.Services.Orders
                 details.AffiliateId = affiliate.Id;
 
             //check whether customer is guest
-            if (details.Customer.IsGuest() && !_orderSettings.AnonymousCheckoutAllowed)
-                throw new NopException("Anonymous checkout is not allowed");
+            //if (details.Customer.IsGuest() && !_orderSettings.AnonymousCheckoutAllowed)
+            //    throw new NopException("Anonymous checkout is not allowed");
 
             //customer currency
             var currencyTmp = _currencyService.GetCurrencyById(
@@ -443,16 +444,39 @@ namespace Nop.Services.Orders
             if (details.CustomerLanguage == null || !details.CustomerLanguage.Published)
                 details.CustomerLanguage = _workContext.WorkingLanguage;
 
-            //billing address
-            if (details.Customer.BillingAddress == null)
-                throw new NopException("Billing address is not provided");
 
-            if (!CommonHelper.IsValidEmail(details.Customer.BillingAddress.Email))
-                throw new NopException("Email is not valid");
 
-            details.BillingAddress = (Address)details.Customer.BillingAddress.Clone();
-            if (details.BillingAddress.Country != null && !details.BillingAddress.Country.AllowsBilling)
-                throw new NopException($"Country '{details.BillingAddress.Country.Name}' is not allowed for billing");
+
+            //if (!CommonHelper.IsValidEmail(details.Customer.BillingAddress.Email))
+            //    throw new NopException("Email is not valid");
+            var lastOrderCust = _orderService.GetLastOrderByCustomerId(customerId: details.Customer.Id);
+
+            if (lastOrderCust == null)
+            {
+                //billing address
+                if (details.Customer.BillingAddress == null)
+                //throw new NopException("Billing address is not provided");
+                {
+                    var addresCustomer = details.Customer.Addresses.LastOrDefault();
+                    details.BillingAddress = addresCustomer;
+                }
+                else
+                {
+                    details.BillingAddress = (Address)details.Customer.BillingAddress.Clone();
+                }
+            }
+            else
+            {
+                details.BillingAddress = lastOrderCust.BillingAddress;
+            }
+            //if (details.BillingAddress.Country != null && !details.BillingAddress.Country.AllowsBilling)
+            //    throw new NopException($"Country '{details.BillingAddress.Country.Name}' is not allowed for billing");
+
+            //payment method 
+            if (lastOrderCust != null)
+            {
+                processPaymentRequest.PaymentMethodSystemName = lastOrderCust.PaymentMethodSystemName;
+            }
 
             //checkout attributes
             details.CheckoutAttributesXml = details.Customer.GetAttribute<string>(SystemCustomerAttributeNames.CheckoutAttributes, processPaymentRequest.StoreId);
@@ -527,37 +551,68 @@ namespace Nop.Services.Orders
                     var state = _stateProvinceService.GetStateProvinceByAbbreviation(pickupPoint.StateAbbreviation, country?.Id);
 
                     details.PickUpInStore = true;
-                    details.PickupAddress = new Address
+                    if (lastOrderCust == null)
                     {
-                        Address1 = pickupPoint.Address,
-                        City = pickupPoint.City,
-                        Country = country,
-                        StateProvince = state,
-                        ZipPostalCode = pickupPoint.ZipPostalCode,
-                        CreatedOnUtc = DateTime.UtcNow,
-                    };
+                        details.PickupAddress = new Address
+                        {
+                            Address1 = pickupPoint.Address,
+                            City = pickupPoint.City,
+                            Country = country,
+                            StateProvince = state,
+                            ZipPostalCode = pickupPoint.ZipPostalCode,
+                            CreatedOnUtc = DateTime.UtcNow,
+                        };
+                    }
+                    else
+                    {
+                        details.PickupAddress = lastOrderCust.PickupAddress;
+                    }
                 }
                 else
                 {
-                    if (details.Customer.ShippingAddress == null)
-                        throw new NopException("Shipping address is not provided");
+                    //if (details.Customer.ShippingAddress == null)
+                    //    throw new NopException("Shipping address is not provided");
 
-                    if (!CommonHelper.IsValidEmail(details.Customer.ShippingAddress.Email))
-                        throw new NopException("Email is not valid");
+                    //if (!CommonHelper.IsValidEmail(details.Customer.ShippingAddress.Email))
+                    //    throw new NopException("Email is not valid");
 
                     //clone shipping address
-                    details.ShippingAddress = (Address)details.Customer.ShippingAddress.Clone();
-                    if (details.ShippingAddress.Country != null && !details.ShippingAddress.Country.AllowsShipping)
-                        throw new NopException($"Country '{details.ShippingAddress.Country.Name}' is not allowed for shipping");
+
+                    if (lastOrderCust == null)
+                    {
+                        if (details.Customer.ShippingAddress == null)
+                        {
+                            var addresCustomer = details.Customer.Addresses.LastOrDefault();
+                            details.ShippingAddress = addresCustomer;
+                        }
+                        else
+                        {
+                            details.ShippingAddress = (Address)details.Customer.ShippingAddress.Clone();
+                        }
+                    }
+                    else
+                    {
+                        details.ShippingAddress = lastOrderCust.ShippingAddress;
+                    }
+                    //if (details.ShippingAddress.Country != null && !details.ShippingAddress.Country.AllowsShipping)
+                    //    throw new NopException($"Country '{details.ShippingAddress.Country.Name}' is not allowed for shipping");
                 }
 
-                var shippingOption = details.Customer.GetAttribute<ShippingOption>(SystemCustomerAttributeNames.SelectedShippingOption, processPaymentRequest.StoreId);
-                if (shippingOption != null)
+
+                if (lastOrderCust == null)
                 {
-                    details.ShippingMethodName = shippingOption.Name;
-                    details.ShippingRateComputationMethodSystemName = shippingOption.ShippingRateComputationMethodSystemName;
+                    var shippingOption = details.Customer.GetAttribute<ShippingOption>(SystemCustomerAttributeNames.SelectedShippingOption, processPaymentRequest.StoreId);
+                    if (shippingOption != null)
+                    {
+                        details.ShippingMethodName = shippingOption.Name;
+                        details.ShippingRateComputationMethodSystemName = shippingOption.ShippingRateComputationMethodSystemName;
+                    }
                 }
-
+                else
+                {
+                    details.ShippingMethodName = lastOrderCust.ShippingMethod;
+                    details.ShippingRateComputationMethodSystemName = lastOrderCust.ShippingRateComputationMethodSystemName;
+                }
                 details.ShippingStatus = ShippingStatus.NotYetShipped;
             }
             else
@@ -780,7 +835,7 @@ namespace Nop.Services.Orders
                 CustomerCurrencyCode = details.CustomerCurrencyCode,
                 CurrencyRate = details.CustomerCurrencyRate,
                 AffiliateId = details.AffiliateId,
-                OrderStatus = OrderStatus.Hold,
+                OrderStatus = OrderStatus.Confirmed,
                 AllowStoringCreditCardNumber = processPaymentResult.AllowStoringCreditCardNumber,
                 CardType = processPaymentResult.AllowStoringCreditCardNumber ? _encryptionService.EncryptText(processPaymentRequest.CreditCardType) : string.Empty,
                 CardName = processPaymentResult.AllowStoringCreditCardNumber ? _encryptionService.EncryptText(processPaymentRequest.CreditCardName) : string.Empty,
@@ -1474,18 +1529,18 @@ namespace Nop.Services.Orders
 
             switch (order.OrderStatus)
             {
-                case OrderStatus.Pending:
+                case OrderStatus.Confirmed:
                     if (order.PaymentStatus == PaymentStatus.Authorized ||
                         order.PaymentStatus == PaymentStatus.Paid)
                     {
-                        SetOrderStatus(order, OrderStatus.Processing, false);
+                        SetOrderStatus(order, OrderStatus.Complete, false);
                     }
 
                     if (order.ShippingStatus == ShippingStatus.PartiallyShipped ||
                         order.ShippingStatus == ShippingStatus.Shipped ||
                         order.ShippingStatus == ShippingStatus.Delivered)
                     {
-                        SetOrderStatus(order, OrderStatus.Processing, false);
+                        SetOrderStatus(order, OrderStatus.Complete, false);
                     }
                     break;
                 //is order complete?
@@ -1594,20 +1649,20 @@ namespace Nop.Services.Orders
                 //move shopping cart items to order items
                 MoveShoppingCartItemsToOrderItems(details, order);
 
-                //discount usage history
-                SaveDiscountUsageHistory(details, order);
+                ////discount usage history
+                //SaveDiscountUsageHistory(details, order);
 
-                //gift card usage history
-                SaveGiftCardUsageHistory(details, order);
+                ////gift card usage history
+                //SaveGiftCardUsageHistory(details, order);
 
-                //recurring orders
-                if (details.IsRecurringShoppingCart)
-                {
-                    CreateFirstRecurringPayment(processPaymentRequest, order);
-                }
+                ////recurring orders
+                //if (details.IsRecurringShoppingCart)
+                //{
+                //    CreateFirstRecurringPayment(processPaymentRequest, order);
+                //}
 
                 //notifications
-                SendNotificationsAndSaveNotes(order);
+                //SendNotificationsAndSaveNotes(order);
 
                 //reset checkout data
                 _customerService.ResetCheckoutData(details.Customer, processPaymentRequest.StoreId, clearCouponCodes: true, clearCheckoutAttributes: true);
@@ -2344,7 +2399,7 @@ namespace Nop.Services.Orders
                 throw new ArgumentNullException(nameof(order));
 
             if (order.OrderStatus == OrderStatus.Cancelled ||
-                order.OrderStatus == OrderStatus.Pending)
+                order.OrderStatus == OrderStatus.Confirmed)
                 return false;
 
             if (order.PaymentStatus == PaymentStatus.Authorized &&

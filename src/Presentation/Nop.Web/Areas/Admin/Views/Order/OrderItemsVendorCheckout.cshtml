@@ -1,0 +1,522 @@
+﻿@model OrderItemExportVendorModel
+@inject AdminAreaSettings adminAreaSettings
+@inject IStoreService storeService
+
+@using Nop.Services.Stores
+
+@{
+    var defaultGridPageSize = adminAreaSettings.DefaultGridPageSize;
+    var gridPageSizes = adminAreaSettings.GridPageSizes;
+    var stores = storeService.GetAllStores();
+
+    //page title
+    ViewBag.Title = T("Admin.Orders").Text;
+    //active menu item (system name)
+    Html.SetActiveMenuItemSystemName("Export order");
+}
+<style>
+    .k-hierarchy-cell:hover, .k-hierarchy-cell:focus {
+        cursor: pointer;
+    }
+</style>
+
+
+<form asp-controller="Order" asp-action="OrderItemsVendorCheckout" method="post">
+    <div class="content-header clearfix">
+        <h1 class="pull-left">
+            @T("Admin.Orders")
+        </h1>
+        <div class="pull-right">
+            @*<button type="button" class="btn btn-success" id="btn-set-isordercheckout-selected">
+                <i class="fa fa-save"></i>
+                @T("Admin.Common.SetIsOrderCheckoutSelected")
+            </button>*@
+            <div class="btn-group">
+                <button type="button" class="btn btn-success">
+                    <i class="fa fa-download"></i>
+                    @T("Admin.Common.Export")
+                </button>
+                <button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+                    <span class="caret"></span>
+                    <span class="sr-only">&nbsp;</span>
+                </button>
+                <ul class="dropdown-menu" role="menu">
+                    
+                    <li>
+                        <button type="button" id="exportexcel-invoice-vendor-selected">
+                            <i class="fa fa-file-excel-o"></i>
+                            @T("Admin.Common.ExportToExcel.OrderItems.Selected")
+                        </button>
+                    </li>
+                    <li>
+                        <button type="submit" name="exportexcel-orderbasic-all">
+                            <i class="fa fa-file-excel-o"></i>
+                            @T("Admin.Common.ExportToExcel.OrderItems.All")
+                        </button>
+                    </li>
+                </ul>
+            </div>
+            
+            @await Component.InvokeAsync("AdminWidget", new { widgetZone = "admin_order_list_buttons" })
+        </div>
+    </div>
+    <div class="content">
+        <div class="form-horizontal">
+            <div class="panel-group">
+                <div class="panel panel-default panel-search">
+                    <div class="panel-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <nop-label asp-for="VendorProductUrl" />
+                                    </div>
+                                    <div class="col-md-8">
+                                        <nop-editor asp-for="VendorProductUrl" />
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <nop-label asp-for="OrderId" />
+                                    </div>
+                                    <div class="col-md-8">
+                                        <nop-editor asp-for="OrderId" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <nop-label asp-for="IsOrderCheckout" />
+                                    </div>
+                                    <div class="col-md-8">
+                                        <nop-select asp-for="IsOrderCheckout" asp-items="@Model.IsOrderCheckoutStatusItems" />
+                                    </div>
+                                </div>
+                                
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-7 col-md-offset-5">
+                                <button type="button" id="search-orders" class="btn btn-primary btn-search">
+                                    <i class="fa fa-search"></i>
+                                    @T("Admin.Common.Search")
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        <div class="form-group">
+                            <div class="col-md-12" style="overflow-x: auto;">
+                                <div id="order-items-grid"></div>
+
+                                <script>
+                                    $(function() {
+                                        $("#order-items-grid").kendoGrid({
+                                            dataSource: {
+                                                type: "json",
+                                                transport: {
+                                                    read: {
+                                                        url: "@Html.Raw(Url.Action("ListOrderItemsVendorCheckout", "Order"))",
+                                                        type: "POST",
+                                                        dataType: "json",
+                                                        data: additionalData
+                                                    },
+                                                    update: {
+                                                        url: "@Html.Raw(Url.Action("UpdateOrderItem", "Order"))",
+                                                        type: "POST",
+                                                        dataType: "json",
+                                                        data: addAntiForgeryToken
+                                                    }
+                                                },
+                                                schema: {
+                                                    data: "Data",
+                                                    total: "Total",
+                                                    errors: "Errors",
+                                                    model: {
+                                                        id: "Id",
+                                                        fields: {
+                                                            OrderId: { editable: false, type: "number" },
+                                                            PackageId: { editable: true, type: "string" },
+                                                            PackageOrderId: { editable: true, type: "string" },
+                                                            PackageItemCode: { editable: true, type: "string" },
+                                                            PackageItemProcessedDatetime: { editable: true, type: "date" },
+                                                            PictureThumbnailUrl: { editable: false, type: "string" },
+                                                            ProductName: { editable: false, type: "string" },
+                                                            TotalWithoutWeightCost: { editable: false, type: "string" },
+                                                            WeightCostDec: { editable: true, type: "string" },
+                                                            UnitWeightCost: { editable: true, type: "string" },
+                                                            ItemWeight: { editable: true, type: "string" },
+                                                            SubTotalInclTax: { editable: false, type: "string" },
+                                                            IsOrderCheckout: { editable: true, type: "boolean" }
+                                                        }
+                                                    }
+
+                                                },
+                                                requestEnd: function(e) {
+                                                    if (e.type == "update") {
+                                                        var grid = $("#order-items-grid").data('kendoGrid');
+                                                        grid.dataSource.read();
+                                                    }
+                                                },
+                                                error: function(e) {
+                                                    display_kendoui_grid_error(e);
+                                                    // Cancel the changes
+                                                    this.cancelChanges();
+                                                },
+                                                pageSize: @(defaultGridPageSize),
+                                                serverPaging: true,
+                                                serverFiltering: true,
+                                                serverSorting: true
+                                            },
+                                            edit: grid_edit,
+                                            editable: {
+                                                confirmation: "@T("Admin.Common.DeleteConfirmation")",
+                                                mode: "popup"
+                                            },
+                                            scrollable: false,
+                                            pageable: {
+                                                refresh: true,
+                                                pageSizes: [@(gridPageSizes)],
+                                                @await Html.PartialAsync("_GridPagerMessages")
+                                            },
+                                            columns: [
+                                                {
+                                                    field: "Id",
+                                                    headerTemplate: "<input id='mastercheckbox' type='checkbox'/>",
+                                                    headerAttributes: { style: "text-align:center" },
+                                                    attributes: { style: "text-align:center" },
+                                                    template: "<input type='checkbox' value='#=Id#' class='checkboxGroups'/>",
+                                                    width: 50,
+                                                    sortable: false
+                                                },{
+                                                    field: "OrderId",
+                                                    title: "@T("Admin.Orders.Products.OrderId")",
+                                                    width: 50
+                                                },
+                                                {
+                                                    field: "CustomerInfo",
+                                                    title: "@T("Admin.Orders.Products.CustomerInfo")",
+                                                    width: 100
+                                                }, {
+                                                    field: "CreatedDate",
+                                                    title: "@T("Admin.Orders.Fields.CreatedDate")",
+                                                    width: 100,
+                                                    type: "date",
+                                                    format: "{0:G}",
+                                                    sortable: true
+                                                },
+                                                {
+                                                    field: "PictureThumbnailUrl",
+                                                    title: "@T("Admin.Orders.Products.Picture")",
+                                                    template: '<img src="#=PictureThumbnailUrl#" />',
+                                                    width: 100
+                                                }, {
+                                                    field: "ProductName",
+                                                    title: "@T("Admin.Orders.Products.ProductName")",
+                                                    template: 'Product name: #=ProductName#' +
+                                                        '<p>#=AttributeInfo#</p>' +
+                                                        '<p>#=RecurringInfo#</p>',
+                                                    width: 250
+                                                }, {
+                                                    field: "TotalWithoutWeightCost",
+                                                    title: "@T("Admin.Orders.Products.TotalWithoutWeightCost")",
+                                                    width: 100
+                                                }, {
+                                                    field: "WeightCostDec",
+                                                    title: "@T("Admin.Orders.Products.WeightCost")",
+                                                    width: 100,
+                                                    template: "# if (WeightCostDec > 0) { #" +
+                                                        "#=WeightCost#" +
+                                                        "#} else {#" +
+                                                        "<p>@(T("orderitem.includeweightcost.false"))</p>" +
+                                                        "# } #"
+                                                }, {
+                                                    field: "UnitWeightCost",
+                                                    hidden: true,
+                                                    //editor: hideOnEditor
+                                                }, {
+                                                    field: "ItemWeight",
+                                                    title: "@T("Admin.Orders.Products.ItemWeight")",
+                                                    hidden: true
+                                                }, {
+                                                    field: "SubTotalInclTax",
+                                                    title: "@T("Admin.Orders.Products.Total")",
+                                                    width: 100
+                                                }, {
+                                                    field: "PackageOrderId",
+                                                    title: "@T("Admin.Orders.Products.PackageOrderId")",
+                                                    width: 100,
+                                                    editor: editPackageOrderId,
+                                                    template: "# if (PackageOrder != null) { #" +
+                                                        "<p>#=PackageOrder.PackageCode# - #=PackageOrder.PackageName# </p>" +
+                                                        "#} else {#" +
+                                                        "<p>None</p>" +
+                                                        "# } #"
+
+                                                }, {
+                                                    field: "PackageItemCode",
+                                                    title: "@T("Admin.Orders.Products.PackageItemCode")",
+                                                    width: 100
+                                                }, {
+                                                    field: "PackageItemProcessedDatetime",
+                                                    title: "@T("Admin.Orders.Products.PackageItemProcessedDatetime")",
+                                                    width: 150,
+                                                    //format: "{0:G}",
+                                                    //type: "date",
+                                                    editor: dateTimeEditorCustom,
+                                                    template:
+                                                        "#= kendo.toString(kendo.parseDate(PackageItemProcessedDatetime, 'yyyy-MM-dd'), 'MM/dd/yyyy') #"
+                                                }, {
+                                                    field: "IsOrderCheckout",
+                                                    title: "@T("Admin.Orders.Products.IsOrderCheckout")",
+                                                    width: 150,
+                                                    template: '<span class="grid-report-item ' +
+                                                        '# if(!IsOrderCheckout) {# red #} #' +
+                                                        '# if(IsOrderCheckout) {# green #} #' +
+                                                        '">'+
+                                                        "# if (IsOrderCheckout) { #" +
+                                                        "@T("Admin.Orders.Products.IsOrderCheckout.True")" +
+                                                        "#} else {#" +
+                                                        "@T("Admin.Orders.Products.IsOrderCheckout.False")" +
+                                                        "# } #"
+                                                        +'</span>'
+
+                                                }, {
+                                                    command: {
+                                                        name: "edit",
+                                                        text: {
+                                                            edit: "@T("Admin.Common.Edit")",
+                                                            update: "@T("Admin.Common.Update")",
+                                                            cancel: "@T("Admin.Common.Cancel")"
+                                                        }
+                                                    },
+                                                    title: "@T("Admin.Common.Edit")",
+                                                    width: 150
+                                                }
+                                            ]
+                                        });
+
+                                        function grid_edit(e) {
+                                            //$(e.container).parent().css({
+                                            //    width: '800px',
+                                            //    height: 'auto'
+                                            //});
+                                            //console.log(e);
+                                            var weightCostElement = e.container.find("input[name=WeightCostDec]");
+
+                                            e.container.find("input[name=ItemWeight]").on('change',
+                                                function() {
+                                                    var itemWeight = parseFloat($(this).val());
+                                                    if (itemWeight > 0) {
+                                                        var unitWeightCost = e.container.find("input[name=UnitWeightCost]").val();
+                                                        var weightCostDec = parseFloat(unitWeightCost) * itemWeight;
+                                                        //need trigger change update data to model
+                                                        weightCostElement.val(weightCostDec).change();
+                                                    }
+                                                });
+
+                                            e.container.find("input[name=UnitWeightCost]").on('change', function () {
+                                                var unitWeightCost = parseFloat($(this).val());
+                                                if (unitWeightCost > 0) {
+                                                    var itemWeight = e.container.find("input[name=ItemWeight]").val();
+                                                    var weightCostDec = parseFloat(itemWeight) * unitWeightCost;
+                                                    //need trigger change update data to model
+                                                    weightCostElement.val(weightCostDec).change();
+                                                }
+                                            });
+
+                                        }
+
+                                        function hideOnEditor(container, options) {
+                                            container.prevObject.find("div[data-container-for='" + options.field + "']").hide();
+                                            container.prevObject.find("label[for='" + options.field + "']").parent().hide();
+                                        }
+
+                                        function dateTimeEditorCustom(container, options) {
+
+                                            $('<input data-text-field="' +
+                                                    options.field +
+                                                    '" data-value-field="' +
+                                                    options.field +
+                                                    '" data-bind="value:' +
+                                                    options.field +
+                                                    '" />')
+                                                .appendTo(container)
+                                                .kendoDatePicker({
+                                                    value: kendo.toString(
+                                                        kendo.parseDate(options.model.PackageItemProcessedDatetime, 'yyyy-MM-dd'),
+                                                        'MM/dd/yyyy')
+                                                });
+                                        }
+
+                                        function editPackageOrderId(container, options) {
+                                            $('<input data-text-field="PackageOrderName" data-value-field="' +
+                                                    options.field +
+                                                    '" data-bind="value:' +
+                                                    options.field +
+                                                    '" />')
+                                                .appendTo(container)
+                                                .kendoDropDownList({
+                                                    autoBind: false,
+                                                    dataTextField: "PackageOrderName",
+                                                    dataValueField: "PackageOrderId",
+                                                    dataSource: {
+                                                        type: "json",
+                                                        serverFiltering: true,
+                                                        transport: {
+                                                            read: {
+                                                                url: "@Html.Raw(Url.Action("GetsPackageOrderAvailble", "Order"))",
+                                                                type: "GET",
+                                                                dataType: "json"
+                                                            }
+                                                        }
+                                                    }
+                                                });
+                                        }
+                                    });
+                                </script>
+                                <script type="text/javascript">
+                                    var selectedIds = [];
+
+                                    $(document).ready(function() {
+
+                                        //search button
+                                        $('#search-orders').click(function() {
+                                            //search
+                                            var grid = $('#order-items-grid').data('kendoGrid');
+                                            grid.dataSource.page(1); //new search. Set page size to 1
+                                            //grid.dataSource.read(); we already loaded the grid above using "page" function
+                                            //clear selected checkboxes
+                                            $('.checkboxGroups').attr('checked', false).change();
+                                            selectedIds = [];
+                                            return false;
+                                        });
+
+                                        $('#mastercheckbox').click(function() {
+                                            $('.checkboxGroups').attr('checked', $(this).is(':checked')).change();
+                                        });
+
+                                        //wire up checkboxes.
+                                        $('#order-items-grid').on('change',
+                                            'input[type=checkbox][id!=mastercheckbox][class=checkboxGroups]',
+                                            function(e) {
+                                                var $check = $(this);
+                                                if ($check.is(":checked") == true) {
+                                                    var checked = jQuery.inArray($check.val(), selectedIds);
+                                                    if (checked == -1) {
+                                                        //add id to selectedIds.
+                                                        selectedIds.push($check.val());
+                                                    }
+                                                } else {
+                                                    var checked = jQuery.inArray($check.val(), selectedIds);
+                                                    if (checked > -1) {
+                                                        //remove id from selectedIds.
+                                                        selectedIds = $.grep(selectedIds,
+                                                            function(item, index) {
+                                                                return item != $check.val();
+                                                            });
+                                                    }
+                                                }
+                                                updateMasterCheckbox();
+                                            });
+                                    });
+
+                                    function additionalData() {
+                                        var data = {
+                                            VendorProductUrl: $('#@Html.IdFor(model => model.VendorProductUrl)').val(),
+                                            OrderId: $('#@Html.IdFor(model => model.OrderId)').val(),
+                                            IsOrderCheckout: $('#@Html.IdFor(model => model.IsOrderCheckout)').val()
+                                        };
+                                        addAntiForgeryToken(data);
+                                        return data;
+                                    }
+
+                                    function onDataBound(e) {
+                                        //this.expandRow(this.tbody.find("tr.k-master-row").first());
+                                        $('#order-items-grid input[type=checkbox][id!=mastercheckbox][class=checkboxGroups]').each(
+                                            function() {
+                                                var currentId = $(this).val();
+                                                var checked = jQuery.inArray(currentId, selectedIds);
+                                                //set checked based on if current checkbox's value is in selectedIds.
+                                                $(this).attr('checked', checked > -1);
+                                            });
+
+                                        updateMasterCheckbox();
+                                    }
+
+                                    function updateMasterCheckbox() {
+                                        var numChkBoxes =
+                                            $('#order-items-grid input[type=checkbox][id!=mastercheckbox][class=checkboxGroups]')
+                                                .length;
+                                        var numChkBoxesChecked =
+                                            $(
+                                                    '#order-items-grid input[type=checkbox][id!=mastercheckbox][class=checkboxGroups]:checked')
+                                                .length;
+                                            $('#mastercheckbox').attr('checked',
+                                                numChkBoxes == numChkBoxesChecked && numChkBoxes > 0);
+                                        }
+                                </script>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+@*set is order checkout selectedids*@
+<form asp-controller="Order" asp-action="SetIsOrderCheckoutSelected" method="post" id="set-isordercheckout-selected-form">
+    <input type="hidden" id="selectedIds" name="selectedIds" value="" />
+</form>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('#btn-set-isordercheckout-selected').click(function (e) {
+            e.preventDefault();
+            var ids = selectedIds.join(",");
+            $('#set-isordercheckout-selected-form #selectedIds').val(ids);
+            $('#set-isordercheckout-selected-form').submit();
+            return false;
+        });
+    });
+</script>
+
+@*export selected (XML). We don't use GET approach because it's limited to 2K-4K chars and won't work for large number of entities*@
+<form asp-controller="Order" asp-action="ExportXmlSelected" method="post" id="export-xml-selected-form">
+    <input type="hidden" id="selectedIds" name="selectedIds" value="" />
+</form>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('#exportxml-selected').click(function (e) {
+            e.preventDefault();
+            var ids = selectedIds.join(",");
+            $('#export-xml-selected-form #selectedIds').val(ids);
+            $('#export-xml-selected-form').submit();
+            return false;
+        });
+    });
+</script>
+
+@*export selected (Excel). We don't use GET approach because it's limited to 2K-4K chars and won't work for large number of entities*@
+<form asp-controller="Order" asp-action="ExportExcelVendorInvoiceOrderItemsSelected" method="post" id="exportexcel-invoice-vendor-selected-form">
+    <input type="hidden" id="selectedIds" name="selectedIds" value="" />
+</form>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('#exportexcel-invoice-vendor-selected').click(function (e) {
+            e.preventDefault();
+            var ids = selectedIds.join(",");
+            $('#exportexcel-invoice-vendor-selected-form #selectedIds').val(ids);
+            $('#exportexcel-invoice-vendor-selected-form').submit();
+            return false;
+        });
+    });
+</script>

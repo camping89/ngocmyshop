@@ -14,6 +14,7 @@ namespace Nop.Web.Areas.Admin.Models.Orders
             AvailableCountries = new List<SelectListItem>();
             AvailableStates = new List<SelectListItem>();
             AvailableWarehouses = new List<SelectListItem>();
+            AvailableShippers = new List<SelectListItem>();
         }
         [NopResourceDisplayName("Admin.Orders.Shipments.List.ShipperPhoneNumber")]
         public string ShipperPhoneNumber { get; set; }
@@ -32,6 +33,9 @@ namespace Nop.Web.Areas.Admin.Models.Orders
         [NopResourceDisplayName("Admin.Orders.Shipments.List.TrackingNumber")]
         public string TrackingNumber { get; set; }
 
+        [NopResourceDisplayName("Admin.Orders.Shipments.List.TrackingNumber")]
+        public string TrackingNumberNew { get; set; }
+
         public IList<SelectListItem> AvailableCountries { get; set; }
         [NopResourceDisplayName("Admin.Orders.Shipments.List.Country")]
         public int CountryId { get; set; }
@@ -49,5 +53,12 @@ namespace Nop.Web.Areas.Admin.Models.Orders
         [NopResourceDisplayName("Admin.Orders.Shipments.List.Warehouse")]
         public int WarehouseId { get; set; }
         public IList<SelectListItem> AvailableWarehouses { get; set; }
+
+        [NopResourceDisplayName("Admin.Orders.Shipments.List.OrderId")]
+        public int OrderId { get; set; }
+
+        [NopResourceDisplayName("Admin.Orders.Shipments.List.CustomerNew")]
+        public int CustomerNewId { get; set; }
+        public IList<SelectListItem> AvailableShippers { get; set; }
     }
 }

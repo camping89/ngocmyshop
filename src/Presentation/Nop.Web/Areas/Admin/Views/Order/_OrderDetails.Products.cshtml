@@ -39,6 +39,7 @@
                                     $('#pnlEditPvPackageOrderId@(item.Id)').show();
                                     $('#pnlEditPvPackageItemCode@(item.Id)').show();
                                     $('#pnlEditPvPackageItemProcessedDatetime@(item.Id)').show();
+                                    $('#pnlEditPvPackageWeightCostDec@(item.Id)').show();
                                     $('#pnlEditPvDiscount@(item.Id)').show();
                                     $('#pnlEditPvPrice@(item.Id)').show();
                                     $('#btnEditOrderItem@(item.Id)').hide();
@@ -51,6 +52,7 @@
                                     $('#pnlEditPvPackageOrderId@(item.Id)').hide();
                                     $('#pnlEditPvPackageItemCode@(item.Id)').hide();
                                     $('#pnlEditPvPackageItemProcessedDatetime@(item.Id)').hide();
+                                    $('#pnlEditPvPackageWeightCostDec@(item.Id)').hide();
                                     $('#pnlEditPvDiscount@(item.Id)').hide();
                                     $('#pnlEditPvPrice@(item.Id)').hide();
                                     $('#btnEditOrderItem@(item.Id)').show();
@@ -111,6 +113,9 @@
                                 </th>
                                 <th>
                                     @T("Admin.Orders.Products.PackageItemProcessedDatetime")
+                                </th>
+                                <th>
+                                    @T("Admin.Orders.Products.WeightCost")
                                 </th>
                                 @if (!Model.IsLoggedInAsVendor)
                                 {
@@ -269,7 +274,7 @@
                                                     @T("Admin.Orders.Products.Edit.ExclTax")
                                                 </div>
                                                 <div class="col-md-12">
-                                                    <input name="pvUnitPriceExclTax@(item.Id)" type="text" value="@item.UnitPriceExclTaxValue" id="pvUnitPriceExclTax@(item.Id)" class="form-control input-sm" />
+                                                    <input name="pvUnitPriceExclTax@(item.Id)" type="text" value="@item.UnitPriceInclTaxValue" id="pvUnitPriceExclTax@(item.Id)" class="form-control input-sm" />
                                                 </div>
                                             </div>
                                         </div>
@@ -413,6 +418,39 @@
                                             </div>
                                         </div>
                                     </td>
+                                    <td style="width: 10%;">
+                                        <div>@item.WeightCost</div>
+                                        <div id="pnlEditPvPackageWeightCostDec@(item.Id)">
+                                            <div class="form-group">
+                                                <div class="col-md-12">
+                                                    <input name="pvPackageWeightCostDec@(item.Id)" type="text" value="@item.WeightCostDec" id="pvPackageWeightCostDec@(item.Id)" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <!--<td style="width: 10%;">
+                                        <div>@(item.IncludeWeightCost ? T("OrderItem.IncludeWeightCost.True") : T("OrderItem.IncludeWeightCost.False"))</div>
+                                        <div id="pnlEditPvIncludeWeightCost@(item.Id)">
+                                            <div class="form-group">
+                                                <div class="col-md-12">
+                                                    @Html.CheckBox("pvIncludeWeightCost" + item.Id, item.IncludeWeightCost)
+                                                    @*<input name="pvIncludeWeightCost@(item.Id)" type="checkbox" @(item.IncludeWeightCost ? "checked" : string.Empty) value="@item.IncludeWeightCost" id="pvIncludeWeightCost@(item.Id)" />*@
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <script>
+                                            $(function() {
+                                                $("#pvIncludeWeightCost@(item.Id)").change(function() {
+                                                    if ($("#pvIncludeWeightCost@(item.Id)").is(':checked')) {
+                                                        $("#pvIncludeWeightCost@(item.Id)").val("True");
+                                                    } else {
+                                                        $("#pvIncludeWeightCost@(item.Id)").val("False");
+                                                    }
+                                                });
+
+                                            });
+                                        </script>
+                                    </td>-->
                                     @if (!Model.IsLoggedInAsVendor)
                                     {
                                         <td style="width: 15%;">

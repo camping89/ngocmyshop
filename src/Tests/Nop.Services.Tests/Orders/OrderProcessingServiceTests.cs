@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using Nop.Core;
+﻿using Nop.Core;
 using Nop.Core.Caching;
 using Nop.Core.Data;
 using Nop.Core.Domain.Catalog;
@@ -33,6 +31,8 @@ using Nop.Services.Vendors;
 using Nop.Tests;
 using NUnit.Framework;
 using Rhino.Mocks;
+using System;
+using System.Collections.Generic;
 
 namespace Nop.Services.Tests.Orders
 {
@@ -110,7 +110,7 @@ namespace Nop.Services.Tests.Orders
 
             _shoppingCartSettings = new ShoppingCartSettings();
             _catalogSettings = new CatalogSettings();
-            
+
             var cacheManager = new NopNullCache();
 
             _productService = MockRepository.GenerateMock<IProductService>();
@@ -123,7 +123,7 @@ namespace Nop.Services.Tests.Orders
             _productAttributeParser = MockRepository.GenerateMock<IProductAttributeParser>();
             _priceCalcService = new PriceCalculationService(_workContext, _storeContext,
                 _discountService, _categoryService, _manufacturerService,
-                _productAttributeParser, _productService, 
+                _productAttributeParser, _productService,
                 cacheManager, _shoppingCartSettings, _catalogSettings);
 
             _eventPublisher = MockRepository.GenerateMock<IEventPublisher>();
@@ -149,14 +149,14 @@ namespace Nop.Services.Tests.Orders
                 _genericAttributeService,
                 _localizationService,
                 _addressService,
-                _shippingSettings, 
-                pluginFinder, 
+                _shippingSettings,
+                pluginFinder,
                 _storeContext,
-                _eventPublisher, 
+                _eventPublisher,
                 _shoppingCartSettings,
                 cacheManager);
             _shipmentService = MockRepository.GenerateMock<IShipmentService>();
-            
+
 
             _paymentService = MockRepository.GenerateMock<IPaymentService>();
             _checkoutAttributeParser = MockRepository.GenerateMock<ICheckoutAttributeParser>();
@@ -194,11 +194,11 @@ namespace Nop.Services.Tests.Orders
             _orderService = MockRepository.GenerateMock<IOrderService>();
             _webHelper = MockRepository.GenerateMock<IWebHelper>();
             _languageService = MockRepository.GenerateMock<ILanguageService>();
-            _priceFormatter= MockRepository.GenerateMock<IPriceFormatter>();
-            _productAttributeFormatter= MockRepository.GenerateMock<IProductAttributeFormatter>();
-            _shoppingCartService= MockRepository.GenerateMock<IShoppingCartService>();
-            _checkoutAttributeFormatter= MockRepository.GenerateMock<ICheckoutAttributeFormatter>();
-            _customerService= MockRepository.GenerateMock<ICustomerService>();
+            _priceFormatter = MockRepository.GenerateMock<IPriceFormatter>();
+            _productAttributeFormatter = MockRepository.GenerateMock<IProductAttributeFormatter>();
+            _shoppingCartService = MockRepository.GenerateMock<IShoppingCartService>();
+            _checkoutAttributeFormatter = MockRepository.GenerateMock<ICheckoutAttributeFormatter>();
+            _customerService = MockRepository.GenerateMock<ICustomerService>();
             _encryptionService = MockRepository.GenerateMock<IEncryptionService>();
             _workflowMessageService = MockRepository.GenerateMock<IWorkflowMessageService>();
             _customerActivityService = MockRepository.GenerateMock<ICustomerActivityService>();
@@ -233,17 +233,17 @@ namespace Nop.Services.Tests.Orders
                 _giftCardService, _shoppingCartService, _checkoutAttributeFormatter,
                 _shippingService, _shipmentService, _taxService,
                 _customerService, _discountService,
-                _encryptionService, _workContext, 
+                _encryptionService, _workContext,
                 _workflowMessageService, _vendorService,
                 _customerActivityService, _currencyService, _affiliateService,
-                _eventPublisher,_pdfService, _rewardPointService,
+                _eventPublisher, _pdfService, _rewardPointService,
                 _genericAttributeService,
                 _countryService, _stateProvinceService,
                 _shippingSettings, _paymentSettings, _rewardPointsSettings,
                 _orderSettings, _taxSettings, _localizationSettings,
                 _currencySettings, _customNumberFormatter);
         }
-        
+
         [Test]
         public void Ensure_order_can_only_be_cancelled_when_orderStatus_is_not_cancelled_yet()
         {
@@ -297,7 +297,7 @@ namespace Nop.Services.Tests.Orders
                         order.PaymentStatus = ps;
                         order.ShippingStatus = ss;
 
-                        if ((os != OrderStatus.Cancelled && os != OrderStatus.Pending)
+                        if ((os != OrderStatus.Cancelled && os != OrderStatus.Confirmed)
                             && (ps == PaymentStatus.Authorized))
                             _orderProcessingService.CanCapture(order).ShouldBeTrue();
                         else
@@ -317,7 +317,7 @@ namespace Nop.Services.Tests.Orders
                         _orderProcessingService.CanCapture(order).ShouldBeFalse();
                     }
         }
-        
+
         [Test]
         public void Ensure_order_cannot_be_marked_as_paid_when_orderStatus_is_cancelled_or_paymentStatus_is_paid_or_refunded_or_voided()
         {
@@ -397,7 +397,7 @@ namespace Nop.Services.Tests.Orders
                         _orderProcessingService.CanRefund(order).ShouldBeFalse();
                     }
         }
-        
+
         [Test]
         public void Ensure_order_can_only_be_refunded_offline_when_paymentstatus_is_paid()
         {
@@ -649,7 +649,7 @@ namespace Nop.Services.Tests.Orders
                         _orderProcessingService.CanPartiallyRefundOffline(order, 80).ShouldBeFalse();
                     }
         }
-        
+
         //TODO write unit tests for the following methods:
         //PlaceOrder
         //CanCancelRecurringPayment, ProcessNextRecurringPayment, CancelRecurringPayment

@@ -145,25 +145,25 @@
                     <div class="form-text-row">@Model.CustomOrderNumber</div>
                 </div>
             </div>
-            @if (!Model.IsLoggedInAsVendor)
-            {
-                <div class="form-group">
+            @*@if (!Model.IsLoggedInAsVendor)
+                {
+                    <div class="form-group">
+                        <div class="col-md-3">
+                            <nop-label asp-for="OrderGuid" />
+                        </div>
+                        <div class="col-md-9">
+                            <div class="form-text-row">@Model.OrderGuid</div>
+                        </div>
+                    </div>
+                }*@
+            @*<div class="form-group">
                     <div class="col-md-3">
-                        <nop-label asp-for="OrderGuid" />
+                        <nop-label asp-for="StoreName" />
                     </div>
                     <div class="col-md-9">
-                        <div class="form-text-row">@Model.OrderGuid</div>
+                        <div class="form-text-row">@Model.StoreName</div>
                     </div>
-                </div>
-            }
-            <div class="form-group">
-                <div class="col-md-3">
-                    <nop-label asp-for="StoreName" />
-                </div>
-                <div class="col-md-9">
-                    <div class="form-text-row">@Model.StoreName</div>
-                </div>
-            </div>
+                </div>*@
         </div>
     </div>
 
@@ -176,17 +176,17 @@
                         <nop-label asp-for="CustomerId" />
                     </div>
                     <div class="col-md-9">
-                        <a asp-controller="Customer" asp-action="Edit" asp-route-id="@Model.CustomerId">@Model.CustomerInfo</a>
+                        <a asp-controller="Customer" asp-action="Edit" asp-route-id="@Model.CustomerId">@Html.Raw(Model.CustomerInfo)</a>
                     </div>
                 </div>
-                <div class="form-group">
-                    <div class="col-md-3">
-                        <nop-label asp-for="CustomerIp" />
-                    </div>
-                    <div class="col-md-9">
-                        <div class="form-text-row">@Model.CustomerIp</div>
-                    </div>
-                </div>
+                @*<div class="form-group">
+                        <div class="col-md-3">
+                            <nop-label asp-for="CustomerIp" />
+                        </div>
+                        <div class="col-md-9">
+                            <div class="form-text-row">@Model.CustomerIp</div>
+                        </div>
+                    </div>*@
                 @if (Model.RecurringPaymentId > 0)
                 {
                     <div class="form-group">
@@ -453,14 +453,14 @@
                         </div>
                     </div>
                 }
-                <div class="form-group">
-                    <div class="col-md-3">
-                        <nop-label asp-for="Profit" />
-                    </div>
-                    <div class="col-md-9">
-                        <div class="form-text-row">@Model.Profit</div>
-                    </div>
-                </div>
+                @*<div class="form-group">
+                        <div class="col-md-3">
+                            <nop-label asp-for="Profit" />
+                        </div>
+                        <div class="col-md-9">
+                            <div class="form-text-row">@Model.Profit</div>
+                        </div>
+                    </div>*@
                 <div id="trEditOrderTotals">
                     <div class="form-group">
                         <div class="col-md-3">
@@ -707,19 +707,19 @@
                         </div>
                     </div>
                 }
-                <div class="form-group">
-                    <div class="col-md-3">
-                        <nop-label asp-for="PaymentMethod" />
-                    </div>
-                    <div class="col-md-9">
-                        <div class="form-text-row">@Model.PaymentMethod</div>
-                    </div>
-                </div>
+                @*<div class="form-group">
+                        <div class="col-md-3">
+                            <nop-label asp-for="PaymentMethod" />
+                        </div>
+                        <div class="col-md-9">
+                            <div class="form-text-row">@Model.PaymentMethod</div>
+                        </div>
+                    </div>*@
             </div>
         </div>
     }
 
-    <div class="panel panel-default">
+    <div class="panel panel-default display-none">
         <div class="panel-body">
             <div class="form-group">
                 <div class="col-md-3">
@@ -759,7 +759,7 @@
                 </div>
             </div>
             @if (Model.CanCapture || Model.CanMarkOrderAsPaid || Model.CanRefund || Model.CanRefundOffline ||
-       Model.CanPartiallyRefund || Model.CanPartiallyRefundOffline || Model.CanVoid || Model.CanVoidOffline)
+Model.CanPartiallyRefund || Model.CanPartiallyRefundOffline || Model.CanVoid || Model.CanVoidOffline)
             {
                 <div class="form-group">
                     <div class="col-md-9 col-md-offset-3">

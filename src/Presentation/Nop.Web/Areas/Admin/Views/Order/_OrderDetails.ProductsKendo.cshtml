@@ -1,0 +1,264 @@
+﻿@model OrderModel
+
+@using Nop.Core.Domain.Tax;
+@using Nop.Core.Domain.Catalog;
+
+<div class="panel-group">
+    @await Component.InvokeAsync("AdminWidget", new { widgetZone = "admin_order_details_products_top", additionalData = Model.Id })
+    <div class="panel panel-default">
+        <div class="panel-body">
+            <div class="form-group">
+                <div class="col-md-12" style="overflow-x: auto;">
+                    <div id="order-items-grid"></div>
+
+                    <script>
+                        $(function() {
+                            $("#order-items-grid").kendoGrid({
+                                dataSource: {
+                                    type: "json",
+                                    transport: {
+                                        read: {
+                                            url: "@Html.Raw(Url.Action("OrderItemsByOrderId", "Order"))?orderId=" + @Model.Id,
+                                            type: "POST",
+                                            dataType: "json",
+                                            data: addAntiForgeryToken
+                                        },
+                                        update: {
+                                            url: "@Html.Raw(Url.Action("UpdateOrderItem", "Order"))",
+                                            type: "POST",
+                                            dataType: "json",
+                                            data: addAntiForgeryToken
+                                        }
+                                    },
+                                    schema: {
+                                        data: "Data",
+                                        total: "Total",
+                                        errors: "Errors",
+                                        model: {
+                                            id: "Id",
+                                            fields: {
+                                                OrderId: { editable: false, type: "number" },
+                                                PackageId: { editable: true, type: "string" },
+                                                PackageOrderId: { editable: true, type: "string" },
+                                                PackageItemCode: { editable: true, type: "string" },
+                                                PackageItemProcessedDatetime: { editable: true, type: "date" },
+                                                PictureThumbnailUrl: { editable: false, type: "string" },
+                                                ProductName: { editable: false, type: "string" },
+                                                TotalWithoutWeightCost: { editable: false, type: "string" },
+                                                WeightCostDec: { editable: true, type: "string" },
+                                                UnitWeightCost: { editable: true, type: "string" },
+                                                ItemWeight: { editable: true, type: "string" },
+                                                SubTotalInclTax: { editable: false, type: "string" },
+                                                IsOrderCheckout: { editable: true, type: "boolean" }
+                                            }
+                                        }
+
+                                    },
+                                    requestEnd: function(e) {
+                                        if (e.type == "update") {
+                                            var grid = $("#order-items-grid").data('kendoGrid');
+                                            grid.dataSource.read();
+                                        }
+                                    },
+                                    error: function(e) {
+                                        display_kendoui_grid_error(e);
+                                        // Cancel the changes
+                                        this.cancelChanges();
+                                    },
+                                    serverPaging: true,
+                                    serverFiltering: true
+                                },
+                                edit: grid_edit,
+                                editable: {
+                                    confirmation: "@T("Admin.Common.DeleteConfirmation")",
+                                    mode: "popup"
+                                },
+                                scrollable: false,
+                                pageable: {
+                                    refresh: true,
+                                    numeric: false,
+                                    previousNext: false,
+                                    info: false,
+                                    @await Html.PartialAsync("_GridPagerMessages")
+                                },
+                                columns: [
+                                    {
+                                        field: "PictureThumbnailUrl",
+                                        title: "@T("Admin.Orders.Products.Picture")",
+                                        template: '<img src="#=PictureThumbnailUrl#" />',
+                                        width: 100
+                                    }, {
+                                        field: "ProductName",
+                                        title: "@T("Admin.Orders.Products.ProductName")",
+                                        template: 'Product name: #=ProductName#' +
+                                            '<p>#=AttributeInfo#</p>' +
+                                            '<p>#=RecurringInfo#</p>',
+                                        width: 250
+                                    }, {
+                                        field: "TotalWithoutWeightCost",
+                                        title: "@T("Admin.Orders.Products.TotalWithoutWeightCost")",
+                                        width: 100
+                                    }, {
+                                        field: "WeightCostDec",
+                                        title: "@T("Admin.Orders.Products.WeightCost")",
+                                        width: 100,
+                                        template: "# if (WeightCostDec > 0) { #" +
+                                            "#=WeightCost#" +
+                                            "#} else {#" +
+                                            "<p>@(T("orderitem.includeweightcost.false"))</p>" +
+                                            "# } #"
+                                    }, {
+                                        field: "UnitWeightCost",
+                                        hidden: true,
+                                        //editor: hideOnEditor
+                                    }, {
+                                        field: "ItemWeight",
+                                        title: "@T("Admin.Orders.Products.ItemWeight")",
+                                        hidden: true
+                                    }, {
+                                        field: "SubTotalInclTax",
+                                        title: "@T("Admin.Orders.Products.Total")",
+                                        width: 100
+                                    }, {
+                                        field: "PackageOrderId",
+                                        title: "@T("Admin.Orders.Products.PackageOrderId")",
+                                        width: 100,
+                                        editor: editPackageOrderId,
+                                        template: "# if (PackageOrder != null) { #" +
+                                            "<p>#=PackageOrder.PackageCode# - #=PackageOrder.PackageName# </p>" +
+                                            "#} else {#" +
+                                            "<p>None</p>" +
+                                            "# } #"
+
+                                    }, {
+                                        field: "PackageItemCode",
+                                        title: "@T("Admin.Orders.Products.PackageItemCode")",
+                                        width: 100
+                                    }, {
+                                        field: "PackageItemProcessedDatetime",
+                                        title: "@T("Admin.Orders.Products.PackageItemProcessedDatetime")",
+                                        width: 150,
+                                        //format: "{0:G}",
+                                        //type: "date",
+                                        editor: dateTimeEditorCustom,
+                                        template:
+                                            "#= kendo.toString(kendo.parseDate(PackageItemProcessedDatetime, 'yyyy-MM-dd'), 'MM/dd/yyyy') #"
+                                    }, {
+                                        field: "IsOrderCheckout",
+                                        title: "@T("Admin.Orders.Products.IsOrderCheckout")",
+                                        template: "# if (IsOrderCheckout) { #" +
+                                            "@T("Admin.Orders.Products.IsOrderCheckout.True")" +
+                                            "#} else {#" +
+                                            "@T("Admin.Orders.Products.IsOrderCheckout.False")" +
+                                            "# } #"
+
+                                    }, {
+                                        command: {
+                                            name: "edit",
+                                            text: {
+                                                edit: "@T("Admin.Common.Edit")",
+                                                update: "@T("Admin.Common.Update")",
+                                                cancel: "@T("Admin.Common.Cancel")"
+                                            }
+                                        },
+                                        title: "@T("Admin.Common.Edit")",
+                                        width: 150
+                                    }
+                                ]
+                            });
+
+                            function grid_edit(e) {
+                                //$(e.container).parent().css({
+                                //    width: '800px',
+                                //    height: 'auto'
+                                //});
+                                //console.log(e);
+                                var weightCostElement = e.container.find("input[name=WeightCostDec]");
+
+                                e.container.find("input[name=ItemWeight]").on('change',
+                                    function() {
+                                        var itemWeight = parseFloat($(this).val());
+                                        if (itemWeight > 0) {
+                                            var unitWeightCost = e.container.find("input[name=UnitWeightCost]").val();
+                                            var weightCostDec = parseFloat(unitWeightCost) * itemWeight;
+                                            //need trigger change update data to model
+                                            weightCostElement.val(weightCostDec).change();
+                                        }
+                                    });
+
+                                e.container.find("input[name=UnitWeightCost]").on('change', function () {
+                                    var unitWeightCost = parseFloat($(this).val());
+                                    if (unitWeightCost > 0) {
+                                        var itemWeight = e.container.find("input[name=ItemWeight]").val();
+                                        var weightCostDec = parseFloat(itemWeight) * unitWeightCost;
+                                        //need trigger change update data to model
+                                        weightCostElement.val(weightCostDec).change();
+                                    }
+                                });
+
+                            }
+
+                            function hideOnEditor(container, options) {
+                                container.prevObject.find("div[data-container-for='" + options.field + "']").hide();
+                                container.prevObject.find("label[for='" + options.field + "']").parent().hide();
+                            }
+
+                            function dateTimeEditorCustom(container, options) {
+
+                                $('<input data-text-field="' +
+                                        options.field +
+                                        '" data-value-field="' +
+                                        options.field +
+                                        '" data-bind="value:' +
+                                        options.field +
+                                        '" />')
+                                    .appendTo(container)
+                                    .kendoDatePicker({
+                                        value: kendo.toString(
+                                            kendo.parseDate(options.model.PackageItemProcessedDatetime, 'yyyy-MM-dd'),
+                                            'MM/dd/yyyy')
+                                    });
+                            }
+
+                            function editPackageOrderId(container, options) {
+                                $('<input data-text-field="PackageOrderName" data-value-field="' +
+                                        options.field +
+                                        '" data-bind="value:' +
+                                        options.field +
+                                        '" />')
+                                    .appendTo(container)
+                                    .kendoDropDownList({
+                                        autoBind: false,
+                                        dataTextField: "PackageOrderName",
+                                        dataValueField: "PackageOrderId",
+                                        dataSource: {
+                                            type: "json",
+                                            serverFiltering: true,
+                                            transport: {
+                                                read: {
+                                                    url: "@Html.Raw(Url.Action("GetsPackageOrderAvailble", "Order"))",
+                                                    type: "GET",
+                                                    dataType: "json"
+                                                }
+                                            }
+                                        }
+                                    });
+                            }
+                        });
+                    </script>
+
+                    <hr />
+                    <div class="form-group">
+                        <div class="col-md-12">
+                            <button type="submit" id="btnAddNewProduct" name="btnAddNewProduct" onclick="javascript:setLocation('@(Url.Action("AddProductToOrder", "Order", new {orderId = Model.Id}))'); return false;" class="btn btn-primary">
+                                @T("Admin.Orders.Products.AddNew")
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+    @await Component.InvokeAsync("AdminWidget", new { widgetZone = "admin_order_details_products_bottom", additionalData = Model.Id })
+</div>

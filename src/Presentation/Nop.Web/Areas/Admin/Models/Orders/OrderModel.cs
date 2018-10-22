@@ -13,6 +13,43 @@ using AddressModel = Nop.Web.Areas.Admin.Models.Common.AddressModel;
 
 namespace Nop.Web.Areas.Admin.Models.Orders
 {
+
+    public partial class OrderModelBasic : BaseNopEntityModel
+    {
+
+        [NopResourceDisplayName("Admin.Orders.Fields.CustomOrderNumber")]
+        public string CustomOrderNumber { get; set; }
+        [NopResourceDisplayName("Admin.Orders.Fields.Store")]
+        public string StoreName { get; set; }
+
+        [NopResourceDisplayName("Admin.Orders.Fields.OrderTotal")]
+        public string OrderTotal { get; set; }
+        [NopResourceDisplayName("Admin.Orders.Fields.OrderStatus")]
+        public string OrderStatus { get; set; }
+
+        [NopResourceDisplayName("Admin.Orders.Fields.OrderStatus")]
+        public int OrderStatusId { get; set; }
+
+        [NopResourceDisplayName("Admin.Orders.Fields.PaymentStatus")]
+        public string PaymentStatus { get; set; }
+
+        [NopResourceDisplayName("Admin.Orders.Fields.ShippingStatus")]
+        public string ShippingStatus { get; set; }
+        [NopResourceDisplayName("Admin.Orders.Fields.CustomerFullName")]
+        public string CustomerFullName { get; set; }
+        [NopResourceDisplayName("Admin.Orders.Fields.CustomerPhone")]
+        public string CustomerPhone { get; set; }
+
+        [NopResourceDisplayName("Admin.Orders.Fields.CreatedOn")]
+        public DateTime CreatedOn { get; set; }
+        [NopResourceDisplayName("Admin.Orders.Fields.WeightCost")]
+        public string WeightCost { get; set; }
+        [NopResourceDisplayName("Admin.Orders.Fields.AdminNote")]
+        public string AdminNote { get; set; }
+
+        [NopResourceDisplayName("Admin.Orders.Fields.OrderTotalWithoutWeightCost")]
+        public string OrderTotalWithoutWeightCost { get; set; }
+    }
     public partial class OrderModel : BaseNopEntityModel
     {
         public OrderModel()
@@ -263,6 +300,10 @@ namespace Nop.Web.Areas.Admin.Models.Orders
             public int PackageOrderId { get; set; }
             public string PackageItemCode { get; set; }
             public string PackageItemProcessedDatetime { get; set; }
+            public bool IncludeWeightCost { get; set; }
+            public bool IsOrderCheckout { get; set; }
+            public decimal WeightCostDec { get; set; }
+            public decimal ItemWeight { get; set; }
         }
         public partial class OrderItemModel : BaseNopEntityModel
         {
@@ -307,14 +348,19 @@ namespace Nop.Web.Areas.Admin.Models.Orders
             public DownloadActivationType DownloadActivationType { get; set; }
             public bool IsDownloadActivated { get; set; }
             public Guid LicenseDownloadGuid { get; set; }
-
+            public decimal ItemWeight { get; set; }
+            public decimal UnitWeightCost { get; set; }
             public string WeightCost { get; set; }
+            public decimal WeightCostDec { get; set; }
             public string TotalWithoutWeightCost { get; set; }
             public int PackageOrderId { get; set; }
 
             public PackageOrderModel PackageOrder { get; set; }
             public string PackageItemCode { get; set; }
             public DateTime? PackageItemProcessedDatetime { get; set; }
+
+            public bool IncludeWeightCost { get; set; }
+            public bool IsOrderCheckout { get; set; }
 
             #region Nested Classes
 
@@ -398,6 +444,8 @@ namespace Nop.Web.Areas.Admin.Models.Orders
 
                 [NopResourceDisplayName("Admin.Orders.Products.AddNew.SKU")]
                 public string Sku { get; set; }
+
+                public string UrlImage { get; set; }
             }
 
             public partial class ProductDetailsModel : BaseNopModel
@@ -415,7 +463,13 @@ namespace Nop.Web.Areas.Admin.Models.Orders
                 public int OrderId { get; set; }
 
                 public ProductType ProductType { get; set; }
-
+                [NopResourceDisplayName("Admin.Orders.Products.AddNew.Sku")]
+                public string Sku { get; set; }
+                [NopResourceDisplayName("Admin.Orders.Products.AddNew.VendorProductUrl")]
+                public string LinkProduct { get; set; }
+                [NopResourceDisplayName("Admin.Orders.Products.AddNew.Image")]
+                public string ImageUrl { get; set; }
+                [NopResourceDisplayName("Admin.Orders.Products.AddNew.Name")]
                 public string Name { get; set; }
 
                 [NopResourceDisplayName("Admin.Orders.Products.AddNew.UnitPriceInclTax")]
@@ -430,14 +484,23 @@ namespace Nop.Web.Areas.Admin.Models.Orders
                 public decimal SubTotalInclTax { get; set; }
                 [NopResourceDisplayName("Admin.Orders.Products.AddNew.SubTotalExclTax")]
                 public decimal SubTotalExclTax { get; set; }
-                [NopResourceDisplayName("Admin.Orders.Products.AddNew.UnitPriceUsd")]
-                public decimal UnitPriceUsd { get; set; }
+                [NopResourceDisplayName("Admin.Orders.Products.AddNew.BaseUnitPrice")]
+                public decimal BaseUnitPrice { get; set; }
+
+                [NopResourceDisplayName("Admin.Orders.Products.AddNew.ExchangeRate")]
                 public decimal ExchangeRate { get; set; }
+
+                [NopResourceDisplayName("Admin.Orders.Products.AddNew.OrderingFee")]
                 public decimal OrderingFee { get; set; }
+                [NopResourceDisplayName("Admin.Orders.Products.AddNew.SaleOffPercent")]
                 public double SaleOffPercent { get; set; }
+                [NopResourceDisplayName("Admin.Orders.Products.AddNew.CurrencyId")]
                 public int CurrencyId { get; set; }
+                [NopResourceDisplayName("Admin.Orders.Products.AddNew.Currency")]
                 public Currency Currency { get; set; }
+                [NopResourceDisplayName("Admin.Orders.Products.AddNew.CurrencyCurrent")]
                 public Currency CurrencyCurrent { get; set; }
+                [NopResourceDisplayName("Admin.Orders.Products.AddNew.Weight")]
                 public string Weight { get; set; }
 
                 [NopResourceDisplayName("Admin.Orders.Products.AddNew.WeightCost")]

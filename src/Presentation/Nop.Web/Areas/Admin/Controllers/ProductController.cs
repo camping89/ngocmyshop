@@ -1367,9 +1367,9 @@ namespace Nop.Web.Areas.Admin.Controllers
                 model.ExchangeRate = (model.CurrencyCurrent.Rate / model.PrimaryExchangeCurrency.Rate);
                 model.CustomerEntersPrice = true;
                 model.UnitWeightCost = model.CurrencyCurrent.UnitWeightCost;
-                model.WeightCost = _settingService.GetSettingByKey("Product.WeightCostDefault", 50000m);
+                model.WeightCost = _settingService.GetSettingByKey("Product.WeightCostDefault", 0m);
                 model.WeightCostLabel = model.WeightCost;
-                model.OrderingFee = _settingService.GetSettingByKey("Product.OrderingFeeDefault", 50000m);
+                model.OrderingFee = _settingService.GetSettingByKey("Product.OrderingFeeDefault", 0m);
             }
 
             catch (Exception exc)
@@ -1517,7 +1517,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 if (currencyProduct != null)
                 {
                     model.UnitWeightCost = currencyProduct.UnitWeightCost;
-                    model.ExchangeRate = model.CurrencyCurrent.Rate / currencyProduct.Rate;
+                    model.ExchangeRate = product.ExchangeRate;
                 }
                 else
                 {

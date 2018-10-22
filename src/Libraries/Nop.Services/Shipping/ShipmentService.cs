@@ -86,7 +86,7 @@ namespace Nop.Services.Shipping
             string trackingNumber = null,
             bool loadNotShipped = false,
             DateTime? createdFromUtc = null, DateTime? createdToUtc = null,
-            int pageIndex = 0, int pageSize = int.MaxValue, int customerId = 0)
+            int pageIndex = 0, int pageSize = int.MaxValue, int customerId = 0, int orderId = 0)
         {
             var query = _shipmentRepository.Table;
             if (!string.IsNullOrEmpty(trackingNumber))
@@ -94,7 +94,10 @@ namespace Nop.Services.Shipping
 
             if (customerId > 0)
                 query = query.Where(s => s.CustomerId.Equals(customerId));
-
+            if (orderId > 0)
+            {
+                query = query.Where(s => s.Order.Id == orderId);
+            }
             if (shippingCountryId > 0)
                 query = query.Where(s => s.Order.ShippingAddress.CountryId == shippingCountryId);
             if (shippingStateId > 0)
@@ -104,9 +107,9 @@ namespace Nop.Services.Shipping
             if (loadNotShipped)
                 query = query.Where(s => !s.ShippedDateUtc.HasValue);
             if (createdFromUtc.HasValue)
-                query = query.Where(s => createdFromUtc.Value <= s.CreatedOnUtc);
+                query = query.Where(s => s.ShippedDateUtc != null && createdFromUtc.Value <= s.ShippedDateUtc);
             if (createdToUtc.HasValue)
-                query = query.Where(s => createdToUtc.Value >= s.CreatedOnUtc);
+                query = query.Where(s => s.ShippedDateUtc != null && createdToUtc.Value >= s.ShippedDateUtc);
             query = query.Where(s => s.Order != null && !s.Order.Deleted);
             if (vendorId > 0)
             {
@@ -168,6 +171,10 @@ namespace Nop.Services.Shipping
             return _shipmentRepository.GetById(shipmentId);
         }
 
+        public virtual bool CheckExistTrackingNumber(string trackingNumber)
+        {
+            return _shipmentRepository.Table.Any(_ => _.TrackingNumber.Equals(trackingNumber, StringComparison.InvariantCultureIgnoreCase));
+        }
         /// <summary>
         /// Inserts a shipment
         /// </summary>

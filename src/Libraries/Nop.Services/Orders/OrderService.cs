@@ -113,6 +113,26 @@ namespace Nop.Services.Orders
             return sortedOrders;
         }
 
+        public virtual IList<OrderItem> GetOrderItemsByIds(int[] orderItemIds)
+        {
+            if (orderItemIds == null || orderItemIds.Length == 0)
+                return new List<OrderItem>();
+
+            var query = from o in _orderItemRepository.Table
+                        where orderItemIds.Contains(o.Id)
+                        select o;
+            var orderItems = query.ToList();
+            //sort by passed identifiers
+            var sortedOrderItems = new List<OrderItem>();
+            foreach (var id in orderItemIds)
+            {
+                var order = orderItems.Find(x => x.Id == id);
+                if (order != null)
+                    sortedOrderItems.Add(order);
+            }
+            return sortedOrderItems;
+        }
+
         /// <summary>
         /// Gets an order
         /// </summary>
@@ -125,6 +145,16 @@ namespace Nop.Services.Orders
 
             var query = from o in _orderRepository.Table
                         where o.OrderGuid == orderGuid
+                        select o;
+            var order = query.FirstOrDefault();
+            return order;
+        }
+
+        public Order GetLastOrderByCustomerId(int customerId)
+        {
+            var query = from o in _orderRepository.Table
+                        where o.CustomerId == customerId
+                        orderby o.Id descending
                         select o;
             var order = query.FirstOrDefault();
             return order;
@@ -423,6 +453,49 @@ namespace Nop.Services.Orders
             return orderItems;
         }
 
+        public virtual IPagedList<OrderItem> GetOrderItemsVendorCheckout(string vendorProductUrl, int orderId = 0, int pageIndex = 0, int pageSize = int.MaxValue, OrderSortingEnum orderBy = OrderSortingEnum.CreatedOnDesc, bool? isOrderCheckout = null)
+        {
+            var query = _orderItemRepository.Table;
+            if (string.IsNullOrEmpty(vendorProductUrl) == false)
+            {
+                query = query.Where(_ => string.IsNullOrEmpty(_.Product.VendorProductUrl) == false 
+                                         && _.Product.VendorProductUrl.Contains(vendorProductUrl));
+            }
+
+            if (orderId > 0)
+            {
+                query = query.Where(_ => _.OrderId == orderId);
+            }
+
+            if (isOrderCheckout.HasValue)
+            {
+                query = query.Where(_ => _.IsOrderCheckout == isOrderCheckout);
+            }
+
+            switch (orderBy)
+            {
+                case OrderSortingEnum.CreatedOnAsc:
+                    query = query.OrderBy(o => o.Order.CreatedOnUtc);
+                    break;
+                case OrderSortingEnum.CreatedOnDesc:
+                    query = query.OrderByDescending(o => o.Order.CreatedOnUtc);
+                    break;
+                case OrderSortingEnum.StatusAsc:
+                    query = query.OrderBy(o => o.Order.OrderStatusId);
+                    break;
+                case OrderSortingEnum.StatusDesc:
+                    query = query.OrderByDescending(o => o.Order.OrderStatusId);
+                    break;
+                case OrderSortingEnum.TotalAsc:
+                    query = query.OrderBy(o => o.Order.OrderTotal);
+                    break;
+                case OrderSortingEnum.TotalDesc:
+                    query = query.OrderByDescending(o => o.Order.OrderTotal);
+                    break;
+            }
+
+            return new PagedList<OrderItem>(query, pageIndex, pageSize);
+        }
         /// <summary>
         /// Delete an order item
         /// </summary>

@@ -33,6 +33,7 @@ namespace Nop.Services.Orders
         /// <param name="orderIds">Order identifiers</param>
         /// <returns>Order</returns>
         IList<Order> GetOrdersByIds(int[] orderIds);
+        IList<OrderItem> GetOrderItemsByIds(int[] orderItemIds);
 
         /// <summary>
         /// Gets an order
@@ -40,6 +41,7 @@ namespace Nop.Services.Orders
         /// <param name="orderGuid">The order identifier</param>
         /// <returns>Order</returns>
         Order GetOrderByGuid(Guid orderGuid);
+        Order GetLastOrderByCustomerId(int customerId);
 
         /// <summary>
         /// Deletes an order
@@ -127,6 +129,8 @@ namespace Nop.Services.Orders
         IList<OrderItem> GetDownloadableOrderItems(int customerId);
 
         IList<OrderItem> GetOrderItemsByPackageId(int packageId);
+
+        IPagedList<OrderItem> GetOrderItemsVendorCheckout(string vendorProductUrl,int orderId = 0, int pageIndex = 0, int pageSize = int.MaxValue, OrderSortingEnum orderBy = OrderSortingEnum.CreatedOnDesc, bool? isOrderCheckout = null);
 
         /// <summary>
         /// Delete an order item

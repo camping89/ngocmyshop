@@ -47,13 +47,44 @@
                 {
                     <div class="panel panel-default">
                         <div class="panel-body">
-
                             <div class="form-group">
                                 <div class="col-md-3">
-                                    <nop-label asp-for="UnitPriceUsd" />
+                                    <nop-label asp-for="Sku" />
                                 </div>
                                 <div class="col-md-2">
-                                    <nop-editor asp-for="UnitPriceUsd" />
+                                    <b>@Model.Sku</b>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="col-md-3">
+                                    <nop-label asp-for="Name" />
+                                </div>
+                                <div class="col-md-2">
+                                    <b>@Model.Name</b>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="col-md-3">
+                                    <nop-label asp-for="LinkProduct" />
+                                </div>
+                                <div class="col-md-2">
+                                    <b>@Model.LinkProduct</b>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="col-md-3">
+                                    <nop-label asp-for="ImageUrl" />
+                                </div>
+                                <div class="col-md-2">
+                                    <img src="@Model.ImageUrl" width="100px" />
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="col-md-3">
+                                    <nop-label asp-for="BaseUnitPrice" />
+                                </div>
+                                <div class="col-md-2">
+                                    <nop-editor asp-for="BaseUnitPrice" />
                                 </div>
                             </div>
                             <div class="form-group">
@@ -241,6 +272,9 @@
                                                 dataType: 'json',
                                                 success: function(data) {
                                                     var currencyRate = (parseInt("@(Model.CurrencyCurrent.Rate)")/data.data.Rate).toFixed(4);
+                                                    if (data.data.Id === parseInt('@Model.CurrencyId')) {
+                                                        currencyRate = parseFloat('@Model.ExchangeRate');
+                                                    }
                                                     $('#@Html.IdFor(model => model.ExchangeRate)').val(currencyRate);
                                                     calculatePrice();
                                                     formatCurrency();
@@ -252,7 +286,7 @@
                                         }
 
                                         function calculatePrice() {
-                                            var baseUnit = $('#@Html.IdFor(model => model.UnitPriceUsd)').val().toFloat();
+                                            var baseUnit = $('#@Html.IdFor(model => model.BaseUnitPrice)').val().toFloat();
                                             var exchangeRate = $('#@Html.IdFor(model => model.ExchangeRate)').val().toFloat();
                                             var feeship = $('#@Html.IdFor(model => model.OrderingFee)').val().toFloat();
                                             var saleoff = $('#@Html.IdFor(model => model.SaleOffPercent)').val().toFloat();

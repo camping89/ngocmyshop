@@ -15,6 +15,6 @@
         
         CreatedOnAsc = 15,
         
-        CreatedOnDesc = 16,
+        CreatedOnDesc = 16
     }
 }
