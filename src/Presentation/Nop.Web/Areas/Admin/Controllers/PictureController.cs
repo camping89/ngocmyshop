@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Net;
 using Microsoft.AspNetCore.Mvc;
 using Nop.Core;
 using Nop.Services.Media;
@@ -89,6 +90,82 @@ namespace Nop.Web.Areas.Admin.Controllers
             //otherwise some browsers will pop-up a "Save As" dialog.
             return Json(new { success = true, pictureId = picture.Id,
                 imageUrl = _pictureService.GetPictureUrl(picture, 100) });
+        }
+
+        [HttpPost]
+        //do not validate request token (XSRF)
+        [AdminAntiForgery(true)] 
+        public virtual IActionResult AsyncImageFromUrl(string url)
+        {
+            if(string.IsNullOrEmpty(url))
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = "No file uploaded",
+                    downloadGuid = Guid.Empty,
+                });
+            }
+
+            var contentType = string.Empty;
+            var fileBinary = GetFileViaHttp(url,ref contentType);
+            var fileName = $"image-product-{DateTime.Now.TimeOfDay}";
+           
+
+            var fileExtension = Path.GetExtension(fileName);
+            if (!string.IsNullOrEmpty(fileExtension))
+                fileExtension = fileExtension.ToLowerInvariant();
+
+            //contentType is not always available 
+            //that's why we manually update it here
+            //http://www.sfsu.edu/training/mimetype.htm
+            if (string.IsNullOrEmpty(contentType))
+            {
+                switch (fileExtension)
+                {
+                    case ".bmp":
+                        contentType = MimeTypes.ImageBmp;
+                        break;
+                    case ".gif":
+                        contentType = MimeTypes.ImageGif;
+                        break;
+                    case ".jpeg":
+                    case ".jpg":
+                    case ".jpe":
+                    case ".jfif":
+                    case ".pjpeg":
+                    case ".pjp":
+                        contentType = MimeTypes.ImageJpeg;
+                        break;
+                    case ".png":
+                        contentType = MimeTypes.ImagePng;
+                        break;
+                    case ".tiff":
+                    case ".tif":
+                        contentType = MimeTypes.ImageTiff;
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            var picture = _pictureService.InsertPicture(fileBinary, contentType, null);
+            //when returning JSON the mime-type must be set to text/plain
+            //otherwise some browsers will pop-up a "Save As" dialog.
+            return Json(new { success = true, pictureId = picture.Id,
+                imageUrl = _pictureService.GetPictureUrl(picture, 100) });
+        }
+
+
+        private byte[] GetFileViaHttp(string url,ref string contentType)
+        {
+            if (contentType == null) throw new ArgumentNullException(nameof(contentType));
+            using (WebClient client = new WebClient())
+            {
+                byte[] body = client.DownloadData(url);
+                contentType = client.ResponseHeaders["content-type"];
+                return body;
+            }
         }
     }
 }

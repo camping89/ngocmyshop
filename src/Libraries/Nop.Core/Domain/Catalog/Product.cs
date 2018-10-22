@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Nop.Core.Domain.Directory;
 using Nop.Core.Domain.Discounts;
 using Nop.Core.Domain.Localization;
 using Nop.Core.Domain.Security;
@@ -552,7 +553,14 @@ namespace Nop.Core.Domain.Catalog
         /// Gets or sets the date and time of product update
         /// </summary>
         public DateTime UpdatedOnUtc { get; set; }
-
+        public string VendorProductUrl { get; set; }
+        public decimal UnitPriceUsd {get; set; }
+        public decimal ExchangeRate { get; set; }
+        public decimal OrderingFee { get; set; }
+        public double SaleOffPercent { get; set; }
+        public int CurrencyId { get; set; }
+        public Currency Currency { get; set; }
+        public decimal WeightCost { get; set; }
         /// <summary>
         /// Gets or sets the product type
         /// </summary>

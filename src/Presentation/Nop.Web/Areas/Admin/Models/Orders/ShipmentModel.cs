@@ -1,7 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using Nop.Core.Domain.Customers;
 using Nop.Web.Framework.Mvc.ModelBinding;
 using Nop.Web.Framework.Mvc.Models;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace Nop.Web.Areas.Admin.Models.Orders
 {
@@ -20,6 +22,11 @@ namespace Nop.Web.Areas.Admin.Models.Orders
         public string CustomOrderNumber { get; set; }
         [NopResourceDisplayName("Admin.Orders.Shipments.TotalWeight")]
         public string TotalWeight { get; set; }
+        [NopResourceDisplayName("Admin.Orders.Shipments.TotalShippingFee")]
+        public string TotalShippingFee { get; set; }
+        [NopResourceDisplayName("Admin.Orders.Shipments.TotalOrderFee")]
+        public string TotalOrderFee { get; set; }
+        public decimal TotalOrderFeeDecimal { get; set; }
         [NopResourceDisplayName("Admin.Orders.Shipments.TrackingNumber")]
         public string TrackingNumber { get; set; }
         public string TrackingNumberUrl { get; set; }
@@ -27,15 +34,34 @@ namespace Nop.Web.Areas.Admin.Models.Orders
         [NopResourceDisplayName("Admin.Orders.Shipments.ShippedDate")]
         public string ShippedDate { get; set; }
         public bool CanShip { get; set; }
+        [UIHint("DateNullable")]
         public DateTime? ShippedDateUtc { get; set; }
 
-        [NopResourceDisplayName("Admin.Orders.Shipments.DeliveryDate")]
+        [NopResourceDisplayName("Admin.Orders.Shipments.ReceivedDate")]
         public string DeliveryDate { get; set; }
         public bool CanDeliver { get; set; }
+        [UIHint("DateNullable")]
         public DateTime? DeliveryDateUtc { get; set; }
+
+        [NopResourceDisplayName("Admin.Orders.Shipments.Customer")]
+        public int CustomerId { get; set; }
+
+        public Customer Customer { get; set; }
+
+        [NopResourceDisplayName("Admin.Orders.Shipments.ShipperFullName")]
+        public string CustomerFullName { get; set; }
+
+        [NopResourceDisplayName("Admin.Orders.Shipments.ShipperFullName")]
+        public string ShipperFullName { get; set; }
 
         [NopResourceDisplayName("Admin.Orders.Shipments.AdminComment")]
         public string AdminComment { get; set; }
+
+        [NopResourceDisplayName("Admin.Orders.Shipments.ShipmentNote")]
+        public string ShipmentNote { get; set; }
+
+        [NopResourceDisplayName("Admin.Orders.Shipments.Deposit")]
+        public decimal Deposit { get; set; }
 
         public List<ShipmentItemModel> Items { get; set; }
 
@@ -59,12 +85,13 @@ namespace Nop.Web.Areas.Admin.Models.Orders
             public string RentalInfo { get; set; }
             public bool ShipSeparately { get; set; }
 
+            public string ImageUrl { get; set; }
             //weight of one item (product)
             [NopResourceDisplayName("Admin.Orders.Shipments.Products.ItemWeight")]
             public string ItemWeight { get; set; }
             [NopResourceDisplayName("Admin.Orders.Shipments.Products.ItemDimensions")]
             public string ItemDimensions { get; set; }
-
+            public string OrderItemFee { get; set; }
             public int QuantityToAdd { get; set; }
             public int QuantityOrdered { get; set; }
             [NopResourceDisplayName("Admin.Orders.Shipments.Products.QtyShipped")]
@@ -72,6 +99,8 @@ namespace Nop.Web.Areas.Admin.Models.Orders
             public int QuantityInAllShipments { get; set; }
 
             public string ShippedFromWarehouse { get; set; }
+            public decimal ShippingFee { get; set; }
+            public string ShippingFeeStr { get; set; }
             public bool AllowToChooseWarehouse { get; set; }
             //used before a shipment is created
             public List<WarehouseInfo> AvailableWarehouses { get; set; }

@@ -12,34 +12,34 @@
             <div class="panel panel-default">
                 <div class="panel-body">
                     @(Html.LocalizedEditor<CurrencyModel, CurrencyLocalizedModel>("currency-info-localized",
-                          @<div>
-                              <div class="form-group">
-                                  <div class="col-md-3">
-                                      <nop-label asp-for="@Model.Locales[item].Name" />
-                                  </div>
-                                  <div class="col-md-9">
-                                      <nop-editor asp-for="@Model.Locales[item].Name" />
-                                      <span asp-validation-for="@Model.Locales[item].Name"></span>
-                                  </div>
-                              </div>
-                               <input type="hidden" asp-for="@Model.Locales[item].LanguageId" />
-                          </div>
-                          ,
                         @<div>
-                              <div class="form-group">
-                                  <div class="col-md-3">
-                                      <nop-label asp-for="Name" />
-                                  </div>
-                                  <div class="col-md-9">
-                                      <nop-editor asp-for="Name" asp-required="true" />
-                                      <span asp-validation-for="Name"></span>
-                                  </div>
-                              </div>
-                          </div>
-                          ))
+                            <div class="form-group">
+                                <div class="col-md-3">
+                                    <nop-label asp-for="@Model.Locales[item].Name" />
+                                </div>
+                                <div class="col-md-9">
+                                    <nop-editor asp-for="@Model.Locales[item].Name" />
+                                    <span asp-validation-for="@Model.Locales[item].Name"></span>
+                                </div>
+                            </div>
+                            <input type="hidden" asp-for="@Model.Locales[item].LanguageId" />
+                        </div>
+                                          ,
+                                        @<div>
+                                            <div class="form-group">
+                                                <div class="col-md-3">
+                                                    <nop-label asp-for="Name" />
+                                                </div>
+                                                <div class="col-md-9">
+                                                    <nop-editor asp-for="Name" asp-required="true" />
+                                                    <span asp-validation-for="Name"></span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                                              ))
                     <div class="form-group">
                         <div class="col-md-3">
-                            <nop-label asp-for="CurrencyCode"/>
+                            <nop-label asp-for="CurrencyCode" />
                         </div>
                         <div class="col-md-9">
                             <nop-editor asp-for="CurrencyCode" asp-required="true" />
@@ -48,16 +48,25 @@
                     </div>
                     <div class="form-group">
                         <div class="col-md-3">
-                            <nop-label asp-for="Rate"/>
+                            <nop-label asp-for="Rate" />
                         </div>
                         <div class="col-md-9">
-                            <nop-editor asp-for="Rate"/>
+                            <nop-editor asp-for="Rate" />
                             <span asp-validation-for="Rate"></span>
                         </div>
                     </div>
                     <div class="form-group">
                         <div class="col-md-3">
-                            <nop-label asp-for="DisplayLocale"/>
+                            <nop-label asp-for="UnitWeightCost" />
+                        </div>
+                        <div class="col-md-9">
+                            <nop-editor asp-for="UnitWeightCost" />
+                            <span asp-validation-for="UnitWeightCost"></span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-md-3">
+                            <nop-label asp-for="DisplayLocale" />
                         </div>
                         <div class="col-md-9">
                             @{
@@ -75,27 +84,27 @@
                                     Text = @T("Admin.Configuration.Currencies.Fields.DisplayLocale.Select").Text
                                 });
                             }
-                            <nop-select asp-for="DisplayLocale" asp-items="@cultures"/>
+                            <nop-select asp-for="DisplayLocale" asp-items="@cultures" />
                             <span asp-validation-for="DisplayLocale"></span>
                         </div>
                     </div>
                     <div class="form-group">
                         <div class="col-md-3">
-                            <nop-label asp-for="CustomFormatting"/>
+                            <nop-label asp-for="CustomFormatting" />
                         </div>
                         <div class="col-md-9">
-                            <nop-editor asp-for="CustomFormatting"/>
+                            <nop-editor asp-for="CustomFormatting" />
                             <span asp-validation-for="CustomFormatting"></span>
                         </div>
                     </div>
                     <div class="form-group">
                         <div class="col-md-3">
-                            <nop-label asp-for="SelectedStoreIds"/>
+                            <nop-label asp-for="SelectedStoreIds" />
                         </div>
                         <div class="col-md-9">
                             <div class="row">
                                 <div class="col-md-4">
-                                    <nop-select asp-for="SelectedStoreIds" asp-items="Model.AvailableStores" asp-multiple="true"/>
+                                    <nop-select asp-for="SelectedStoreIds" asp-items="Model.AvailableStores" asp-multiple="true" />
                                     <script type="text/javascript">
                                         $(document).ready(function() {
                                             var storesIdsInput = $('#@Html.IdFor(model => model.SelectedStoreIds)')
@@ -127,28 +136,28 @@
                     </div>
                     <div class="form-group">
                         <div class="col-md-3">
-                            <nop-label asp-for="RoundingTypeId"/>
+                            <nop-label asp-for="RoundingTypeId" />
                         </div>
                         <div class="col-md-9">
-                            <nop-select asp-for="RoundingTypeId" asp-items="@((RoundingType) Model.RoundingTypeId).ToSelectList()"/>
+                            <nop-select asp-for="RoundingTypeId" asp-items="@((RoundingType) Model.RoundingTypeId).ToSelectList()" />
                             <span asp-validation-for="RoundingTypeId"></span>
                         </div>
-                    </div>                    
+                    </div>
                     <div class="form-group">
                         <div class="col-md-3">
-                            <nop-label asp-for="Published"/>
+                            <nop-label asp-for="Published" />
                         </div>
                         <div class="col-md-9">
-                            <nop-editor asp-for="Published"/>
+                            <nop-editor asp-for="Published" />
                             <span asp-validation-for="Published"></span>
                         </div>
                     </div>
                     <div class="form-group">
                         <div class="col-md-3">
-                            <nop-label asp-for="DisplayOrder"/>
+                            <nop-label asp-for="DisplayOrder" />
                         </div>
                         <div class="col-md-9">
-                            <nop-editor asp-for="DisplayOrder"/>
+                            <nop-editor asp-for="DisplayOrder" />
                             <span asp-validation-for="DisplayOrder"></span>
                         </div>
                     </div>
@@ -156,7 +165,7 @@
                     {
                         <div class="form-group">
                             <div class="col-md-3">
-                                <nop-label asp-for="CreatedOn"/>
+                                <nop-label asp-for="CreatedOn" />
                             </div>
                             <div class="col-md-9">
                                 <div class="form-text-row">@Model.CreatedOn</div>

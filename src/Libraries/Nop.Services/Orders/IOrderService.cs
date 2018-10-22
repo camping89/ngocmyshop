@@ -1,7 +1,8 @@
+using Nop.Core;
+using Nop.Core.Domain.Catalog;
+using Nop.Core.Domain.Orders;
 using System;
 using System.Collections.Generic;
-using Nop.Core;
-using Nop.Core.Domain.Orders;
 
 namespace Nop.Services.Orders
 {
@@ -32,6 +33,7 @@ namespace Nop.Services.Orders
         /// <param name="orderIds">Order identifiers</param>
         /// <returns>Order</returns>
         IList<Order> GetOrdersByIds(int[] orderIds);
+        IList<OrderItem> GetOrderItemsByIds(int[] orderItemIds);
 
         /// <summary>
         /// Gets an order
@@ -39,6 +41,7 @@ namespace Nop.Services.Orders
         /// <param name="orderGuid">The order identifier</param>
         /// <returns>Order</returns>
         Order GetOrderByGuid(Guid orderGuid);
+        Order GetLastOrderByCustomerId(int customerId);
 
         /// <summary>
         /// Deletes an order
@@ -64,19 +67,22 @@ namespace Nop.Services.Orders
         /// <param name="ssIds">Shipping status identifiers; null to load all orders</param>
         /// <param name="billingEmail">Billing email. Leave empty to load all records.</param>
         /// <param name="billingLastName">Billing last name. Leave empty to load all records.</param>
+        /// <param name="billingPhone"></param>
         /// <param name="orderNotes">Search in order notes. Leave empty to load all records.</param>
         /// <param name="pageIndex">Page index</param>
         /// <param name="pageSize">Page size</param>
+        /// <param name="orderBy"></param>
+        /// <param name="isOrderCheckout"></param>
         /// <returns>Orders</returns>
         IPagedList<Order> SearchOrders(int storeId = 0,
             int vendorId = 0, int customerId = 0,
             int productId = 0, int affiliateId = 0, int warehouseId = 0,
             int billingCountryId = 0, string paymentMethodSystemName = null,
             DateTime? createdFromUtc = null, DateTime? createdToUtc = null,
-            List<int> osIds = null, List<int> psIds = null, List<int> ssIds = null,
-            string billingEmail = null, string billingLastName = "", 
-            string orderNotes = null, int pageIndex = 0, int pageSize = int.MaxValue);
-        
+            List<int> osIds = null, List<int> psIds = null, List<int> ssIds = null, List<int> procIds = null,
+            string billingEmail = null, List<int> custIdsByLinkFace = null, string billingFullName = null, string billingPhone = null, string packageOrderItemCode = null,
+            string orderNotes = null, int pageIndex = 0, int pageSize = int.MaxValue, OrderSortingEnum orderBy = OrderSortingEnum.CreatedOnDesc, bool? isOrderCheckout = null);
+
         /// <summary>
         /// Inserts an order
         /// </summary>
@@ -121,6 +127,10 @@ namespace Nop.Services.Orders
         /// <param name="customerId">Customer identifier; null to load all records</param>
         /// <returns>Order items</returns>
         IList<OrderItem> GetDownloadableOrderItems(int customerId);
+
+        IList<OrderItem> GetOrderItemsByPackageId(int packageId);
+
+        IPagedList<OrderItem> GetOrderItemsVendorCheckout(string vendorProductUrl,int orderId = 0, int pageIndex = 0, int pageSize = int.MaxValue, OrderSortingEnum orderBy = OrderSortingEnum.CreatedOnDesc, bool? isOrderCheckout = null);
 
         /// <summary>
         /// Delete an order item

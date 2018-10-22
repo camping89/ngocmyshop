@@ -11,6 +11,12 @@ using Nop.Web.Framework.Mvc.Models;
 
 namespace Nop.Web.Areas.Admin.Models.Customers
 {
+    public partial class CustomerFirstLastName
+    {
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
+    }
+
     [Validator(typeof(CustomerValidator))]
     public partial class CustomerModel : BaseNopEntityModel
     {
@@ -64,7 +70,12 @@ namespace Nop.Web.Areas.Admin.Models.Customers
         public string LastName { get; set; }
         [NopResourceDisplayName("Admin.Customers.Customers.Fields.FullName")]
         public string FullName { get; set; }
-        
+        [NopResourceDisplayName("Admin.Customers.Customers.Fields.LinkFacebook1")]
+        public string LinkFacebook1 { get; set; }
+        [NopResourceDisplayName("Admin.Customers.Customers.Fields.LinkFacebook2")]
+        public string LinkFacebook2 { get; set; }
+        [NopResourceDisplayName("Admin.Customers.Customers.Fields.HashUserName")]
+        public string HashUserName { get; set; }
         public bool DateOfBirthEnabled { get; set; }
         [UIHint("DateNullable")]
         [NopResourceDisplayName("Admin.Customers.Customers.Fields.DateOfBirth")]

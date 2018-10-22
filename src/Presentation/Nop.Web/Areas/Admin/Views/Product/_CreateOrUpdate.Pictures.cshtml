@@ -125,11 +125,12 @@
                     $(document).ready(function() {
                         $('#addProductPicture').click(function() {
                             var pictureId = $("#@Html.IdFor(model => model.AddPictureModel.PictureId)").val();
+                            var pictureUrl = $("#@Html.IdFor(model => model.AddPictureModel.PictureUrl)").val();
                             var overrideAltAttribute = $("#@Html.IdFor(model => model.AddPictureModel.OverrideAltAttribute)").val();
                             var overrideTitleAttribute = $("#@Html.IdFor(model => model.AddPictureModel.OverrideTitleAttribute)").val();
                             var displayOrder = $("#@Html.IdFor(model => model.AddPictureModel.DisplayOrder)").val();
 
-                            if (pictureId == 0) {
+                            if (pictureId == 0 && pictureUrl === '') {
                                 alert('Upload picture first');
                                 return;
                             }
@@ -138,11 +139,12 @@
 
                             var postData = {
                                 pictureId: pictureId,
+                                pictureUrl: pictureUrl,
                                 displayOrder: displayOrder,
                                 overrideAltAttribute: overrideAltAttribute,
                                 overrideTitleAttribute: overrideTitleAttribute,
                                 productId: @Model.Id
-                                };
+                            };
                             addAntiForgeryToken(postData);
 
                             $.ajax({
@@ -154,6 +156,8 @@
                                     var grid = $("#productpictures-grid");
                                     grid.data('kendoGrid').dataSource.read();
                                     $('#addProductPicture').attr('disabled', false);
+                                    $("#@Html.IdFor(model => model.AddPictureModel.PictureUrl)").val("");
+                                    $("#imageFromUrl").html("");
                                 },
                                 error: function(xhr, ajaxOptions, thrownError) {
                                     alert('Failed to add product picture.');
@@ -163,6 +167,37 @@
                         });
                     });
                 </script>
+                <script type="text/javascript">
+                    $(document).ready(function() {
+                        $("#btnDownloadImage").on("click", function() {
+                            downloadImageFromUrl();
+                        });
+                        $("#@Html.IdFor(model => model.AddPictureModel.PictureUrl)").focusout(function() {
+                            downloadImageFromUrl();
+                        });
+                        function downloadImageFromUrl() {
+                            var postData = {
+                                url: $("#@Html.IdFor(model => model.AddPictureModel.PictureUrl)").val()
+                            };
+                            addAntiForgeryToken(postData);
+                            $.ajax({
+                                cache: false,
+                                type: "POST",
+                                url: "@(Url.Action("AsyncImageFromUrl", "Picture"))",
+                                data: postData,
+                                success: function(data) {
+                                    if (data.success) {
+                                        $("#@Html.IdFor(model => model.AddPictureModel.PictureId)").val(data.pictureId);
+                                        $("#imageFromUrl").html("<img src='" + data.imageUrl + "'/>");
+                                    }
+                                },
+                                error: function(xhr, ajaxOptions, thrownError) {
+                                    alert('Failed to add product picture.');
+                                }
+                            });
+                        }
+                    });
+                </script>
                 <div class="form-group">
                     <div class="col-md-3">
                         <nop-label asp-for="AddPictureModel.PictureId" />
@@ -170,6 +205,21 @@
                     <div class="col-md-9">
                         <nop-editor asp-for="AddPictureModel.PictureId" />
                         <span asp-validation-for="AddPictureModel.PictureId"></span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-md-3">
+                        <div class="label-wrapper">
+                            <label class="control-label">Hình ảnh url</label>
+                        </div>
+                    </div>
+                    <div class="col-md-9">
+                        <nop-editor asp-for="AddPictureModel.PictureUrl" />
+                        @*<button type="button" class="btn btn-success" id="btnDownloadImage">@T("Admin.Common.ButtonDownloadImageProduct")</button>*@
+                        <div id="imageFromUrl">
+                            
+                        </div>
+                        <span asp-validation-for="AddPictureModel.PictureUrl"></span>
                     </div>
                 </div>
                 <div class="form-group">

@@ -36,7 +36,7 @@
                     <div class="panel-body">
                         <div class="form-group">
                             <div class="col-md-3">
-                                <nop-label asp-for="ExchangeRateProvider"/>
+                                <nop-label asp-for="ExchangeRateProvider" />
                             </div>
                             <div class="col-md-9">
                                 <nop-select asp-for-name="ExchangeRateProvider" asp-items="Model.ExchangeRateProviders" />
@@ -45,10 +45,10 @@
                         </div>
                         <div class="form-group">
                             <div class="col-md-3">
-                                <nop-label asp-for="AutoUpdateEnabled"/>
+                                <nop-label asp-for="AutoUpdateEnabled" />
                             </div>
                             <div class="col-md-9">
-                                <nop-editor asp-for="AutoUpdateEnabled"/>
+                                <nop-editor asp-for="AutoUpdateEnabled" />
                                 <span asp-validation-for="AutoUpdateEnabled"></span>
                             </div>
                         </div>
@@ -108,6 +108,10 @@
                                         }, {
                                             field: "Rate",
                                             title: "@T("Admin.Configuration.Currencies.Fields.Rate")",
+                                            width: 100
+                                        },{
+                                            field: "UnitWeightCost",
+                                            title: "@T("Admin.Configuration.Currencies.Fields.UnitWeightCost")",
                                             width: 100
                                         }, {
                                             field: "IsPrimaryExchangeRateCurrency",

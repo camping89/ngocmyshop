@@ -9,7 +9,9 @@ namespace Nop.Web.Models.Checkout
         {
             Warnings = new List<string>();
         }
-
+        public string ShippingOptionName { get;set; }
+        public string PaymentMethodSystemName { get; set; }
+        public int CustomerId { get;set; }
         public bool TermsOfServiceOnOrderConfirmPage { get; set; }
         public bool TermsOfServicePopup { get; set; }
         public string MinOrderTotalWarning { get; set; }

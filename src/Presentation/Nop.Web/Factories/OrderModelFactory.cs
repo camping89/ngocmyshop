@@ -180,7 +180,7 @@ namespace Nop.Web.Factories
                 OrderStatus = order.OrderStatus.GetLocalizedEnum(_localizationService, _workContext),
                 IsReOrderAllowed = _orderSettings.IsReOrderAllowed,
                 IsReturnRequestAllowed = _orderProcessingService.IsReturnRequestAllowed(order),
-                PdfInvoiceDisabled = _pdfSettings.DisablePdfInvoicesForPendingOrders && order.OrderStatus == OrderStatus.Pending,
+                PdfInvoiceDisabled = _pdfSettings.DisablePdfInvoicesForPendingOrders && order.OrderStatus == OrderStatus.Confirmed,
                 CustomOrderNumber = order.CustomOrderNumber,
 
                 //shipping info

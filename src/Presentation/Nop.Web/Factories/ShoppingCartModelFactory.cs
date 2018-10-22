@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Nop.Core;
 using Nop.Core.Caching;
@@ -33,6 +29,10 @@ using Nop.Web.Infrastructure.Cache;
 using Nop.Web.Models.Common;
 using Nop.Web.Models.Media;
 using Nop.Web.Models.ShoppingCart;
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
 
 namespace Nop.Web.Factories
 {
@@ -72,7 +72,7 @@ namespace Nop.Web.Factories
         private readonly IWebHelper _webHelper;
         private readonly IGenericAttributeService _genericAttributeService;
         private readonly IHttpContextAccessor _httpContextAccessor;
-
+        private readonly ICommonModelFactory _commonModelFactory;
         private readonly MediaSettings _mediaSettings;
         private readonly ShoppingCartSettings _shoppingCartSettings;
         private readonly CatalogSettings _catalogSettings;
@@ -85,36 +85,38 @@ namespace Nop.Web.Factories
         private readonly RewardPointsSettings _rewardPointsSettings;
         private readonly CustomerSettings _customerSettings;
 
+        private readonly IMeasureService _measureService;
+        private readonly MeasureSettings _measureSettings;
         #endregion
 
-		#region Ctor
+        #region Ctor
 
-        public ShoppingCartModelFactory(IAddressModelFactory addressModelFactory, 
+        public ShoppingCartModelFactory(IAddressModelFactory addressModelFactory,
             IStoreContext storeContext,
             IWorkContext workContext,
-            IShoppingCartService shoppingCartService, 
+            IShoppingCartService shoppingCartService,
             IPictureService pictureService,
             ILocalizationService localizationService,
-            IProductService productService, 
+            IProductService productService,
             IProductAttributeFormatter productAttributeFormatter,
             IProductAttributeParser productAttributeParser,
-            ITaxService taxService, ICurrencyService currencyService, 
+            ITaxService taxService, ICurrencyService currencyService,
             IPriceCalculationService priceCalculationService,
             IPriceFormatter priceFormatter,
             ICheckoutAttributeParser checkoutAttributeParser,
-            ICheckoutAttributeFormatter checkoutAttributeFormatter, 
+            ICheckoutAttributeFormatter checkoutAttributeFormatter,
             IOrderProcessingService orderProcessingService,
             IDiscountService discountService,
             ICountryService countryService,
             IStateProvinceService stateProvinceService,
             IShippingService shippingService,
             IOrderTotalCalculationService orderTotalCalculationService,
-            ICheckoutAttributeService checkoutAttributeService, 
+            ICheckoutAttributeService checkoutAttributeService,
             IPaymentService paymentService,
-            IPermissionService permissionService, 
+            IPermissionService permissionService,
             IDownloadService downloadService,
             IStaticCacheManager cacheManager,
-            IWebHelper webHelper, 
+            IWebHelper webHelper,
             IGenericAttributeService genericAttributeService,
             IHttpContextAccessor httpContextAccessor,
             MediaSettings mediaSettings,
@@ -122,12 +124,12 @@ namespace Nop.Web.Factories
             CatalogSettings catalogSettings,
             CommonSettings commonSettings,
             OrderSettings orderSettings,
-            ShippingSettings shippingSettings, 
+            ShippingSettings shippingSettings,
             TaxSettings taxSettings,
-            CaptchaSettings captchaSettings, 
+            CaptchaSettings captchaSettings,
             AddressSettings addressSettings,
             RewardPointsSettings rewardPointsSettings,
-            CustomerSettings customerSettings)
+            CustomerSettings customerSettings, ICommonModelFactory commonModelFactory, IMeasureService measureService, MeasureSettings measureSettings)
         {
             this._addressModelFactory = addressModelFactory;
             this._workContext = workContext;
@@ -170,10 +172,13 @@ namespace Nop.Web.Factories
             this._addressSettings = addressSettings;
             this._rewardPointsSettings = rewardPointsSettings;
             this._customerSettings = customerSettings;
+            _commonModelFactory = commonModelFactory;
+            _measureService = measureService;
+            _measureSettings = measureSettings;
         }
 
         #endregion
-        
+
         #region Utilities
 
         /// <summary>
@@ -181,8 +186,12 @@ namespace Nop.Web.Factories
         /// </summary>
         /// <param name="cart">List of the shopping cart item</param>
         /// <returns>List of the checkout attribute model</returns>
-        protected virtual IList<ShoppingCartModel.CheckoutAttributeModel> PrepareCheckoutAttributeModels(IList<ShoppingCartItem> cart)
+        protected virtual IList<ShoppingCartModel.CheckoutAttributeModel> PrepareCheckoutAttributeModels(IList<ShoppingCartItem> cart, Customer customer = null)
         {
+            if (customer == null)
+            {
+                customer = _workContext.CurrentCustomer;
+            }
             if (cart == null)
                 throw new ArgumentNullException(nameof(cart));
 
@@ -237,7 +246,7 @@ namespace Nop.Web.Factories
                 }
 
                 //set already selected attributes
-                var selectedCheckoutAttributes = _workContext.CurrentCustomer.GetAttribute<string>(SystemCustomerAttributeNames.CheckoutAttributes, _genericAttributeService, _storeContext.CurrentStore.Id);
+                var selectedCheckoutAttributes = customer.GetAttribute<string>(SystemCustomerAttributeNames.CheckoutAttributes, _genericAttributeService, _storeContext.CurrentStore.Id);
                 switch (attribute.AttributeControlType)
                 {
                     case AttributeControlType.DropdownList:
@@ -292,7 +301,7 @@ namespace Nop.Web.Factories
                                     attributeModel.SelectedYear = selectedDate.Year;
                                 }
                             }
-                            
+
                         }
                         break;
                     case AttributeControlType.FileUpload:
@@ -323,14 +332,18 @@ namespace Nop.Web.Factories
         /// <param name="cart">List of the shopping cart item</param>
         /// <param name="sci">Shopping cart item</param>
         /// <returns>Shopping cart item model</returns>
-        protected virtual ShoppingCartModel.ShoppingCartItemModel PrepareShoppingCartItemModel(IList<ShoppingCartItem> cart, ShoppingCartItem sci)
+        protected virtual ShoppingCartModel.ShoppingCartItemModel PrepareShoppingCartItemModel(IList<ShoppingCartItem> cart, ShoppingCartItem sci, Customer customer = null)
         {
+            if (customer == null)
+            {
+                customer = _workContext.CurrentCustomer;
+            }
             if (cart == null)
                 throw new ArgumentNullException(nameof(cart));
 
             if (sci == null)
                 throw new ArgumentNullException(nameof(sci));
-
+            var baseWeight = _measureService.GetMeasureWeightById(_measureSettings.BaseWeightId).Name;
 
             var cartItemModel = new ShoppingCartModel.ShoppingCartItemModel
             {
@@ -341,6 +354,13 @@ namespace Nop.Web.Factories
                 ProductSeName = sci.Product.GetSeName(),
                 Quantity = sci.Quantity,
                 AttributeInfo = _productAttributeFormatter.FormatAttributes(sci.Product, sci.AttributesXml),
+                ExchangeRate = sci.ExchangeRate,
+                UnitPriceUsd = sci.UnitPriceUsd,
+                SaleOffPercent = sci.SaleOffPercent,
+                OrderingFee = sci.OrderingFee,
+                CurrencyId = sci.CurrencyId,
+                WeightCost = sci.WeightCost,
+                Weight = float.Parse(sci.Product.Weight.ToString(CultureInfo.InvariantCulture)) + (string.IsNullOrEmpty(baseWeight) ? string.Empty : $" {baseWeight}")
             };
 
             //allow editing?
@@ -356,7 +376,7 @@ namespace Nop.Web.Factories
 
             //disable removal?
             //1. do other items require this one?
-            cartItemModel.DisableRemoval = cart.Any( item => item.Product.RequireOtherProducts && item.Product.ParseRequiredProductIds().Contains(sci.ProductId));
+            cartItemModel.DisableRemoval = cart.Any(item => item.Product.RequireOtherProducts && item.Product.ParseRequiredProductIds().Contains(sci.ProductId));
 
             //allowed quantities
             var allowedQuantities = sci.Product.ParseAllowedQuantities();
@@ -401,8 +421,11 @@ namespace Nop.Web.Factories
             {
                 var shoppingCartUnitPriceWithDiscountBase = _taxService.GetProductPrice(sci.Product, _priceCalculationService.GetUnitPrice(sci), out decimal _);
                 var shoppingCartUnitPriceWithDiscount = _currencyService.ConvertFromPrimaryStoreCurrency(shoppingCartUnitPriceWithDiscountBase, _workContext.WorkingCurrency);
+                cartItemModel.UnitPriceDecimal = shoppingCartUnitPriceWithDiscount;
                 cartItemModel.UnitPrice = _priceFormatter.FormatPrice(shoppingCartUnitPriceWithDiscount);
             }
+
+
             //subtotal, discount
             if (sci.Product.CallForPrice &&
                 //also check whether the current user is impersonated
@@ -434,12 +457,12 @@ namespace Nop.Web.Factories
             if (_shoppingCartSettings.ShowProductImagesOnShoppingCart)
             {
                 cartItemModel.Picture = PrepareCartItemPictureModel(sci,
-                    _mediaSettings.CartThumbPictureSize, true, cartItemModel.ProductName);
+                    _mediaSettings.CartThumbPictureSize, true, cartItemModel.ProductName, customer);
             }
 
             //item warnings
             var itemWarnings = _shoppingCartService.GetShoppingCartItemWarnings(
-                _workContext.CurrentCustomer,
+                customer,
                 sci.ShoppingCartType,
                 sci.Product,
                 sci.StoreId,
@@ -461,8 +484,12 @@ namespace Nop.Web.Factories
         /// <param name="cart">List of the shopping cart item</param>
         /// <param name="sci">Shopping cart item</param>
         /// <returns>Shopping cart item model</returns>
-        protected virtual WishlistModel.ShoppingCartItemModel PrepareWishlistItemModel(IList<ShoppingCartItem> cart, ShoppingCartItem sci)
+        protected virtual WishlistModel.ShoppingCartItemModel PrepareWishlistItemModel(IList<ShoppingCartItem> cart, ShoppingCartItem sci, Customer customer = null)
         {
+            if (customer == null)
+            {
+                customer = _workContext.CurrentCustomer;
+            }
             if (cart == null)
                 throw new ArgumentNullException(nameof(cart));
 
@@ -567,12 +594,12 @@ namespace Nop.Web.Factories
             if (_shoppingCartSettings.ShowProductImagesOnWishList)
             {
                 cartItemModel.Picture = PrepareCartItemPictureModel(sci,
-                    _mediaSettings.CartThumbPictureSize, true, cartItemModel.ProductName);
+                    _mediaSettings.CartThumbPictureSize, true, cartItemModel.ProductName, customer);
             }
 
             //item warnings
             var itemWarnings = _shoppingCartService.GetShoppingCartItemWarnings(
-                _workContext.CurrentCustomer,
+                customer,
                 sci.ShoppingCartType,
                 sci.Product,
                 sci.StoreId,
@@ -593,8 +620,12 @@ namespace Nop.Web.Factories
         /// </summary>
         /// <param name="cart">List of the shopping cart item</param>
         /// <returns>Order review data model</returns>
-        protected virtual ShoppingCartModel.OrderReviewDataModel PrepareOrderReviewDataModel(IList<ShoppingCartItem> cart)
+        protected virtual ShoppingCartModel.OrderReviewDataModel PrepareOrderReviewDataModel(IList<ShoppingCartItem> cart, Customer customer = null)
         {
+            if (customer == null)
+            {
+                customer = _workContext.CurrentCustomer;
+            }
             if (cart == null)
                 throw new ArgumentNullException(nameof(cart));
 
@@ -604,7 +635,7 @@ namespace Nop.Web.Factories
             };
 
             //billing info
-            var billingAddress = _workContext.CurrentCustomer.BillingAddress;
+            var billingAddress = customer.BillingAddress;
             if (billingAddress != null)
             {
                 _addressModelFactory.PrepareAddressModel(model.BillingAddress,
@@ -618,14 +649,14 @@ namespace Nop.Web.Factories
             {
                 model.IsShippable = true;
 
-                var pickupPoint = _workContext.CurrentCustomer.GetAttribute<PickupPoint>(SystemCustomerAttributeNames.SelectedPickupPoint,_storeContext.CurrentStore.Id);
+                var pickupPoint = customer.GetAttribute<PickupPoint>(SystemCustomerAttributeNames.SelectedPickupPoint, _storeContext.CurrentStore.Id);
                 model.SelectedPickUpInStore = _shippingSettings.AllowPickUpInStore && pickupPoint != null;
                 if (!model.SelectedPickUpInStore)
                 {
-                    if (_workContext.CurrentCustomer.ShippingAddress != null)
+                    if (customer.ShippingAddress != null)
                     {
                         _addressModelFactory.PrepareAddressModel(model.ShippingAddress,
-                            address: _workContext.CurrentCustomer.ShippingAddress,
+                            address: customer.ShippingAddress,
                             excludeProperties: false,
                             addressSettings: _addressSettings);
                     }
@@ -646,13 +677,13 @@ namespace Nop.Web.Factories
                 }
 
                 //selected shipping method
-                var shippingOption = _workContext.CurrentCustomer.GetAttribute<ShippingOption>(SystemCustomerAttributeNames.SelectedShippingOption, _storeContext.CurrentStore.Id);
+                var shippingOption = customer.GetAttribute<ShippingOption>(SystemCustomerAttributeNames.SelectedShippingOption, _storeContext.CurrentStore.Id);
                 if (shippingOption != null)
                     model.ShippingMethod = shippingOption.Name;
             }
 
             //payment info
-            var selectedPaymentMethodSystemName = _workContext.CurrentCustomer.GetAttribute<string>(SystemCustomerAttributeNames.SelectedPaymentMethod, _storeContext.CurrentStore.Id);
+            var selectedPaymentMethodSystemName = customer.GetAttribute<string>(SystemCustomerAttributeNames.SelectedPaymentMethod, _storeContext.CurrentStore.Id);
             var paymentMethod = _paymentService.LoadPaymentMethodBySystemName(selectedPaymentMethodSystemName);
             model.PaymentMethod = paymentMethod != null
                 ? paymentMethod.GetLocalizedFriendlyName(_localizationService, _workContext.WorkingLanguage.Id)
@@ -676,8 +707,12 @@ namespace Nop.Web.Factories
         /// <param name="cart">List of the shopping cart item</param>
         /// <param name="setEstimateShippingDefaultAddress">Whether to use customer default shipping address for estimating</param>
         /// <returns>Estimate shipping model</returns>
-        public virtual EstimateShippingModel PrepareEstimateShippingModel(IList<ShoppingCartItem> cart, bool setEstimateShippingDefaultAddress = true)
+        public virtual EstimateShippingModel PrepareEstimateShippingModel(IList<ShoppingCartItem> cart, bool setEstimateShippingDefaultAddress = true, Customer customer = null)
         {
+            if (customer == null)
+            {
+                customer = _workContext.CurrentCustomer;
+            }
             if (cart == null)
                 throw new ArgumentNullException(nameof(cart));
 
@@ -688,8 +723,8 @@ namespace Nop.Web.Factories
             if (model.Enabled)
             {
                 //countries
-                var defaultEstimateCountryId = (setEstimateShippingDefaultAddress && _workContext.CurrentCustomer.ShippingAddress != null)
-                    ? _workContext.CurrentCustomer.ShippingAddress.CountryId
+                var defaultEstimateCountryId = (setEstimateShippingDefaultAddress && customer.ShippingAddress != null)
+                    ? customer.ShippingAddress.CountryId
                     : model.CountryId;
                 model.AvailableCountries.Add(new SelectListItem
                 {
@@ -706,8 +741,8 @@ namespace Nop.Web.Factories
                     });
 
                 //states
-                var defaultEstimateStateId = (setEstimateShippingDefaultAddress && _workContext.CurrentCustomer.ShippingAddress != null)
-                    ? _workContext.CurrentCustomer.ShippingAddress.StateProvinceId
+                var defaultEstimateStateId = (setEstimateShippingDefaultAddress && customer.ShippingAddress != null)
+                    ? customer.ShippingAddress.StateProvinceId
                     : model.StateProvinceId;
                 var states = defaultEstimateCountryId.HasValue
                     ? _stateProvinceService.GetStateProvincesByCountryId(defaultEstimateCountryId.Value, _workContext.WorkingLanguage.Id).ToList()
@@ -733,8 +768,8 @@ namespace Nop.Web.Factories
                     });
                 }
 
-                if (setEstimateShippingDefaultAddress && _workContext.CurrentCustomer.ShippingAddress != null)
-                    model.ZipPostalCode = _workContext.CurrentCustomer.ShippingAddress.ZipPostalCode;
+                if (setEstimateShippingDefaultAddress && customer.ShippingAddress != null)
+                    model.ZipPostalCode = customer.ShippingAddress.ZipPostalCode;
             }
 
             return model;
@@ -748,10 +783,10 @@ namespace Nop.Web.Factories
         /// <param name="showDefaultPicture">Whether to show the default picture</param>
         /// <param name="productName">Product name</param>
         /// <returns>Picture model</returns>
-        public virtual PictureModel PrepareCartItemPictureModel(ShoppingCartItem sci, int pictureSize, bool showDefaultPicture, string productName)
+        public virtual PictureModel PrepareCartItemPictureModel(ShoppingCartItem sci, int pictureSize, bool showDefaultPicture, string productName, Customer customer = null)
         {
             var pictureCacheKey = string.Format(ModelCacheEventConsumer.CART_PICTURE_MODEL_KEY, sci.Id, pictureSize, true, _workContext.WorkingLanguage.Id, _webHelper.IsCurrentConnectionSecured(), _storeContext.CurrentStore.Id);
-            var model = _cacheManager.Get(pictureCacheKey, 
+            var model = _cacheManager.Get(pictureCacheKey,
                 //as we cache per user (shopping cart item identifier)
                 //let's cache just for 3 minutes
                 3, () =>
@@ -777,11 +812,15 @@ namespace Nop.Web.Factories
         /// <param name="validateCheckoutAttributes">Whether to validate checkout attributes</param>
         /// <param name="prepareAndDisplayOrderReviewData">Whether to prepare and display order review data</param>
         /// <returns>Shopping cart model</returns>
-        public virtual ShoppingCartModel PrepareShoppingCartModel(ShoppingCartModel model, 
-            IList<ShoppingCartItem> cart, bool isEditable = true, 
-            bool validateCheckoutAttributes = false, 
-            bool prepareAndDisplayOrderReviewData = false)
+        public virtual ShoppingCartModel PrepareShoppingCartModel(ShoppingCartModel model,
+            IList<ShoppingCartItem> cart, bool isEditable = true,
+            bool validateCheckoutAttributes = false,
+            bool prepareAndDisplayOrderReviewData = false, Customer customer = null)
         {
+            if (customer == null)
+            {
+                customer = _workContext.CurrentCustomer;
+            }
             if (cart == null)
                 throw new ArgumentNullException(nameof(cart));
 
@@ -795,7 +834,7 @@ namespace Nop.Web.Factories
             model.IsEditable = isEditable;
             model.ShowProductImages = _shoppingCartSettings.ShowProductImagesOnShoppingCart;
             model.ShowSku = _catalogSettings.ShowSkuOnProductDetailsPage;
-            var checkoutAttributesXml = _workContext.CurrentCustomer.GetAttribute<string>(SystemCustomerAttributeNames.CheckoutAttributes, _genericAttributeService, _storeContext.CurrentStore.Id);
+            var checkoutAttributesXml = customer.GetAttribute<string>(SystemCustomerAttributeNames.CheckoutAttributes, _genericAttributeService, _storeContext.CurrentStore.Id);
             var minOrderSubtotalAmountOk = _orderProcessingService.ValidateMinOrderSubtotalAmount(cart);
             if (!minOrderSubtotalAmountOk)
             {
@@ -809,11 +848,11 @@ namespace Nop.Web.Factories
 
             //discount and gift card boxes
             model.DiscountBox.Display = _shoppingCartSettings.ShowDiscountBox;
-            var discountCouponCodes = _workContext.CurrentCustomer.ParseAppliedDiscountCouponCodes();
+            var discountCouponCodes = customer.ParseAppliedDiscountCouponCodes();
             foreach (var couponCode in discountCouponCodes)
             {
                 var discount = _discountService.GetAllDiscountsForCaching(couponCode: couponCode)
-                    .FirstOrDefault(d => d.RequiresCouponCode && _discountService.ValidateDiscount(d, _workContext.CurrentCustomer).IsValid);
+                    .FirstOrDefault(d => d.RequiresCouponCode && _discountService.ValidateDiscount(d, customer).IsValid);
 
                 if (discount != null)
                 {
@@ -832,19 +871,19 @@ namespace Nop.Web.Factories
                 model.Warnings.Add(warning);
 
             //checkout attributes
-            model.CheckoutAttributes = PrepareCheckoutAttributeModels(cart);
-    
+            model.CheckoutAttributes = PrepareCheckoutAttributeModels(cart, customer);
+
             //cart items
             foreach (var sci in cart)
             {
-                var cartItemModel = PrepareShoppingCartItemModel(cart, sci);
+                var cartItemModel = PrepareShoppingCartItemModel(cart, sci, customer);
                 model.Items.Add(cartItemModel);
             }
-            
+
             //payment methods
             //all payment methods (do not filter by country here as it could be not specified yet)
             var paymentMethods = _paymentService
-                .LoadActivePaymentMethods(_workContext.CurrentCustomer, _storeContext.CurrentStore.Id)
+                .LoadActivePaymentMethods(customer, _storeContext.CurrentStore.Id)
                 .Where(pm => !pm.HidePaymentMethod(cart))
                 .ToList();
             //payment methods displayed during checkout (not with "Button" type)
@@ -865,13 +904,14 @@ namespace Nop.Web.Factories
             }
             //hide "Checkout" button if we have only "Button" payment methods
             model.HideCheckoutButton = !nonButtonPaymentMethods.Any() && model.ButtonPaymentMethodViewComponentNames.Any();
-            
+
             //order review data
             if (prepareAndDisplayOrderReviewData)
             {
-                model.OrderReviewData = PrepareOrderReviewDataModel(cart);
+                model.OrderReviewData = PrepareOrderReviewDataModel(cart, customer);
             }
-
+            model.CurrencySelectorModel = _commonModelFactory.PrepareCurrencySelectorModel();
+            model.CustomerId = customer.Id;
             return model;
         }
 
@@ -904,16 +944,16 @@ namespace Nop.Web.Factories
             model.CustomerFullname = customer.GetFullName();
             model.ShowProductImages = _shoppingCartSettings.ShowProductImagesOnWishList;
             model.ShowSku = _catalogSettings.ShowSkuOnProductDetailsPage;
-            
+
             //cart warnings
             var cartWarnings = _shoppingCartService.GetShoppingCartWarnings(cart, "", false);
             foreach (var warning in cartWarnings)
                 model.Warnings.Add(warning);
-            
+
             //cart items
             foreach (var sci in cart)
             {
-                var cartItemModel = PrepareWishlistItemModel(cart, sci);
+                var cartItemModel = PrepareWishlistItemModel(cart, sci, customer);
                 model.Items.Add(cartItemModel);
             }
 
@@ -924,21 +964,25 @@ namespace Nop.Web.Factories
         /// Prepare the mini shopping cart model
         /// </summary>
         /// <returns>Mini shopping cart model</returns>
-        public virtual MiniShoppingCartModel PrepareMiniShoppingCartModel()
+        public virtual MiniShoppingCartModel PrepareMiniShoppingCartModel(Customer customer = null)
         {
+            if (customer == null)
+            {
+                customer = _workContext.CurrentCustomer;
+            }
             var model = new MiniShoppingCartModel
             {
                 ShowProductImages = _shoppingCartSettings.ShowProductImagesInMiniShoppingCart,
                 //let's always display it
                 DisplayShoppingCartButton = true,
-                CurrentCustomerIsGuest = _workContext.CurrentCustomer.IsGuest(),
+                CurrentCustomerIsGuest = customer.IsGuest(),
                 AnonymousCheckoutAllowed = _orderSettings.AnonymousCheckoutAllowed,
             };
 
             //performance optimization (use "HasShoppingCartItems" property)
-            if (_workContext.CurrentCustomer.HasShoppingCartItems)
+            if (customer.HasShoppingCartItems)
             {
-                var cart = _workContext.CurrentCustomer.ShoppingCartItems
+                var cart = customer.ShoppingCartItems
                     .Where(sci => sci.ShoppingCartType == ShoppingCartType.ShoppingCart)
                     .LimitPerStore(_storeContext.CurrentStore.Id)
                     .ToList();
@@ -974,7 +1018,7 @@ namespace Nop.Web.Factories
                         minOrderSubtotalAmountOk &&
                         !checkoutAttributesExist &&
                         !(downloadableProductsRequireRegistration
-                            && _workContext.CurrentCustomer.IsGuest());
+                            && customer.IsGuest());
 
                     //products. sort descending (recently added products)
                     foreach (var sci in cart
@@ -1010,14 +1054,14 @@ namespace Nop.Web.Factories
                         if (_shoppingCartSettings.ShowProductImagesInMiniShoppingCart)
                         {
                             cartItemModel.Picture = PrepareCartItemPictureModel(sci,
-                                _mediaSettings.MiniCartThumbPictureSize, true, cartItemModel.ProductName);
+                                _mediaSettings.MiniCartThumbPictureSize, true, cartItemModel.ProductName, customer);
                         }
 
                         model.Items.Add(cartItemModel);
                     }
                 }
             }
-            
+
             return model;
         }
 
@@ -1025,11 +1069,15 @@ namespace Nop.Web.Factories
         /// Prepare selected checkout attributes
         /// </summary>
         /// <returns>Formatted attributes</returns>
-        public virtual string FormatSelectedCheckoutAttributes()
+        public virtual string FormatSelectedCheckoutAttributes(Customer customer = null)
         {
-            var checkoutAttributesXml = _workContext.CurrentCustomer
+            if (customer == null)
+            {
+                customer = _workContext.CurrentCustomer;
+            }
+            var checkoutAttributesXml = customer
                 .GetAttribute<string>(SystemCustomerAttributeNames.CheckoutAttributes, _genericAttributeService, _storeContext.CurrentStore.Id);
-           return _checkoutAttributeFormatter.FormatAttributes(checkoutAttributesXml, _workContext.CurrentCustomer);
+            return _checkoutAttributeFormatter.FormatAttributes(checkoutAttributesXml, customer);
         }
 
         /// <summary>
@@ -1038,11 +1086,16 @@ namespace Nop.Web.Factories
         /// <param name="cart">List of the shopping cart item</param>
         /// <param name="isEditable">Whether model is editable</param>
         /// <returns>Order totals model</returns>
-        public virtual OrderTotalsModel PrepareOrderTotalsModel(IList<ShoppingCartItem> cart, bool isEditable)
+        public virtual OrderTotalsModel PrepareOrderTotalsModel(IList<ShoppingCartItem> cart, bool isEditable, Customer customer = null)
         {
+            if (customer == null)
+            {
+                customer = _workContext.CurrentCustomer;
+            }
             var model = new OrderTotalsModel
             {
-                IsEditable = isEditable
+                IsEditable = isEditable,
+                CustomerId = customer.Id
             };
 
             if (cart.Any())
@@ -1072,7 +1125,7 @@ namespace Nop.Web.Factories
                         model.Shipping = _priceFormatter.FormatShippingPrice(shoppingCartShipping, true);
 
                         //selected shipping method
-                        var shippingOption = _workContext.CurrentCustomer.GetAttribute<ShippingOption>(SystemCustomerAttributeNames.SelectedShippingOption, _storeContext.CurrentStore.Id);
+                        var shippingOption = customer.GetAttribute<ShippingOption>(SystemCustomerAttributeNames.SelectedShippingOption, _storeContext.CurrentStore.Id);
                         if (shippingOption != null)
                             model.SelectedShippingMethod = shippingOption.Name;
                     }
@@ -1083,9 +1136,9 @@ namespace Nop.Web.Factories
                 }
 
                 //payment method fee
-                var paymentMethodSystemName = _workContext.CurrentCustomer.GetAttribute<string>(SystemCustomerAttributeNames.SelectedPaymentMethod, _storeContext.CurrentStore.Id);
+                var paymentMethodSystemName = customer.GetAttribute<string>(SystemCustomerAttributeNames.SelectedPaymentMethod, _storeContext.CurrentStore.Id);
                 var paymentMethodAdditionalFee = _paymentService.GetAdditionalHandlingFee(cart, paymentMethodSystemName);
-                var paymentMethodAdditionalFeeWithTaxBase = _taxService.GetPaymentMethodAdditionalFee(paymentMethodAdditionalFee, _workContext.CurrentCustomer);
+                var paymentMethodAdditionalFeeWithTaxBase = _taxService.GetPaymentMethodAdditionalFee(paymentMethodAdditionalFee, customer);
                 if (paymentMethodAdditionalFeeWithTaxBase > decimal.Zero)
                 {
                     var paymentMethodAdditionalFeeWithTax = _currencyService.ConvertFromPrimaryStoreCurrency(paymentMethodAdditionalFeeWithTaxBase, _workContext.WorkingCurrency);
@@ -1184,7 +1237,7 @@ namespace Nop.Web.Factories
                     if (shippingBaseInclTax.HasValue)
                     {
                         var totalForRewardPoints = _orderTotalCalculationService.CalculateApplicableOrderTotalForRewardPoints(shippingBaseInclTax.Value, shoppingCartTotalBase.Value);
-                        model.WillEarnRewardPoints = _orderTotalCalculationService.CalculateRewardPoints(_workContext.CurrentCustomer, totalForRewardPoints);
+                        model.WillEarnRewardPoints = _orderTotalCalculationService.CalculateRewardPoints(customer, totalForRewardPoints);
                     }
                 }
 
@@ -1201,8 +1254,12 @@ namespace Nop.Web.Factories
         /// <param name="stateProvinceId">State or province identifier</param>
         /// <param name="zipPostalCode">Zip postal code</param>
         /// <returns>Estimate shipping result model</returns>
-        public virtual EstimateShippingResultModel PrepareEstimateShippingResultModel(IList<ShoppingCartItem> cart, int? countryId, int? stateProvinceId, string zipPostalCode)
+        public virtual EstimateShippingResultModel PrepareEstimateShippingResultModel(IList<ShoppingCartItem> cart, int? countryId, int? stateProvinceId, string zipPostalCode, Customer customer = null)
         {
+            if (customer == null)
+            {
+                customer = _workContext.CurrentCustomer;
+            }
             var model = new EstimateShippingResultModel();
 
             if (cart.RequiresShipping(_productService, _productAttributeParser))
@@ -1216,7 +1273,7 @@ namespace Nop.Web.Factories
                     ZipPostalCode = zipPostalCode,
                 };
 
-                var getShippingOptionResponse = _shippingService.GetShippingOptions(cart, address, _workContext.CurrentCustomer, storeId: _storeContext.CurrentStore.Id);
+                var getShippingOptionResponse = _shippingService.GetShippingOptions(cart, address, customer, storeId: _storeContext.CurrentStore.Id);
                 if (getShippingOptionResponse.Success)
                 {
                     if (getShippingOptionResponse.ShippingOptions.Any())
@@ -1225,7 +1282,7 @@ namespace Nop.Web.Factories
                         {
                             //calculate discounted and taxed rate
                             var shippingRate = _orderTotalCalculationService.AdjustShippingRate(shippingOption.Rate, cart, out List<DiscountForCaching> _);
-                            shippingRate = _taxService.GetShippingPrice(shippingRate, _workContext.CurrentCustomer);
+                            shippingRate = _taxService.GetShippingPrice(shippingRate, customer);
                             shippingRate = _currencyService.ConvertFromPrimaryStoreCurrency(shippingRate, _workContext.WorkingCurrency);
                             var shippingRateString = _priceFormatter.FormatShippingPrice(shippingRate, true);
 
@@ -1244,7 +1301,7 @@ namespace Nop.Web.Factories
 
                 if (_shippingSettings.AllowPickUpInStore)
                 {
-                    var pickupPointsResponse = _shippingService.GetPickupPoints(address, _workContext.CurrentCustomer, storeId: _storeContext.CurrentStore.Id);
+                    var pickupPointsResponse = _shippingService.GetPickupPoints(address, customer, storeId: _storeContext.CurrentStore.Id);
                     if (pickupPointsResponse.Success)
                     {
                         if (pickupPointsResponse.PickupPoints.Any())
@@ -1257,7 +1314,7 @@ namespace Nop.Web.Factories
                             var pickupFee = pickupPointsResponse.PickupPoints.Min(x => x.PickupFee);
                             if (pickupFee > 0)
                             {
-                                pickupFee = _taxService.GetShippingPrice(pickupFee, _workContext.CurrentCustomer);
+                                pickupFee = _taxService.GetShippingPrice(pickupFee, customer);
                                 pickupFee = _currencyService.ConvertFromPrimaryStoreCurrency(pickupFee, _workContext.WorkingCurrency);
                             }
                             soModel.Price = _priceFormatter.FormatShippingPrice(pickupFee, true);
@@ -1280,19 +1337,23 @@ namespace Nop.Web.Factories
         /// <param name="model">Wishlist email a friend model</param>
         /// <param name="excludeProperties">Whether to exclude populating of model properties from the entity</param>
         /// <returns>Wishlist email a friend model</returns>
-        public virtual WishlistEmailAFriendModel PrepareWishlistEmailAFriendModel(WishlistEmailAFriendModel model, bool excludeProperties)
+        public virtual WishlistEmailAFriendModel PrepareWishlistEmailAFriendModel(WishlistEmailAFriendModel model, bool excludeProperties, Customer customer = null)
         {
+            if (customer == null)
+            {
+                customer = _workContext.CurrentCustomer;
+            }
             if (model == null)
                 throw new ArgumentNullException(nameof(model));
 
             model.DisplayCaptcha = _captchaSettings.Enabled && _captchaSettings.ShowOnEmailWishlistToFriendPage;
             if (!excludeProperties)
             {
-                model.YourEmailAddress = _workContext.CurrentCustomer.Email;
+                model.YourEmailAddress = customer.Email;
             }
             return model;
         }
-        
+
         #endregion
     }
 }

@@ -47,7 +47,14 @@ namespace Nop.Web.Models.Customer
         public string FirstName { get; set; }
         [NopResourceDisplayName("Account.Fields.LastName")]
         public string LastName { get; set; }
-
+        [NopResourceDisplayName("Account.Fields.FullName")]
+        public string FullName { get; set; }
+        [NopResourceDisplayName("Admin.Customers.Customers.Fields.LinkFacebook1")]
+        public string LinkFacebook1 { get; set; }
+        [NopResourceDisplayName("Admin.Customers.Customers.Fields.LinkFacebook2")]
+        public string LinkFacebook2 { get; set; }
+        [NopResourceDisplayName("Admin.Customers.Customers.Fields.HashUserName")]
+        public string HashUserName { get; set; }
         public bool DateOfBirthEnabled { get; set; }
         [NopResourceDisplayName("Account.Fields.DateOfBirth")]
         public int? DateOfBirthDay { get; set; }

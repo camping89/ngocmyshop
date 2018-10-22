@@ -265,7 +265,11 @@ namespace Nop.Web.Factories
                 model.VatNumber = customer.GetAttribute<string>(SystemCustomerAttributeNames.VatNumber);
                 model.FirstName = customer.GetAttribute<string>(SystemCustomerAttributeNames.FirstName);
                 model.LastName = customer.GetAttribute<string>(SystemCustomerAttributeNames.LastName);
+                model.FullName = customer.GetAttribute<string>(SystemCustomerAttributeNames.FullName);
                 model.Gender = customer.GetAttribute<string>(SystemCustomerAttributeNames.Gender);
+                model.LinkFacebook1 = customer.GetAttribute<string>(SystemCustomerAttributeNames.LinkFacebook1);
+                model.LinkFacebook2 = customer.GetAttribute<string>(SystemCustomerAttributeNames.LinkFacebook2);
+                model.HashUserName = customer.GetAttribute<string>(SystemCustomerAttributeNames.HashUserName);
                 var dateOfBirth = customer.GetAttribute<DateTime?>(SystemCustomerAttributeNames.DateOfBirth);
                 if (dateOfBirth.HasValue)
                 {
@@ -627,17 +631,17 @@ namespace Nop.Web.Factories
                     ItemClass = "downloadable-products"
                 });
             }
-
-            if (!_customerSettings.HideBackInStockSubscriptionsTab)
-            {
-                model.CustomerNavigationItems.Add(new CustomerNavigationItemModel
-                {
-                    RouteName = "CustomerBackInStockSubscriptions",
-                    Title = _localizationService.GetResource("Account.BackInStockSubscriptions"),
-                    Tab = CustomerNavigationEnum.BackInStockSubscriptions,
-                    ItemClass = "back-in-stock-subscriptions"
-                });
-            }
+            ////Remove alert to customer
+            //if (!_customerSettings.HideBackInStockSubscriptionsTab)
+            //{
+            //    model.CustomerNavigationItems.Add(new CustomerNavigationItemModel
+            //    {
+            //        RouteName = "CustomerBackInStockSubscriptions",
+            //        Title = _localizationService.GetResource("Account.BackInStockSubscriptions"),
+            //        Tab = CustomerNavigationEnum.BackInStockSubscriptions,
+            //        ItemClass = "back-in-stock-subscriptions"
+            //    });
+            //}
 
             if (_rewardPointsSettings.Enabled)
             {
@@ -649,14 +653,14 @@ namespace Nop.Web.Factories
                     ItemClass = "reward-points"
                 });
             }
-
-            model.CustomerNavigationItems.Add(new CustomerNavigationItemModel
-            {
-                RouteName = "CustomerChangePassword",
-                Title = _localizationService.GetResource("Account.ChangePassword"),
-                Tab = CustomerNavigationEnum.ChangePassword,
-                ItemClass = "change-password"
-            });
+            ////Hide item change password
+            //model.CustomerNavigationItems.Add(new CustomerNavigationItemModel
+            //{
+            //    RouteName = "CustomerChangePassword",
+            //    Title = _localizationService.GetResource("Account.ChangePassword"),
+            //    Tab = CustomerNavigationEnum.ChangePassword,
+            //    ItemClass = "change-password"
+            //});
 
             if (_customerSettings.AllowCustomersToUploadAvatars)
             {

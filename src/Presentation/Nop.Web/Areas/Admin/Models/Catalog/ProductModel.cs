@@ -1,13 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using FluentValidation.Attributes;
+﻿using FluentValidation.Attributes;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Nop.Core.Domain.Directory;
 using Nop.Web.Areas.Admin.Models.Settings;
 using Nop.Web.Areas.Admin.Validators.Catalog;
 using Nop.Web.Framework.Localization;
 using Nop.Web.Framework.Mvc.ModelBinding;
 using Nop.Web.Framework.Mvc.Models;
+using Nop.Web.Models.Common;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace Nop.Web.Areas.Admin.Models.Catalog
 {
@@ -291,6 +293,7 @@ namespace Nop.Web.Areas.Admin.Models.Catalog
 
         [NopResourceDisplayName("Admin.Catalog.Products.Fields.Price")]
         public decimal Price { get; set; }
+        public decimal PriceLabel { get; set; }
 
         [NopResourceDisplayName("Admin.Catalog.Products.Fields.OldPrice")]
         public decimal OldPrice { get; set; }
@@ -363,6 +366,37 @@ namespace Nop.Web.Areas.Admin.Models.Catalog
         public string PrimaryStoreCurrencyCode { get; set; }
         public string BaseDimensionIn { get; set; }
         public string BaseWeightIn { get; set; }
+
+        [NopResourceDisplayName("Admin.Catalog.Products.Fields.VendorProductUrl")]
+        public string VendorProductUrl { get; set; }
+
+        [NopResourceDisplayName("Admin.Catalog.Products.Fields.UnitPriceBase")]
+        public decimal UnitPriceUsd { get; set; }
+
+        [NopResourceDisplayName("Admin.Catalog.Products.Fields.Currency")]
+        public int CurrencyId { get; set; }
+        public decimal UnitWeightCost { get; set; }
+        public string CurrencyMappedName { get; set; }
+        [NopResourceDisplayName("Admin.Catalog.Products.Fields.ExchangeRate")]
+        public decimal ExchangeRate { get; set; }
+        [NopResourceDisplayName("Admin.Catalog.Products.Fields.WeightCost")]
+        public decimal WeightCost { get; set; }
+        public decimal WeightCostLabel { get; set; }
+        public Currency CurrencyCurrent { get; set; }
+        public Currency PrimaryExchangeCurrency { get; set; }
+
+        [NopResourceDisplayName("Admin.Catalog.Products.Fields.OrderingFee")]
+        public decimal OrderingFee { get; set; }
+
+        [NopResourceDisplayName("Admin.Catalog.Products.Fields.SaleOffPercent")]
+        public double SaleOffPercent { get; set; }
+
+        [NopResourceDisplayName("Admin.Catalog.Products.Fields.UnitPrice")]
+        public string UnitPrice { get; set; }
+
+        [NopResourceDisplayName("Admin.Catalog.Products.Fields.UnitPriceDecimal")]
+        public decimal UnitPriceDecimal { get; set; }
+        public CurrencySelectorModel CurrencySelectorModel { get; set; }
 
         public IList<ProductLocalizedModel> Locales { get; set; }
 
@@ -465,7 +499,7 @@ namespace Nop.Web.Areas.Admin.Models.Catalog
                 AvailableAttributes = new List<SelectListItem>();
                 AvailableOptions = new List<SelectListItem>();
             }
-            
+
             [NopResourceDisplayName("Admin.Catalog.Products.SpecificationAttributes.Fields.SpecificationAttribute")]
             public int SpecificationAttributeId { get; set; }
 
@@ -474,7 +508,7 @@ namespace Nop.Web.Areas.Admin.Models.Catalog
 
             [NopResourceDisplayName("Admin.Catalog.Products.SpecificationAttributes.Fields.SpecificationAttributeOption")]
             public int SpecificationAttributeOptionId { get; set; }
-            
+
             [NopResourceDisplayName("Admin.Catalog.Products.SpecificationAttributes.Fields.CustomValue")]
             public string CustomValue { get; set; }
 
@@ -490,7 +524,7 @@ namespace Nop.Web.Areas.Admin.Models.Catalog
             public IList<SelectListItem> AvailableAttributes { get; set; }
             public IList<SelectListItem> AvailableOptions { get; set; }
         }
-        
+
         public partial class ProductPictureModel : BaseNopEntityModel
         {
             public int ProductId { get; set; }
@@ -518,7 +552,7 @@ namespace Nop.Web.Areas.Admin.Models.Catalog
 
             [NopResourceDisplayName("Admin.Catalog.Products.RelatedProducts.Fields.Product")]
             public string Product2Name { get; set; }
-            
+
             [NopResourceDisplayName("Admin.Catalog.Products.RelatedProducts.Fields.DisplayOrder")]
             public int DisplayOrder { get; set; }
         }
@@ -753,7 +787,7 @@ namespace Nop.Web.Areas.Admin.Models.Catalog
             [NopResourceDisplayName("Admin.Catalog.Products.ProductAttributes.Attributes.ValidationRules.DefaultValue")]
             public string DefaultValue { get; set; }
             public string ValidationRulesString { get; set; }
-            
+
             //condition
             [NopResourceDisplayName("Admin.Catalog.Products.ProductAttributes.Attributes.Condition")]
             public bool ConditionAllowed { get; set; }
@@ -794,7 +828,7 @@ namespace Nop.Web.Areas.Admin.Models.Catalog
 
             [NopResourceDisplayName("Admin.Catalog.Products.ProductAttributes.Attributes.Values.Fields.Name")]
             public string Name { get; set; }
-            
+
             [NopResourceDisplayName("Admin.Catalog.Products.ProductAttributes.Attributes.Values.Fields.ColorSquaresRgb")]
             public string ColorSquaresRgb { get; set; }
             public bool DisplayColorSquaresRgb { get; set; }
@@ -870,7 +904,7 @@ namespace Nop.Web.Areas.Admin.Models.Catalog
                 public IList<SelectListItem> AvailableStores { get; set; }
                 public IList<SelectListItem> AvailableVendors { get; set; }
                 public IList<SelectListItem> AvailableProductTypes { get; set; }
-                
+
                 //vendor
                 public bool IsLoggedInAsVendor { get; set; }
 
@@ -894,7 +928,7 @@ namespace Nop.Web.Areas.Admin.Models.Catalog
 
             [NopResourceDisplayName("Admin.Catalog.Products.ProductAttributes.AttributeCombinations.Fields.Attributes")]
             public string AttributesXml { get; set; }
-            
+
             public string Warnings { get; set; }
 
             [NopResourceDisplayName("Admin.Catalog.Products.ProductAttributes.AttributeCombinations.Fields.StockQuantity")]

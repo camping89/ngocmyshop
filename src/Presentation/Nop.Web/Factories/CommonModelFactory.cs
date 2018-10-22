@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using System.Text;
-using Microsoft.AspNetCore.Hosting;
+﻿using Microsoft.AspNetCore.Hosting;
 using Nop.Core;
 using Nop.Core.Caching;
 using Nop.Core.Domain;
@@ -35,6 +30,11 @@ using Nop.Web.Infrastructure.Cache;
 using Nop.Web.Models.Catalog;
 using Nop.Web.Models.Common;
 using Nop.Web.Models.Topics;
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
+using System.Text;
 
 namespace Nop.Web.Factories
 {
@@ -231,7 +231,7 @@ namespace Nop.Web.Factories
                 AvailableLanguages = availableLanguages,
                 UseImages = _localizationSettings.UseImagesForLanguageSelection
             };
-            
+
             return model;
         }
 
@@ -258,7 +258,9 @@ namespace Nop.Web.Factories
                         {
                             Id = x.Id,
                             Name = x.GetLocalized(y => y.Name),
-                            CurrencySymbol = currencySymbol
+                            Code = x.CurrencyCode,
+                            CurrencySymbol = currencySymbol,
+                            ExchangeRate = x.Rate
                         };
                         return currencyModel;
                     })
@@ -446,7 +448,7 @@ namespace Nop.Web.Factories
             }
             model.SubjectEnabled = _commonSettings.SubjectFieldOnContactUsForm;
             model.DisplayCaptcha = _captchaSettings.Enabled && _captchaSettings.ShowOnContactUsPage;
-            
+
             return model;
         }
 
@@ -475,7 +477,7 @@ namespace Nop.Web.Factories
             model.DisplayCaptcha = _captchaSettings.Enabled && _captchaSettings.ShowOnContactUsPage;
             model.VendorId = vendor.Id;
             model.VendorName = vendor.GetLocalized(x => x.Name);
-            
+
             return model;
         }
 
@@ -777,7 +779,7 @@ namespace Nop.Web.Factories
 
             return sb.ToString();
         }
-        
+
         #endregion
     }
 }

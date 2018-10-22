@@ -10,6 +10,7 @@ namespace Nop.Web.Models.ShoppingCart
             TaxRates = new List<TaxRate>();
             GiftCards = new List<GiftCard>();
         }
+        public int CustomerId { get; set; }
         public bool IsEditable { get; set; }
 
         public string SubTotal { get; set; }

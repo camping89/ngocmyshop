@@ -1,9 +1,9 @@
-﻿using System.Collections.Generic;
-using Nop.Core.Domain.Catalog;
+﻿using Nop.Core.Domain.Catalog;
 using Nop.Core.Domain.Customers;
 using Nop.Core.Domain.Directory;
 using Nop.Core.Domain.Messages;
 using Nop.Core.Domain.Orders;
+using System.Collections.Generic;
 
 namespace Nop.Services.ExportImport
 {
@@ -62,7 +62,9 @@ namespace Nop.Services.ExportImport
         /// </summary>
         /// <param name="orders">Orders</param>
         byte[] ExportOrdersToXlsx(IList<Order> orders);
-
+        byte[] ExportVendorInvoiesToXlsx(IList<Order> orders);
+        byte[] ExportOrdersToXlsxBasic(IList<Order> orders);
+        byte[] ExportOrderItemsToXlsxBasic(IList<OrderItem> orderItems);
         /// <summary>
         /// Export customer list to XLSX
         /// </summary>

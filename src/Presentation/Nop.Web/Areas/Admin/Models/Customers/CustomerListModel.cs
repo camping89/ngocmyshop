@@ -21,6 +21,9 @@ namespace Nop.Web.Areas.Admin.Models.Customers
         [NopResourceDisplayName("Admin.Customers.Customers.List.SearchEmail")]
         public string SearchEmail { get; set; }
 
+        [NopResourceDisplayName("Admin.Customers.Customers.List.SearchLinkFacebookUser")]
+        public string SearchLinkFacebookUser { get; set; }
+
         [NopResourceDisplayName("Admin.Customers.Customers.List.SearchUsername")]
         public string SearchUsername { get; set; }
         public bool UsernamesEnabled { get; set; }

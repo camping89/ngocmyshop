@@ -79,6 +79,9 @@ namespace Nop.Web.Areas.Admin.Models.Settings
             [NopResourceDisplayName("Admin.Configuration.Settings.CustomerUser.DefaultPasswordFormat")]
             public int DefaultPasswordFormat { get; set; }
 
+            [NopResourceDisplayName("Admin.Configuration.Settings.CustomerUser.DefaultPassword")]
+            public string DefaultPassword { get; set; }
+
             [NopResourceDisplayName("Admin.Configuration.Settings.CustomerUser.PasswordLifetime")]
             public int PasswordLifetime { get; set; }
 
@@ -166,6 +169,8 @@ namespace Nop.Web.Areas.Admin.Models.Settings
 
             [NopResourceDisplayName("Admin.Configuration.Settings.CustomerUser.AcceptPrivacyPolicyEnabled")]
             public bool AcceptPrivacyPolicyEnabled { get; set; }
+
+
         }
 
         public partial class AddressSettingsModel : BaseNopModel

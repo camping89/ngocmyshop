@@ -130,11 +130,14 @@
                                 },{
                                     field: "Id",
                                     title: "ID",
-                                    width: 50
+                                    width: 50,
+                                    hidden:true
                                 }, {
                                     field: "Name",
                                     title: "@T("Admin.Orders.Products.AddNew.Name")",
-                                    width: 400
+                                    width: 400,
+                                    template: '<img src="#=UrlImage#" width="50" />'
+                                        + ' #=Name#'
                                 }, {
                                     field: "Sku",
                                     title: "@T("Admin.Orders.Products.AddNew.SKU")",

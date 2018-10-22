@@ -15,6 +15,10 @@ namespace Nop.Core.Domain.Customers
         /// </summary>
         public static string LastName { get { return "LastName"; } }
         /// <summary>
+        /// FullName
+        /// </summary>
+        public static string FullName { get { return "FullName"; } }
+        /// <summary>
         /// Gender
         /// </summary>
         public static string Gender { get { return "Gender"; } }
@@ -182,5 +186,21 @@ namespace Nop.Core.Domain.Customers
         /// EuCookieLawAccepted
         /// </summary>
         public static string EuCookieLawAccepted { get { return "EuCookieLaw.Accepted"; } }
+
+        /// <summary>
+        /// LinkFacebook1
+        /// </summary>
+        public static string LinkFacebook1 { get { return "LinkFacebook1"; } }
+
+        /// <summary>
+        /// LinkFacebook2
+        /// </summary>
+        public static string LinkFacebook2 { get { return "LinkFacebook2"; } }
+        /// <summary>
+        /// HashUserName
+        /// </summary>
+        public static string HashUserName { get { return "HashUserName"; } }
+
+
     }
 }

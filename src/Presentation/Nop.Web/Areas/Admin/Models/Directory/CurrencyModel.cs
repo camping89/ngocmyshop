@@ -1,11 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using FluentValidation.Attributes;
+﻿using FluentValidation.Attributes;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Nop.Web.Areas.Admin.Validators.Directory;
 using Nop.Web.Framework.Localization;
 using Nop.Web.Framework.Mvc.ModelBinding;
 using Nop.Web.Framework.Mvc.Models;
+using System;
+using System.Collections.Generic;
 
 namespace Nop.Web.Areas.Admin.Models.Directory
 {
@@ -59,6 +59,9 @@ namespace Nop.Web.Areas.Admin.Models.Directory
 
         [NopResourceDisplayName("Admin.Configuration.Currencies.Fields.RoundingType")]
         public int RoundingTypeId { get; set; }
+
+        [NopResourceDisplayName("Admin.Configuration.Currencies.Fields.UnitWeightCost")]
+        public decimal UnitWeightCost { get; set; }
     }
 
     public partial class CurrencyLocalizedModel : ILocalizedModelLocal

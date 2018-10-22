@@ -42,7 +42,9 @@
     Html.AppendScriptParts("~/lib/bootstrap/bootstrap.min.js");
     Html.AppendScriptParts("~/lib/bootstrap-touchspin/jquery.bootstrap-touchspin.min.js");
     Html.AppendScriptParts("~/lib/jquery-1.10.2.min.js");
-
+    
+    Html.AppendScriptParts(ResourceLocation.Footer, "~/js/public.ajaxcart.js");
+    Html.AppendScriptParts(ResourceLocation.Footer, "~/js/public.common.js");
     //page title
     string adminPageTitle = !string.IsNullOrWhiteSpace(ViewBag.Title) ? ViewBag.Title + " / " : "";
     adminPageTitle += T("Admin.PageTitle").Text;
@@ -64,6 +66,9 @@
         @Html.NopHeadCustom()
         @Html.NopCssFiles(this.Url, ResourceLocation.Head, false)
         @Html.NopScripts(this.Url, ResourceLocation.Head, false)
+        <link href="~/css/admin/stylesweb.css" rel="stylesheet" />
+        <link href="~/css/admin/print.css" rel="stylesheet" />
+        <link href="~/css/admin/ie8.css" rel="stylesheet" />
     </head>
     <body class="hold-transition skin-blue sidebar-collapse">
         <div class="wrapper">

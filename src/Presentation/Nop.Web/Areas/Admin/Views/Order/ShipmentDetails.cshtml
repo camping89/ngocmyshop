@@ -11,7 +11,7 @@
 
 <form asp-controller="Order" asp-action="ShipmentDetails" method="post">
     <script type="text/javascript">
-        $(document).ready(function() {
+        $(document).ready(function () {
             toggleShippedDate(false);
             toggleDeliveryDate(false);
         });
@@ -50,14 +50,23 @@
     </script>
 
     <div class="content-header clearfix">
+        <input type="hidden" name="Id" value="@Model.Id" />
         <h1 class="pull-left">
             @T("Admin.Orders.Shipments.ViewDetails") - @Model.Id
             <small>
                 <i class="fa fa-arrow-circle-left"></i>
-                <a asp-action="Edit" asp-route-id="@Model.OrderId">@T("Admin.Orders.Shipments.BackToOrder")</a>
+                <a asp-action="ShipmentList">@T("Admin.Orders.Shipments.BackToShipment")</a>
             </small>
         </h1>
         <div class="pull-right">
+            <button id="btnSave" type="submit" name="save" class="btn bg-blue">
+                <i class="fa fa-floppy-o"></i>
+                @T("Admin.Common.Save")
+            </button>
+            <button id="btnSaveContinue" type="submit" name="save-continue" class="btn bg-blue">
+                <i class="fa fa-floppy-o"></i>
+                @T("Admin.Common.SaveContinue")
+            </button>
             <a asp-action="PdfPackagingSlip" asp-route-shipmentId="@Model.Id" class="btn bg-purple">
                 <i class="fa fa-file-pdf-o"></i>
                 @T("Admin.Orders.Shipments.PrintPackagingSlip")
@@ -71,11 +80,83 @@
     </div>
 
     <div class="content">
+
         <div asp-validation-summary="All"></div>
         <div class="form-horizontal">
             <div class="panel-group">
                 <div class="panel panel-default">
                     <div class="panel-body">
+                        <div class="form-group">
+                            <input type="hidden" name="CustomerId" id="CustomerId" class="form-control" value="@(Model.CustomerId > 0 ? Model.CustomerId.ToString() : string.Empty)" />
+                            <div class="col-md-3">
+                                <nop-label asp-for="CustomerId" />
+                            </div>
+                            <div class="col-md-9">
+                                <div class="input-group">
+                                    <input style="float: left;" type="text" name="CustomerName" id="CustomerName" class="form-control" placeholder="@(T("Admin.Common.PleaseInputSearchData"))" value="@Model.CustomerFullName" />
+                                    <span class="input-group-btn">
+                                        <button type="submit" name="setcustomershipment" class="btn btn-info">
+                                            @T("Admin.Orders.Shipments.Customer.Button")
+                                        </button>
+                                    </span>
+                                </div>
+
+                                <script>
+                    $(document).ready(function() {
+                        $("#CustomerName").autocomplete({
+                            delay: 800,
+                            source: function(request, response) {
+
+                                var postData = {
+                                    searchTerm: request.term
+                                };
+                                addAntiForgeryToken(postData);
+
+                                $.ajax({
+                                    cache: false,
+                                    type: "POST",
+                                    url: "@(Url.Action("CustomerSearch", "Customer"))",
+                                    data: postData,
+                                    complete: function(result) {
+                                        response($.map(result.responseJSON.Data,
+                                            function(item) {
+                                                return {
+                                                    label: item.FullName,
+                                                    value: item.Id
+                                                }
+                                            }));
+                                    },
+                                    error: function(xhr, ajaxOptions, thrownError) {
+                                        alert(thrownError);
+                                    },
+                                    traditional: true
+                                });
+                            },
+                            minLength: 2,
+                            select: function(event, ui) {
+                                $('#CustomerId').val(ui.item.value);
+                                this.value = ui.item.label;
+                                //setTimeout(function() {
+
+                                //},500);
+                                return false;
+                            },
+                            focus: function(event, ui) {
+                                event.preventDefault();
+                                this.value = ui.item.label;
+                            },
+                            search: function(e, u) {
+                                $(this).addClass('ajaxprocessing');
+                            },
+                            response: function(event, ui) {
+                                $(this).removeClass('ajaxprocessing');
+                            }
+                        });
+
+                    });
+                                </script>
+                            </div>
+                        </div>
                         <div class="form-group">
                             <div class="col-md-3">
                                 <nop-label asp-for="CustomOrderNumber" />
@@ -99,7 +180,7 @@
                                 </div>
                                 @if (!string.IsNullOrEmpty(Model.TrackingNumberUrl))
                                 {
-                                <a href="@Model.TrackingNumberUrl" target="_blank" class="margin-l-10">@T("Admin.Orders.Shipments.TrackingNumber.ViewOnline")</a>
+                                    <a href="@Model.TrackingNumberUrl" target="_blank" class="margin-l-10">@T("Admin.Orders.Shipments.TrackingNumber.ViewOnline")</a>
                                 }
                             </div>
                         </div>
@@ -120,6 +201,24 @@
                         </div>
                         <div class="form-group">
                             <div class="col-md-3">
+                                <nop-label asp-for="ShipmentNote" />
+                            </div>
+                            <div class="col-md-9">
+                                <nop-textarea asp-for="ShipmentNote" />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-md-3">
+                                <nop-label asp-for="Deposit" />
+                            </div>
+                            <div class="col-md-9">
+                                <div class="input-group">
+                                    <nop-editor asp-for="Deposit" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-md-3">
                                 <nop-label asp-for="TotalWeight" />
                             </div>
                             <div class="col-md-9">
@@ -131,41 +230,42 @@
                                 <nop-label asp-for="ShippedDate" />
                             </div>
                             <div class="col-md-9">
-                                <div class="input-group input-group-short">
-                                    <div id="lblShippedDate" class="input-group-text">
-                                        <div class="form-text-row">@Model.ShippedDate</div>
-                                    </div>
-                                    @if (Model.ShippedDateUtc.HasValue)
-                                    {
-                                    <div id="divShippedDate" style="display: inline-block;">
-                                        <nop-editor asp-for="ShippedDateUtc" />
-                                        @T("Admin.Orders.Shipments.ShippedDate.EnterUtc")&nbsp;&nbsp;
-                                    </div>
-                                    }
-                                    <div class="input-group-btn">
-                                        @if (Model.CanShip)
-                                        {
-                                        <button type="submit" name="setasshipped" id="setasshipped" class="btn btn-info btn-flat">
-                                            @T("Admin.Orders.Shipments.ShippedDate.Button")
-                                        </button>
-                                        }
+                                <nop-editor asp-for="ShippedDateUtc" />
+                                @*<div class="input-group input-group-short">
+                                        <div id="lblShippedDate" class="input-group-text">
+                                            <div class="form-text-row">@Model.ShippedDate</div>
+                                        </div>
                                         @if (Model.ShippedDateUtc.HasValue)
                                         {
-                                        <button type="submit" onclick="toggleShippedDate(true);return false;" id="btnEditShippedDate" class="btn btn-primary">
-                                            @T("Admin.Common.Edit")
-                                        </button>
-
-                                        <button type="submit" id="btnSaveShippedDate" name="saveshippeddate" class="btn btn-primary">
-                                            @T("Admin.Common.Save")
-                                        </button>
-                                        <nop-action-confirmation asp-button-id="btnSaveShippedDate" />
-
-                                        <button type="submit" onclick="toggleShippedDate(false);return false;" id="btnCancelShippedDate" class="btn bg-teal">
-                                            @T("Admin.Common.Cancel")
-                                        </button>
+                                            <div id="divShippedDate" style="display: inline-block;">
+                                                <nop-editor asp-for="ShippedDateUtc" />
+                                                @T("Admin.Orders.Shipments.ShippedDate.EnterUtc")&nbsp;&nbsp;
+                                            </div>
                                         }
-                                    </div>
-                                </div>
+                                        <div class="input-group-btn">
+                                            @if (Model.CanShip)
+                                            {
+                                                <button type="submit" name="setasshipped" id="setasshipped" class="btn btn-info btn-flat">
+                                                    @T("Admin.Orders.Shipments.ShippedDate.Button")
+                                                </button>
+                                            }
+                                            @if (Model.ShippedDateUtc.HasValue)
+                                            {
+                                                <button type="submit" onclick="toggleShippedDate(true);return false;" id="btnEditShippedDate" class="btn btn-primary">
+                                                    @T("Admin.Common.Edit")
+                                                </button>
+
+                                                <button type="submit" id="btnSaveShippedDate" name="saveshippeddate" class="btn btn-primary">
+                                                    @T("Admin.Common.Save")
+                                                </button>
+                                                <nop-action-confirmation asp-button-id="btnSaveShippedDate" />
+
+                                                <button type="submit" onclick="toggleShippedDate(false);return false;" id="btnCancelShippedDate" class="btn bg-teal">
+                                                    @T("Admin.Common.Cancel")
+                                                </button>
+                                            }
+                                        </div>
+                                    </div>*@
                             </div>
                         </div>
                         <div class="form-group">
@@ -174,42 +274,43 @@
                             </div>
 
                             <div class="col-md-9">
-                                <div class="input-group input-group-short">
-                                    <div id="lblDeliveryDate" class="input-group-text">
-                                        <div class="form-text-row">@Model.DeliveryDate</div>
-                                    </div>
-                                    @if (Model.DeliveryDateUtc.HasValue)
-                                    {
-                                    <div id="divDeliveryDate" style="display: inline-block;">
-                                        <nop-editor asp-for="DeliveryDateUtc" />
-                                        @T("Admin.Orders.Shipments.DeliveryDate.EnterUtc")&nbsp;&nbsp;
-                                    </div>
-                                    }
-                                    <div class="input-group-btn">
-                                        @if (Model.CanDeliver)
-                                        {
-                                        <button type="submit" name="setasdelivered" id="setasdelivered" class="btn btn-info btn-flat">
-                                            @T("Admin.Orders.Shipments.DeliveryDate.Button")
-                                        </button>
-                                        }
+                                <nop-editor asp-for="DeliveryDateUtc" />
+                                @*<div class="input-group input-group-short">
+                                        <div id="lblDeliveryDate" class="input-group-text">
+                                            <div class="form-text-row">@Model.DeliveryDate</div>
+                                        </div>
                                         @if (Model.DeliveryDateUtc.HasValue)
                                         {
-
-                                        <button type="submit" onclick="toggleDeliveryDate(true);return false;" id="btnEditDeliveryDate" class="btn btn-primary">
-                                            @T("Admin.Common.Edit")
-                                        </button>
-
-                                        <button type="submit" id="btnSaveDeliveryDate" name="savedeliverydate" class="btn btn-primary">
-                                            @T("Admin.Common.Save")
-                                        </button>
-                                        <nop-action-confirmation asp-button-id="btnSaveDeliveryDate" />
-
-                                        <button type="submit" onclick="toggleDeliveryDate(false);return false;" id="btnCancelDeliveryDate" class="btn bg-teal">
-                                            @T("Admin.Common.Cancel")
-                                        </button>
+                                            <div id="divDeliveryDate" style="display: inline-block;">
+                                                <nop-editor asp-for="DeliveryDateUtc" />
+                                                @T("Admin.Orders.Shipments.DeliveryDate.EnterUtc")&nbsp;&nbsp;
+                                            </div>
                                         }
-                                    </div>
-                                </div>
+                                        <div class="input-group-btn">
+                                            @if (Model.CanDeliver)
+                                            {
+                                                <button type="submit" name="setasdelivered" id="setasdelivered" class="btn btn-info btn-flat">
+                                                    @T("Admin.Orders.Shipments.DeliveryDate.Button")
+                                                </button>
+                                            }
+                                            @if (Model.DeliveryDateUtc.HasValue)
+                                            {
+
+                                                <button type="submit" onclick="toggleDeliveryDate(true);return false;" id="btnEditDeliveryDate" class="btn btn-primary">
+                                                    @T("Admin.Common.Edit")
+                                                </button>
+
+                                                <button type="submit" id="btnSaveDeliveryDate" name="savedeliverydate" class="btn btn-primary">
+                                                    @T("Admin.Common.Save")
+                                                </button>
+                                                <nop-action-confirmation asp-button-id="btnSaveDeliveryDate" />
+
+                                                <button type="submit" onclick="toggleDeliveryDate(false);return false;" id="btnCancelDeliveryDate" class="btn bg-teal">
+                                                    @T("Admin.Common.Cancel")
+                                                </button>
+                                            }
+                                        </div>
+                                    </div>*@
                             </div>
                         </div>
                     </div>
@@ -230,7 +331,10 @@
                                         @T("Admin.Orders.Shipments.Products.SKU")
                                     </th>
                                     <th>
-                                        @T("Admin.Orders.Shipments.Products.Warehouse")
+                                        @T("Admin.Orders.Shipments.products.orderitemtotal")
+                                    </th>
+                                    <th>
+                                        @T("Admin.Orders.Shipments.Products.ShippingFee")
                                     </th>
                                     <th>
                                         @T("Admin.Orders.Shipments.Products.ItemWeight")
@@ -246,44 +350,46 @@
                             <tbody>
                                 @foreach (var item in Model.Items)
                                 {
-                                <tr>
-                                    <td style="width: 40%; text-align: left;">
-                                        <div>
-                                            <em><a asp-controller="Product" asp-action="Edit" asp-route-id="@item.ProductId">@item.ProductName</a></em>
-                                            @if (!string.IsNullOrEmpty(item.AttributeInfo))
+                                    <tr>
+                                        <td style="width: 40%; text-align: left;">
+                                            <div>
+                                                <em><a asp-controller="Product" asp-action="Edit" asp-route-id="@item.ProductId">@item.ProductName</a></em>
+                                                @if (!string.IsNullOrEmpty(item.AttributeInfo))
                                                 {
-                                                <p>
-                                                    @Html.Raw(item.AttributeInfo)
-                                                </p>
+                                                    <p>
+                                                        @Html.Raw(item.AttributeInfo)
+                                                    </p>
                                                 }
-                                            @if (!string.IsNullOrEmpty(item.RentalInfo))
+                                                @if (!string.IsNullOrEmpty(item.RentalInfo))
                                                 {
-                                                <p>
-                                                    @Html.Raw(item.RentalInfo)
-                                                </p>
+                                                    <p>
+                                                        @Html.Raw(item.RentalInfo)
+                                                    </p>
                                                 }
-                                        </div>
-                                    </td>
-                                    <td style="width: 15%;">
-                                        <div>
-                                            @item.Sku
-                                        </div>
-                                    </td>
-                                    <td style="width: 15%;">
-                                        <div>
-                                            @item.ShippedFromWarehouse
-                                        </div>
-                                    </td>
-                                    <td style="width: 10%;">
-                                        @item.ItemWeight
-                                    </td>
-                                    <td style="width: 10%;">
-                                        @item.ItemDimensions
-                                    </td>
-                                    <td style="width: 10%;">
-                                        @item.QuantityInThisShipment
-                                    </td>
-                                </tr>
+                                            </div>
+                                        </td>
+                                        <td style="width: 10%;">
+                                            <div>
+                                                @item.Sku
+                                            </div>
+                                        </td>
+
+                                        <td style="width: 10%;">
+                                            @item.OrderItemFee
+                                        </td>
+                                        <td style="width: 10%;">
+                                            @item.ShippingFeeStr
+                                        </td>
+                                        <td style="width: 10%;">
+                                            @item.ItemWeight
+                                        </td>
+                                        <td style="width: 10%;">
+                                            @item.ItemDimensions
+                                        </td>
+                                        <td style="width: 10%;">
+                                            @item.QuantityInThisShipment
+                                        </td>
+                                    </tr>
                                 }
                             </tbody>
                         </table>
@@ -292,64 +398,64 @@
 
                 @if (Model.ShipmentStatusEvents.Count > 0)
                 {
-                <div class="panel panel-default">
-                    <div class="panel-heading">
-                        @T("Admin.Orders.Shipments.ShipmentStatusEvents")
-                    </div>
-                    <div class="panel-body">
-                        <table class="table table-hover table-bordered text-center">
-                            <thead>
-                                <tr>
-                                    <th>
-                                        @T("Admin.Orders.Shipments.ShipmentStatusEvents.Event")
-                                    </th>
-                                    <th>
-                                        @T("Admin.Orders.Shipments.ShipmentStatusEvents.Location")
-                                    </th>
-                                    <th>
-                                        @T("Admin.Orders.Shipments.ShipmentStatusEvents.Country")
-                                    </th>
-                                    <th>
-                                        @T("Admin.Orders.Shipments.ShipmentStatusEvents.Date")
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach (var item in Model.ShipmentStatusEvents)
-                                    {
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            @T("Admin.Orders.Shipments.ShipmentStatusEvents")
+                        </div>
+                        <div class="panel-body">
+                            <table class="table table-hover table-bordered text-center">
+                                <thead>
                                     <tr>
-                                        <td style="width:40%;">
-                                            <div>
-                                                @item.EventName
-                                            </div>
-                                        </td>
-                                        <td style="width:20%;">
-                                            <div>
-                                                @item.Location
-                                            </div>
-                                        </td>
-                                        <td style="width:20%;">
-                                            <div>
-                                                @item.Country
-                                            </div>
-                                        </td>
-                                        <td style="width:20%;">
-                                            <div>
-                                                @if (item.Date.HasValue)
-                                                    {
-                                                    @item.Date.Value.ToString("D")
-                                                    }
-                                            </div>
-                                        </td>
+                                        <th>
+                                            @T("Admin.Orders.Shipments.ShipmentStatusEvents.Event")
+                                        </th>
+                                        <th>
+                                            @T("Admin.Orders.Shipments.ShipmentStatusEvents.Location")
+                                        </th>
+                                        <th>
+                                            @T("Admin.Orders.Shipments.ShipmentStatusEvents.Country")
+                                        </th>
+                                        <th>
+                                            @T("Admin.Orders.Shipments.ShipmentStatusEvents.Date")
+                                        </th>
                                     </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var item in Model.ShipmentStatusEvents)
+                                    {
+                                        <tr>
+                                            <td style="width: 40%;">
+                                                <div>
+                                                    @item.EventName
+                                                </div>
+                                            </td>
+                                            <td style="width: 20%;">
+                                                <div>
+                                                    @item.Location
+                                                </div>
+                                            </td>
+                                            <td style="width: 20%;">
+                                                <div>
+                                                    @item.Country
+                                                </div>
+                                            </td>
+                                            <td style="width: 20%;">
+                                                <div>
+                                                    @if (item.Date.HasValue)
+                                                    {
+                                                        @item.Date.Value.ToString("D")
+                                                    }
+                                                </div>
+                                            </td>
+                                        </tr>
                                     }
-                            </tbody>
-                        </table>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
-                </div>
                 }
             </div>
         </div>
     </div>
 </form>
-<nop-delete-confirmation asp-model-id="@Model.Id" asp-button-id="shipment-delete" asp-action="DeleteShipment"/>
+<nop-delete-confirmation asp-model-id="@Model.Id" asp-button-id="shipment-delete" asp-action="DeleteShipment" />

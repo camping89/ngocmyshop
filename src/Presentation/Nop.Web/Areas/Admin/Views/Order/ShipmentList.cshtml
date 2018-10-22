@@ -41,6 +41,15 @@
                     </li>
                 </ul>
             </div>
+
+            <button type="button" id="assign-shipper-selected" class="btn bg-aqua" data-toggle="modal" data-target="#assign-shipment-new-customer-window">
+                @T("Admin.Orders.Shipments.AssignToShipperSelected")
+            </button>
+
+            <button type="button" id="apply-tracking-number-selected" class="btn bg-aqua" data-toggle="modal" data-target="#apply-tracking-number-window">
+                @T("Admin.Orders.Shipments.ApplyTrackingNumber")
+            </button>
+
             <button type="button" id="ship-selected" class="btn bg-aqua">
                 <i class="fa fa-truck"></i>
                 @T("Admin.Orders.Shipments.ShipSelected")
@@ -61,6 +70,68 @@
                             <div class="col-md-5">
                                 <div class="form-group">
                                     <div class="col-md-4">
+                                        <nop-label asp-for="ShipperPhoneNumber" />
+                                    </div>
+                                    <div class="col-md-8">
+                                        <nop-editor asp-for="ShipperPhoneNumber" />
+                                    </div>
+                                    <script>
+                                        $(document).ready(function() {
+                                            $("#ShipperPhoneNumber").autocomplete({
+                                                delay: 800,
+                                                source: function(request, response) {
+
+                                                    var postData = {
+                                                        searchTerm: request.term
+                                                    };
+                                                    addAntiForgeryToken(postData);
+
+                                                    $.ajax({
+                                                        cache: false,
+                                                        type: "POST",
+                                                        url: "@(Url.Action("CustomerSearchPhone", "Customer"))",
+                                                        data: postData,
+                                                        complete: function(result) {
+                                                            response($.map(result.responseJSON.Data,
+                                                                function(item) {
+                                                                    return {
+                                                                        label: item.FullName,
+                                                                        value: item.Phone
+                                                                    }
+                                                                }));
+                                                        },
+                                                        error: function(xhr, ajaxOptions, thrownError) {
+                                                            alert(thrownError);
+                                                        },
+                                                        traditional: true
+                                                    });
+                                                },
+                                                minLength: 2,
+                                                select: function(event, ui) {
+                                                    $('#CustomerId').val(ui.item.value);
+                                                    this.value = ui.item.value;
+                                                    //setTimeout(function() {
+
+                                                    //},500);
+                                                    return false;
+                                                },
+                                                focus: function(event, ui) {
+                                                    event.preventDefault();
+                                                    this.value = ui.item.value;
+                                                },
+                                                search: function(e, u) {
+                                                    $(this).addClass('ajaxprocessing');
+                                                },
+                                                response: function(event, ui) {
+                                                    $(this).removeClass('ajaxprocessing');
+                                                }
+                                            });
+
+                                        });
+                                    </script>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-md-4">
                                         <nop-label asp-for="StartDate" />
                                     </div>
                                     <div class="col-md-8">
@@ -77,20 +148,29 @@
                                 </div>
                                 <div class="form-group">
                                     <div class="col-md-4">
-                                        <nop-label asp-for="TrackingNumber" />
+                                        <nop-label asp-for="TodayFilter" />
                                     </div>
                                     <div class="col-md-8">
-                                        <nop-editor asp-for="TrackingNumber" />
+                                        <nop-editor asp-for="TodayFilter" />
                                     </div>
                                 </div>
+
                                 <div class="form-group">
                                     <div class="col-md-4">
-                                        <nop-label asp-for="WarehouseId" />
+                                        <nop-label asp-for="LoadNotShipped" />
                                     </div>
                                     <div class="col-md-8">
-                                        <nop-select asp-for="WarehouseId" asp-items="Model.AvailableWarehouses" />
+                                        <nop-editor asp-for="LoadNotShipped" />
                                     </div>
                                 </div>
+                                @*<div class="form-group">
+                                        <div class="col-md-4">
+                                            <nop-label asp-for="WarehouseId" />
+                                        </div>
+                                        <div class="col-md-8">
+                                            <nop-select asp-for="WarehouseId" asp-items="Model.AvailableWarehouses" />
+                                        </div>
+                                    </div>*@
                             </div>
                             <div class="col-md-7">
                                 <div class="form-group">
@@ -119,18 +199,30 @@
                                 </div>
                                 <div class="form-group">
                                     <div class="col-md-4">
-                                        <nop-label asp-for="LoadNotShipped" />
+                                        <nop-label asp-for="TrackingNumber" />
                                     </div>
                                     <div class="col-md-8">
-                                        <nop-editor asp-for="LoadNotShipped" />
+                                        <nop-editor asp-for="TrackingNumber" />
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <nop-label asp-for="OrderId" />
+                                    </div>
+                                    <div class="col-md-8">
+                                        <nop-editor asp-for="OrderId" />
                                     </div>
                                 </div>
                             </div>
                             <div class="row">
-                                <div class="col-md-7 col-md-offset-5">
+                                <div class="col-md-7 col-md-offset-4">
                                     <button type="button" id="search-shipments" class="btn btn-primary btn-search">
                                         <i class="fa fa-search"></i>
                                         @T("Admin.Common.Search")
+                                    </button>
+                                    <button type="button" id="clear-filter" class="btn btn-danger btn-search">
+                                        <i class="fa fa-recycle"></i>
+                                        @T("Admin.Common.ClearFilter")
                                     </button>
                                 </div>
                             </div>
@@ -140,10 +232,13 @@
 
                 <div class="panel panel-default">
                     <div class="panel-body">
-                        <div id="shipments-grid"></div>
+                        @*<button class="k-button" id="expand">@T("Admin.Common.ExpandAll")</button>*@
+                        <button type="button" class="k-button" id="collapse">@T("Admin.Common.CollapseAll")</button>
+
+                        <div style="margin-top: 10px;" id="shipments-grid"></div>
 
                         <script type="text/javascript">
-                            $(document).ready(function () {
+                            $(document).ready(function() {
                                 $("#shipments-grid").kendoGrid({
                                     dataSource: {
                                         type: "json",
@@ -159,6 +254,15 @@
                                             data: "Data",
                                             total: "Total",
                                             errors: "Errors"
+                                        },
+                                        requestEnd: function (e) {
+                                            if (e.type == "read") {
+                                                var response = e.response;
+                                                if (response) {
+                                                    //store extra data
+                                                    reportAggregates = e.response["ExtraData"];
+                                                }
+                                            }
                                         },
                                         error: function(e) {
                                             display_kendoui_grid_error(e);
@@ -179,49 +283,76 @@
                                     detailInit: detailInit,
                                     scrollable: false,
                                     dataBound: onDataBound,
-                                    columns: [{
-                                        field: "Id",
-                                        headerTemplate: "<input id='mastercheckbox' type='checkbox'/>",
-                                        headerAttributes: { style: "text-align:center" },
-                                        attributes: { style: "text-align:center" },
-                                        template: "<input type='checkbox' value='#=Id#' class='checkboxGroups'/>",
-                                        width: 50
-                                    }, {
-                                        field: "Id",
-                                        title: "@T("Admin.Orders.Shipments.ID")",
-                                        width: 50
-                                    }, {
-                                        field: "CustomOrderNumber",
-                                        title: "@T("Admin.Orders.Shipments.CustomOrderNumber")",
-                                        width: 100
-                                    }, {
-                                        field: "TrackingNumber",
-                                        title: "@T("Admin.Orders.Shipments.TrackingNumber")",
-                                        width: 100
-                                    }, {
-                                        field: "TotalWeight",
-                                        title: "@T("Admin.Orders.Shipments.TotalWeight")",
-                                        width: 100
-                                    }, {
-                                        field: "ShippedDate",
-                                        title: "@T("Admin.Orders.Shipments.ShippedDate")",
-                                        width: 200,
-                                        type: "date",
-                                        format: "{0:G}"
-                                    }, {
-                                        field: "DeliveryDate",
-                                        title: "@T("Admin.Orders.Shipments.DeliveryDate")",
-                                        width: 200,
-                                        type: "date",
-                                        format: "{0:G}"
-                                    }, {
-                                        field: "Id",
-                                        title: "@T("Admin.Common.View")",
-                                        width: 50,
-                                        headerAttributes: { style: "text-align:center" },
-                                        attributes: { style: "text-align:center" },
-                                        template: '<a class="btn btn-default" href="@Url.Content("~/Admin/Order/ShipmentDetails/")#=Id#"><i class="fa fa-eye"></i>@T("Admin.Common.View")</a>'
-                                    }]
+                                    columns: [
+                                        {
+                                            field: "Id",
+                                            headerTemplate: "<input id='mastercheckbox' type='checkbox'/>",
+                                            headerAttributes: { style: "text-align:center" },
+                                            attributes: { style: "text-align:center" },
+                                            template: "<input type='checkbox' value='#=Id#' class='checkboxGroups'/>",
+                                            width: 50
+                                        }, {
+                                            field: "Id",
+                                            title: "@T("Admin.Orders.Shipments.ID")",
+                                            width: 50
+                                        }, {
+                                            field: "CustomOrderNumber",
+                                            title: "@T("Admin.Orders.Shipments.CustomOrderNumber")",
+                                            width: 100
+                                        }, {
+                                            field: "TrackingNumber",
+                                            title: "@T("Admin.Orders.Shipments.TrackingNumber")",
+                                            width: 100
+                                        }, {
+                                            field: "ShipperFullName",
+                                            title: "@T("Admin.Orders.Shipments.ShipperFullName")",
+                                            width: 200
+                                        }, {
+                                            field: "CustomerFullName",
+                                            title: "@T("Admin.Orders.Shipments.CustomerFullName")",
+                                            width: 200
+                                        }, {
+                                            field: "ShippedDate",
+                                            title: "@T("Admin.Orders.Shipments.ShippedDate")",
+                                            width: 200,
+                                            type: "date",
+                                            format: "{0:dd/MM/yyyy}"
+                                        }, {
+                                            field: "DeliveryDate",
+                                            title: "@T("Admin.Orders.Shipments.ReceivedDate")",
+                                            width: 200,
+                                            type: "date",
+                                            format: "{0:dd/MM/yyyy}"
+                                        }, {
+                                            field: "ShipmentNote",
+                                            title: "@T("Admin.Orders.Shipments.ShipmentNote")",
+                                            width: 100
+                                        },{
+                                            field: "Deposit",
+                                            title: "@T("Admin.Orders.Shipments.Deposit")",
+                                            width: 100,
+                                            template: '#= kendo.toString(Deposit, "n0") #'
+                                        }, {
+                                            field: "TotalOrderFee",
+                                            title: "@T("Admin.Orders.Shipments.TotalOrderFee")",
+                                            width: 150,
+                                            template: '<strong>#=TotalOrderFee#</strong><br/>' +
+                                                '<p>@T("Admin.Orders.Shipments.TotalOrderFeeNote")</p>',
+                                            footerTemplate:
+                                                '<div><strong>@T("Admin.Orders.Shipments.Summary")</strong></div>' +
+                                                    '<div>@T("Admin.Orders.Shipments.Deposit") <span id=\"aggregator-deposit-block\"></span></div>' +
+                                                    '<div>@T("Admin.Orders.Shipments.Total") <span id=\"aggregator-total-block\"></span></div>'
+
+                                        }, {
+                                            field: "Id",
+                                            title: "@T("Admin.Common.View")",
+                                            width: 50,
+                                            headerAttributes: { style: "text-align:center" },
+                                            attributes: { style: "text-align:center" },
+                                            template:
+                                                '<a class="btn btn-default" href="@Url.Content("~/Admin/Order/ShipmentDetails/")#=Id#"><i class="fa fa-eye"></i>@T("Admin.Common.View")</a>'
+                                        }
+                                    ]
                                 });
                             });
 
@@ -232,7 +363,9 @@
                                         type: "json",
                                         transport: {
                                             read: {
-                                                url: "@Html.Raw(Url.Action("ShipmentsItemsByShipmentId", "Order"))?shipmentId="+e.data.Id,
+                                                url:
+                                                    "@Html.Raw(Url.Action("ShipmentsItemsByShipmentId", "Order"))?shipmentId=" +
+                                                        e.data.Id,
                                                 type: "POST",
                                                 dataType: "json",
                                                 data: addAntiForgeryToken
@@ -263,22 +396,29 @@
                                     },
                                     columns: [
                                         {
-                                            field: "ProductName",
+                                            field: "ImageUrl",
                                             title: "@T("Admin.Orders.Shipments.Products.ProductName")",
+                                            template: '<p>#=ProductName#</p>' +
+                                                '<p><b>Sku: #=Sku#</b></p>' +
+                                                '<img src="#=ImageUrl#" />',
                                             width: 400
-                                        },{
-                                            field: "ShippedFromWarehouse",
-                                            title: "@T("Admin.Orders.Shipments.Products.Warehouse")",
+                                        }, {
+                                            field: "OrderItemFee",
+                                            title: "@T("Admin.Orders.Shipments.Products.Orderitemtotal")",
                                             width: 150
-                                        },{
+                                        }, {
+                                            field: "ShippingFeeStr",
+                                            title: "@T("Admin.Orders.Shipments.Products.ShippingFee")",
+                                            width: 150
+                                        }, {
                                             field: "QuantityInThisShipment",
                                             title: "@T("Admin.Orders.Shipments.Products.QtyShipped")",
                                             width: 150
-                                        },{
+                                        }, {
                                             field: "ItemWeight",
                                             title: "@T("Admin.Orders.Shipments.Products.ItemWeight")",
                                             width: 150
-                                        },{
+                                        }, {
                                             field: "ItemDimensions",
                                             title: "@T("Admin.Orders.Shipments.Products.ItemDimensions")",
                                             width: 150
@@ -286,14 +426,57 @@
                                     ]
                                 });
                             }
+
+                            //$('#expand').click(function(e) {
+                            //    var grid = $("#shipments-grid").data("kendoGrid");
+                            //    $(".k-master-row").each(function(index) {
+                            //        grid.expandRow(this);
+                            //    });
+                            //});
+
+                            $('#collapse').click(function (e) {
+                                var grid = $("#shipments-grid").data("kendoGrid");
+                                $(".k-master-row").each(function (index) {
+                                    grid.collapseRow(this);
+                                });
+                            });
                         </script>
                     </div>
                 </div>
 
                 <script type="text/javascript">
                     var selectedIds = [];
-
+                    var reportAggregates = "";
                     $(document).ready(function() {
+                        $("#clear-filter").click(function() {
+                            $('#@Html.IdFor(model => model.ShipperPhoneNumber)').val('');
+                            $('#@Html.IdFor(model => model.StartDate)').val('');
+                            $('#@Html.IdFor(model => model.EndDate)').val('');
+                            $('#@Html.IdFor(model => model.TrackingNumber)').val('');
+                            $('#@Html.IdFor(model => model.CountryId)').val(0);
+                            $('#@Html.IdFor(model => model.StateProvinceId)').val(0);
+                            $('#@Html.IdFor(model => model.City)').val('');
+
+                            $('#@Html.IdFor(model => model.LoadNotShipped)').prop('checked', false);
+                            $('#@Html.IdFor(model => model.OrderId)').val('');
+                        });
+
+                        $('#@Html.IdFor(model => model.TodayFilter)').click(function () {
+                            if ($(this).is(':checked')) {
+                                var start = new Date();
+                                start.setHours(0,0,0,0);
+                                var end = new Date();
+                                end.setHours(23,59,59,999);
+                                var startDate = kendo.toString(kendo.parseDate(start), 'MM/dd/yyyy HH:mm tt');
+                                var endDate = kendo.toString(kendo.parseDate(end), 'MM/dd/yyyy HH:mm tt');
+                                $('#@Html.IdFor(model => model.StartDate)').val(startDate);
+                                $('#@Html.IdFor(model => model.EndDate)').val(endDate);
+                            } else {
+                                $('#@Html.IdFor(model => model.StartDate)').val('');
+                                $('#@Html.IdFor(model => model.EndDate)').val('');
+                            }
+                        });
+
                         //load states when changing a country dropdownlist
                         $("#@Html.IdFor(model => model.CountryId)").change(function() {
                             var selectedItem = $(this).val();
@@ -317,11 +500,11 @@
 
                         $("".concat("#@Html.IdFor(model => model.TrackingNumber),",
                             "#@Html.IdFor(model => model.City)")).keydown(function(event) {
-                                if (event.keyCode === 13) {
-                                    $("#search-shipments").click();
-                                    return false;
-                                }
-                            });
+                            if (event.keyCode === 13) {
+                                $("#search-shipments").click();
+                                return false;
+                            }
+                        });
 
                         //search button
                         $('#search-shipments').click(function() {
@@ -412,11 +595,13 @@
                                 }
                             }
                             updateMasterCheckbox();
+
                         });
                     });
 
                     function additionalData() {
                         var data = {
+                            ShipperPhoneNumber: $('#@Html.IdFor(model => model.ShipperPhoneNumber)').val(),
                             StartDate: $('#@Html.IdFor(model => model.StartDate)').val(),
                             EndDate: $('#@Html.IdFor(model => model.EndDate)').val(),
                             TrackingNumber: $('#@Html.IdFor(model => model.TrackingNumber)').val(),
@@ -424,7 +609,8 @@
                             StateProvinceId: $('#@Html.IdFor(model => model.StateProvinceId)').val(),
                             City: $('#@Html.IdFor(model => model.City)').val(),
                             WarehouseId: $('#@Html.IdFor(model => model.WarehouseId)').val(),
-                            LoadNotShipped: $('#@Html.IdFor(model => model.LoadNotShipped)').is(':checked')
+                            LoadNotShipped: $('#@Html.IdFor(model => model.LoadNotShipped)').is(':checked'),
+                            OrderId: $('#@Html.IdFor(model => model.OrderId)').val()
                         };
                         addAntiForgeryToken(data);
                         return data;
@@ -439,6 +625,14 @@
                         });
 
                         updateMasterCheckbox();
+
+                        //update order totals summary
+                        if (reportAggregates != "") {
+                            for(var key in reportAggregates) {
+                                $('#aggregator-deposit-block').text(reportAggregates['aggregatordeposit']);
+                                $('#aggregator-total-block').text(reportAggregates['aggregatortotal']);
+                            }
+                        }
                     }
 
                     function updateMasterCheckbox() {
@@ -450,7 +644,7 @@
             </div>
         </div>
     </div>
- </form>
+</form>
 
 @*export selected (Excel). We don't use GET approach because it's limited to 2K-4K chars and won't work for large number of entities*@
 <form asp-controller="Order" asp-action="PdfPackagingSlipSelected" method="post" id="pdf-packaging-slip-selected-form">
@@ -458,13 +652,140 @@
 </form>
 
 <script type="text/javascript">
-                $(document).ready(function () {
-                    $('#exportpackagingslips-selected').click(function (e) {
-                        e.preventDefault();
-                        var ids = selectedIds.join(",");
-                        $('#pdf-packaging-slip-selected-form #selectedIds').val(ids);
-                        $('#pdf-packaging-slip-selected-form').submit();
-                        return false;
-                    });
-                });
+    $(document).ready(function () {
+        $('#exportpackagingslips-selected').click(function (e) {
+            e.preventDefault();
+            var ids = selectedIds.join(",");
+            $('#pdf-packaging-slip-selected-form #selectedIds').val(ids);
+            $('#pdf-packaging-slip-selected-form').submit();
+            return false;
+        });
+    });
+</script>
+
+
+<div id="apply-tracking-number-window" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="apply-tracking-number-title">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="apply-tracking-number-window-title">@T("Admin.Common.AddProductsToCategoriesTitle")</h4>
+            </div>
+            <form asp-controller="Order" asp-action="ApplyTrackingNumberSelected" method="post" id="apply-tracking-number-selected-form">
+                <div class="form-horizontal">
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <div class="col-md-4">
+                                <nop-label asp-for="TrackingNumberNew" />
+                            </div>
+                            <div class="col-md-8">
+                                <nop-editor asp-for="TrackingNumberNew" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" id="btn-apply-tracking-number" class="btn btn-primary">
+                            @T("Admin.Common.Save")
+                        </button>
+                    </div>
+                </div>
+
+            </form>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('#btn-apply-tracking-number').click(function (e) {
+            e.preventDefault();
+            var trackingNumberNew = $('#TrackingNumberNew').val();
+            var postData = { selectedIds: selectedIds, trackingNumberNew: trackingNumberNew };
+            addAntiForgeryToken(postData);
+            $.ajax({
+                cache: false,
+                type: "POST",
+                url: "@(Url.Action("ApplyTrackingNumberSelected", "Order"))",
+                data: postData,
+                complete: function(data) {
+                    var jsonData = data.responseJSON;
+                    if (jsonData.Result === false) {
+                        alert(jsonData.Message);
+                        return;
+                    }
+                    selectedIds = [];
+                    $('#apply-tracking-number-window').modal('toggle');
+                    //reload grid
+                    var grid = $('#shipments-grid').data('kendoGrid');
+                    grid.dataSource.read();
+                },
+                error: function(xhr, ajaxOptions, thrownError) {
+                    alert(thrownError);
+                },
+                traditional: true
+            });
+            return false;
+        });
+    });
+</script>
+
+
+<div id="assign-shipment-new-customer-window" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="assign-shipment-new-customer-title">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="assign-shipment-new-customer-window-title">@T("Admin.Common.AddProductsToCategoriesTitle")</h4>
+            </div>
+            <form asp-controller="Order" asp-action="AssignNewShipperSelected" method="post" id="assign-shipper-selected-form">
+                <div class="form-horizontal">
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <div class="col-md-4">
+                                <nop-label asp-for="CustomerNewId" />
+                            </div>
+                            <div class="col-md-8">
+                                <nop-select asp-for="CustomerNewId" asp-items="Model.AvailableShippers" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" id="btn-assign-to-new-customer" class="btn btn-primary">
+                            @T("Admin.Common.Save")
+                        </button>
+                    </div>
+                </div>
+
+            </form>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('#btn-assign-to-new-customer').click(function (e) {
+            e.preventDefault();
+            var customerId = $('#CustomerNewId').val();
+            var postData = { selectedIds: selectedIds, customerNewId: customerId };
+            addAntiForgeryToken(postData);
+            $.ajax({
+                cache: false,
+                type: "POST",
+                url: "@(Url.Action("AssignNewShipperSelected", "Order"))",
+                data: postData,
+                complete: function(data) {
+                    selectedIds = [];
+                    $('#assign-shipment-new-customer-window').modal('toggle');
+                    //reload grid
+                    var grid = $('#shipments-grid').data('kendoGrid');
+                    grid.dataSource.read();
+                },
+                error: function(xhr, ajaxOptions, thrownError) {
+                    alert(thrownError);
+                },
+                traditional: true
+            });
+            return false;
+        });
+    });
 </script>

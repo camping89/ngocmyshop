@@ -137,7 +137,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             model.AffiliatedOrderList.AffliateId = model.Id;
 
             //order statuses
-            model.AffiliatedOrderList.AvailableOrderStatuses = OrderStatus.Pending.ToSelectList(false).ToList();
+            model.AffiliatedOrderList.AvailableOrderStatuses = OrderStatus.Confirmed.ToSelectList(false).ToList();
             model.AffiliatedOrderList.AvailableOrderStatuses.Insert(0, new SelectListItem { Text = _localizationService.GetResource("Admin.Common.All"), Value = "0" });
 
             //payment statuses

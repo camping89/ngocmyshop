@@ -1,14 +1,14 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Globalization;
-using System.Linq;
 using Nop.Core.Domain.Common;
 using Nop.Core.Domain.Customers;
 using Nop.Core.Domain.Discounts;
 using Nop.Core.Domain.Payments;
 using Nop.Core.Domain.Shipping;
 using Nop.Core.Domain.Tax;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
+using System.Linq;
 
 namespace Nop.Core.Domain.Orders
 {
@@ -37,7 +37,7 @@ namespace Nop.Core.Domain.Orders
             if (string.IsNullOrEmpty(taxRatesStr))
                 return taxRatesDictionary;
 
-            var lines = taxRatesStr.Split(new [] { ';' }, StringSplitOptions.RemoveEmptyEntries);
+            var lines = taxRatesStr.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
             foreach (var line in lines)
             {
                 if (string.IsNullOrEmpty(line.Trim()))
@@ -214,7 +214,7 @@ namespace Nop.Core.Domain.Orders
         /// Gets or sets the reward points history entry identifier when reward points were earned (gained) for placing this order
         /// </summary>
         public int? RewardPointsHistoryEntryId { get; set; }
-        
+
         /// <summary>
         /// Gets or sets the checkout attribute description
         /// </summary>
@@ -314,7 +314,7 @@ namespace Nop.Core.Domain.Orders
         /// Gets or sets the paid date and time
         /// </summary>
         public DateTime? PaidDateUtc { get; set; }
-        
+
         /// <summary>
         /// Gets or sets the shipping method
         /// </summary>
@@ -345,6 +345,13 @@ namespace Nop.Core.Domain.Orders
         /// </summary>
         public string CustomOrderNumber { get; set; }
 
+        public string AdminNote { get; set; }
+
+        public decimal WeightCost { get; set; }
+        public decimal OrderCurrentSubtotal { get; set; }
+
+        public bool IsOrderCheckout { get; set; }
+        public DateTime? OrderCheckoutDatetime { get; set; }
         #endregion
 
         #region Navigation properties
@@ -493,7 +500,7 @@ namespace Nop.Core.Domain.Orders
                 return ParseTaxRates(TaxRates);
             }
         }
-        
+
         #endregion
     }
 }

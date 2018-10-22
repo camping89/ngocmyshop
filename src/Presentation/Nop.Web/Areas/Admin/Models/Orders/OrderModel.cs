@@ -1,15 +1,55 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Nop.Web.Areas.Admin.Models.Common;
+﻿using Microsoft.AspNetCore.Mvc.Rendering;
 using Nop.Core.Domain.Catalog;
+using Nop.Core.Domain.Directory;
+using Nop.Core.Domain.Shipping;
 using Nop.Core.Domain.Tax;
 using Nop.Web.Framework.Mvc.ModelBinding;
 using Nop.Web.Framework.Mvc.Models;
+using Nop.Web.Models.Common;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using AddressModel = Nop.Web.Areas.Admin.Models.Common.AddressModel;
 
 namespace Nop.Web.Areas.Admin.Models.Orders
 {
+
+    public partial class OrderModelBasic : BaseNopEntityModel
+    {
+
+        [NopResourceDisplayName("Admin.Orders.Fields.CustomOrderNumber")]
+        public string CustomOrderNumber { get; set; }
+        [NopResourceDisplayName("Admin.Orders.Fields.Store")]
+        public string StoreName { get; set; }
+
+        [NopResourceDisplayName("Admin.Orders.Fields.OrderTotal")]
+        public string OrderTotal { get; set; }
+        [NopResourceDisplayName("Admin.Orders.Fields.OrderStatus")]
+        public string OrderStatus { get; set; }
+
+        [NopResourceDisplayName("Admin.Orders.Fields.OrderStatus")]
+        public int OrderStatusId { get; set; }
+
+        [NopResourceDisplayName("Admin.Orders.Fields.PaymentStatus")]
+        public string PaymentStatus { get; set; }
+
+        [NopResourceDisplayName("Admin.Orders.Fields.ShippingStatus")]
+        public string ShippingStatus { get; set; }
+        [NopResourceDisplayName("Admin.Orders.Fields.CustomerFullName")]
+        public string CustomerFullName { get; set; }
+        [NopResourceDisplayName("Admin.Orders.Fields.CustomerPhone")]
+        public string CustomerPhone { get; set; }
+
+        [NopResourceDisplayName("Admin.Orders.Fields.CreatedOn")]
+        public DateTime CreatedOn { get; set; }
+        [NopResourceDisplayName("Admin.Orders.Fields.WeightCost")]
+        public string WeightCost { get; set; }
+        [NopResourceDisplayName("Admin.Orders.Fields.AdminNote")]
+        public string AdminNote { get; set; }
+
+        [NopResourceDisplayName("Admin.Orders.Fields.OrderTotalWithoutWeightCost")]
+        public string OrderTotalWithoutWeightCost { get; set; }
+    }
     public partial class OrderModel : BaseNopEntityModel
     {
         public OrderModel()
@@ -19,6 +59,7 @@ namespace Nop.Web.Areas.Admin.Models.Orders
             GiftCards = new List<GiftCard>();
             Items = new List<OrderItemModel>();
             UsedDiscounts = new List<UsedDiscountModel>();
+            PackageOrderModels = new List<PackageOrderModel>();
         }
 
         public bool IsLoggedInAsVendor { get; set; }
@@ -29,7 +70,7 @@ namespace Nop.Web.Areas.Admin.Models.Orders
         public Guid OrderGuid { get; set; }
         [NopResourceDisplayName("Admin.Orders.Fields.CustomOrderNumber")]
         public string CustomOrderNumber { get; set; }
-        
+
         //store
         [NopResourceDisplayName("Admin.Orders.Fields.Store")]
         public string StoreName { get; set; }
@@ -44,7 +85,11 @@ namespace Nop.Web.Areas.Admin.Models.Orders
         public string CustomerFullName { get; set; }
         [NopResourceDisplayName("Admin.Orders.Fields.CustomerIP")]
         public string CustomerIp { get; set; }
+        [NopResourceDisplayName("Admin.Orders.Fields.CustomerPhone")]
+        public string CustomerPhone { get; set; }
 
+        [NopResourceDisplayName("Admin.Catalog.Products.Fields.PictureThumbnailUrl")]
+        public string PictureThumbnailUrl { get; set; }
         [NopResourceDisplayName("Admin.Orders.Fields.CustomValues")]
         public Dictionary<string, object> CustomValues { get; set; }
 
@@ -52,6 +97,14 @@ namespace Nop.Web.Areas.Admin.Models.Orders
         public int AffiliateId { get; set; }
         [NopResourceDisplayName("Admin.Orders.Fields.Affiliate")]
         public string AffiliateName { get; set; }
+
+
+        [NopResourceDisplayName("Admin.Orders.Fields.AdminNote")]
+        public string AdminNote { get; set; }
+
+        [NopResourceDisplayName("Admin.Orders.Fields.WeightCost")]
+        public string WeightCost { get; set; }
+
 
         //Used discounts
         [NopResourceDisplayName("Admin.Orders.Fields.UsedDiscounts")]
@@ -89,6 +142,8 @@ namespace Nop.Web.Areas.Admin.Models.Orders
         public string RedeemedRewardPointsAmount { get; set; }
         [NopResourceDisplayName("Admin.Orders.Fields.OrderTotal")]
         public string OrderTotal { get; set; }
+        [NopResourceDisplayName("Admin.Orders.Fields.OrderTotalWithoutWeightCost")]
+        public string OrderTotalWithoutWeightCost { get; set; }
         [NopResourceDisplayName("Admin.Orders.Fields.RefundedAmount")]
         public string RefundedAmount { get; set; }
         [NopResourceDisplayName("Admin.Orders.Fields.Profit")]
@@ -119,6 +174,8 @@ namespace Nop.Web.Areas.Admin.Models.Orders
         public decimal OrderTotalDiscountValue { get; set; }
         [NopResourceDisplayName("Admin.Orders.Fields.Edit.OrderTotal")]
         public decimal OrderTotalValue { get; set; }
+        [NopResourceDisplayName("Admin.Orders.Fields.Edit.OrderCurrentSubtotal")]
+        public string OrderCurrentSubtotal { get; set; }
 
         //associated recurring payment id
         [NopResourceDisplayName("Admin.Orders.Fields.RecurringPayment")]
@@ -175,6 +232,7 @@ namespace Nop.Web.Areas.Admin.Models.Orders
         public AddressModel ShippingAddress { get; set; }
         [NopResourceDisplayName("Admin.Orders.Fields.ShippingMethod")]
         public string ShippingMethod { get; set; }
+        public List<ShippingMethod> ShippingMethodList { get; set; }
         public string ShippingAddressGoogleMapsUrl { get; set; }
         public bool CanAddNewShipments { get; set; }
 
@@ -183,13 +241,14 @@ namespace Nop.Web.Areas.Admin.Models.Orders
         public AddressModel BillingAddress { get; set; }
         [NopResourceDisplayName("Admin.Orders.Fields.VatNumber")]
         public string VatNumber { get; set; }
-        
+
         //gift cards
         public IList<GiftCard> GiftCards { get; set; }
 
         //items
         public bool HasDownloadableProducts { get; set; }
         public IList<OrderItemModel> Items { get; set; }
+        public IList<PackageOrderModel> PackageOrderModels { get; set; }
 
         //creation date
         [NopResourceDisplayName("Admin.Orders.Fields.CreatedOn")]
@@ -197,6 +256,8 @@ namespace Nop.Web.Areas.Admin.Models.Orders
 
         //checkout attributes
         public string CheckoutAttributeInfo { get; set; }
+
+        public string ProductAttributeInfo { get; set; }
 
         //order notes
         [NopResourceDisplayName("Admin.Orders.OrderNotes.Fields.DisplayToCustomer")]
@@ -207,6 +268,12 @@ namespace Nop.Web.Areas.Admin.Models.Orders
         [NopResourceDisplayName("Admin.Orders.OrderNotes.Fields.Download")]
         [UIHint("Download")]
         public int AddOrderNoteDownloadId { get; set; }
+
+        [NopResourceDisplayName("Admin.Orders.OrderNotes.Fields.IsOrderCheckout")]
+        public bool IsOrderCheckout { get; set; }
+
+        [NopResourceDisplayName("Admin.Orders.OrderNotes.Fields.OrderCheckoutDatetime")]
+        public DateTime? OrderCheckoutDatetime { get; set; }
 
         //refund info
         [NopResourceDisplayName("Admin.Orders.Fields.PartialRefund.AmountToRefund")]
@@ -224,9 +291,20 @@ namespace Nop.Web.Areas.Admin.Models.Orders
         public bool CanPartiallyRefundOffline { get; set; }
         public bool CanVoid { get; set; }
         public bool CanVoidOffline { get; set; }
-        
-        #region Nested Classes
 
+        #region Nested Classes
+        public partial class OrderItemModelBasic
+        {
+            public int OrderId { get; set; }
+            public int Id { get; set; }
+            public int PackageOrderId { get; set; }
+            public string PackageItemCode { get; set; }
+            public string PackageItemProcessedDatetime { get; set; }
+            public bool IncludeWeightCost { get; set; }
+            public bool IsOrderCheckout { get; set; }
+            public decimal WeightCostDec { get; set; }
+            public decimal ItemWeight { get; set; }
+        }
         public partial class OrderItemModel : BaseNopEntityModel
         {
             public OrderItemModel()
@@ -234,6 +312,7 @@ namespace Nop.Web.Areas.Admin.Models.Orders
                 PurchasedGiftCardIds = new List<int>();
                 ReturnRequests = new List<ReturnRequestBriefModel>();
             }
+            public int OrderId { get; set; }
             public int ProductId { get; set; }
             public string ProductName { get; set; }
             public string VendorName { get; set; }
@@ -269,6 +348,19 @@ namespace Nop.Web.Areas.Admin.Models.Orders
             public DownloadActivationType DownloadActivationType { get; set; }
             public bool IsDownloadActivated { get; set; }
             public Guid LicenseDownloadGuid { get; set; }
+            public decimal ItemWeight { get; set; }
+            public decimal UnitWeightCost { get; set; }
+            public string WeightCost { get; set; }
+            public decimal WeightCostDec { get; set; }
+            public string TotalWithoutWeightCost { get; set; }
+            public int PackageOrderId { get; set; }
+
+            public PackageOrderModel PackageOrder { get; set; }
+            public string PackageItemCode { get; set; }
+            public DateTime? PackageItemProcessedDatetime { get; set; }
+
+            public bool IncludeWeightCost { get; set; }
+            public bool IsOrderCheckout { get; set; }
 
             #region Nested Classes
 
@@ -344,7 +436,7 @@ namespace Nop.Web.Areas.Admin.Models.Orders
             public int OrderId { get; set; }
 
             #region Nested classes
-            
+
             public partial class ProductModel : BaseNopEntityModel
             {
                 [NopResourceDisplayName("Admin.Orders.Products.AddNew.Name")]
@@ -352,6 +444,8 @@ namespace Nop.Web.Areas.Admin.Models.Orders
 
                 [NopResourceDisplayName("Admin.Orders.Products.AddNew.SKU")]
                 public string Sku { get; set; }
+
+                public string UrlImage { get; set; }
             }
 
             public partial class ProductDetailsModel : BaseNopModel
@@ -361,6 +455,7 @@ namespace Nop.Web.Areas.Admin.Models.Orders
                     ProductAttributes = new List<ProductAttributeModel>();
                     GiftCard = new GiftCardModel();
                     Warnings = new List<string>();
+                    CurrencySelectorModel = new CurrencySelectorModel();
                 }
 
                 public int ProductId { get; set; }
@@ -368,7 +463,13 @@ namespace Nop.Web.Areas.Admin.Models.Orders
                 public int OrderId { get; set; }
 
                 public ProductType ProductType { get; set; }
-
+                [NopResourceDisplayName("Admin.Orders.Products.AddNew.Sku")]
+                public string Sku { get; set; }
+                [NopResourceDisplayName("Admin.Orders.Products.AddNew.VendorProductUrl")]
+                public string LinkProduct { get; set; }
+                [NopResourceDisplayName("Admin.Orders.Products.AddNew.Image")]
+                public string ImageUrl { get; set; }
+                [NopResourceDisplayName("Admin.Orders.Products.AddNew.Name")]
                 public string Name { get; set; }
 
                 [NopResourceDisplayName("Admin.Orders.Products.AddNew.UnitPriceInclTax")]
@@ -383,9 +484,32 @@ namespace Nop.Web.Areas.Admin.Models.Orders
                 public decimal SubTotalInclTax { get; set; }
                 [NopResourceDisplayName("Admin.Orders.Products.AddNew.SubTotalExclTax")]
                 public decimal SubTotalExclTax { get; set; }
+                [NopResourceDisplayName("Admin.Orders.Products.AddNew.BaseUnitPrice")]
+                public decimal BaseUnitPrice { get; set; }
+
+                [NopResourceDisplayName("Admin.Orders.Products.AddNew.ExchangeRate")]
+                public decimal ExchangeRate { get; set; }
+
+                [NopResourceDisplayName("Admin.Orders.Products.AddNew.OrderingFee")]
+                public decimal OrderingFee { get; set; }
+                [NopResourceDisplayName("Admin.Orders.Products.AddNew.SaleOffPercent")]
+                public double SaleOffPercent { get; set; }
+                [NopResourceDisplayName("Admin.Orders.Products.AddNew.CurrencyId")]
+                public int CurrencyId { get; set; }
+                [NopResourceDisplayName("Admin.Orders.Products.AddNew.Currency")]
+                public Currency Currency { get; set; }
+                [NopResourceDisplayName("Admin.Orders.Products.AddNew.CurrencyCurrent")]
+                public Currency CurrencyCurrent { get; set; }
+                [NopResourceDisplayName("Admin.Orders.Products.AddNew.Weight")]
+                public string Weight { get; set; }
+
+                [NopResourceDisplayName("Admin.Orders.Products.AddNew.WeightCost")]
+                public decimal WeightCost { get; set; }
 
                 //product attributes
                 public IList<ProductAttributeModel> ProductAttributes { get; set; }
+
+                public CurrencySelectorModel CurrencySelectorModel { get; set; }
                 //gift card info
                 public GiftCardModel GiftCard { get; set; }
                 //rental
@@ -466,7 +590,7 @@ namespace Nop.Web.Areas.Admin.Models.Orders
             #endregion
         }
 
-        public partial class UsedDiscountModel:BaseNopModel
+        public partial class UsedDiscountModel : BaseNopModel
         {
             public int DiscountId { get; set; }
             public string DiscountName { get; set; }
@@ -483,4 +607,6 @@ namespace Nop.Web.Areas.Admin.Models.Orders
         public string aggregatortax { get; set; }
         public string aggregatortotal { get; set; }
     }
+
+
 }

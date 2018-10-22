@@ -1,6 +1,6 @@
-using System;
 using Nop.Core.Domain.Localization;
 using Nop.Core.Domain.Stores;
+using System;
 
 namespace Nop.Core.Domain.Directory
 {
@@ -58,6 +58,8 @@ namespace Nop.Core.Domain.Directory
         /// Gets or sets the date and time of instance update
         /// </summary>
         public DateTime UpdatedOnUtc { get; set; }
+
+        public decimal UnitWeightCost { get; set; }
 
         /// <summary>
         /// Gets or sets the rounding type identifier

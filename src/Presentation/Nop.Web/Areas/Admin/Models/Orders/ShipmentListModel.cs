@@ -1,9 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using Microsoft.AspNetCore.Mvc.Rendering;
+﻿using Microsoft.AspNetCore.Mvc.Rendering;
 using Nop.Web.Framework.Mvc.ModelBinding;
 using Nop.Web.Framework.Mvc.Models;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace Nop.Web.Areas.Admin.Models.Orders
 {
@@ -14,19 +14,28 @@ namespace Nop.Web.Areas.Admin.Models.Orders
             AvailableCountries = new List<SelectListItem>();
             AvailableStates = new List<SelectListItem>();
             AvailableWarehouses = new List<SelectListItem>();
+            AvailableShippers = new List<SelectListItem>();
         }
+        [NopResourceDisplayName("Admin.Orders.Shipments.List.ShipperPhoneNumber")]
+        public string ShipperPhoneNumber { get; set; }
+
+        [NopResourceDisplayName("Admin.Orders.Shipments.List.TodayFilter")]
+        public bool TodayFilter { get; set; }
 
         [NopResourceDisplayName("Admin.Orders.Shipments.List.StartDate")]
-        [UIHint("DateNullable")]
+        [UIHint("DateTimeNullable")]
         public DateTime? StartDate { get; set; }
 
         [NopResourceDisplayName("Admin.Orders.Shipments.List.EndDate")]
-        [UIHint("DateNullable")]
+        [UIHint("DateTimeNullable")]
         public DateTime? EndDate { get; set; }
 
         [NopResourceDisplayName("Admin.Orders.Shipments.List.TrackingNumber")]
         public string TrackingNumber { get; set; }
-        
+
+        [NopResourceDisplayName("Admin.Orders.Shipments.List.TrackingNumber")]
+        public string TrackingNumberNew { get; set; }
+
         public IList<SelectListItem> AvailableCountries { get; set; }
         [NopResourceDisplayName("Admin.Orders.Shipments.List.Country")]
         public int CountryId { get; set; }
@@ -44,5 +53,12 @@ namespace Nop.Web.Areas.Admin.Models.Orders
         [NopResourceDisplayName("Admin.Orders.Shipments.List.Warehouse")]
         public int WarehouseId { get; set; }
         public IList<SelectListItem> AvailableWarehouses { get; set; }
+
+        [NopResourceDisplayName("Admin.Orders.Shipments.List.OrderId")]
+        public int OrderId { get; set; }
+
+        [NopResourceDisplayName("Admin.Orders.Shipments.List.CustomerNew")]
+        public int CustomerNewId { get; set; }
+        public IList<SelectListItem> AvailableShippers { get; set; }
     }
 }

@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
 using Autofac;
 using Autofac.Builder;
 using Autofac.Core;
@@ -52,6 +48,10 @@ using Nop.Services.Vendors;
 using Nop.Web.Framework.Mvc.Routing;
 using Nop.Web.Framework.Themes;
 using Nop.Web.Framework.UI;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 
 namespace Nop.Web.Framework.Infrastructure
 {
@@ -181,6 +181,7 @@ namespace Nop.Web.Framework.Infrastructure
             builder.RegisterType<CheckoutAttributeService>().As<ICheckoutAttributeService>().InstancePerLifetimeScope();
             builder.RegisterType<GiftCardService>().As<IGiftCardService>().InstancePerLifetimeScope();
             builder.RegisterType<OrderService>().As<IOrderService>().InstancePerLifetimeScope();
+            builder.RegisterType<PackageOrderService>().As<IPackageOrderService>().InstancePerLifetimeScope();
             builder.RegisterType<OrderReportService>().As<IOrderReportService>().InstancePerLifetimeScope();
             builder.RegisterType<OrderProcessingService>().As<IOrderProcessingService>().InstancePerLifetimeScope();
             builder.RegisterType<OrderTotalCalculationService>().As<IOrderTotalCalculationService>().InstancePerLifetimeScope();

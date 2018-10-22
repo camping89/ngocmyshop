@@ -1,6 +1,6 @@
+using Nop.Core.Domain.Catalog;
 using System;
 using System.Collections.Generic;
-using Nop.Core.Domain.Catalog;
 
 namespace Nop.Core.Domain.Orders
 {
@@ -75,7 +75,7 @@ namespace Nop.Core.Domain.Orders
         /// Gets or sets the product attributes in XML format
         /// </summary>
         public string AttributesXml { get; set; }
-        
+
         /// <summary>
         /// Gets or sets the download count
         /// </summary>
@@ -107,6 +107,23 @@ namespace Nop.Core.Domain.Orders
         /// </summary>
         public DateTime? RentalEndDateUtc { get; set; }
 
+
+        public decimal UnitPriceUsd { get; set; }
+        public decimal ExchangeRate { get; set; }
+        public decimal OrderingFee { get; set; }
+        public double SaleOffPercent { get; set; }
+        public int CurrencyId { get; set; }
+        public decimal WeightCost { get; set; }
+
+        public int? PackageOrderId { get; set; }
+        public virtual PackageOrder PackageOrder { get; set; }
+
+        public string PackageItemCode { get; set; }
+
+        public DateTime? PackageItemProcessedDatetime { get; set; }
+
+        public bool IncludeWeightCost { get; set; }
+        public bool IsOrderCheckout { get; set; }
         /// <summary>
         /// Gets the order
         /// </summary>

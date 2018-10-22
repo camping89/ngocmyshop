@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Nop.Core;
 using Nop.Core.Domain.Customers;
@@ -15,6 +11,10 @@ using Nop.Web.Factories;
 using Nop.Web.Framework.Controllers;
 using Nop.Web.Framework.Mvc.Filters;
 using Nop.Web.Framework.Security;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 
 namespace Nop.Web.Controllers
 {
@@ -34,15 +34,15 @@ namespace Nop.Web.Controllers
 
         #endregion
 
-		#region Ctor
+        #region Ctor
 
         public OrderController(IOrderModelFactory orderModelFactory,
-            IOrderService orderService, 
-            IShipmentService shipmentService, 
+            IOrderService orderService,
+            IShipmentService shipmentService,
             IWorkContext workContext,
-            IOrderProcessingService orderProcessingService, 
-            IPaymentService paymentService, 
-            IPdfService pdfService, 
+            IOrderProcessingService orderProcessingService,
+            IPaymentService paymentService,
+            IPdfService pdfService,
             IWebHelper webHelper,
             RewardPointsSettings rewardPointsSettings)
         {
@@ -251,7 +251,7 @@ namespace Nop.Web.Controllers
             var model = _orderModelFactory.PrepareShipmentDetailsModel(shipment);
             return View(model);
         }
-        
+
         #endregion
     }
 }

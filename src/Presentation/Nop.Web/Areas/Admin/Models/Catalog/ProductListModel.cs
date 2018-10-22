@@ -1,7 +1,7 @@
-﻿using System.Collections.Generic;
-using Microsoft.AspNetCore.Mvc.Rendering;
+﻿using Microsoft.AspNetCore.Mvc.Rendering;
 using Nop.Web.Framework.Mvc.ModelBinding;
 using Nop.Web.Framework.Mvc.Models;
+using System.Collections.Generic;
 
 namespace Nop.Web.Areas.Admin.Models.Catalog
 {
@@ -18,7 +18,8 @@ namespace Nop.Web.Areas.Admin.Models.Catalog
             AvailablePublishedOptions = new List<SelectListItem>();
         }
 
-        [NopResourceDisplayName("Admin.Catalog.Products.List.SearchProductName")]
+        //[NopResourceDisplayName("Admin.Catalog.Products.List.SearchProductName")]
+        [NopResourceDisplayName("Admin.Catalog.Products.List.SearchProductOrSku")]
         public string SearchProductName { get; set; }
         [NopResourceDisplayName("Admin.Catalog.Products.List.SearchCategory")]
         public int SearchCategoryId { get; set; }

@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using Nop.Core;
 using Nop.Core.Caching;
 using Nop.Core.Data;
@@ -9,6 +6,9 @@ using Nop.Core.Domain.Directory;
 using Nop.Core.Plugins;
 using Nop.Services.Events;
 using Nop.Services.Stores;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Nop.Services.Directory
 {
@@ -126,27 +126,28 @@ namespace Nop.Services.Directory
         /// <returns>Currency</returns>
         public virtual Currency GetCurrencyById(int currencyId, bool loadCacheableCopy = true)
         {
-            if (currencyId == 0)
-                return null;
+            //if (currencyId == 0)
+            //    return null;
 
-            Func<Currency> loadCurrencyFunc = () =>
-            {
-                return _currencyRepository.GetById(currencyId);
-            };
+            //Func<Currency> loadCurrencyFunc = () =>
+            //{
+            //    return _currencyRepository.GetById(currencyId);
+            //};
 
-            if (loadCacheableCopy)
-            {
-                //cacheable copy
-                var key = string.Format(CURRENCIES_BY_ID_KEY, currencyId);
-                return _cacheManager.Get(key, () =>
-                {
-                    var currency = loadCurrencyFunc();
-                    if (currency == null)
-                        return null;
-                    return new CurrencyForCaching(currency);
-                });
-            }
-            return loadCurrencyFunc();
+            //if (loadCacheableCopy)
+            //{
+            //    //cacheable copy
+            //    var key = string.Format(CURRENCIES_BY_ID_KEY, currencyId);
+            //    return _cacheManager.Get(key, () =>
+            //    {
+            //        var currency = loadCurrencyFunc();
+            //        if (currency == null)
+            //            return null;
+            //        return new CurrencyForCaching(currency);
+            //    });
+            //}
+            //return loadCurrencyFunc();
+            return _currencyRepository.GetById(currencyId);
         }
 
         /// <summary>
@@ -307,7 +308,7 @@ namespace Nop.Services.Directory
             if (primaryExchangeRateCurrency == null)
                 throw new Exception("Primary exchange rate currency cannot be loaded");
 
-            var result = amount; 
+            var result = amount;
             if (result != decimal.Zero && sourceCurrencyCode.Id != primaryExchangeRateCurrency.Id)
             {
                 var exchangeRate = sourceCurrencyCode.Rate;
@@ -374,7 +375,7 @@ namespace Nop.Services.Directory
         }
 
         #endregion
-        
+
         #region Exchange rate providers
 
         /// <summary>
@@ -416,7 +417,7 @@ namespace Nop.Services.Directory
 
             return exchangeRateProviders.OrderBy(tp => tp.PluginDescriptor).ToList();
         }
-        
+
         #endregion
 
         #endregion

@@ -1,4 +1,5 @@
-﻿@model OrderModel
+﻿@using Nop.Services
+@model OrderModel
 
 <div class="panel-group">
     @await Component.InvokeAsync("AdminWidget", new { widgetZone = "admin_order_details_shipping_top", additionalData = Model.Id })
@@ -260,7 +261,11 @@
                                     <div class="form-text-row">@Model.ShippingMethod</div>
                                 </div>
                                 <div id="divShippingMethod">
-                                    <nop-editor asp-for="ShippingMethod" />
+                                    @{
+                                        var selectListShipping = new SelectList(Model.ShippingMethodList, "Name", "Name", Model.ShippingMethod);
+                                        <nop-select asp-for="ShippingMethod" asp-items="selectListShipping" />
+                                    }
+                                    @*<nop-editor asp-for="ShippingMethod" />*@
                                 </div>
                                 <span class="input-group-btn">
                                     <button type="submit" onclick="toggleEditShippingMethod(true);return false;" id="btnEditShippingMethod" class="btn btn-primary">
@@ -301,6 +306,179 @@
             </div>
         </div>
 
+        @*if (Model.ShippingAddress != null && string.IsNullOrEmpty(Model.ShippingMethod) == false)
+            {
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        @T("Admin.Orders.Shipments")
+                    </div>
+                    <div class="panel-body">
+                        <div id="shipments-grid"></div>
+
+                        <script type="text/javascript">
+                        $(document).ready(function () {
+                            $("#shipments-grid").kendoGrid({
+                                dataSource: {
+                                    type: "json",
+                                    transport: {
+                                        read: {
+                                            url: "@Html.Raw(Url.Action("ShipmentsByOrder", "Order", new {orderId = Model.Id}))",
+                                            type: "POST",
+                                            dataType: "json",
+                                            data: addAntiForgeryToken
+                                        }
+                                    },
+                                    schema: {
+                                        data: "Data",
+                                        total: "Total",
+                                        errors: "Errors"
+                                    },
+                                    error: function (e) {
+                                        display_kendoui_grid_error(e);
+                                        // Cancel the changes
+                                        this.cancelChanges();
+                                    },
+                                    serverPaging: true,
+                                    serverFiltering: true,
+                                    serverSorting: true
+                                },
+                                pageable: {
+                                    refresh: true,
+                                    numeric: false,
+                                    previousNext: false,
+                                    info: false,
+                                    @await Html.PartialAsync("_GridPagerMessages")
+                                },
+                                //details grid
+                                detailInit: detailInit,
+                                scrollable: false,
+                                columns: [
+                                    {
+                                        field: "Id",
+                                        title: "@T("Admin.Orders.Shipments.ID")",
+                                        width: 50
+                                    },{
+                                        field: "CustomerFullName",
+                                        title: "@T("Admin.Orders.Shipments.CustomerFullName")",
+                                        width: 50
+                                    }, {
+                                        field: "CustomOrderNumber",
+                                        title: "@T("Admin.Orders.Shipments.CustomOrderNumber")",
+                                        width: 100
+                                    }, {
+                                        field: "TrackingNumber",
+                                        title: "@T("Admin.Orders.Shipments.TrackingNumber")",
+                                        width: 100
+                                    }, {
+                                        field: "TotalWeight",
+                                        title: "@T("Admin.Orders.Shipments.TotalWeight")",
+                                        width: 100
+                                    }, {
+                                        field: "TotalShippingFee",
+                                        title: "@T("Admin.Orders.Shipments.TotalShippingFee")",
+                                        width: 100
+                                    }, {
+                                        field: "ShippedDate",
+                                        title: "@T("Admin.Orders.Shipments.ShippedDate")",
+                                        width: 200,
+                                        type: "date",
+                                        format: "{0:G}"
+                                    }, {
+                                        field: "DeliveryDate",
+                                        title: "@T("Admin.Orders.Shipments.DeliveryDate")",
+                                        width: 200,
+                                        type: "date",
+                                        format: "{0:G}"
+                                    }, {
+                                        field: "Id",
+                                        title: "@T("Admin.Common.View")",
+                                        width: 50,
+                                        headerAttributes: { style: "text-align:center" },
+                                        attributes: { style: "text-align:center" },
+                                        template: '<a class="btn btn-default" href="@Url.Content("~/Admin/Order/ShipmentDetails/")#=Id#"><i class="fa fa-eye"></i>@T("Admin.Common.View")</a>'
+                                    }
+                                ]
+                            });
+                        });
+
+                        //details grid
+                        function detailInit(e) {
+                            $("<div/>").appendTo(e.detailCell).kendoGrid({
+                                dataSource: {
+                                    type: "json",
+                                    transport: {
+                                        read: {
+                                            url: "@Html.Raw(Url.Action("ShipmentsItemsByShipmentId", "Order"))?shipmentId=" + e.data.Id,
+                                            type: "POST",
+                                            dataType: "json",
+                                            data: addAntiForgeryToken
+                                        }
+                                    },
+                                    schema: {
+                                        data: "Data",
+                                        total: "Total",
+                                        errors: "Errors"
+                                    },
+                                    error: function (e) {
+                                        display_kendoui_grid_error(e);
+                                        // Cancel the changes
+                                        this.cancelChanges();
+                                    },
+                                    serverPaging: true,
+                                    serverFiltering: true,
+                                    serverSorting: true
+                                },
+                                scrollable: false,
+                                sortable: true,
+                                pageable: {
+                                    refresh: true,
+                                    numeric: false,
+                                    previousNext: false,
+                                    info: false,
+                                    @await Html.PartialAsync("_GridPagerMessages")
+                                },
+                                columns: [
+                                    {
+                                        field: "ProductName",
+                                        title: "@T("Admin.Orders.Shipments.Products.ProductName")",
+                                        width: 400
+                                    },{
+                                        field: "OrderItemFee",
+                                        title: "@T("Admin.Orders.Shipments.products.orderitemtotal")",
+                                        width: 150
+                                    }, {
+                                        field: "ShippingFeeStr",
+                                        title: "@T("Admin.Orders.Shipments.Products.ShippingFee")",
+                                        width: 150
+                                    }, {
+                                        field: "QuantityInThisShipment",
+                                        title: "@T("Admin.Orders.Shipments.Products.QtyShipped")",
+                                        width: 150
+                                    }, {
+                                        field: "ItemWeight",
+                                        title: "@T("Admin.Orders.Shipments.Products.ItemWeight")",
+                                        width: 150
+                                    }, {
+                                        field: "ItemDimensions",
+                                        title: "@T("Admin.Orders.Shipments.Products.ItemDimensions")",
+                                        width: 150
+                                    }
+                                ]
+                            });
+                        }
+                        </script>
+                    </div>
+
+                    @if (Model.CanAddNewShipments)
+                    {
+                        <div class="panel-footer">
+                            <button type="submit" id="btnAddNewShipment" name="btnAddNewShipment" onclick="javascript:setLocation('@(Url.Action("AddShipment", "Order", new {orderId = Model.Id}))'); return false;" class="btn btn-primary">
+                                @T("Admin.Orders.Shipments.AddNew")
+                            </button>
+                        </div>
+                    }
+                </div>
+            }*@
         <div class="panel panel-default">
             <div class="panel-heading">
                 @T("Admin.Orders.Shipments")
@@ -350,6 +528,10 @@
                                     field: "Id",
                                     title: "@T("Admin.Orders.Shipments.ID")",
                                     width: 50
+                                },{
+                                    field: "CustomerFullName",
+                                    title: "@T("Admin.Orders.Shipments.CustomerFullName")",
+                                    width: 50
                                 }, {
                                     field: "CustomOrderNumber",
                                     title: "@T("Admin.Orders.Shipments.CustomOrderNumber")",
@@ -361,6 +543,10 @@
                                 }, {
                                     field: "TotalWeight",
                                     title: "@T("Admin.Orders.Shipments.TotalWeight")",
+                                    width: 100
+                                }, {
+                                    field: "TotalShippingFee",
+                                    title: "@T("Admin.Orders.Shipments.TotalShippingFee")",
                                     width: 100
                                 }, {
                                     field: "ShippedDate",
@@ -427,9 +613,13 @@
                                     field: "ProductName",
                                     title: "@T("Admin.Orders.Shipments.Products.ProductName")",
                                     width: 400
+                                },{
+                                    field: "OrderItemFee",
+                                    title: "@T("Admin.Orders.Shipments.products.orderitemtotal")",
+                                    width: 150
                                 }, {
-                                    field: "ShippedFromWarehouse",
-                                    title: "@T("Admin.Orders.Shipments.Products.Warehouse")",
+                                    field: "ShippingFeeStr",
+                                    title: "@T("Admin.Orders.Shipments.Products.ShippingFee")",
                                     width: 150
                                 }, {
                                     field: "QuantityInThisShipment",

@@ -1,7 +1,7 @@
-using System;
-using System.ComponentModel.DataAnnotations.Schema;
 using Nop.Core.Caching;
 using Nop.Core.Domain.Directory;
+using System;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Nop.Services.Directory
 {
@@ -40,6 +40,7 @@ namespace Nop.Services.Directory
             CreatedOnUtc = c.CreatedOnUtc;
             UpdatedOnUtc = c.UpdatedOnUtc;
             RoundingTypeId = c.RoundingTypeId;
+            UnitWeightCost = c.UnitWeightCost;
         }
     }
 }

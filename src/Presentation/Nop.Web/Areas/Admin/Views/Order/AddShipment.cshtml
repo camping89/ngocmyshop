@@ -42,6 +42,69 @@
                 <div class="panel panel-default">
                     <div class="panel-body">
                         <div class="form-group">
+                            <input type="hidden" name="CustomerShipmentId" id="CustomerShipmentId" class="form-control" value="@(Model.CustomerId > 0 ? Model.CustomerId.ToString() : string.Empty)" />
+                            <div class="col-md-3">
+                                <nop-label asp-for="CustomerId" />
+                            </div>
+                            <div class="col-md-9">
+                                <input style="float: left;" type="text" name="CustomerName" id="CustomerName" class="form-control" placeholder="@(T("Admin.Common.PleaseInputSearchData"))" value="@Model.CustomerFullName" />
+                                <script>
+                                    $(document).ready(function() {
+                                        $("#CustomerName").autocomplete({
+                                            delay: 800,
+                                            source: function(request, response) {
+
+                                                var postData = {
+                                                    searchTerm: request.term
+                                                };
+                                                addAntiForgeryToken(postData);
+
+                                                $.ajax({
+                                                    cache: false,
+                                                    type: "POST",
+                                                    url: "@(Url.Action("CustomerSearch", "Customer"))",
+                                                    data: postData,
+                                                    complete: function(result) {
+                                                        response($.map(result.responseJSON.Data,
+                                                            function(item) {
+                                                                return {
+                                                                    label: item.FullName,
+                                                                    value: item.Id
+                                                                }
+                                                            }));
+                                                    },
+                                                    error: function(xhr, ajaxOptions, thrownError) {
+                                                        alert(thrownError);
+                                                    },
+                                                    traditional: true
+                                                });
+                                            },
+                                            minLength: 2,
+                                            select: function(event, ui) {
+                                                $('#CustomerShipmentId').val(ui.item.value);
+                                                this.value = ui.item.label;
+                                                //setTimeout(function() {
+
+                                                //},500);
+                                                return false;
+                                            },
+                                            focus: function(event, ui) {
+                                                event.preventDefault();
+                                                this.value = ui.item.label;
+                                            },
+                                            search: function(e, u) {
+                                                $(this).addClass('ajaxprocessing');
+                                            },
+                                            response: function(event, ui) {
+                                                $(this).removeClass('ajaxprocessing');
+                                            }
+                                        });
+
+                                    });
+                                </script>
+                            </div>
+                        </div>
+                        <div class="form-group">
                             <div class="col-md-3">
                                 <nop-label asp-for="TrackingNumber" />
                             </div>
@@ -118,7 +181,10 @@
                                         @T("Admin.Orders.Shipments.Products.SKU")
                                     </th>
                                     <th>
-                                        @T("Admin.Orders.Shipments.Products.Warehouse")
+                                        @T("Admin.Orders.Shipments.products.orderitemtotal")
+                                    </th>
+                                    <th>
+                                        @T("Admin.Orders.Shipments.Products.ShippingFee")
                                     </th>
                                     <th>
                                         @T("Admin.Orders.Shipments.Products.ItemWeight")
@@ -141,7 +207,7 @@
                                 @foreach (var item in Model.Items)
                                 {
                                     <tr>
-                                        <td style="width: 25%;text-align: left">
+                                        <td style="width: 20%;text-align: left">
                                             <em><a asp-controller="Product" asp-action="Edit" asp-route-id="@item.ProductId">@item.ProductName</a></em>
                                             @if (!string.IsNullOrEmpty(item.AttributeInfo))
                                             {
@@ -160,33 +226,11 @@
                                         <td style="width: 10%;">
                                             @item.Sku
                                         </td>
-                                        <td style="width: 15%;">
-                                            @if (item.AllowToChooseWarehouse)
-                                            {
-                                                if (item.AvailableWarehouses.Count > 0)
-                                                {
-                                                    <select name="warehouse_@(item.OrderItemId)" id="warehouse_@(item.OrderItemId)" class="form-control">
-                                                        @foreach (var warehouse in item.AvailableWarehouses)
-                                                        {
-                                                            <option value="@warehouse.WarehouseId" data-stock-qty="@warehouse.StockQuantity" data-reserved-qty="@warehouse.ReservedQuantity" data-planned-qty="@warehouse.PlannedQuantity">
-                                                                @T("Admin.Orders.Shipments.Products.Warehouse.ChooseQty", warehouse.WarehouseName, warehouse.StockQuantity, warehouse.ReservedQuantity, warehouse.PlannedQuantity)
-                                                            </option>
-                                                        }
-                                                    </select>
-                                                }
-                                                else
-                                                {
-                                                    @T("Admin.Orders.Shipments.Products.Warehouse.NotAvailabe")
-                                                }
-                                            }
-                                            else
-                                            {
-                                                //display warehouses
-                                                foreach (var warehouse in item.AvailableWarehouses)
-                                                {
-                                                    <div>@warehouse.WarehouseName</div>
-                                                }
-                                            }
+                                        <td style="width: 10%;">
+                                            @item.OrderItemFee
+                                        </td>
+                                        <td style="width: 10%;">
+                                            <input name="shippingFeeToAdd@(item.OrderItemId)" type="text" value="@item.ShippingFee" id="shippingFeeToAdd@(item.OrderItemId)" class="form-control input-sm" />
                                         </td>
                                         <td style="width: 10%;">
                                             @item.ItemWeight

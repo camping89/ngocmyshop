@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Nop.Core;
 using Nop.Core.Domain.Catalog;
@@ -23,9 +19,11 @@ using Nop.Services.Customers;
 using Nop.Services.Directory;
 using Nop.Services.ExportImport;
 using Nop.Services.ExportImport.Help;
+using Nop.Services.Helpers;
 using Nop.Services.Localization;
 using Nop.Services.Media;
 using Nop.Services.Messages;
+using Nop.Services.Orders;
 using Nop.Services.Seo;
 using Nop.Services.Shipping.Date;
 using Nop.Services.Stores;
@@ -35,6 +33,10 @@ using Nop.Tests;
 using NUnit.Framework;
 using OfficeOpenXml;
 using Rhino.Mocks;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 
 namespace Nop.Services.Tests.ExportImport
 {
@@ -63,7 +65,14 @@ namespace Nop.Services.Tests.ExportImport
         private INewsLetterSubscriptionService _newsLetterSubscriptionService;
         private ProductEditorSettings _productEditorSettings;
         private ICustomerAttributeFormatter _customerAttributeFormatter;
+        private IPriceFormatter _priceFormatter;
+        private ILanguageService _languageService;
 
+        private ICurrencyService _currencyService;
+        private CurrencySettings _currencySettings;
+        private IProductAttributeParser _productAttributeParser;
+        private IDateTimeHelper _dateTimeHelper;
+        private IPackageOrderService _packageOrderService;
         [SetUp]
         public new void SetUp()
         {
@@ -89,6 +98,14 @@ namespace Nop.Services.Tests.ExportImport
             _productEditorSettings = new ProductEditorSettings();
             _customerAttributeFormatter = MockRepository.GenerateMock<ICustomerAttributeFormatter>();
 
+            _priceFormatter = MockRepository.GenerateMock<IPriceFormatter>();
+            _languageService = MockRepository.GenerateMock<ILanguageService>();
+            _currencyService = MockRepository.GenerateMock<ICurrencyService>();
+            _currencySettings = MockRepository.GenerateMock<CurrencySettings>();
+            _productAttributeParser = MockRepository.GenerateMock<IProductAttributeParser>();
+            _dateTimeHelper = MockRepository.GenerateMock<IDateTimeHelper>();
+            _packageOrderService = MockRepository.GenerateMock<IPackageOrderService>();
+
             var httpContextAccessor = MockRepository.GenerateMock<IHttpContextAccessor>();
             var nopEngine = MockRepository.GenerateMock<NopEngine>();
             var serviceProvider = MockRepository.GenerateMock<IServiceProvider>();
@@ -98,7 +115,7 @@ namespace Nop.Services.Tests.ExportImport
                 Id = 1,
                 SeoFilename = "picture"
             };
-            
+
             _genericAttributeService.Expect(p => p.GetAttributesForEntity(1, "Customer"))
                 .Return(new List<GenericAttribute>
                 {
@@ -132,7 +149,7 @@ namespace Nop.Services.Tests.ExportImport
             serviceProvider.Expect(x => x.GetRequiredService(typeof(IHttpContextAccessor))).Return(httpContextAccessor);
 
             EngineContext.Replace(nopEngine);
-            _exportManager = new ExportManager(_categoryService, _manufacturerService, _customerService, _productAttributeService, _pictureService, _newsLetterSubscriptionService, _storeService, _workContext, _productEditorSettings, _vendorService, _productTemplateService, _dateRangeService, _taxCategoryService, _measureService, _catalogSettings, _genericAttributeService, _customerAttributeFormatter, _orderSettings, _specificationAttributeService);
+            _exportManager = new ExportManager(_categoryService, _manufacturerService, _customerService, _productAttributeService, _pictureService, _newsLetterSubscriptionService, _storeService, _workContext, _productEditorSettings, _vendorService, _productTemplateService, _dateRangeService, _taxCategoryService, _measureService, _catalogSettings, _genericAttributeService, _customerAttributeFormatter, _orderSettings, _specificationAttributeService, _priceFormatter, _languageService, _currencyService, _currencySettings, _productAttributeParser, _dateTimeHelper, _packageOrderService);
         }
 
         #region Utilities
@@ -697,7 +714,7 @@ namespace Nop.Services.Tests.ExportImport
 
             manager.ReadFromXlsx(worksheet, 2);
             var product = products.First();
-            
+
             AreAllObjectPropertiesPresent(product, manager, ignore.ToArray());
             PropertiesShouldEqual(product, manager, replacePairse);
         }

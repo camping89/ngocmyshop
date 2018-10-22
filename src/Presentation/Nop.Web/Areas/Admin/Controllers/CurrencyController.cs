@@ -441,6 +441,12 @@ namespace Nop.Web.Areas.Admin.Controllers
             }
         }
 
+        [HttpPost]
+        public JsonResult GetCurrencyById(int currencyId)
+        {
+            var currency = _currencyService.GetCurrencyById(currencyId, false);
+            return Json(new {data = currency});
+        }
         #endregion
     }
 }

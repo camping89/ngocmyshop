@@ -272,7 +272,7 @@ namespace Nop.Services.Customers
             var totalRecordsDeleted = pTotalRecordsDeleted.Value != DBNull.Value ? Convert.ToInt32(pTotalRecordsDeleted.Value) : 0;
             return totalRecordsDeleted;
         }
-        
+
         #endregion
 
         #region Methods
@@ -288,6 +288,7 @@ namespace Nop.Services.Customers
         /// <param name="vendorId">Vendor identifier</param>
         /// <param name="customerRoleIds">A list of customer role identifiers to filter by (at least one match); pass null or empty list in order to load all customers; </param>
         /// <param name="email">Email; null to load all customers</param>
+        /// <param name="linkFacebook">linkFacebook; null to load all customers</param>
         /// <param name="username">Username; null to load all customers</param>
         /// <param name="firstName">First name; null to load all customers</param>
         /// <param name="lastName">Last name; null to load all customers</param>
@@ -304,7 +305,7 @@ namespace Nop.Services.Customers
         /// <returns>Customers</returns>
         public virtual IPagedList<Customer> GetAllCustomers(DateTime? createdFromUtc = null,
             DateTime? createdToUtc = null, int affiliateId = 0, int vendorId = 0,
-            int[] customerRoleIds = null, string email = null, string username = null,
+            int[] customerRoleIds = null, string email = null, string linkFacebook = null, string username = null,
             string firstName = null, string lastName = null,
             int dayOfBirth = 0, int monthOfBirth = 0,
             string company = null, string phone = null, string zipPostalCode = null,
@@ -325,6 +326,16 @@ namespace Nop.Services.Customers
                 query = query.Where(c => c.CustomerRoles.Select(cr => cr.Id).Intersect(customerRoleIds).Any());
             if (!string.IsNullOrWhiteSpace(email))
                 query = query.Where(c => c.Email.Contains(email));
+            //search by facebook
+            if (!string.IsNullOrWhiteSpace(linkFacebook))
+            {
+                query = query
+                    .Join(_gaRepository.Table, x => x.Id, y => y.EntityId, (x, y) => new { Customer = x, Attribute = y })
+                    .Where((z => z.Attribute.KeyGroup == "Customer" &&
+                                 (z.Attribute.Key == SystemCustomerAttributeNames.LinkFacebook1 || z.Attribute.Key == SystemCustomerAttributeNames.LinkFacebook2) &&
+                                 z.Attribute.Value.Contains(linkFacebook)))
+                    .Select(z => z.Customer);
+            }
             if (!string.IsNullOrWhiteSpace(username))
                 query = query.Where(c => c.Username.Contains(username));
             if (!string.IsNullOrWhiteSpace(firstName))
