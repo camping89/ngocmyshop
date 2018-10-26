@@ -472,7 +472,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             model.CustomOrderNumber = order.CustomOrderNumber;
             var store = _storeService.GetStoreById(order.StoreId);
             model.StoreName = store != null ? store.Name : "Unknown";
-            model.AdminNote = order.AdminNote;
+            model.AdminNote = order.AdminNote ?? string.Empty;
             model.CustomerId = order.CustomerId;
             var customer = order.Customer;
             model.CustomerInfo = $"{customer.GetFullName()}<br/>" +
@@ -558,12 +558,10 @@ namespace Nop.Web.Areas.Admin.Controllers
                     DownloadActivationType = orderItem.Product.DownloadActivationType,
                     IsDownloadActivated = orderItem.IsDownloadActivated,
                     WeightCostDec = orderItem.WeightCost,
-                    WeightCost = _priceFormatter.FormatPrice(orderItem.WeightCost, true,
-                        primaryStoreCurrency, _workContext.WorkingLanguage, true, true),
-                    TotalWithoutWeightCost = _priceFormatter.FormatPrice((orderItem.PriceInclTax - orderItem.WeightCost), true,
-                        primaryStoreCurrency, _workContext.WorkingLanguage, true, true),
+                    WeightCost = _priceFormatter.FormatPrice(orderItem.WeightCost, true, primaryStoreCurrency, _workContext.WorkingLanguage, true, true),
+                    TotalWithoutWeightCost = _priceFormatter.FormatPrice((orderItem.PriceInclTax - orderItem.WeightCost), true, primaryStoreCurrency, _workContext.WorkingLanguage, true, true),
                     PackageOrderId = orderItem.PackageOrderId ?? 0,
-                    PackageOrder = model.PackageOrderModels != null ? model.PackageOrderModels.FirstOrDefault(_ => _.Id == orderItem.PackageOrderId) : null,
+                    PackageOrder = model.PackageOrderModels?.FirstOrDefault(_ => _.Id == orderItem.PackageOrderId),
                     PackageItemCode = orderItem.PackageItemCode,
                     PackageItemProcessedDatetime = orderItem.PackageItemProcessedDatetime,
                     IncludeWeightCost = orderItem.IncludeWeightCost,
@@ -1530,9 +1528,9 @@ namespace Nop.Web.Areas.Admin.Controllers
                         CustomerPhone = x.Customer.GetAttribute<string>(SystemCustomerAttributeNames.Phone),
                         CreatedOn = _dateTimeHelper.ConvertToUserTime(x.CreatedOnUtc, DateTimeKind.Utc),
                         CustomOrderNumber = x.CustomOrderNumber,
-                        WeightCost = _priceFormatter.FormatPrice(x.WeightCost, true, false),
-                        AdminNote = x.AdminNote,
-                        OrderTotalWithoutWeightCost = _priceFormatter.FormatPrice(x.OrderTotal - x.WeightCost, true, false)
+                        WeightCost = _priceFormatter.FormatPrice(x.WeightCost, false, false),
+                        AdminNote = x.AdminNote ?? string.Empty,
+                        OrderTotalWithoutWeightCost = _priceFormatter.FormatPrice(x.OrderTotal - x.WeightCost, false, false)
                     };
                     //PrepareOrderDetailsModel(orderModel, x);
                     //if (orderModel.Items.Count > 0)
@@ -1872,7 +1870,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             }
         }
 
-        
+
         [HttpPost]
         [HttpPost, ActionName("List")]
         [FormValueRequired("exportexcel-orderbasic-all")]
@@ -5384,16 +5382,14 @@ namespace Nop.Web.Areas.Admin.Controllers
                         //DownloadActivationType = orderItem.Product.DownloadActivationType,
                         //IsDownloadActivated = orderItem.IsDownloadActivated,
                         WeightCostDec = orderItem.WeightCost,
-                        WeightCost = _priceFormatter.FormatPrice(orderItem.WeightCost, true,
-                        primaryStoreCurrency, _workContext.WorkingLanguage, true, true),
-                        TotalWithoutWeightCost = _priceFormatter.FormatPrice((orderItem.PriceInclTax - orderItem.WeightCost), true,
-                        primaryStoreCurrency, _workContext.WorkingLanguage, true, true),
+                        WeightCost = _priceFormatter.FormatPrice(orderItem.WeightCost, true, primaryStoreCurrency, _workContext.WorkingLanguage, true, true),
+                        TotalWithoutWeightCost = _priceFormatter.FormatPrice((orderItem.PriceInclTax - orderItem.WeightCost), true, primaryStoreCurrency, _workContext.WorkingLanguage, true, true),
                         PackageOrderId = orderItem.PackageOrderId ?? 0,
                         PackageOrder = orderItem.PackageOrder.ToModel(),
                         PackageItemCode = orderItem.PackageItemCode,
                         PackageItemProcessedDatetime = orderItem.PackageItemProcessedDatetime,
                         IncludeWeightCost = orderItem.IncludeWeightCost,
-                        UnitWeightCost = currencyProduct != null ? currencyProduct.UnitWeightCost : 0 ,
+                        UnitWeightCost = currencyProduct != null ? currencyProduct.UnitWeightCost : 0,
                         IsOrderCheckout = orderItem.IsOrderCheckout,
                         ItemWeight = orderItem.ItemWeight ?? 0,
                         CustomerInfo = customerInfo,
@@ -5437,10 +5433,8 @@ namespace Nop.Web.Areas.Admin.Controllers
                     //subtotal
                     orderItemModel.SubTotalInclTaxValue = orderItem.PriceInclTax;
                     orderItemModel.SubTotalExclTaxValue = orderItem.PriceExclTax;
-                    orderItemModel.SubTotalInclTax = _priceFormatter.FormatPrice(orderItem.PriceInclTax, true, primaryStoreCurrency,
-                        _workContext.WorkingLanguage, true, true);
-                    orderItemModel.SubTotalExclTax = _priceFormatter.FormatPrice(orderItem.PriceExclTax, true, primaryStoreCurrency,
-                        _workContext.WorkingLanguage, false, true);
+                    orderItemModel.SubTotalInclTax = _priceFormatter.FormatPrice(orderItem.PriceInclTax, true, primaryStoreCurrency, _workContext.WorkingLanguage, true, true);
+                    orderItemModel.SubTotalExclTax = _priceFormatter.FormatPrice(orderItem.PriceExclTax, true, primaryStoreCurrency, _workContext.WorkingLanguage, false, true);
 
                     //orderItemModel.AttributeInfo = orderItem.AttributeDescription;
                     //if (orderItem.Product.IsRecurring)
