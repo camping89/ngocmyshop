@@ -42,12 +42,42 @@
                 </ul>
             </div>
 
+            <div class="btn-group">
+                <button type="button" class="btn btn-success">
+                    <i class="fa fa-download"></i>
+                    @T("Admin.Common.Export")
+                </button>
+                <button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+                    <span class="caret"></span>
+                    <span class="sr-only">&nbsp;</span>
+                </button>
+                <ul class="dropdown-menu" role="menu">
+
+                    <li>
+                        <button type="button" id="exportexcel-shipment-selected">
+                            <i class="fa fa-file-excel-o"></i>
+                            @T("Admin.Common.ExportToExcel.ShipmentItems.Selected")
+                        </button>
+                    </li>
+                    <li>
+                        <button type="submit" name="exportexcel-shipment-all">
+                            <i class="fa fa-file-excel-o"></i>
+                            @T("Admin.Common.ExportToExcel.ShipmentItems.All")
+                        </button>
+                    </li>
+                </ul>
+            </div>
+
             <button type="button" id="assign-shipper-selected" class="btn bg-aqua" data-toggle="modal" data-target="#assign-shipment-new-customer-window">
                 @T("Admin.Orders.Shipments.AssignToShipperSelected")
             </button>
 
             <button type="button" id="apply-tracking-number-selected" class="btn bg-aqua" data-toggle="modal" data-target="#apply-tracking-number-window">
                 @T("Admin.Orders.Shipments.ApplyTrackingNumber")
+            </button>
+
+            <button type="button" id="apply-bagid-selected" class="btn bg-aqua" data-toggle="modal" data-target="#apply-bagid-window">
+                @T("Admin.Orders.Shipments.ApplyBagId")
             </button>
 
             <button type="button" id="ship-selected" class="btn bg-aqua">
@@ -296,6 +326,10 @@
                                             title: "@T("Admin.Orders.Shipments.ID")",
                                             width: 50
                                         }, {
+                                            field: "BagId",
+                                            title: "@T("Admin.Orders.Shipments.BagId")",
+                                            width: 100
+                                        }, {
                                             field: "CustomOrderNumber",
                                             title: "@T("Admin.Orders.Shipments.CustomOrderNumber")",
                                             width: 100
@@ -310,6 +344,10 @@
                                         }, {
                                             field: "CustomerFullName",
                                             title: "@T("Admin.Orders.Shipments.CustomerFullName")",
+                                            width: 200
+                                        }, {
+                                            field: "ShipmentAddress",
+                                            title: "@T("Admin.Orders.Shipments.ShipmentAddress")",
                                             width: 200
                                         }, {
                                             field: "ShippedDate",
@@ -648,7 +686,7 @@
 
 @*export selected (Excel). We don't use GET approach because it's limited to 2K-4K chars and won't work for large number of entities*@
 <form asp-controller="Order" asp-action="PdfPackagingSlipSelected" method="post" id="pdf-packaging-slip-selected-form">
-    <input type="hidden" id="selectedIds" name="selectedIds" value="" />
+    <input type="hidden" class="selectedIds" name="selectedIds" value="" />
 </form>
 
 <script type="text/javascript">
@@ -656,8 +694,24 @@
         $('#exportpackagingslips-selected').click(function (e) {
             e.preventDefault();
             var ids = selectedIds.join(",");
-            $('#pdf-packaging-slip-selected-form #selectedIds').val(ids);
+            $('#pdf-packaging-slip-selected-form .selectedIds').val(ids);
             $('#pdf-packaging-slip-selected-form').submit();
+            return false;
+        });
+    });
+</script>
+
+<form asp-controller="Order" asp-action="ExcelPackagingSlipSelected" method="post" id="excel-packaging-slip-selected-form">
+    <input type="hidden" class="selectedIds" name="selectedIds" value="" />
+</form>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('#exportexcel-shipment-selected').click(function (e) {
+            e.preventDefault();
+            var ids = selectedIds.join(",");
+            $('#excel-packaging-slip-selected-form .selectedIds').val(ids);
+            $('#excel-packaging-slip-selected-form').submit();
             return false;
         });
     });
@@ -669,7 +723,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                <h4 class="modal-title" id="apply-tracking-number-window-title">@T("Admin.Common.AddProductsToCategoriesTitle")</h4>
+                <h4 class="modal-title" id="apply-tracking-number-window-title">@T("Admin.Common.AddTrackingNumberTitle")</h4>
             </div>
             <form asp-controller="Order" asp-action="ApplyTrackingNumberSelected" method="post" id="apply-tracking-number-selected-form">
                 <div class="form-horizontal">
@@ -730,12 +784,79 @@
 </script>
 
 
+
+<div id="apply-bagid-window" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="apply-bagid-title">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="apply-bagid-window-title">@T("Admin.Common.AddBagIdTitle")</h4>
+            </div>
+            <form asp-controller="Order" asp-action="ApplyBagIdSelected" method="post" id="apply-bagid-selected-form">
+                <div class="form-horizontal">
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <div class="col-md-4">
+                                <nop-label asp-for="BagIdNew" />
+                            </div>
+                            <div class="col-md-8">
+                                <nop-editor asp-for="BagIdNew" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" id="btn-apply-bagid" class="btn btn-primary">
+                            @T("Admin.Common.Save")
+                        </button>
+                    </div>
+                </div>
+
+            </form>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('#btn-apply-bagid').click(function (e) {
+            e.preventDefault();
+            var bagIdNew = $('#BagIdNew').val();
+            var postData = { selectedIds: selectedIds, bagIdNew: bagIdNew };
+            addAntiForgeryToken(postData);
+            $.ajax({
+                cache: false,
+                type: "POST",
+                url: "@(Url.Action("ApplyBagIdSelected", "Order"))",
+                data: postData,
+                complete: function(data) {
+                    var jsonData = data.responseJSON;
+                    if (jsonData.Result === false) {
+                        alert(jsonData.Message);
+                        return;
+                    }
+                    selectedIds = [];
+                    $('#apply-bagid-window').modal('toggle');
+                    //reload grid
+                    var grid = $('#shipments-grid').data('kendoGrid');
+                    grid.dataSource.read();
+                    $('#BagIdNew').val('');
+                },
+                error: function(xhr, ajaxOptions, thrownError) {
+                    alert(thrownError);
+                },
+                traditional: true
+            });
+            return false;
+        });
+    });
+</script>
+
 <div id="assign-shipment-new-customer-window" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="assign-shipment-new-customer-title">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                <h4 class="modal-title" id="assign-shipment-new-customer-window-title">@T("Admin.Common.AddProductsToCategoriesTitle")</h4>
+                <h4 class="modal-title" id="assign-shipment-new-customer-window-title">@T("Admin.Common.AssignNewShipper")</h4>
             </div>
             <form asp-controller="Order" asp-action="AssignNewShipperSelected" method="post" id="assign-shipper-selected-form">
                 <div class="form-horizontal">
@@ -779,6 +900,10 @@
                     //reload grid
                     var grid = $('#shipments-grid').data('kendoGrid');
                     grid.dataSource.read();
+                    $('#CustomerNewId').val(0);
+
+                    $("#CustomerNewId").chosen("destroy");
+                    $("#CustomerNewId").chosen();
                 },
                 error: function(xhr, ajaxOptions, thrownError) {
                     alert(thrownError);

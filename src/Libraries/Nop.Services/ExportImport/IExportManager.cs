@@ -3,6 +3,7 @@ using Nop.Core.Domain.Customers;
 using Nop.Core.Domain.Directory;
 using Nop.Core.Domain.Messages;
 using Nop.Core.Domain.Orders;
+using Nop.Core.Domain.Shipping;
 using System.Collections.Generic;
 
 namespace Nop.Services.ExportImport
@@ -65,6 +66,7 @@ namespace Nop.Services.ExportImport
         byte[] ExportVendorInvoiesToXlsx(IList<Order> orders);
         byte[] ExportOrdersToXlsxBasic(IList<Order> orders);
         byte[] ExportOrderItemsToXlsxBasic(IList<OrderItem> orderItems);
+        byte[] ExportShipmentToXlsxBasic(IList<Shipment> shipments);
         /// <summary>
         /// Export customer list to XLSX
         /// </summary>

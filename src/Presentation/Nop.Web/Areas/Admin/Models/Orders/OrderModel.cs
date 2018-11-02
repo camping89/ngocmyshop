@@ -303,6 +303,7 @@ namespace Nop.Web.Areas.Admin.Models.Orders
             public bool IncludeWeightCost { get; set; }
             public bool IsOrderCheckout { get; set; }
             public decimal WeightCostDec { get; set; }
+            public decimal UnitWeightCost { get; set; }
             public decimal ItemWeight { get; set; }
         }
         public partial class OrderItemModel : BaseNopEntityModel
@@ -361,7 +362,7 @@ namespace Nop.Web.Areas.Admin.Models.Orders
 
             public bool IncludeWeightCost { get; set; }
             public bool IsOrderCheckout { get; set; }
-
+            public string PrimaryStoreCurrencyCode { get; set; }
             #region Nested Classes
 
             public partial class ReturnRequestBriefModel : BaseNopEntityModel

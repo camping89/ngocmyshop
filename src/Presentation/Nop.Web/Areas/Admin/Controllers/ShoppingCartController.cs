@@ -970,6 +970,8 @@ namespace Nop.Web.Areas.Admin.Controllers
             //model
             var model = _productModelFactory.PrepareProductDetailsModel(product, updatecartitem, false);
             model.CustomerId = customerId;
+            model.MetaTitle = $"Thêm vào giỏ hàng - {customer.GetFullName()} - Sku: {product.Sku}";
+
             var productTemplateViewPath = _productModelFactory.PrepareProductTemplateViewPath(product);
             return View(productTemplateViewPath, model);
         }

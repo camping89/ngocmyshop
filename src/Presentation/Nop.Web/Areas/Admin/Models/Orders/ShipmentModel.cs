@@ -31,6 +31,8 @@ namespace Nop.Web.Areas.Admin.Models.Orders
         public string TrackingNumber { get; set; }
         public string TrackingNumberUrl { get; set; }
 
+        [NopResourceDisplayName("Admin.Orders.Shipments.ShipmentAddress")]
+        public string ShipmentAddress { get; set; }
         [NopResourceDisplayName("Admin.Orders.Shipments.ShippedDate")]
         public string ShippedDate { get; set; }
         public bool CanShip { get; set; }
@@ -43,6 +45,9 @@ namespace Nop.Web.Areas.Admin.Models.Orders
         [UIHint("DateNullable")]
         public DateTime? DeliveryDateUtc { get; set; }
 
+        [NopResourceDisplayName("Admin.Orders.Shipments.BagId")]
+        public string BagId { get; set; }
+
         [NopResourceDisplayName("Admin.Orders.Shipments.Customer")]
         public int CustomerId { get; set; }
 
@@ -51,6 +56,8 @@ namespace Nop.Web.Areas.Admin.Models.Orders
         [NopResourceDisplayName("Admin.Orders.Shipments.ShipperFullName")]
         public string CustomerFullName { get; set; }
 
+        [NopResourceDisplayName("Admin.Orders.Shipments.Shipper")]
+        public int ShipperId { get; set; }
         [NopResourceDisplayName("Admin.Orders.Shipments.ShipperFullName")]
         public string ShipperFullName { get; set; }
 

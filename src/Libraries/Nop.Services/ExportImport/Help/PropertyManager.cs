@@ -1,9 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using Microsoft.AspNetCore.Mvc.Rendering;
+﻿using Microsoft.AspNetCore.Mvc.Rendering;
+using Nop.Core;
+using Nop.Services.Localization;
 using OfficeOpenXml;
 using OfficeOpenXml.Style;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Nop.Services.ExportImport.Help
 {
@@ -17,13 +19,20 @@ namespace Nop.Services.ExportImport.Help
         /// All properties
         /// </summary>
         private readonly Dictionary<string, PropertyByName<T>> _properties;
-        
+
+        private readonly ILocalizationService _localizationService;
+        private readonly IWorkContext _workContext;
+
         /// <summary>
         /// Ctor
         /// </summary>
         /// <param name="properties">All access properties</param>
-        public PropertyManager(IEnumerable<PropertyByName<T>> properties)
+        /// <param name="workContext"></param>
+        /// <param name="localizationService"></param>
+        public PropertyManager(IEnumerable<PropertyByName<T>> properties, IWorkContext workContext = null, ILocalizationService localizationService = null)
         {
+            _workContext = workContext;
+            _localizationService = localizationService;
             _properties = new Dictionary<string, PropertyByName<T>>();
 
             var poz = 1;
@@ -85,11 +94,11 @@ namespace Nop.Services.ExportImport.Help
         /// <param name="exportImportUseDropdownlistsForAssociatedEntities">Indicating whether need create dropdown list for export</param>
         /// <param name="cellOffset">Cell offset</param>
         /// <param name="fWorksheet">Filters worksheet</param>
-        public void WriteToXlsx(ExcelWorksheet worksheet, int row, bool exportImportUseDropdownlistsForAssociatedEntities, int cellOffset = 0, ExcelWorksheet fWorksheet=null)
+        public void WriteToXlsx(ExcelWorksheet worksheet, int row, bool exportImportUseDropdownlistsForAssociatedEntities, int cellOffset = 0, ExcelWorksheet fWorksheet = null)
         {
             if (CurrentObject == null)
                 return;
-            
+
             foreach (var prop in _properties.Values)
             {
                 var cell = worksheet.Cells[row, prop.PropertyOrderPosition + cellOffset];
@@ -104,14 +113,14 @@ namespace Nop.Services.ExportImport.Help
 
                     cell.Value = prop.GetItemText(prop.GetProperty(CurrentObject));
 
-                    if(!exportImportUseDropdownlistsForAssociatedEntities)
+                    if (!exportImportUseDropdownlistsForAssociatedEntities)
                         continue;
 
                     var validator = cell.DataValidation.AddListDataValidation();
-                    
+
                     validator.AllowBlank = prop.AllowBlank;
 
-                    if(fWorksheet == null)
+                    if (fWorksheet == null)
                         continue;
 
                     var fRow = 1;
@@ -121,7 +130,7 @@ namespace Nop.Services.ExportImport.Help
 
                         if (fCell.Value != null && fCell.Value.ToString() == dropDownElement)
                             break;
-                        
+
                         fCell.Value = dropDownElement;
                     }
 
@@ -133,7 +142,7 @@ namespace Nop.Services.ExportImport.Help
                 }
             }
         }
-        
+
         /// <summary>
         /// Read object data from XLSX worksheet
         /// </summary>
@@ -158,6 +167,32 @@ namespace Nop.Services.ExportImport.Help
         /// <param name="setStyle">Detection of cell style</param>
         /// <param name="row">Row num</param>
         /// <param name="cellOffset">Cell offset</param>
+        /// <param name="useLocalization">Load resource for header excel</param>
+        public void WriteCaption<T>(ExcelWorksheet worksheet, Action<ExcelStyle> setStyle, int row = 1, int cellOffset = 0, bool useLocalization = false)
+        {
+            foreach (var caption in _properties.Values)
+            {
+                var cell = worksheet.Cells[row, caption.PropertyOrderPosition + cellOffset];
+                if (useLocalization == false)
+                {
+                    cell.Value = caption;
+                }
+                else
+                {
+                    if (_localizationService != null)
+                    {
+                        var key = $"Export.{typeof(T).Name}.{caption.PropertyName}";
+                        cell.Value = _localizationService.GetResource(key, languageId: _workContext.WorkingLanguage.Id);
+                    }
+                    else
+                    {
+                        cell.Value = caption;
+                    }
+
+                }
+                setStyle(cell.Style);
+            }
+        }
         public void WriteCaption(ExcelWorksheet worksheet, Action<ExcelStyle> setStyle, int row = 1, int cellOffset = 0)
         {
             foreach (var caption in _properties.Values)
@@ -167,7 +202,6 @@ namespace Nop.Services.ExportImport.Help
                 setStyle(cell.Style);
             }
         }
-
         /// <summary>
         /// Count of properties
         /// </summary>

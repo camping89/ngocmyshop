@@ -69,6 +69,8 @@ namespace Nop.Services.ExportImport
         private readonly IProductAttributeParser _productAttributeParser;
         private readonly IDateTimeHelper _dateTimeHelper;
         private readonly IPackageOrderService _packageOrderService;
+        private readonly ILocalizationService _localizationService;
+        private readonly IOrderService _orderService;
         #endregion
 
         #region Ctor
@@ -91,7 +93,7 @@ namespace Nop.Services.ExportImport
             IGenericAttributeService genericAttributeService,
             ICustomerAttributeFormatter customerAttributeFormatter,
             OrderSettings orderSettings,
-            ISpecificationAttributeService specificationAttributeService, IPriceFormatter priceFormatter, ILanguageService languageService, ICurrencyService currencyService, CurrencySettings currencySettings, IProductAttributeParser productAttributeParser, IDateTimeHelper dateTimeHelper, IPackageOrderService packageOrderService)
+            ISpecificationAttributeService specificationAttributeService, IPriceFormatter priceFormatter, ILanguageService languageService, ICurrencyService currencyService, CurrencySettings currencySettings, IProductAttributeParser productAttributeParser, IDateTimeHelper dateTimeHelper, IPackageOrderService packageOrderService, ILocalizationService localizationService, IOrderService orderService)
         {
             this._categoryService = categoryService;
             this._manufacturerService = manufacturerService;
@@ -119,6 +121,8 @@ namespace Nop.Services.ExportImport
             _productAttributeParser = productAttributeParser;
             _dateTimeHelper = dateTimeHelper;
             _packageOrderService = packageOrderService;
+            _localizationService = localizationService;
+            _orderService = orderService;
         }
 
         #endregion
@@ -309,8 +313,8 @@ namespace Nop.Services.ExportImport
                     fWorksheet.Hidden = eWorkSheetHidden.VeryHidden;
 
                     //create Headers and format them 
-                    var manager = new PropertyManager<T>(properties.Where(p => !p.Ignore));
-                    manager.WriteCaption(worksheet, SetCaptionStyle);
+                    var manager = new PropertyManager<T>(properties.Where(p => !p.Ignore), _workContext, _localizationService);
+                    manager.WriteCaption<T>(worksheet, SetCaptionStyle, useLocalization: true);
 
                     var row = 2;
                     foreach (var items in itemsToExport)
@@ -1686,7 +1690,7 @@ namespace Nop.Services.ExportImport
 
             return ExportToXlsx(orderItemProperties, listItem);
         }
-        
+
         public virtual byte[] ExportOrderItemsToXlsxBasic(IList<OrderItem> orderItems)
         {
             //a vendor should have access only to part of order information
@@ -1695,20 +1699,29 @@ namespace Nop.Services.ExportImport
             var orderItemProperties = new[]
             {
                 new PropertyByName<ExportVendorInvoiceItemModel>("OrderId", oi => oi.OrderId),
-                new PropertyByName<ExportVendorInvoiceItemModel>("CustomerInfo", oi => oi.CustomerInfo),
+                new PropertyByName<ExportVendorInvoiceItemModel>("CustomerInfo",  oi => oi.CustomerInfo),
                 new PropertyByName<ExportVendorInvoiceItemModel>("CreatedDate", oi => oi.CreatedDate),
-                new PropertyByName<ExportVendorInvoiceItemModel>("VendorProductUrl", oi => oi.VendorProductUrl),
-                new PropertyByName<ExportVendorInvoiceItemModel>("ProductName", oi => oi.ProductName),
+                //new PropertyByName<ExportVendorInvoiceItemModel>("ProductImage", oi => oi.ProductImage)
+                //{
+                //    IsImage = true
+                //},
+                new PropertyByName<ExportVendorInvoiceItemModel>("ProductInfo", oi => oi.ProductInfo),
                 new PropertyByName<ExportVendorInvoiceItemModel>("Quantity", oi => oi.Quantity),
                 new PropertyByName<ExportVendorInvoiceItemModel>("TotalWithoutWeightCost", oi => oi.TotalWithoutWeightCost),
                 new PropertyByName<ExportVendorInvoiceItemModel>("WeightCost", oi => oi.WeightCost),
                 new PropertyByName<ExportVendorInvoiceItemModel>("TotalCost", oi => oi.TotalCost),
-                new PropertyByName<ExportVendorInvoiceItemModel>("PackageOrderCode", oi => oi.PackageOrderCode),
-                new PropertyByName<ExportVendorInvoiceItemModel>("PackageOrderItemCode", oi => oi.PackageOrderItemCode),
-                new PropertyByName<ExportVendorInvoiceItemModel>("PackageItemProcessedDatetime", oi => oi.PackageItemProcessedDatetime),
-                new PropertyByName<ExportVendorInvoiceItemModel>("IsVendorCheckout", oi => oi.IsVendorCheckout)
+                new PropertyByName<ExportVendorInvoiceItemModel>("VendorProductUrl", oi => oi.VendorProductUrl),
+                new PropertyByName<ExportVendorInvoiceItemModel>("BaseUnitPrice", oi => oi.BaseUnitPrice),
+                new PropertyByName<ExportVendorInvoiceItemModel>("ExchangeRate", oi => oi.ExchangeRate),
+                new PropertyByName<ExportVendorInvoiceItemModel>("OrderingFee", oi => oi.OrderingFee),
+                new PropertyByName<ExportVendorInvoiceItemModel>("SaleOff", oi => oi.SaleOff),
+                new PropertyByName<ExportVendorInvoiceItemModel>("ETA", oi => oi.ETA),
+                //new PropertyByName<ExportVendorInvoiceItemModel>("PackageOrderCode", oi => oi.PackageOrderCode),
+                //new PropertyByName<ExportVendorInvoiceItemModel>("PackageOrderItemCode", oi => oi.PackageOrderItemCode),
+                //new PropertyByName<ExportVendorInvoiceItemModel>("PackageItemProcessedDatetime", oi => oi.PackageItemProcessedDatetime),
+                //new PropertyByName<ExportVendorInvoiceItemModel>("IsVendorCheckout", oi => oi.IsVendorCheckout)
             };
-            
+
             List<ExportVendorInvoiceItemModel> listItem = new List<ExportVendorInvoiceItemModel>();
             foreach (var orderItem in orderItems)
             {
@@ -1728,24 +1741,107 @@ namespace Nop.Services.ExportImport
                 {
                     OrderId = orderItem.OrderId.ToString(),
                     CustomerInfo = customerInfo,
-                    ProductName = orderItem.Product.GetLocalized(x => x.Name, _workContext.WorkingLanguage.Id),
+                    ProductInfo = orderItem.Product.GetLocalized(x => x.Name, _workContext.WorkingLanguage.Id),
+                    //ProductImage = GetPictures(orderItem.Product)[0],
                     CreatedDate = orderItem.Order.CreatedOnUtc.ToString("g"),
                     VendorProductUrl = orderItem.Product.VendorProductUrl,
                     Quantity = orderItem.Quantity,
                     TotalWithoutWeightCost = orderItem.PriceExclTax - orderItem.WeightCost,
                     WeightCost = orderItem.WeightCost,
                     TotalCost = orderItem.PriceExclTax,
-                    PackageOrderCode = orderItem.PackageOrder != null ? $"{orderItem.PackageOrder.PackageCode} - {orderItem.PackageOrder.PackageName}" : string.Empty,
-                    PackageOrderItemCode = orderItem.PackageItemCode,
-                    PackageItemProcessedDatetime = orderItem.PackageItemProcessedDatetime?.ToString("g"),
-                    IsVendorCheckout = orderItem.IsOrderCheckout.ToString()
+                    //PackageOrderCode = orderItem.PackageOrder != null ? $"{orderItem.PackageOrder.PackageCode} - {orderItem.PackageOrder.PackageName}" : string.Empty,
+                    //PackageOrderItemCode = orderItem.PackageItemCode,
+                    //PackageItemProcessedDatetime = orderItem.PackageItemProcessedDatetime?.ToString("g"),
+                    //IsVendorCheckout = orderItem.IsOrderCheckout.ToString(),
+                    BaseUnitPrice = orderItem.UnitPriceUsd,
+                    OrderingFee = orderItem.OrderingFee,
+                    ExchangeRate = orderItem.ExchangeRate,
+                    SaleOff = orderItem.SaleOffPercent,
+                    ETA = orderItem.PackageItemProcessedDatetime?.ToString("dd/MM/yyyy")
                 };
-                if (!string.IsNullOrEmpty(orderItem.AttributeDescription))
-                {
-                    exportVendorInvoiceModel.ProductName += "\n " + HtmlHelper.ConvertHtmlToPlainText(orderItem.AttributeDescription, true, true);
-                    exportVendorInvoiceModel.Sku = orderItem.Product.FormatSku(orderItem.AttributesXml, _productAttributeParser);
-                }
+                exportVendorInvoiceModel.ProductInfo += "\n " + HtmlHelper.ConvertHtmlToPlainText(orderItem.AttributeDescription, true, true);
+                exportVendorInvoiceModel.Sku = orderItem.Product.FormatSku(orderItem.AttributesXml, _productAttributeParser);
+
                 listItem.Add(exportVendorInvoiceModel);
+            }
+
+            return ExportToXlsx(orderItemProperties, listItem);
+        }
+        public virtual byte[] ExportShipmentToXlsxBasic(IList<Shipment> shipments)
+        {
+            //a vendor should have access only to part of order information
+
+            var ignore = _workContext.CurrentVendor != null;
+            var orderItemProperties = new[]
+            {
+                new PropertyByName<ShipmentExportModel>("ShipmentId", oi => oi.ShipmentId),
+                new PropertyByName<ShipmentExportModel>("BagId", oi => oi.BagId),
+                new PropertyByName<ShipmentExportModel>("OrderId", oi => oi.OrderId),
+                new PropertyByName<ShipmentExportModel>("TrackingNumber", oi => oi.TrackingNumber),
+                new PropertyByName<ShipmentExportModel>("ShipperInfo", oi => oi.ShipperInfo),
+                new PropertyByName<ShipmentExportModel>("CustomerInfo", oi => oi.CustomerInfo),
+                new PropertyByName<ShipmentExportModel>("DeliveryDate", oi => oi.DeliveryDate),
+                new PropertyByName<ShipmentExportModel>("ShippedDate", oi => oi.ShippedDate),
+                new PropertyByName<ShipmentExportModel>("Note", oi => oi.Note),
+                new PropertyByName<ShipmentExportModel>("Deposit", oi => oi.Deposit),
+                new PropertyByName<ShipmentExportModel>("TotalShippingFee", oi => oi.TotalShippingFee)
+            };
+
+            List<ShipmentExportModel> listItem = new List<ShipmentExportModel>();
+            foreach (var shipment in shipments)
+            {
+                var customerOrder = _customerService.GetCustomerById(shipment.Order.CustomerId);
+                var customerInfo = string.Empty;
+                if (customerOrder != null)
+                {
+                    var linkFacebook = customerOrder.GetAttribute<string>(SystemCustomerAttributeNames.LinkFacebook1);
+
+                    customerInfo = customerOrder.GetFullName()
+                                   + $"\n {customerOrder.GetAttribute<string>(SystemCustomerAttributeNames.Phone)}"
+                                   + $"\n {linkFacebook}";
+                }
+
+                var shipper = _customerService.GetCustomerById(shipment.CustomerId);
+                var shipperInfo = string.Empty;
+                if (customerOrder != null)
+                {
+                    var linkFacebook = customerOrder.GetAttribute<string>(SystemCustomerAttributeNames.LinkFacebook1);
+
+                    shipperInfo = customerOrder.GetFullName()
+                                   + $"\n {customerOrder.GetAttribute<string>(SystemCustomerAttributeNames.Phone)}";
+                }
+
+                var exportShipmentModel = new ShipmentExportModel()
+                {
+                    ShipmentId = shipment.Id.ToString(),
+                    BagId = shipment.BagId,
+                    OrderId = shipment.OrderId.ToString(),
+                    TrackingNumber = shipment.TrackingNumber,
+                    CustomerInfo = customerInfo,
+                    ShipperInfo = shipperInfo,
+                    DeliveryDate = shipment.DeliveryDateUtc?.ToString("dd/MM/yyyy"),
+                    ShippedDate = shipment.DeliveryDateUtc?.ToString("dd/MM/yyyy"),
+                    Note = shipment.ShipmentNote,
+                    Deposit = shipment.Deposit,
+                    TotalShippingFee = 0
+                };
+                var shipmentItem = shipment.ShipmentItems.FirstOrDefault();
+                if (shipmentItem != null)
+                {
+                    var orderItem = _orderService.GetOrderItemById(shipmentItem.OrderItemId);
+                    if (orderItem != null)
+                    {
+                        exportShipmentModel.TotalShippingFee = orderItem.UnitPriceInclTax * orderItem.Quantity;
+
+                        exportShipmentModel.ProductInfo = orderItem.Product.GetLocalized(x => x.Name, _workContext.WorkingLanguage.Id);
+
+                        exportShipmentModel.ProductInfo += "\n " + HtmlHelper.ConvertHtmlToPlainText(orderItem.AttributeDescription, true, true);
+                        exportShipmentModel.ProductInfo += "\n " + orderItem.Product.FormatSku(orderItem.AttributesXml, _productAttributeParser);
+
+                    }
+                }
+
+                listItem.Add(exportShipmentModel);
             }
 
             return ExportToXlsx(orderItemProperties, listItem);

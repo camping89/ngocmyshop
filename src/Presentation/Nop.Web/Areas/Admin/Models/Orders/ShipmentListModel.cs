@@ -36,6 +36,9 @@ namespace Nop.Web.Areas.Admin.Models.Orders
         [NopResourceDisplayName("Admin.Orders.Shipments.List.TrackingNumber")]
         public string TrackingNumberNew { get; set; }
 
+        [NopResourceDisplayName("Admin.Orders.Shipments.List.BagId")]
+        public string BagIdNew { get; set; }
+
         public IList<SelectListItem> AvailableCountries { get; set; }
         [NopResourceDisplayName("Admin.Orders.Shipments.List.Country")]
         public int CountryId { get; set; }

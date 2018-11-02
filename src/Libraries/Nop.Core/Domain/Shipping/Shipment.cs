@@ -54,6 +54,8 @@ namespace Nop.Core.Domain.Shipping
         /// </summary>
         public DateTime CreatedOnUtc { get; set; }
 
+        public string BagId { get; set; }
+
         public int CustomerId { get; set; }
 
         public virtual Customer Customer { get; set; }

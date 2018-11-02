@@ -113,6 +113,7 @@ namespace Nop.Core.Domain.Orders
         public decimal OrderingFee { get; set; }
         public double SaleOffPercent { get; set; }
         public int CurrencyId { get; set; }
+        public decimal? UnitWeightCost { get; set; }
         public decimal WeightCost { get; set; }
 
         public int? PackageOrderId { get; set; }

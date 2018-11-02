@@ -563,13 +563,14 @@ namespace Nop.Web.Areas.Admin.Controllers
                     TotalWithoutWeightCost = _priceFormatter.FormatPrice((orderItem.PriceInclTax - orderItem.WeightCost), true,
                         primaryStoreCurrency, _workContext.WorkingLanguage, true, true),
                     PackageOrderId = orderItem.PackageOrderId ?? 0,
-                    PackageOrder = model.PackageOrderModels != null ? model.PackageOrderModels.FirstOrDefault(_ => _.Id == orderItem.PackageOrderId) : null,
+                    PackageOrder = model.PackageOrderModels?.FirstOrDefault(_ => _.Id == orderItem.PackageOrderId),
                     PackageItemCode = orderItem.PackageItemCode,
                     PackageItemProcessedDatetime = orderItem.PackageItemProcessedDatetime,
                     IncludeWeightCost = orderItem.IncludeWeightCost,
-                    UnitWeightCost = currencyProduct.UnitWeightCost,
+                    UnitWeightCost = orderItem.UnitWeightCost ?? currencyProduct.UnitWeightCost,
                     IsOrderCheckout = orderItem.IsOrderCheckout,
-                    ItemWeight = orderItem.ItemWeight ?? 0
+                    ItemWeight = orderItem.ItemWeight ?? 0,
+                    PrimaryStoreCurrencyCode = _currencyService.GetCurrencyById(_currencySettings.PrimaryStoreCurrencyId).CurrencyCode
                 };
                 //picture
                 var orderItemPicture =
@@ -614,13 +615,16 @@ namespace Nop.Web.Areas.Admin.Controllers
                 orderItemModel.SubTotalExclTax = _priceFormatter.FormatPrice(orderItem.PriceExclTax, true, primaryStoreCurrency,
                     _workContext.WorkingLanguage, false, true);
 
-                orderItemModel.AttributeInfo = orderItem.AttributeDescription;
+                orderItemModel.AttributeInfo = orderItem.AttributeDescription ?? string.Empty;
                 if (orderItem.Product.IsRecurring)
                     orderItemModel.RecurringInfo = string.Format(
                         _localizationService.GetResource("Admin.Orders.Products.RecurringPeriod"),
                         orderItem.Product.RecurringCycleLength,
                         orderItem.Product.RecurringCyclePeriod.GetLocalizedEnum(_localizationService, _workContext));
-
+                if (orderItemModel.RecurringInfo == null)
+                {
+                    orderItemModel.RecurringInfo = string.Empty;
+                }
                 //rental info
                 if (orderItem.Product.IsRental)
                 {
@@ -1163,7 +1167,9 @@ namespace Nop.Web.Areas.Admin.Controllers
                 Deposit = shipment.Deposit,
                 CustomOrderNumber = shipment.Order.CustomOrderNumber,
                 TotalShippingFee = _priceFormatter.FormatPrice(shipment.TotalShippingFee, true, primaryStoreCurrency,
-                    _workContext.WorkingLanguage, true, false)
+                    _workContext.WorkingLanguage, true, false),
+                BagId = shipment.BagId,
+                ShipmentAddress = shipment.Order.ShippingAddress.Address1
             };
 
             var order = _orderService.GetOrderById(shipment.OrderId);
@@ -1182,7 +1188,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             decimal totalOrderFee = 0;
             if (shipment.Customer != null)
             {
-                model.CustomerId = shipment.CustomerId;
+                model.ShipperId = shipment.CustomerId;
                 //model.Customer = shipment.Customer;
                 model.ShipperFullName = $"(ID:{shipment.CustomerId}) " + shipment.Customer.GetFullName() + " - " + shipment.Customer.GetAttribute<string>(SystemCustomerAttributeNames.Phone);
             }
@@ -1531,7 +1537,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                         CreatedOn = _dateTimeHelper.ConvertToUserTime(x.CreatedOnUtc, DateTimeKind.Utc),
                         CustomOrderNumber = x.CustomOrderNumber,
                         WeightCost = _priceFormatter.FormatPrice(x.WeightCost, true, false),
-                        AdminNote = x.AdminNote,
+                        AdminNote = x.AdminNote ?? string.Empty,
                         OrderTotalWithoutWeightCost = _priceFormatter.FormatPrice(x.OrderTotal - x.WeightCost, true, false)
                     };
                     //PrepareOrderDetailsModel(orderModel, x);
@@ -1872,7 +1878,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             }
         }
 
-        
+
         [HttpPost]
         [HttpPost, ActionName("List")]
         [FormValueRequired("exportexcel-orderbasic-all")]
@@ -2112,34 +2118,6 @@ namespace Nop.Web.Areas.Admin.Controllers
                 return View(model);
             }
         }
-
-
-        [HttpPost]
-        public virtual IActionResult SetIsOrderCheckoutSelected(string selectedIds)
-        {
-            if (!_permissionService.Authorize(StandardPermissionProvider.ManageOrders))
-                return AccessDeniedView();
-
-            var orders = new List<Order>();
-            if (selectedIds != null)
-            {
-                var ids = selectedIds
-                    .Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
-                    .Select(x => Convert.ToInt32(x))
-                    .ToArray();
-                orders.AddRange(_orderService.GetOrdersByIds(ids));
-            }
-
-            foreach (var order in orders)
-            {
-                order.IsOrderCheckout = true;
-                order.OrderCheckoutDatetime = DateTime.Now;
-                _orderService.UpdateOrder(order);
-            }
-            return RedirectToAction("List");
-        }
-
-
 
         [HttpPost, ActionName("Edit")]
         [FormValueRequired("refundorder")]
@@ -3625,6 +3603,10 @@ namespace Nop.Web.Areas.Admin.Controllers
             model.Address.CountryRequired = _addressSettings.CountryEnabled; //country is required when enabled
             model.Address.StateProvinceEnabled = _addressSettings.StateProvinceEnabled;
             model.Address.CityEnabled = _addressSettings.CityEnabled;
+            if (string.IsNullOrEmpty(model.Address.City))
+            {
+                model.Address.City = "Chưa xác định";
+            }
             model.Address.CityRequired = _addressSettings.CityRequired;
             model.Address.StreetAddressEnabled = _addressSettings.StreetAddressEnabled;
             model.Address.StreetAddressRequired = _addressSettings.StreetAddressRequired;
@@ -3830,6 +3812,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             orderItem.PriceExclTax = orderItem.PriceExclTax - orderItem.WeightCost + orderItemModel.WeightCostDec;
             orderItem.WeightCost = orderItemModel.WeightCostDec;
             orderItem.ItemWeight = orderItemModel.ItemWeight;
+            orderItem.UnitWeightCost = orderItemModel.UnitWeightCost;
             orderItem.IsOrderCheckout = orderItemModel.IsOrderCheckout;
 
             order.WeightCost = order.OrderItems.Sum(_ => _.WeightCost);
@@ -4245,6 +4228,28 @@ namespace Nop.Web.Areas.Admin.Controllers
         }
 
         [HttpPost, ActionName("ShipmentDetails")]
+        [FormValueRequired("setbagid")]
+        public virtual IActionResult SetBagId(ShipmentModel model)
+        {
+            if (!_permissionService.Authorize(StandardPermissionProvider.ManageOrders))
+                return AccessDeniedView();
+
+            var shipment = _shipmentService.GetShipmentById(model.Id);
+            if (shipment == null)
+                //No shipment found with the specified id
+                return RedirectToAction("List");
+
+            //a vendor should have access only to his products
+            if (_workContext.CurrentVendor != null && !HasAccessToShipment(shipment))
+                return RedirectToAction("List");
+
+            shipment.BagId = model.BagId;
+            _shipmentService.UpdateShipment(shipment);
+
+            return RedirectToAction("ShipmentDetails", new { id = shipment.Id });
+        }
+
+        [HttpPost, ActionName("ShipmentDetails")]
         [FormValueRequired("setcustomershipment")]
         public virtual IActionResult SetCustomer(ShipmentModel model)
         {
@@ -4260,7 +4265,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             if (_workContext.CurrentVendor != null && !HasAccessToShipment(shipment))
                 return RedirectToAction("List");
 
-            shipment.CustomerId = model.CustomerId;
+            shipment.CustomerId = model.ShipperId;
             _shipmentService.UpdateShipment(shipment);
 
             return RedirectToAction("ShipmentDetails", new { id = shipment.Id });
@@ -4460,6 +4465,36 @@ namespace Nop.Web.Areas.Admin.Controllers
         }
 
 
+
+        [HttpPost]
+        public virtual IActionResult ApplyBagIdSelected(ICollection<int> selectedIds, string bagIdNew)
+        {
+            if (!_permissionService.Authorize(StandardPermissionProvider.ManageOrders))
+                return AccessDeniedView();
+
+            var shipments = new List<Shipment>();
+            if (selectedIds != null)
+            {
+                shipments.AddRange(_shipmentService.GetShipmentsByIds(selectedIds.ToArray()));
+            }
+
+            foreach (var shipment in shipments)
+            {
+                try
+                {
+                    shipment.BagId = bagIdNew;
+                    _shipmentService.UpdateShipment(shipment);
+                }
+                catch
+                {
+                    //ignore any exception
+                }
+            }
+
+            return Json(new { Result = true });
+        }
+
+
         [HttpPost, ActionName("ShipmentDetails")]
         [FormValueRequired("savedeliverydate")]
         public virtual IActionResult EditDeliveryDate(ShipmentModel model)
@@ -4601,6 +4636,96 @@ namespace Nop.Web.Areas.Admin.Controllers
             }
             return File(bytes, MimeTypes.ApplicationPdf, "packagingslips.pdf");
         }
+
+
+        [HttpPost, ActionName("ShipmentList")]
+        [FormValueRequired("exportexcel-shipment-all")]
+        public virtual IActionResult ExcelPackagingSlipAll(ShipmentListModel model)
+        {
+            if (!_permissionService.Authorize(StandardPermissionProvider.ManageOrders))
+                return AccessDeniedView();
+
+            var startDateValue = (model.StartDate == null) ? null
+                            : (DateTime?)_dateTimeHelper.ConvertToUtcTime(model.StartDate.Value, _dateTimeHelper.CurrentTimeZone);
+
+            var endDateValue = (model.EndDate == null) ? null
+                            : (DateTime?)_dateTimeHelper.ConvertToUtcTime(model.EndDate.Value, _dateTimeHelper.CurrentTimeZone).AddDays(1);
+
+            //a vendor should have access only to his products
+            var vendorId = 0;
+            if (_workContext.CurrentVendor != null)
+                vendorId = _workContext.CurrentVendor.Id;
+
+            //load shipments
+            var shipments = _shipmentService.GetAllShipments(vendorId: vendorId,
+                warehouseId: model.WarehouseId,
+                shippingCountryId: model.CountryId,
+                shippingStateId: model.StateProvinceId,
+                shippingCity: model.City,
+                trackingNumber: model.TrackingNumber,
+                loadNotShipped: model.LoadNotShipped,
+                createdFromUtc: startDateValue,
+                createdToUtc: endDateValue);
+
+            //ensure that we at least one shipment selected
+            if (!shipments.Any())
+            {
+                ErrorNotification(_localizationService.GetResource("Admin.Orders.Shipments.NoShipmentsSelected"));
+                return RedirectToAction("ShipmentList");
+            }
+
+            try
+            {
+                var bytes = _exportManager.ExportShipmentToXlsxBasic(shipments.ToList());
+                return File(bytes, MimeTypes.TextXlsx, $"shipments-all-{DateTime.Now.ToShortDateString()}.xlsx");
+            }
+            catch (Exception exc)
+            {
+                ErrorNotification(exc);
+                return RedirectToAction("ShipmentList");
+            }
+        }
+
+        [HttpPost]
+        public virtual IActionResult ExcelPackagingSlipSelected(string selectedIds)
+        {
+            if (!_permissionService.Authorize(StandardPermissionProvider.ManageOrders))
+                return AccessDeniedView();
+
+            var shipments = new List<Shipment>();
+            if (selectedIds != null)
+            {
+                var ids = selectedIds
+                    .Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
+                    .Select(x => Convert.ToInt32(x))
+                    .ToArray();
+                shipments.AddRange(_shipmentService.GetShipmentsByIds(ids));
+            }
+            //a vendor should have access only to his products
+            if (_workContext.CurrentVendor != null)
+            {
+                shipments = shipments.Where(HasAccessToShipment).ToList();
+            }
+
+            //ensure that we at least one shipment selected
+            if (!shipments.Any())
+            {
+                ErrorNotification(_localizationService.GetResource("Admin.Orders.Shipments.NoShipmentsSelected"));
+                return RedirectToAction("ShipmentList");
+            }
+
+            try
+            {
+                var bytes = _exportManager.ExportShipmentToXlsxBasic(shipments.ToList());
+                return File(bytes, MimeTypes.TextXlsx, $"shipments-selected-{DateTime.Now.ToShortDateString()}.xlsx");
+            }
+            catch (Exception exc)
+            {
+                ErrorNotification(exc);
+                return RedirectToAction("ShipmentList");
+            }
+        }
+
 
         [HttpPost]
         public virtual IActionResult SetAsShippedSelected(ICollection<int> selectedIds)
@@ -5354,7 +5479,9 @@ namespace Nop.Web.Areas.Admin.Controllers
             if (!_permissionService.Authorize(StandardPermissionProvider.OrderCountryReport))
                 return AccessDeniedView();
             var primaryStoreCurrency = _currencyService.GetCurrencyById(_currencySettings.PrimaryStoreCurrencyId);
-            var orderItems = _orderService.GetOrderItemsVendorCheckout(model.VendorProductUrl, model.OrderId, command.Page - 1, command.PageSize, isOrderCheckout: model.IsOrderCheckout);
+            var orderItems = _orderService.GetOrderItemsVendorCheckout(model.VendorProductUrl, model.OrderId, command.Page - 1, command.PageSize,
+                isOrderCheckout: model.IsOrderCheckout, isPackageItemProcessed: model.IsPackageItemProcessed,
+                isSetPackageItemCode: model.IsSetPackageItemCode, todayFilter: model.TodayFilter, customerPhone: model.CustomerPhone);
             var gridModel = new DataSourceResult
             {
                 Data = orderItems.Select(orderItem =>
@@ -5393,11 +5520,12 @@ namespace Nop.Web.Areas.Admin.Controllers
                         PackageItemCode = orderItem.PackageItemCode,
                         PackageItemProcessedDatetime = orderItem.PackageItemProcessedDatetime,
                         IncludeWeightCost = orderItem.IncludeWeightCost,
-                        UnitWeightCost = currencyProduct != null ? currencyProduct.UnitWeightCost : 0 ,
+                        UnitWeightCost = orderItem.UnitWeightCost ?? (currencyProduct != null ? currencyProduct.UnitWeightCost : 0),
                         IsOrderCheckout = orderItem.IsOrderCheckout,
                         ItemWeight = orderItem.ItemWeight ?? 0,
                         CustomerInfo = customerInfo,
-                        CreatedDate = orderItem.Order.CreatedOnUtc
+                        CreatedDate = orderItem.Order.CreatedOnUtc,
+                        PrimaryStoreCurrencyCode = primaryStoreCurrency.CurrencyCode
                     };
                     //picture
                     var orderItemPicture =
@@ -5442,7 +5570,10 @@ namespace Nop.Web.Areas.Admin.Controllers
                     orderItemModel.SubTotalExclTax = _priceFormatter.FormatPrice(orderItem.PriceExclTax, true, primaryStoreCurrency,
                         _workContext.WorkingLanguage, false, true);
 
-                    //orderItemModel.AttributeInfo = orderItem.AttributeDescription;
+                    orderItemModel.AttributeInfo = orderItem.AttributeDescription ?? string.Empty;
+                    orderItemModel.RentalInfo = string.Empty;
+                    orderItemModel.RecurringInfo = string.Empty;
+
                     //if (orderItem.Product.IsRecurring)
                     //    orderItemModel.RecurringInfo = string.Format(
                     //        _localizationService.GetResource("Admin.Orders.Products.RecurringPeriod"),
@@ -5504,7 +5635,27 @@ namespace Nop.Web.Areas.Admin.Controllers
             }
         }
 
+        [HttpPost]
+        public virtual IActionResult SetIsOrderCheckoutSelected(string selectedIds)
+        {
+            var orderItems = new List<OrderItem>();
+            if (selectedIds != null)
+            {
+                var ids = selectedIds
+                    .Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
+                    .Select(x => Convert.ToInt32(x))
+                    .ToArray();
+                orderItems.AddRange(_orderService.GetOrderItemsByIds(ids));
+            }
 
+            foreach (var orderItem in orderItems)
+            {
+                orderItem.IsOrderCheckout = true;
+                _orderService.UpdateOrderItem(orderItem);
+            }
+
+            return RedirectToAction("OrderItemsVendorCheckout");
+        }
         [HttpPost]
         public virtual IActionResult ExportExcelVendorInvoiceOrderItemsSelected(string selectedIds)
         {
@@ -5524,7 +5675,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             try
             {
                 var bytes = _exportManager.ExportOrderItemsToXlsxBasic(orderItems);
-                return File(bytes, MimeTypes.TextXlsx, $"export-vendor-order-items-selected-{DateTime.Now.ToShortDateString()}.xlsx");
+                return File(bytes, MimeTypes.TextXlsx, $"vendor-orders-selected-{DateTime.Now.Year}.{DateTime.Now.Month}.{DateTime.Now.Day}.xlsx");
             }
             catch (Exception exc)
             {

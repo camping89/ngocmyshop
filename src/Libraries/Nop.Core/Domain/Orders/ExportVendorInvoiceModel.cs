@@ -36,17 +36,25 @@ namespace Nop.Core.Domain.Orders
         public string CreatedDate { get; set; }
         public string VendorProductUrl { get; set; }
         public string Sku { get; set; }
-        public string ProductName { get; set; }
+        public string ProductInfo { get; set; }
+        public string ProductImage { get; set; }
         public int Quantity { get; set; }
         public decimal TotalWithoutWeightCost { get; set; }
         public decimal WeightCost { get; set; }
         public decimal TotalCost { get; set; }
-        public string PackageOrderCode { get; set; }
-        public string PackageOrderItemCode { get; set; }
 
-        public string PackageItemProcessedDatetime { get; set; }
+        public decimal BaseUnitPrice { get; set; }
+        public decimal ExchangeRate { get; set; }
+        public decimal OrderingFee { get; set; }
+        public double SaleOff { get; set; }
+        public string ETA { get; set; }
 
-        public string IsVendorCheckout { get; set; }
+        //public string PackageOrderCode { get; set; }
+        //public string PackageOrderItemCode { get; set; }
+
+        //public string PackageItemProcessedDatetime { get; set; }
+
+        //public string IsVendorCheckout { get; set; }
 
 
     }

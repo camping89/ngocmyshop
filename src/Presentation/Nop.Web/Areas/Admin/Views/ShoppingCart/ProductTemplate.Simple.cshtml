@@ -5,9 +5,10 @@
 @inject SeoSettings seoSettings
 @{
     Layout = "_AdminPopupLayout";
-
+    var title = !string.IsNullOrEmpty(Model.MetaTitle) ? Model.MetaTitle : Model.Name;
+    ViewBag.Title = title;
     //title
-    Html.AddTitleParts(!string.IsNullOrEmpty(Model.MetaTitle) ? Model.MetaTitle : Model.Name);
+    Html.AddTitleParts(title);
 }
 
 @if (ViewBag.RefreshPage == true)
@@ -46,12 +47,12 @@
 <form asp-controller="ShoppingCart" asp-action="AddProductToCart_Details" asp-route-shoppingCartTypeId="@((int) ShoppingCartType.ShoppingCart)" asp-route-activetab="tab-cart-info" asp-route-customerId="@Model.CustomerId" asp-route-productId="@Model.Id" asp-route-formId="@Context.Request.Query["formId"]" asp-route-btnId="@Context.Request.Query["btnId"]" method="post" id="product-details-form">
     <div class="content-header clearfix">
 
-        <div class="pull-right">
+        @*<div class="pull-right">
             <button type="submit" name="save" class="btn bg-blue">
                 <i class="fa fa-shopping-cart"></i>
                 @addToCartText
             </button>
-        </div>
+        </div>*@
     </div>
     <div class="content">
         <div class="form-horizontal">

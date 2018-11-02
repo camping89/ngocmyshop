@@ -1323,7 +1323,7 @@ span.grid-report-item.red {
 
 /*bootstrap touchspin*/
 .bootstrap-touchspin {
-    max-width: 300px;
+    /*max-width: 300px;*/
 }
 .bootstrap-touchspin input {
     height: auto;
@@ -3293,12 +3293,10 @@ span.grid-report-item.red {
     color: #444;
 }
 
-
-
-
+.k-edit-field, .k-edit-form-container .editor-field {
+    padding-top: .4em !important;
+}
 /*** SHOPPING CART ***/
-
-
 .order-progress {
     padding: 20px;
 }

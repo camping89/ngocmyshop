@@ -295,6 +295,15 @@
                     title: "@T("Admin.Customers.Customers.Fields.CustomerRoles")",
                     width: 200
                 },
+                
+                @if (Model.PhoneEnabled)
+                {
+                    <text>{
+                    field: "Phone",
+                    title: "@T("Admin.Customers.Customers.Fields.Phone")",
+                    width: 200
+                },</text>
+                }
 
                 @if (Model.CompanyEnabled)
                 {
@@ -305,14 +314,6 @@
                 },</text>
                 }
 
-                @if (Model.PhoneEnabled)
-                {
-                    <text>{
-                    field: "Phone",
-                    title: "@T("Admin.Customers.Customers.Fields.Phone")",
-                    width: 200
-                },</text>
-                }
 
                 @if (Model.ZipPostalCodeEnabled)
                 {

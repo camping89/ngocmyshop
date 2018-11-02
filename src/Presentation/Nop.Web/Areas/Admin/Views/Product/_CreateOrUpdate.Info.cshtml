@@ -973,7 +973,7 @@
                             <div class="col-md-3">
                                 <nop-label asp-for="CurrencyId" />
                             </div>
-                            <div class="col-md-4" style="with:100px !important;min-with:100px !important;">
+                            <div class="col-md-9">
                                 @{
                                     var currencies = Model.CurrencySelectorModel.AvailableCurrencies.Select(x => new SelectListItem
                                     {
@@ -982,7 +982,8 @@
                                         Selected = x.Id.Equals(Model.CurrencyId)
                                     });
                                 }
-                                <select class="form-control" id="customerCurrency" name="CurrencyId" asp-items="@currencies" onchange="changeCurrency(this.value);"></select>
+                                <nop-select id="customerCurrency" asp-for="CurrencyId" asp-items="@currencies" onchange="changeCurrency(this.value);"/>
+                                @*<select id="customerCurrency" name="CurrencyId" asp-items="@currencies" onchange="changeCurrency(this.value);"></select>*@
                             </div>
 
                         </div>
@@ -1039,10 +1040,7 @@
                                 <nop-label asp-for="UnitPriceUsd" />
                             </div>
                             <div class="col-md-9">
-                                <div class="input-group bootstrap-touchspin">
-                                    <input id="UnitPriceUsd" name="UnitPriceUsd" value="@Model.UnitPriceUsd" class="form-control" style="width: 300px" type="text">
-
-                                </div>
+                                <input id="UnitPriceUsd" name="UnitPriceUsd" value="@Model.UnitPriceUsd" class="form-control" type="text">
                                 @*<nop-editor asp-for="UnitPriceUsd" />
                                     <span asp-validation-for="UnitPriceUsd"></span>*@
                             </div>

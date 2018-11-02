@@ -27,10 +27,6 @@
             @T("Admin.Orders")
         </h1>
         <div class="pull-right">
-            <button type="button" class="btn btn-success" id="btn-set-isordercheckout-selected">
-                <i class="fa fa-save"></i>
-                @T("Admin.Common.SetIsOrderCheckoutSelected")
-            </button>
             <div class="btn-group">
                 <button type="button" class="btn btn-success">
                     <i class="fa fa-download"></i>
@@ -616,12 +612,13 @@
                                                 "#=WeightCost#" +
                                                 "#} else {#" +
                                                 "<p>@(T("orderitem.includeweightcost.false"))</p>" +
-                                                "# } #"
+                                                "# } #",
+                                            editor: addExtendCustom
                                         }, {
                                             field: "UnitWeightCost",
                                             title: "@T("Admin.Orders.Products.UnitWeightCost")",
-                                            hidden: true
-                                            //editor: hideOnEditor
+                                            hidden: true,
+                                            editor: addExtendCustom
                                         }, {
                                             field: "ItemWeight",
                                             title: "@T("Admin.Orders.Products.ItemWeight")",
@@ -638,7 +635,7 @@
                                             template: "# if (PackageOrder != null) { #" +
                                                       "<p>#=PackageOrder.PackageCode# - #=PackageOrder.PackageName# </p>" +
                                                       "#} else {#" +
-                                                      "<p>None</p>" +
+                                                      "<p></p>" +
                                                       "# } #"
 
                                         }, {
@@ -649,10 +646,12 @@
                                             field: "PackageItemProcessedDatetime",
                                             title: "@T("Admin.Orders.Products.PackageItemProcessedDatetime")",
                                             width: 150,
-                                            //format: "{0:G}",
-                                            //type: "date",
                                             editor: dateTimeEditorCustom,
-                                            template: "#= kendo.toString(kendo.parseDate(PackageItemProcessedDatetime, 'yyyy-MM-dd'), 'MM/dd/yyyy') #"
+                                            template: "# if (PackageItemProcessedDatetime != null) { #" +
+                                                "<p>#= kendo.toString(kendo.parseDate(PackageItemProcessedDatetime, 'yyyy-MM-dd'), 'MM/dd/yyyy') #</p>" +
+                                                "#} else {#" +
+                                                "<p></p>" +
+                                                "# } #"
                                         }, {
                                             field: "IsOrderCheckout",
                                             title: "@T("Admin.Orders.Products.IsOrderCheckout")",
@@ -705,6 +704,13 @@
                                     }
                                 });
 
+                            }
+
+                            function addExtendCustom(container, options) {
+
+                                var element = $('<input class="k-input k-textbox" data-text-field="' + options.field + '" data-value-field="' + options.field + '" data-bind="value:' + options.field + '" /><span> ' + options.model.PrimaryStoreCurrencyCode+'</span >');
+
+                                element.appendTo(container);
                             }
 
                             function hideOnEditor(container, options) {
@@ -903,23 +909,6 @@
         </div>
     </div>
 </form>
-
-@*set is order checkout selectedids*@
-<form asp-controller="Order" asp-action="SetIsOrderCheckoutSelected" method="post" id="set-isordercheckout-selected-form">
-    <input type="hidden" id="selectedIds" name="selectedIds" value="" />
-</form>
-
-<script type="text/javascript">
-    $(document).ready(function () {
-        $('#btn-set-isordercheckout-selected').click(function (e) {
-            e.preventDefault();
-            var ids = selectedIds.join(",");
-            $('#set-isordercheckout-selected-form #selectedIds').val(ids);
-            $('#set-isordercheckout-selected-form').submit();
-            return false;
-        });
-    });
-</script>
 
 @*export selected (XML). We don't use GET approach because it's limited to 2K-4K chars and won't work for large number of entities*@
 <form asp-controller="Order" asp-action="ExportXmlSelected" method="post" id="export-xml-selected-form">

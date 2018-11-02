@@ -25,8 +25,22 @@ namespace Nop.Web.Areas.Admin.Models.Orders
         public int OrderId { get; set; }
         [NopResourceDisplayName("Admin.OrderItem.ExportVendor.Fields.IsOrderCheckout")]
         public bool? IsOrderCheckout { get; set; }
-
+        
         public List<SelectListItem> IsOrderCheckoutStatusItems { get; set; }
+
+        [NopResourceDisplayName("Admin.OrderItem.ExportVendor.Fields.IsPackageItemProcessed")]
+        public bool IsPackageItemProcessed {get; set; }
+        [NopResourceDisplayName("Admin.OrderItem.ExportVendor.Fields.IsSetPackageItemCode")]
+        public bool IsSetPackageItemCode {get; set; }
+
+        [NopResourceDisplayName("Admin.Orders.List.TodayFilter")]
+        public bool TodayFilter { get; set; }
+
+        [NopResourceDisplayName("Admin.Orders.List.CustomerPhone")]
+        public string CustomerPhone { get; set; }
+
+
+
     }
 
     public class OrderItemExportVendorModelBasic : OrderModel.OrderItemModel

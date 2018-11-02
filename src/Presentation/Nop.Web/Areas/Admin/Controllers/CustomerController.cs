@@ -545,7 +545,13 @@ namespace Nop.Web.Areas.Admin.Controllers
                     model.StreetAddress = customer.GetAttribute<string>(SystemCustomerAttributeNames.StreetAddress);
                     model.StreetAddress2 = customer.GetAttribute<string>(SystemCustomerAttributeNames.StreetAddress2);
                     model.ZipPostalCode = customer.GetAttribute<string>(SystemCustomerAttributeNames.ZipPostalCode);
+
                     model.City = customer.GetAttribute<string>(SystemCustomerAttributeNames.City);
+                    if (string.IsNullOrEmpty(model.City))
+                    {
+                        model.City = "Chưa xác định";
+                    }
+
                     model.CountryId = customer.GetAttribute<int>(SystemCustomerAttributeNames.CountryId);
                     model.StateProvinceId = customer.GetAttribute<int>(SystemCustomerAttributeNames.StateProvinceId);
                     model.Phone = customer.GetAttribute<string>(SystemCustomerAttributeNames.Phone);
@@ -722,6 +728,10 @@ namespace Nop.Web.Areas.Admin.Controllers
             model.Address.CountryRequired = _addressSettings.CountryEnabled; //country is required when enabled
             model.Address.StateProvinceEnabled = _addressSettings.StateProvinceEnabled;
             model.Address.CityEnabled = _addressSettings.CityEnabled;
+            if (string.IsNullOrEmpty(model.Address.City))
+            {
+                model.Address.City = "Chưa xác định";
+            }
             model.Address.CityRequired = _addressSettings.CityRequired;
             model.Address.StreetAddressEnabled = _addressSettings.StreetAddressEnabled;
             model.Address.StreetAddressRequired = _addressSettings.StreetAddressRequired;
@@ -959,6 +969,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                     FirstName = model.FirstName,
                     LastName = model.LastName,
                     Address1 = "Chưa xác định",
+                    City = "Chưa xác định",
                     PhoneNumber = model.Phone
                 };
                 _addressService.InsertAddress(addressCustomer);

@@ -453,7 +453,8 @@ namespace Nop.Services.Orders
             return orderItems;
         }
 
-        public virtual IPagedList<OrderItem> GetOrderItemsVendorCheckout(string vendorProductUrl, int orderId = 0, int pageIndex = 0, int pageSize = int.MaxValue, OrderSortingEnum orderBy = OrderSortingEnum.CreatedOnDesc, bool? isOrderCheckout = null)
+        public virtual IPagedList<OrderItem> GetOrderItemsVendorCheckout(string vendorProductUrl, int orderId = 0, int pageIndex = 0, int pageSize = int.MaxValue, OrderSortingEnum orderBy = OrderSortingEnum.CreatedOnDesc, bool? isOrderCheckout = null
+            ,bool isPackageItemProcessed = false,bool isSetPackageItemCode = false,bool todayFilter = false,string customerPhone = null)
         {
             var query = _orderItemRepository.Table;
             if (string.IsNullOrEmpty(vendorProductUrl) == false)
@@ -472,6 +473,26 @@ namespace Nop.Services.Orders
                 query = query.Where(_ => _.IsOrderCheckout == isOrderCheckout);
             }
 
+            if (isPackageItemProcessed)
+            {
+                query = query.Where(_ => _.PackageItemProcessedDatetime != null);
+            }
+
+            if (isSetPackageItemCode)
+            {
+                query = query.Where(_ => _.PackageItemCode != null && _.PackageItemCode != string.Empty);
+            }
+
+            if (todayFilter)
+            {
+                var startDate = DateTime.UtcNow.Date;
+                var endDate = DateTime.UtcNow.Date.AddDays(1);
+                query = query.Where(_ => _.Order.CreatedOnUtc != null &&  startDate <= _.Order.CreatedOnUtc  && endDate > _.Order.CreatedOnUtc);
+            }
+
+            if (!string.IsNullOrEmpty(customerPhone))
+                query = query.Where(o => o.Order.BillingAddress != null && !string.IsNullOrEmpty(o.Order.BillingAddress.PhoneNumber) && o.Order.BillingAddress.PhoneNumber.Contains(customerPhone));
+            
             switch (orderBy)
             {
                 case OrderSortingEnum.CreatedOnAsc:
@@ -509,6 +530,16 @@ namespace Nop.Services.Orders
 
             //event notification
             _eventPublisher.EntityDeleted(orderItem);
+        }
+        public virtual void UpdateOrderItem(OrderItem orderItem)
+        {
+            if (orderItem == null)
+                throw new ArgumentNullException(nameof(orderItem));
+
+            _orderItemRepository.Update(orderItem);
+
+            //event notification
+            _eventPublisher.EntityUpdated(orderItem);
         }
 
         #endregion

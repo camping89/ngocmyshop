@@ -10,7 +10,7 @@
     var stores = storeService.GetAllStores();
 
     //page title
-    ViewBag.Title = T("Admin.Orders").Text;
+    ViewBag.Title = T("Admin.Orders.Exports").Text;
     //active menu item (system name)
     Html.SetActiveMenuItemSystemName("Export order");
 }
@@ -24,13 +24,13 @@
 <form asp-controller="Order" asp-action="OrderItemsVendorCheckout" method="post">
     <div class="content-header clearfix">
         <h1 class="pull-left">
-            @T("Admin.Orders")
+            @T("Admin.Orders.Exports")
         </h1>
         <div class="pull-right">
-            @*<button type="button" class="btn btn-success" id="btn-set-isordercheckout-selected">
+            <button type="button" class="btn btn-primary" id="btn-set-isordercheckout-selected">
                 <i class="fa fa-save"></i>
                 @T("Admin.Common.SetIsOrderCheckoutSelected")
-            </button>*@
+            </button>
             <div class="btn-group">
                 <button type="button" class="btn btn-success">
                     <i class="fa fa-download"></i>
@@ -41,7 +41,7 @@
                     <span class="sr-only">&nbsp;</span>
                 </button>
                 <ul class="dropdown-menu" role="menu">
-                    
+
                     <li>
                         <button type="button" id="exportexcel-invoice-vendor-selected">
                             <i class="fa fa-file-excel-o"></i>
@@ -56,7 +56,7 @@
                     </li>
                 </ul>
             </div>
-            
+
             @await Component.InvokeAsync("AdminWidget", new { widgetZone = "admin_order_list_buttons" })
         </div>
     </div>
@@ -77,23 +77,55 @@
                                 </div>
                                 <div class="form-group">
                                     <div class="col-md-4">
-                                        <nop-label asp-for="OrderId" />
-                                    </div>
-                                    <div class="col-md-8">
-                                        <nop-editor asp-for="OrderId" />
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <div class="col-md-4">
                                         <nop-label asp-for="IsOrderCheckout" />
                                     </div>
                                     <div class="col-md-8">
                                         <nop-select asp-for="IsOrderCheckout" asp-items="@Model.IsOrderCheckoutStatusItems" />
                                     </div>
                                 </div>
-                                
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <nop-label asp-for="IsPackageItemProcessed" />
+                                    </div>
+                                    <div class="col-md-8">
+                                        <nop-editor asp-for="IsPackageItemProcessed" />
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <nop-label asp-for="IsSetPackageItemCode" />
+                                    </div>
+                                    <div class="col-md-8">
+                                        <nop-editor asp-for="IsSetPackageItemCode" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <nop-label asp-for="OrderId" />
+                                    </div>
+                                    <div class="col-md-8">
+                                        <nop-editor asp-for="OrderId" />
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <nop-label asp-for="TodayFilter" />
+                                    </div>
+                                    <div class="col-md-8">
+                                        <nop-editor asp-for="TodayFilter" />
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <nop-label asp-for="CustomerPhone" />
+                                    </div>
+                                    <div class="col-md-8">
+                                        <nop-editor asp-for="CustomerPhone" />
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         <div class="row">
@@ -140,9 +172,9 @@
                                                         id: "Id",
                                                         fields: {
                                                             OrderId: { editable: false, type: "number" },
-                                                            PackageId: { editable: true, type: "string" },
-                                                            PackageOrderId: { editable: true, type: "string" },
-                                                            PackageItemCode: { editable: true, type: "string" },
+                                                            PackageId: { editable: false, type: "string" },
+                                                            PackageOrderId: { editable: false, type: "string" },
+                                                            PackageItemCode: { editable: false, type: "string" },
                                                             PackageItemProcessedDatetime: { editable: true, type: "date" },
                                                             PictureThumbnailUrl: { editable: false, type: "string" },
                                                             ProductName: { editable: false, type: "string" },
@@ -191,7 +223,8 @@
                                                     attributes: { style: "text-align:center" },
                                                     template: "<input type='checkbox' value='#=Id#' class='checkboxGroups'/>",
                                                     width: 50,
-                                                    sortable: false
+                                                    sortable: false,
+                                                    editor: disableTextbox
                                                 },{
                                                     field: "OrderId",
                                                     title: "@T("Admin.Orders.Products.OrderId")",
@@ -200,14 +233,21 @@
                                                 {
                                                     field: "CustomerInfo",
                                                     title: "@T("Admin.Orders.Products.CustomerInfo")",
-                                                    width: 100
+                                                    width: 100,
+                                                    editor: disableTextbox
                                                 }, {
                                                     field: "CreatedDate",
-                                                    title: "@T("Admin.Orders.Fields.CreatedDate")",
+                                                    title: "@T("Admin.Orders.Fields.OrderCreatedDate")",
                                                     width: 100,
                                                     type: "date",
-                                                    format: "{0:G}",
-                                                    sortable: true
+                                                    //format: "{0:G}",
+                                                    sortable: true,
+                                                    template: "# if (CreatedDate != null) { #" +
+                                                        "<p>#= kendo.toString(kendo.parseDate(CreatedDate, 'yyyy-MM-dd'), 'MM/dd/yyyy') #</p>" +
+                                                        "#} else {#" +
+                                                        "<p></p>" +
+                                                        "# } #",
+                                                    editor: disableTextbox
                                                 },
                                                 {
                                                     field: "PictureThumbnailUrl",
@@ -218,6 +258,7 @@
                                                     field: "ProductName",
                                                     title: "@T("Admin.Orders.Products.ProductName")",
                                                     template: 'Product name: #=ProductName#' +
+                                                        '<p>Sku: #=Sku#</p>' +
                                                         '<p>#=AttributeInfo#</p>' +
                                                         '<p>#=RecurringInfo#</p>',
                                                     width: 250
@@ -233,11 +274,13 @@
                                                         "#=WeightCost#" +
                                                         "#} else {#" +
                                                         "<p>@(T("orderitem.includeweightcost.false"))</p>" +
-                                                        "# } #"
+                                                        "# } #",
+                                                    editor: addExtendCustom
                                                 }, {
                                                     field: "UnitWeightCost",
+                                                    title: "@T("Admin.Orders.Products.UnitWeightCost")",
                                                     hidden: true,
-                                                    //editor: hideOnEditor
+                                                    editor: addExtendCustom
                                                 }, {
                                                     field: "ItemWeight",
                                                     title: "@T("Admin.Orders.Products.ItemWeight")",
@@ -254,7 +297,7 @@
                                                     template: "# if (PackageOrder != null) { #" +
                                                         "<p>#=PackageOrder.PackageCode# - #=PackageOrder.PackageName# </p>" +
                                                         "#} else {#" +
-                                                        "<p>None</p>" +
+                                                        "<p></p>" +
                                                         "# } #"
 
                                                 }, {
@@ -265,11 +308,12 @@
                                                     field: "PackageItemProcessedDatetime",
                                                     title: "@T("Admin.Orders.Products.PackageItemProcessedDatetime")",
                                                     width: 150,
-                                                    //format: "{0:G}",
-                                                    //type: "date",
                                                     editor: dateTimeEditorCustom,
-                                                    template:
-                                                        "#= kendo.toString(kendo.parseDate(PackageItemProcessedDatetime, 'yyyy-MM-dd'), 'MM/dd/yyyy') #"
+                                                    template: "# if (PackageItemProcessedDatetime != null) { #" +
+                                                        "<p>#= kendo.toString(kendo.parseDate(PackageItemProcessedDatetime, 'yyyy-MM-dd'), 'MM/dd/yyyy') #</p>" +
+                                                        "#} else {#" +
+                                                        "<p></p>" +
+                                                        "# } #"
                                                 }, {
                                                     field: "IsOrderCheckout",
                                                     title: "@T("Admin.Orders.Products.IsOrderCheckout")",
@@ -329,6 +373,18 @@
                                                 }
                                             });
 
+                                        }
+                                        function disableTextbox(container, options) {
+
+                                           $('<input class="k-input k-textbox" data-text-field="' + options.field + '" data-value-field="' + options.field + '" data-bind="value:' + options.field + '" />')
+                                               .prop("disabled", true).appendTo(container);
+                                        }
+
+                                        function addExtendCustom(container, options) {
+
+                                            var element = $('<input name="' + options.field +'" class="k-input k-textbox" data-text-field="' + options.field + '" data-value-field="' + options.field + '" data-bind="value:' + options.field + '" /><span> ' + options.model.PrimaryStoreCurrencyCode+'</span >');
+
+                                            element.appendTo(container);
                                         }
 
                                         function hideOnEditor(container, options) {
@@ -429,7 +485,11 @@
                                         var data = {
                                             VendorProductUrl: $('#@Html.IdFor(model => model.VendorProductUrl)').val(),
                                             OrderId: $('#@Html.IdFor(model => model.OrderId)').val(),
-                                            IsOrderCheckout: $('#@Html.IdFor(model => model.IsOrderCheckout)').val()
+                                            IsOrderCheckout: $('#@Html.IdFor(model => model.IsOrderCheckout)').val(),
+                                            IsPackageItemProcessed: $('#@Html.IdFor(model => model.IsPackageItemProcessed)').is(":checked"),
+                                            IsSetPackageItemCode: $('#@Html.IdFor(model => model.IsSetPackageItemCode)').is(":checked"),
+                                            TodayFilter: $('#@Html.IdFor(model => model.TodayFilter)').is(":checked"),
+                                            CustomerPhone: $('#@Html.IdFor(model => model.CustomerPhone)').val()
                                         };
                                         addAntiForgeryToken(data);
                                         return data;
