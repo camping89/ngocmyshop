@@ -3547,7 +3547,7 @@ span.grid-report-item.red {
 }
 
 
-@media only screen and (max-width: 1280px) {
+@media only screen and (max-width: 1380px) {
     /* Force table to not be like tables anymore */
     #no-more-tables table,
     #no-more-tables thead,

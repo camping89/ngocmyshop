@@ -890,10 +890,16 @@ namespace Nop.Web.Areas.Admin.Controllers
         [FormValueRequired("save", "save-continue")]
         public virtual IActionResult Create(CustomerModel model, bool continueEditing)
         {
+
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageCustomers))
                 return AccessDeniedView();
+            if (!string.IsNullOrEmpty(model.Username))
+            {
+                model.Username = model.Username.Replace(" ", "").Trim();
+            }
             if (!string.IsNullOrEmpty(model.Phone))
             {
+                model.Phone = model.Phone.Replace(" ", "").Trim();
                 model.Username = model.Phone;
             }
             //if (!string.IsNullOrWhiteSpace(model.Email))
@@ -1138,6 +1144,15 @@ namespace Nop.Web.Areas.Admin.Controllers
 
             var customer = _customerService.GetCustomerById(model.Id);
 
+            if (!string.IsNullOrEmpty(model.Username))
+            {
+                model.Username = model.Username.Replace(" ", "").Trim();
+            }
+            if (!string.IsNullOrEmpty(model.Phone))
+            {
+                model.Phone = model.Phone.Replace(" ", "").Trim();
+                model.Username = model.Phone;
+            }
 
             if (!string.IsNullOrEmpty(model.FullName))
             {

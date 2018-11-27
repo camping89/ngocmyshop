@@ -133,6 +133,22 @@
                             </div>
                             <div class="form-group">
                                 <div class="col-md-3">
+                                    <nop-label asp-for="UnitPriceInclTax" />
+                                </div>
+                                <div class="col-md-2">
+                                    <input type="text" class="form-control" name="UnitPriceInclTax" id="UnitPriceInclTax" value="@Model.UnitPriceInclTax" />
+                                </div>
+                            </div>
+                            <div class="form-group display-none">
+                                <div class="col-md-3">
+                                    <nop-label asp-for="UnitPriceExclTax" />
+                                </div>
+                                <div class="col-md-2">
+                                    <input type="text" class="form-control" name="UnitPriceExclTax" id="UnitPriceExclTax" value="@Model.UnitPriceExclTax" />
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="col-md-3">
                                     <nop-label asp-for="Weight" />
                                 </div>
                                 <div class="col-md-2">
@@ -155,22 +171,7 @@
                                     <input type="text" class="form-control" name="Quantity" id="Quantity" value="@Model.Quantity" />
                                 </div>
                             </div>
-                            <div class="form-group">
-                                <div class="col-md-3">
-                                    <nop-label asp-for="UnitPriceInclTax" />
-                                </div>
-                                <div class="col-md-2">
-                                    <input type="text" class="form-control" name="UnitPriceInclTax" id="UnitPriceInclTax" value="@Model.UnitPriceInclTax" />
-                                </div>
-                            </div>
-                            <div class="form-group display-none">
-                                <div class="col-md-3">
-                                    <nop-label asp-for="UnitPriceExclTax" />
-                                </div>
-                                <div class="col-md-2">
-                                    <input type="text" class="form-control" name="UnitPriceExclTax" id="UnitPriceExclTax" value="@Model.UnitPriceExclTax" />
-                                </div>
-                            </div>
+                            <hr />
                             <div class="form-group">
                                 <div class="col-md-3">
                                     <nop-label asp-for="SubTotalInclTax" />

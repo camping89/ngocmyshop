@@ -33,10 +33,12 @@ namespace Nop.Core.Domain.Orders
     {
         public string OrderId { get; set; }
         public string CustomerInfo { get; set; }
-        public string CreatedDate { get; set; }
+        public string OrderDate { get; set; }
         public string VendorProductUrl { get; set; }
         public string Sku { get; set; }
         public string ProductInfo { get; set; }
+        public string ProductAttributeInfo { get; set; }
+        public string VendorName { get; set; }
         public string ProductImage { get; set; }
         public int Quantity { get; set; }
         public decimal TotalWithoutWeightCost { get; set; }
@@ -48,7 +50,7 @@ namespace Nop.Core.Domain.Orders
         public decimal OrderingFee { get; set; }
         public double SaleOff { get; set; }
         public string ETA { get; set; }
-
+        public string Note { get; set; }
         //public string PackageOrderCode { get; set; }
         //public string PackageOrderItemCode { get; set; }
 

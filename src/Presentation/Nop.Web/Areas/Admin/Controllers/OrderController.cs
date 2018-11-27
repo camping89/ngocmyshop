@@ -567,7 +567,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                     PackageItemCode = orderItem.PackageItemCode,
                     PackageItemProcessedDatetime = orderItem.PackageItemProcessedDatetime,
                     IncludeWeightCost = orderItem.IncludeWeightCost,
-                    UnitWeightCost = orderItem.UnitWeightCost ?? currencyProduct.UnitWeightCost,
+                    UnitWeightCost = orderItem.UnitWeightCost ?? (currencyProduct != null ? currencyProduct.UnitWeightCost : 0),
                     IsOrderCheckout = orderItem.IsOrderCheckout,
                     ItemWeight = orderItem.ItemWeight ?? 0,
                     PrimaryStoreCurrencyCode = _currencyService.GetCurrencyById(_currencySettings.PrimaryStoreCurrencyId).CurrencyCode
@@ -3360,114 +3360,114 @@ namespace Nop.Web.Areas.Admin.Controllers
             warnings.AddRange(_shoppingCartService.GetShoppingCartItemGiftCardWarnings(ShoppingCartType.ShoppingCart, product, attributesXml));
             warnings.AddRange(_shoppingCartService.GetRentalProductWarnings(product, rentalStartDate, rentalEndDate));
             //if (!warnings.Any())
+            //{
+            //no errors
+
+            //attributes
+            var attributeDescription = _productAttributeFormatter.FormatAttributes(product, attributesXml, order.Customer);
+
+            //weight
+            var itemWeight = _shippingService.GetShoppingCartItemWeight(product, attributesXml);
+
+            //save item
+            var orderItem = new OrderItem
             {
-                //no errors
-
-                //attributes
-                var attributeDescription = _productAttributeFormatter.FormatAttributes(product, attributesXml, order.Customer);
-
-                //weight
-                var itemWeight = _shippingService.GetShoppingCartItemWeight(product, attributesXml);
-
-                //save item
-                var orderItem = new OrderItem
-                {
-                    OrderItemGuid = Guid.NewGuid(),
-                    Order = order,
-                    ProductId = product.Id,
-                    UnitPriceInclTax = unitPriceInclTax,
-                    UnitPriceExclTax = unitPriceExclTax,
-                    PriceInclTax = priceInclTax,
-                    PriceExclTax = priceExclTax,
-                    OriginalProductCost = _priceCalculationService.GetProductCost(product, attributesXml),
-                    AttributeDescription = attributeDescription,
-                    AttributesXml = attributesXml,
-                    Quantity = quantity,
-                    DiscountAmountInclTax = decimal.Zero,
-                    DiscountAmountExclTax = decimal.Zero,
-                    DownloadCount = 0,
-                    IsDownloadActivated = false,
-                    LicenseDownloadId = 0,
-                    ItemWeight = itemWeight,
-                    RentalStartDateUtc = rentalStartDate,
-                    RentalEndDateUtc = rentalEndDate,
-                    UnitPriceUsd = unitPriceUsd,
-                    CurrencyId = currencyId,
-                    ExchangeRate = exchangeRate,
-                    OrderingFee = orderingFee,
-                    SaleOffPercent = saleOffPercent,
-                    WeightCost = weightCost
-                };
-                order.OrderItems.Add(orderItem);
+                OrderItemGuid = Guid.NewGuid(),
+                Order = order,
+                ProductId = product.Id,
+                UnitPriceInclTax = unitPriceInclTax,
+                UnitPriceExclTax = unitPriceExclTax,
+                PriceInclTax = priceInclTax,
+                PriceExclTax = priceExclTax,
+                OriginalProductCost = _priceCalculationService.GetProductCost(product, attributesXml),
+                AttributeDescription = attributeDescription,
+                AttributesXml = attributesXml,
+                Quantity = quantity,
+                DiscountAmountInclTax = decimal.Zero,
+                DiscountAmountExclTax = decimal.Zero,
+                DownloadCount = 0,
+                IsDownloadActivated = false,
+                LicenseDownloadId = 0,
+                ItemWeight = itemWeight,
+                RentalStartDateUtc = rentalStartDate,
+                RentalEndDateUtc = rentalEndDate,
+                UnitPriceUsd = unitPriceUsd,
+                CurrencyId = currencyId,
+                ExchangeRate = exchangeRate,
+                OrderingFee = orderingFee,
+                SaleOffPercent = saleOffPercent,
+                WeightCost = weightCost
+            };
+            order.OrderItems.Add(orderItem);
 
 
-                order.WeightCost = order.OrderItems.Sum(_ => _.WeightCost);
-                order.OrderTotal = order.OrderItems.Sum(_ => _.PriceExclTax);
+            order.WeightCost = order.OrderItems.Sum(_ => _.WeightCost);
+            order.OrderTotal = order.OrderItems.Sum(_ => _.PriceExclTax);
 
-                _orderService.UpdateOrder(order);
+            _orderService.UpdateOrder(order);
 
-                //adjust inventory
-                _productService.AdjustInventory(orderItem.Product, -orderItem.Quantity, orderItem.AttributesXml,
-                    string.Format(_localizationService.GetResource("Admin.StockQuantityHistory.Messages.EditOrder"), order.Id));
+            //adjust inventory
+            _productService.AdjustInventory(orderItem.Product, -orderItem.Quantity, orderItem.AttributesXml,
+                string.Format(_localizationService.GetResource("Admin.StockQuantityHistory.Messages.EditOrder"), order.Id));
 
-                //update order totals
-                var updateOrderParameters = new UpdateOrderParameters
-                {
-                    UpdatedOrder = order,
-                    UpdatedOrderItem = orderItem,
-                    PriceInclTax = unitPriceInclTax,
-                    PriceExclTax = unitPriceExclTax,
-                    SubTotalInclTax = priceInclTax,
-                    SubTotalExclTax = priceExclTax,
-                    Quantity = quantity
-                };
-                _orderProcessingService.UpdateOrderTotals(updateOrderParameters);
+            //update order totals
+            var updateOrderParameters = new UpdateOrderParameters
+            {
+                UpdatedOrder = order,
+                UpdatedOrderItem = orderItem,
+                PriceInclTax = unitPriceInclTax,
+                PriceExclTax = unitPriceExclTax,
+                SubTotalInclTax = priceInclTax,
+                SubTotalExclTax = priceExclTax,
+                Quantity = quantity
+            };
+            _orderProcessingService.UpdateOrderTotals(updateOrderParameters);
 
-                //add a note
-                order.OrderNotes.Add(new OrderNote
-                {
-                    Note = "A new order item has been added",
-                    DisplayToCustomer = false,
-                    CreatedOnUtc = DateTime.UtcNow
-                });
-                _orderService.UpdateOrder(order);
-                LogEditOrder(order.Id);
+            //add a note
+            order.OrderNotes.Add(new OrderNote
+            {
+                Note = "A new order item has been added",
+                DisplayToCustomer = false,
+                CreatedOnUtc = DateTime.UtcNow
+            });
+            _orderService.UpdateOrder(order);
+            LogEditOrder(order.Id);
 
-                ////gift cards
-                //if (product.IsGiftCard)
-                //{
-                //    for (var i = 0; i < orderItem.Quantity; i++)
-                //    {
-                //        var gc = new GiftCard
-                //        {
-                //            GiftCardType = product.GiftCardType,
-                //            PurchasedWithOrderItem = orderItem,
-                //            Amount = unitPriceExclTax,
-                //            IsGiftCardActivated = false,
-                //            GiftCardCouponCode = _giftCardService.GenerateGiftCardCode(),
-                //            RecipientName = recipientName,
-                //            RecipientEmail = recipientEmail,
-                //            SenderName = senderName,
-                //            SenderEmail = senderEmail,
-                //            Message = giftCardMessage,
-                //            IsRecipientNotified = false,
-                //            CreatedOnUtc = DateTime.UtcNow
-                //        };
-                //        _giftCardService.InsertGiftCard(gc);
-                //    }
-                //}
+            ////gift cards
+            //if (product.IsGiftCard)
+            //{
+            //    for (var i = 0; i < orderItem.Quantity; i++)
+            //    {
+            //        var gc = new GiftCard
+            //        {
+            //            GiftCardType = product.GiftCardType,
+            //            PurchasedWithOrderItem = orderItem,
+            //            Amount = unitPriceExclTax,
+            //            IsGiftCardActivated = false,
+            //            GiftCardCouponCode = _giftCardService.GenerateGiftCardCode(),
+            //            RecipientName = recipientName,
+            //            RecipientEmail = recipientEmail,
+            //            SenderName = senderName,
+            //            SenderEmail = senderEmail,
+            //            Message = giftCardMessage,
+            //            IsRecipientNotified = false,
+            //            CreatedOnUtc = DateTime.UtcNow
+            //        };
+            //        _giftCardService.InsertGiftCard(gc);
+            //    }
+            //}
 
-                //redirect to order details page
-                //foreach (var warning in updateOrderParameters.Warnings)
-                //    WarningNotification(warning);
+            //redirect to order details page
+            //foreach (var warning in updateOrderParameters.Warnings)
+            //    WarningNotification(warning);
 
-                return RedirectToAction("Edit", "Order", new { id = order.Id });
-            }
 
+            //}
+            return RedirectToAction("Edit", "Order", new { id = order.Id });
             //errors
-            var model = PrepareAddProductToOrderModel(order.Id, product.Id);
-            //model.Warnings.AddRange(warnings);
-            return View(model);
+            //var model = PrepareAddProductToOrderModel(order.Id, product.Id);
+            ////model.Warnings.AddRange(warnings);
+            //return View(model);
         }
 
         #endregion
@@ -5626,7 +5626,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             try
             {
                 var bytes = _exportManager.ExportOrderItemsToXlsxBasic(orderItems);
-                return File(bytes, MimeTypes.TextXlsx, $"export-all-vendor-order-items-{DateTime.Now.ToShortDateString()}.xlsx");
+                return File(bytes, MimeTypes.TextCsv, $"export-all-vendor-order-items-{DateTime.Now.ToShortDateString()}.csv");
             }
             catch (Exception exc)
             {
@@ -5675,7 +5675,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             try
             {
                 var bytes = _exportManager.ExportOrderItemsToXlsxBasic(orderItems);
-                return File(bytes, MimeTypes.TextXlsx, $"vendor-orders-selected-{DateTime.Now.Year}.{DateTime.Now.Month}.{DateTime.Now.Day}.xlsx");
+                return File(bytes, MimeTypes.TextCsv, $"vendor-orders-selected-{DateTime.Now.Year}.{DateTime.Now.Month}.{DateTime.Now.Day}.csv");
             }
             catch (Exception exc)
             {

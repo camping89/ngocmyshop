@@ -548,12 +548,12 @@ namespace Nop.Services.Orders
             subTotalInclTax = decimal.Zero;
             subTotalTaxRates = new SortedDictionary<decimal, decimal>();
 
+            var itemDiscounts = new List<DiscountForCaching>();
             foreach (var shoppingCartItem in restoredCart)
             {
-                decimal itemSubTotalExclTax;
-                decimal itemSubTotalInclTax;
-                decimal taxRate;
-                var itemDiscounts = new List<DiscountForCaching>();
+                decimal itemSubTotalExclTax = 0m;
+                decimal itemSubTotalInclTax = 0m;
+                decimal taxRate = 0m;
 
                 //calculate subtotal for the updated order item
                 if (shoppingCartItem.Id == updatedOrderItem.Id)
@@ -567,14 +567,26 @@ namespace Nop.Services.Orders
                     updatedOrderItem.PriceInclTax = itemSubTotalInclTax = updateOrderParameters.SubTotalInclTax;
                     updatedOrderItem.Quantity = shoppingCartItem.Quantity;
 
-                    taxRate = Math.Round((100 * (itemSubTotalInclTax - itemSubTotalExclTax)) / itemSubTotalExclTax, 3);
+                    if (itemSubTotalExclTax != decimal.Zero)
+                    {
+                        taxRate = Math.Round((100 * (itemSubTotalInclTax - itemSubTotalExclTax)) / itemSubTotalExclTax, 3);
+                    }
                 }
                 else
                 {
                     //get the already calculated subtotal from the order item
-                    itemSubTotalExclTax = updatedOrder.OrderItems.FirstOrDefault(item => item.Id == shoppingCartItem.Id).PriceExclTax;
-                    itemSubTotalInclTax = updatedOrder.OrderItems.FirstOrDefault(item => item.Id == shoppingCartItem.Id).PriceInclTax;
-                    taxRate = Math.Round((100 * (itemSubTotalInclTax - itemSubTotalExclTax)) / itemSubTotalExclTax, 3);
+                    if (updatedOrder != null && updatedOrder.OrderItems != null)
+                    {
+                        var orderItem = updatedOrder.OrderItems.FirstOrDefault(item => item.Id == shoppingCartItem.Id);
+                        if (orderItem != null)
+                        {
+                            itemSubTotalExclTax = orderItem.PriceExclTax;
+                            itemSubTotalInclTax = orderItem.PriceInclTax;
+                        }
+                    }
+
+                    if (itemSubTotalExclTax != decimal.Zero)
+                        taxRate = Math.Round(100 * (itemSubTotalInclTax - itemSubTotalExclTax) / itemSubTotalExclTax, 3);
                 }
 
                 foreach (var discount in itemDiscounts)
