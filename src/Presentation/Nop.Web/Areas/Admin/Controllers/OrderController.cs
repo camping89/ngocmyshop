@@ -4495,6 +4495,64 @@ namespace Nop.Web.Areas.Admin.Controllers
         }
 
 
+        [HttpPost]
+        public virtual IActionResult ApplyPackageOrderIdSelected(ICollection<int> selectedIds, int packageOrderIdNew)
+        {
+            if (!_permissionService.Authorize(StandardPermissionProvider.ManageOrders))
+                return AccessDeniedView();
+
+            var orderItems = new List<OrderItem>();
+            if (selectedIds != null)
+            {
+                orderItems.AddRange(_orderService.GetOrderItemsByIds(selectedIds.ToArray()));
+            }
+
+            foreach (var orderItem in orderItems)
+            {
+                try
+                {
+                    orderItem.PackageOrderId = packageOrderIdNew;
+                    _orderService.UpdateOrderItem(orderItem);
+                }
+                catch
+                {
+                    //ignore any exception
+                }
+            }
+
+            return Json(new { Result = true });
+        }
+
+
+        [HttpPost]
+        public virtual IActionResult ApplyPackageItemProcessedDatetimeSelected(ICollection<int> selectedIds, DateTime datetimeNew)
+        {
+            if (!_permissionService.Authorize(StandardPermissionProvider.ManageOrders))
+                return AccessDeniedView();
+
+            var orderItems = new List<OrderItem>();
+            if (selectedIds != null)
+            {
+                orderItems.AddRange(_orderService.GetOrderItemsByIds(selectedIds.ToArray()));
+            }
+
+            foreach (var orderItem in orderItems)
+            {
+                try
+                {
+                    orderItem.PackageItemProcessedDatetime = datetimeNew;
+                    _orderService.UpdateOrderItem(orderItem);
+                }
+                catch
+                {
+                    //ignore any exception
+                }
+            }
+
+            return Json(new { Result = true });
+        }
+
+
         [HttpPost, ActionName("ShipmentDetails")]
         [FormValueRequired("savedeliverydate")]
         public virtual IActionResult EditDeliveryDate(ShipmentModel model)
@@ -5469,8 +5527,15 @@ namespace Nop.Web.Areas.Admin.Controllers
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.OrderCountryReport))
                 return AccessDeniedView();
+            var model = new OrderItemExportVendorModel();
+            var packageOrders = _packageOrderService.GetPackageOrders(loadIsShipped: false);
+            foreach (var packageOrder in packageOrders)
+            {
+                model.PackageOrderIds.Add(new SelectListItem { Text = packageOrder.PackageName, Value = packageOrder.Id.ToString() });
+            }
+            model.PackageOrderIds.Insert(0, new SelectListItem { Text = _localizationService.GetResource("Admin.Common.All"), Value = "0" });
 
-            return View(new OrderItemExportVendorModel());
+            return View(model);
         }
 
         [HttpPost]
@@ -5481,7 +5546,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             var primaryStoreCurrency = _currencyService.GetCurrencyById(_currencySettings.PrimaryStoreCurrencyId);
             var orderItems = _orderService.GetOrderItemsVendorCheckout(model.VendorProductUrl, model.OrderId, command.Page - 1, command.PageSize,
                 isOrderCheckout: model.IsOrderCheckout, isPackageItemProcessed: model.IsPackageItemProcessed,
-                isSetPackageItemCode: model.IsSetPackageItemCode, todayFilter: model.TodayFilter, customerPhone: model.CustomerPhone);
+                isSetPackageItemCode: model.IsSetPackageItemCode, todayFilter: model.TodayFilter, customerPhone: model.CustomerPhone, packageOrderId: model.PackageOrderId);
             var gridModel = new DataSourceResult
             {
                 Data = orderItems.Select(orderItem =>

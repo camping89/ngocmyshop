@@ -1,12 +1,12 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using Nop.Core.Domain.Catalog;
 using Nop.Core.Domain.Media;
 using Nop.Services.Localization;
 using Nop.Services.Media;
 using Nop.Services.Seo;
 using Nop.Services.Stores;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Nop.Services.Catalog
 {
@@ -54,15 +54,15 @@ namespace Nop.Services.Catalog
         public CopyProductService(IProductService productService,
             IProductAttributeService productAttributeService,
             ILanguageService languageService,
-            ILocalizedEntityService localizedEntityService, 
+            ILocalizedEntityService localizedEntityService,
             ILocalizationService localizationService,
             IPictureService pictureService,
-            ICategoryService categoryService, 
+            ICategoryService categoryService,
             IManufacturerService manufacturerService,
             ISpecificationAttributeService specificationAttributeService,
             IDownloadService downloadService,
             IProductAttributeParser productAttributeParser,
-            IUrlRecordService urlRecordService, 
+            IUrlRecordService urlRecordService,
             IStoreMappingService storeMappingService)
         {
             this._productService = productService;
@@ -214,6 +214,7 @@ namespace Nop.Services.Catalog
                         AssociatedProductId = productAttributeValue.AssociatedProductId,
                         Name = productAttributeValue.Name,
                         ColorSquaresRgb = productAttributeValue.ColorSquaresRgb,
+                        BasePriceAdjustment = productAttributeValue.BasePriceAdjustment,
                         PriceAdjustment = productAttributeValue.PriceAdjustment,
                         WeightAdjustment = productAttributeValue.WeightAdjustment,
                         Cost = productAttributeValue.Cost,
@@ -724,7 +725,7 @@ namespace Nop.Services.Catalog
             _urlRecordService.SaveSlug(productCopy, productCopy.ValidateSeName("", productCopy.Name, true), 0);
             return productCopy;
         }
-        
+
         #endregion
 
         #region Methods

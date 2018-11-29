@@ -50,6 +50,7 @@ namespace Nop.Web.Factories
         private readonly IPictureService _pictureService;
         private readonly ILocalizationService _localizationService;
         private readonly IProductService _productService;
+        private readonly IProductAttributeService _productAttributeService;
         private readonly IProductAttributeFormatter _productAttributeFormatter;
         private readonly IProductAttributeParser _productAttributeParser;
         private readonly ITaxService _taxService;
@@ -129,7 +130,7 @@ namespace Nop.Web.Factories
             CaptchaSettings captchaSettings,
             AddressSettings addressSettings,
             RewardPointsSettings rewardPointsSettings,
-            CustomerSettings customerSettings, ICommonModelFactory commonModelFactory, IMeasureService measureService, MeasureSettings measureSettings)
+            CustomerSettings customerSettings, ICommonModelFactory commonModelFactory, IMeasureService measureService, MeasureSettings measureSettings, IProductAttributeService productAttributeService)
         {
             this._addressModelFactory = addressModelFactory;
             this._workContext = workContext;
@@ -175,6 +176,7 @@ namespace Nop.Web.Factories
             _commonModelFactory = commonModelFactory;
             _measureService = measureService;
             _measureSettings = measureSettings;
+            _productAttributeService = productAttributeService;
         }
 
         #endregion
@@ -344,6 +346,7 @@ namespace Nop.Web.Factories
             if (sci == null)
                 throw new ArgumentNullException(nameof(sci));
             var baseWeight = _measureService.GetMeasureWeightById(_measureSettings.BaseWeightId).Name;
+
 
             var cartItemModel = new ShoppingCartModel.ShoppingCartItemModel
             {

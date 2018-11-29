@@ -18,6 +18,7 @@ namespace Nop.Data.Mapping.Catalog
             this.Property(pav => pav.ColorSquaresRgb).HasMaxLength(100);
 
             this.Property(pav => pav.PriceAdjustment).HasPrecision(18, 4);
+            this.Property(pav => pav.BasePriceAdjustment).HasPrecision(18, 4);
             this.Property(pav => pav.WeightAdjustment).HasPrecision(18, 4);
             this.Property(pav => pav.Cost).HasPrecision(18, 4);
 

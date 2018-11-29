@@ -43,6 +43,11 @@ namespace Nop.Core.Domain.Catalog
         public decimal PriceAdjustment { get; set; }
 
         /// <summary>
+        /// Gets or sets the price base adjustment (used only with AttributeValueType.Simple)
+        /// </summary>
+        public decimal BasePriceAdjustment { get; set; }
+
+        /// <summary>
         /// Gets or sets the weight adjustment (used only with AttributeValueType.Simple)
         /// </summary>
         public decimal WeightAdjustment { get; set; }

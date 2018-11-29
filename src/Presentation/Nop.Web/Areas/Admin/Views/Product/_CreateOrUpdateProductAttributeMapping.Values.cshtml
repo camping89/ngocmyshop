@@ -3,12 +3,12 @@
 <div class="panel-group">
     @await Component.InvokeAsync("AdminWidget", new { widgetZone = "admin_product_attribute_mapping_details_values_top", additionalData = Model.Id })
     <div class="panel panel-default">
-    @if (Model.Id > 0)
-    {
-        <div class="panel-body">
-            <div id="productattributevalues-grid"></div>
+        @if (Model.Id > 0)
+        {
+            <div class="panel-body">
+                <div id="productattributevalues-grid"></div>
 
-            <script type="text/javascript">
+                <script type="text/javascript">
                 $(document).ready(function() {
                     $("#productattributevalues-grid").kendoGrid({
                         dataSource: {
@@ -77,6 +77,11 @@
                                     "@T("Admin.Catalog.Products.ProductAttributes.Attributes.Values.Fields.AssociatedProduct")",
                                 width: 200
                             }, {
+                                field: "BasePriceAdjustmentStr",
+                                title:
+                                    "@T("Admin.Catalog.Products.ProductAttributes.Attributes.Values.Fields.BasePriceAdjustmentStr")",
+                                width: 150
+                            }, {
                                 field: "PriceAdjustmentStr",
                                 title:
                                     "@T("Admin.Catalog.Products.ProductAttributes.Attributes.Values.Fields.PriceAdjustment")",
@@ -121,33 +126,33 @@
                         ]
                     });
                 });
-            </script>
-        </div>
-        <div class="panel-footer">
-            <button type="submit" id="btnAddNewValue" onclick="javascript:OpenWindow('@(Url.Action("ProductAttributeValueCreatePopup", "Product", new {productAttributeMappingId = Model.Id, btnId = "btnRefresh", formId = "productattribute-form"}))', 800, 750, true);return false;" class="btn btn-primary">
-                @T("Admin.Catalog.Products.ProductAttributes.Attributes.Values.AddNew")
-            </button>
-            <input type="submit" id="btnRefresh" style="display: none"/>
-            <script type="text/javascript">
-                $(document).ready(function() {
-                    $('#btnRefresh').click(function() {
-                        //refresh grid
-                        var grid = $("#productattributevalues-grid").data('kendoGrid');
-                        grid.dataSource.read();
+                </script>
+            </div>
+            <div class="panel-footer">
+                <button type="submit" id="btnAddNewValue" onclick="javascript:OpenWindow('@(Url.Action("ProductAttributeValueCreatePopup", "Product", new {productAttributeMappingId = Model.Id, btnId = "btnRefresh", formId = "productattribute-form"}))', 800, 750, true);return false;" class="btn btn-primary">
+                    @T("Admin.Catalog.Products.ProductAttributes.Attributes.Values.AddNew")
+                </button>
+                <input type="submit" id="btnRefresh" style="display: none" />
+                <script type="text/javascript">
+                    $(document).ready(function () {
+                        $('#btnRefresh').click(function () {
+                            //refresh grid
+                            var grid = $("#productattributevalues-grid").data('kendoGrid');
+                            grid.dataSource.read();
 
-                        //return false to don't reload a page
-                        return false;
+                            //return false to don't reload a page
+                            return false;
+                        });
                     });
-                });
-            </script>
-        </div>
-    }
-    else
-    {
-        <div class="panel-body">
-            @T("Admin.Catalog.Products.ProductAttributes.Attributes.Values.SaveBeforeEdit")
-        </div>
-    }
+                </script>
+            </div>
+        }
+        else
+        {
+            <div class="panel-body">
+                @T("Admin.Catalog.Products.ProductAttributes.Attributes.Values.SaveBeforeEdit")
+            </div>
+        }
     </div>
     @await Component.InvokeAsync("AdminWidget", new { widgetZone = "admin_product_attribute_mapping_details_values_bottom", additionalData = Model.Id })
 </div>

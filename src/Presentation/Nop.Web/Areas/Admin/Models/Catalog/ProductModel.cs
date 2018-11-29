@@ -844,6 +844,12 @@ namespace Nop.Web.Areas.Admin.Models.Catalog
             //used only on the values list page
             public string PriceAdjustmentStr { get; set; }
 
+            [NopResourceDisplayName("Admin.Catalog.Products.ProductAttributes.Attributes.Values.Fields.BasePriceAdjustment")]
+            public decimal BasePriceAdjustment { get; set; }
+            [NopResourceDisplayName("Admin.Catalog.Products.ProductAttributes.Attributes.Values.Fields.BasePriceAdjustment")]
+            //used only on the values list page
+            public string BasePriceAdjustmentStr { get; set; }
+
             [NopResourceDisplayName("Admin.Catalog.Products.ProductAttributes.Attributes.Values.Fields.WeightAdjustment")]
             public decimal WeightAdjustment { get; set; }
             [NopResourceDisplayName("Admin.Catalog.Products.ProductAttributes.Attributes.Values.Fields.WeightAdjustment")]

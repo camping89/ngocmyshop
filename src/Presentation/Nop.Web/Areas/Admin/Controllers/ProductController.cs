@@ -3976,7 +3976,9 @@ namespace Nop.Web.Areas.Admin.Controllers
                         ColorSquaresRgb = x.ColorSquaresRgb,
                         ImageSquaresPictureId = x.ImageSquaresPictureId,
                         PriceAdjustment = x.PriceAdjustment,
+                        BasePriceAdjustment = x.BasePriceAdjustment,
                         PriceAdjustmentStr = x.AttributeValueType == AttributeValueType.Simple ? x.PriceAdjustment.ToString("G29") : "",
+                        BasePriceAdjustmentStr = x.AttributeValueType == AttributeValueType.Simple ? x.BasePriceAdjustment.ToString("G29") : "",
                         WeightAdjustment = x.WeightAdjustment,
                         WeightAdjustmentStr = x.AttributeValueType == AttributeValueType.Simple ? x.WeightAdjustment.ToString("G29") : "",
                         Cost = x.Cost,
@@ -4093,6 +4095,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                     ColorSquaresRgb = model.ColorSquaresRgb,
                     ImageSquaresPictureId = model.ImageSquaresPictureId,
                     PriceAdjustment = model.PriceAdjustment,
+                    BasePriceAdjustment = model.BasePriceAdjustment,
                     WeightAdjustment = model.WeightAdjustment,
                     Cost = model.Cost,
                     CustomerEntersQty = model.CustomerEntersQty,
@@ -4161,6 +4164,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 DisplayColorSquaresRgb = pav.ProductAttributeMapping.AttributeControlType == AttributeControlType.ColorSquares,
                 ImageSquaresPictureId = pav.ImageSquaresPictureId,
                 DisplayImageSquaresPicture = pav.ProductAttributeMapping.AttributeControlType == AttributeControlType.ImageSquares,
+                BasePriceAdjustment = pav.BasePriceAdjustment,
                 PriceAdjustment = pav.PriceAdjustment,
                 WeightAdjustment = pav.WeightAdjustment,
                 Cost = pav.Cost,
@@ -4237,6 +4241,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 pav.Name = model.Name;
                 pav.ColorSquaresRgb = model.ColorSquaresRgb;
                 pav.ImageSquaresPictureId = model.ImageSquaresPictureId;
+                pav.BasePriceAdjustment = model.BasePriceAdjustment;
                 pav.PriceAdjustment = model.PriceAdjustment;
                 pav.WeightAdjustment = model.WeightAdjustment;
                 pav.Cost = model.Cost;

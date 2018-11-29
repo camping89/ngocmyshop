@@ -1,6 +1,3 @@
-using System;
-using System.Net;
-using System.Text;
 using Nop.Core;
 using Nop.Core.Domain.Catalog;
 using Nop.Core.Domain.Customers;
@@ -10,6 +7,9 @@ using Nop.Services.Directory;
 using Nop.Services.Localization;
 using Nop.Services.Media;
 using Nop.Services.Tax;
+using System;
+using System.Net;
+using System.Text;
 
 namespace Nop.Services.Catalog
 {
@@ -80,7 +80,7 @@ namespace Nop.Services.Catalog
             var customer = _workContext.CurrentCustomer;
             return FormatAttributes(product, attributesXml, customer);
         }
-        
+
         /// <summary>
         /// Formats attributes
         /// </summary>
@@ -100,7 +100,7 @@ namespace Nop.Services.Catalog
             bool allowHyperlinks = true)
         {
             var result = new StringBuilder();
-
+            var currency = _currencyService.GetCurrencyById(product.CurrencyId);
             //attributes
             if (renderProductAttributes)
             {
@@ -175,15 +175,26 @@ namespace Nop.Services.Catalog
                         {
                             var formattedAttribute = $"{attribute.ProductAttribute.GetLocalized(a => a.Name, _workContext.WorkingLanguage.Id)}: {attributeValue.GetLocalized(a => a.Name, _workContext.WorkingLanguage.Id)}";
 
+                            //if (renderPrices)
+                            //{
+                            //    var attributeValuePriceAdjustment = _priceCalculationService.GetProductAttributeValuePriceAdjustment(attributeValue);
+                            //    var priceAdjustmentBase = _taxService.GetProductPrice(product, attributeValuePriceAdjustment, customer, out decimal _);
+                            //    var priceAdjustment = _currencyService.ConvertFromPrimaryStoreCurrency(priceAdjustmentBase, _workContext.WorkingCurrency);
+                            //    if (priceAdjustmentBase > 0)
+                            //        formattedAttribute += $" [+{_priceFormatter.FormatPrice(priceAdjustment, false, false)}]";
+                            //    else if (priceAdjustmentBase < decimal.Zero)
+                            //        formattedAttribute += $" [-{_priceFormatter.FormatPrice(-priceAdjustment, false, false)}]";
+                            //}
+
                             if (renderPrices)
                             {
-                                var attributeValuePriceAdjustment = _priceCalculationService.GetProductAttributeValuePriceAdjustment(attributeValue);
-                                var priceAdjustmentBase = _taxService.GetProductPrice(product, attributeValuePriceAdjustment, customer, out decimal _);
-                                var priceAdjustment = _currencyService.ConvertFromPrimaryStoreCurrency(priceAdjustmentBase, _workContext.WorkingCurrency);
-                                if (priceAdjustmentBase > 0)
-                                    formattedAttribute += $" [+{_priceFormatter.FormatPrice(priceAdjustment, false, false)}]";
-                                else if (priceAdjustmentBase < decimal.Zero)
-                                    formattedAttribute += $" [-{_priceFormatter.FormatPrice(-priceAdjustment, false, false)}]";
+                                var attributeValuePriceAdjustment = _priceCalculationService.GetProductAttributeValueBasePriceAdjustment(attributeValue);
+                                //var priceAdjustmentBase = _taxService.GetProductPrice(product, attributeValuePriceAdjustment, customer, out decimal _);
+                                //var priceAdjustment = _currencyService.ConvertFromPrimaryStoreCurrency(priceAdjustmentBase, _workContext.WorkingCurrency);
+                                if (attributeValuePriceAdjustment > 0)
+                                    formattedAttribute += $" [+{_priceFormatter.FormatPrice(attributeValuePriceAdjustment, false, currency)}]";
+                                else if (attributeValuePriceAdjustment < decimal.Zero)
+                                    formattedAttribute += $" [-{_priceFormatter.FormatPrice(-attributeValuePriceAdjustment, false, currency)}]";
                             }
 
                             //display quantity

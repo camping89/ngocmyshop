@@ -1,9 +1,9 @@
-using System;
-using System.Collections.Generic;
 using Nop.Core.Domain.Catalog;
 using Nop.Core.Domain.Customers;
 using Nop.Core.Domain.Orders;
 using Nop.Services.Discounts;
+using System;
+using System.Collections.Generic;
 
 namespace Nop.Services.Catalog
 {
@@ -23,8 +23,8 @@ namespace Nop.Services.Catalog
         /// <returns>Final price</returns>
         decimal GetFinalPrice(Product product,
             Customer customer,
-            decimal additionalCharge = decimal.Zero, 
-            bool includeDiscounts = true, 
+            decimal additionalCharge = decimal.Zero,
+            bool includeDiscounts = true,
             int quantity = 1);
 
         /// <summary>
@@ -148,12 +148,13 @@ namespace Nop.Services.Catalog
         /// <param name="attributesXml">Shopping cart item attributes in XML</param>
         /// <returns>Product cost (one item)</returns>
         decimal GetProductCost(Product product, string attributesXml);
-        
+
         /// <summary>
         /// Get a price adjustment of a product attribute value
         /// </summary>
         /// <param name="value">Product attribute value</param>
         /// <returns>Price adjustment</returns>
         decimal GetProductAttributeValuePriceAdjustment(ProductAttributeValue value);
+        decimal GetProductAttributeValueBasePriceAdjustment(ProductAttributeValue value);
     }
 }

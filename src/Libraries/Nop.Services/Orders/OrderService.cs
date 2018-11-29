@@ -454,18 +454,23 @@ namespace Nop.Services.Orders
         }
 
         public virtual IPagedList<OrderItem> GetOrderItemsVendorCheckout(string vendorProductUrl, int orderId = 0, int pageIndex = 0, int pageSize = int.MaxValue, OrderSortingEnum orderBy = OrderSortingEnum.CreatedOnDesc, bool? isOrderCheckout = null
-            ,bool isPackageItemProcessed = false,bool isSetPackageItemCode = false,bool todayFilter = false,string customerPhone = null)
+            , bool isPackageItemProcessed = false, bool isSetPackageItemCode = false, bool todayFilter = false, string customerPhone = null, int packageOrderId = 0)
         {
             var query = _orderItemRepository.Table;
             if (string.IsNullOrEmpty(vendorProductUrl) == false)
             {
-                query = query.Where(_ => string.IsNullOrEmpty(_.Product.VendorProductUrl) == false 
+                query = query.Where(_ => string.IsNullOrEmpty(_.Product.VendorProductUrl) == false
                                          && _.Product.VendorProductUrl.Contains(vendorProductUrl));
             }
 
             if (orderId > 0)
             {
                 query = query.Where(_ => _.OrderId == orderId);
+            }
+
+            if (packageOrderId > 0)
+            {
+                query = query.Where(_ => _.PackageOrderId == packageOrderId);
             }
 
             if (isOrderCheckout.HasValue)
@@ -487,12 +492,12 @@ namespace Nop.Services.Orders
             {
                 var startDate = DateTime.UtcNow.Date;
                 var endDate = DateTime.UtcNow.Date.AddDays(1);
-                query = query.Where(_ => _.Order.CreatedOnUtc != null &&  startDate <= _.Order.CreatedOnUtc  && endDate > _.Order.CreatedOnUtc);
+                query = query.Where(_ => _.Order.CreatedOnUtc != null && startDate <= _.Order.CreatedOnUtc && endDate > _.Order.CreatedOnUtc);
             }
 
             if (!string.IsNullOrEmpty(customerPhone))
                 query = query.Where(o => o.Order.BillingAddress != null && !string.IsNullOrEmpty(o.Order.BillingAddress.PhoneNumber) && o.Order.BillingAddress.PhoneNumber.Contains(customerPhone));
-            
+
             switch (orderBy)
             {
                 case OrderSortingEnum.CreatedOnAsc:

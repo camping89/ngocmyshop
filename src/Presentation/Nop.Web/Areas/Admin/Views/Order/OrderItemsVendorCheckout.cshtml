@@ -27,11 +27,19 @@
             @T("Admin.Orders.Exports")
         </h1>
         <div class="pull-right">
+            <button type="button" id="apply-packageorderid-selected" class="btn bg-aqua" data-toggle="modal" data-target="#apply-packageorderid-window">
+                @T("Admin.Orders.Shipments.ApplyPackageOrderId")
+            </button>
+            <button type="button" id="apply-processed-datetime-selected" class="btn bg-aqua" data-toggle="modal" data-target="#apply-processed-datetime-window">
+                <i class="fa fa-calendar"></i>
+                @T("Admin.Orders.Shipments.ApplyProcessedDatetime")
+            </button>
             <button type="button" class="btn btn-primary" id="btn-set-isordercheckout-selected">
                 <i class="fa fa-save"></i>
                 @T("Admin.Common.SetIsOrderCheckoutSelected")
             </button>
             <div class="btn-group">
+
                 <button type="button" class="btn btn-success">
                     <i class="fa fa-download"></i>
                     @T("Admin.Common.Export")
@@ -73,6 +81,14 @@
                                     </div>
                                     <div class="col-md-8">
                                         <nop-editor asp-for="VendorProductUrl" />
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <nop-label asp-for="PackageOrderId" />
+                                    </div>
+                                    <div class="col-md-8">
+                                        <nop-select asp-for="PackageOrderId" asp-items="Model.PackageOrderIds" />
                                     </div>
                                 </div>
                                 <div class="form-group">
@@ -545,7 +561,8 @@
                                             IsSetPackageItemCode: $('#@Html.IdFor(model => model.IsSetPackageItemCode)')
                                                 .is(":checked"),
                                             TodayFilter: $('#@Html.IdFor(model => model.TodayFilter)').is(":checked"),
-                                            CustomerPhone: $('#@Html.IdFor(model => model.CustomerPhone)').val()
+                                            CustomerPhone: $('#@Html.IdFor(model => model.CustomerPhone)').val(),
+                                            PackageOrderId: $('#@Html.IdFor(model => model.PackageOrderId)').val()
                                         };
                                         addAntiForgeryToken(data);
                                         return data;
@@ -623,7 +640,6 @@
     });
 </script>
 
-@*export selected (Excel). We don't use GET approach because it's limited to 2K-4K chars and won't work for large number of entities*@
 <form asp-controller="Order" asp-action="ExportExcelVendorInvoiceOrderItemsSelected" method="post" id="exportexcel-invoice-vendor-selected-form">
     <input type="hidden" id="selectedIds" name="selectedIds" value="" />
 </form>
@@ -635,6 +651,143 @@
             var ids = selectedIds.join(",");
             $('#exportexcel-invoice-vendor-selected-form #selectedIds').val(ids);
             $('#exportexcel-invoice-vendor-selected-form').submit();
+            return false;
+        });
+    });
+</script>
+
+
+
+
+<div id="apply-packageorderid-window" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="apply-packageorderid-title">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="apply-packageorderid-window-title">@T("Admin.Common.AddPackageOrderIdTitle")</h4>
+            </div>
+            <form asp-controller="Order" asp-action="ApplyPackageOrderIdSelected" method="post" id="apply-packageorderid-selected-form">
+                <div class="form-horizontal">
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <div class="col-md-4">
+                                <nop-label asp-for="PackageOrderIdNew" />
+                            </div>
+                            <div class="col-md-8">
+                                <nop-select asp-for="PackageOrderIdNew" asp-items="Model.PackageOrderIds" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" id="btn-apply-packageorderid" class="btn btn-primary">
+                            @T("Admin.Common.Save")
+                        </button>
+                    </div>
+                </div>
+
+            </form>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('#btn-apply-packageorderid').click(function (e) {
+            e.preventDefault();
+            var packageOrderIdNew = $('#PackageOrderIdNew').val();
+            var postData = { selectedIds: selectedIds, packageOrderIdNew: packageOrderIdNew };
+            addAntiForgeryToken(postData);
+            $.ajax({
+                cache: false,
+                type: "POST",
+                url: "@(Url.Action("ApplyPackageOrderIdSelected", "Order"))",
+                data: postData,
+                complete: function(data) {
+                    var jsonData = data.responseJSON;
+                    if (jsonData.Result === false) {
+                        alert(jsonData.Message);
+                        return;
+                    }
+                    selectedIds = [];
+                    $('#apply-packageorderid-window').modal('toggle');
+                    //reload grid
+                    var grid = $('#order-items-grid').data('kendoGrid');
+                    grid.dataSource.read();
+                    $('#PackageOrderIdNew').val('');
+                },
+                error: function(xhr, ajaxOptions, thrownError) {
+                    alert(thrownError);
+                },
+                traditional: true
+            });
+            return false;
+        });
+    });
+</script>
+
+
+
+<div id="apply-processed-datetime-window" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="apply-processed-datetime-title">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="apply-processed-datetime-window-title">@T("Admin.Common.AddPackageItemProcessedDatetimeTitle")</h4>
+            </div>
+            <form asp-controller="Order" asp-action="ApplyPackageItemProcessedDatetimeSelected" method="post" id="apply-processed-datetime-selected-form">
+                <div class="form-horizontal">
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <div class="col-md-4">
+                                <nop-label asp-for="PackageItemProcessedDatetimeNew" />
+                            </div>
+                            <div class="col-md-8">
+                                <nop-editor asp-for="PackageItemProcessedDatetimeNew" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" id="btn-apply-processed-datetime" class="btn btn-primary">
+                            @T("Admin.Common.Save")
+                        </button>
+                    </div>
+                </div>
+
+            </form>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('#btn-apply-processed-datetime').click(function (e) {
+            e.preventDefault();
+            var datetimeNew = $('#PackageItemProcessedDatetimeNew').val();
+            var postData = { selectedIds: selectedIds, datetimeNew: datetimeNew };
+            addAntiForgeryToken(postData);
+            $.ajax({
+                cache: false,
+                type: "POST",
+                url: "@(Url.Action("ApplyPackageItemProcessedDatetimeSelected", "Order"))",
+                data: postData,
+                complete: function(data) {
+                    var jsonData = data.responseJSON;
+                    if (jsonData.Result === false) {
+                        alert(jsonData.Message);
+                        return;
+                    }
+                    selectedIds = [];
+                    $('#apply-processed-datetime-window').modal('toggle');
+                    //reload grid
+                    var grid = $('#order-items-grid').data('kendoGrid');
+                    grid.dataSource.read();
+                    $('#PackageItemProcessedDatetimeNew').val('');
+                },
+                error: function(xhr, ajaxOptions, thrownError) {
+                    alert(thrownError);
+                },
+                traditional: true
+            });
             return false;
         });
     });
