@@ -51,17 +51,30 @@
                 <ul class="dropdown-menu" role="menu">
 
                     <li>
-                        <button type="button" id="exportexcel-invoice-vendor-selected">
-                            <i class="fa fa-file-excel-o"></i>
-                            @T("Admin.Common.ExportToExcel.OrderItems.Selected")
+                        <button type="button" id="exportpdf-invoice-vendor-selected">
+                            <i class="fa fa-file-pdf-o"></i>
+                            @T("Admin.Common.ExportToPdf.OrderItems.Selected")
                         </button>
                     </li>
                     <li>
-                        <button type="submit" name="exportexcel-orderbasic-all">
-                            <i class="fa fa-file-excel-o"></i>
-                            @T("Admin.Common.ExportToExcel.OrderItems.All")
+                        <button type="submit" name="exportpdf-orderbasic-all">
+                            <i class="fa fa-file-pdf-o"></i>
+                            @T("Admin.Common.ExportToPdf.OrderItems.All")
                         </button>
                     </li>
+                    @*<li class="divider"></li>
+                        <li>
+                            <button class="disabled" disabled="disabled" type="button" id="exportexcel-invoice-vendor-selected">
+                                <i class="fa fa-file-excel-o"></i>
+                                @T("Admin.Common.ExportToExcel.OrderItems.Selected")
+                            </button>
+                        </li>
+                        <li>
+                            <button type="submit" name="exportexcel-orderbasic-all">
+                                <i class="fa fa-file-excel-o"></i>
+                                @T("Admin.Common.ExportToExcel.OrderItems.All")
+                            </button>
+                        </li>*@
                 </ul>
             </div>
 
@@ -77,10 +90,26 @@
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <div class="col-md-4">
+                                        <nop-label asp-for="OrderId" />
+                                    </div>
+                                    <div class="col-md-8">
+                                        <input asp-for="OrderId" type="text" class="form-control text-box single-line" />
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-md-4">
                                         <nop-label asp-for="VendorProductUrl" />
                                     </div>
                                     <div class="col-md-8">
                                         <nop-editor asp-for="VendorProductUrl" />
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <nop-label asp-for="VendorId" />
+                                    </div>
+                                    <div class="col-md-8">
+                                        <nop-select asp-for="VendorId" asp-items="Model.VendorItems" />
                                     </div>
                                 </div>
                                 <div class="form-group">
@@ -91,12 +120,26 @@
                                         <nop-select asp-for="PackageOrderId" asp-items="Model.PackageOrderIds" />
                                     </div>
                                 </div>
+
+                            </div>
+                            <div class="col-md-6">
+
+
+
                                 <div class="form-group">
                                     <div class="col-md-4">
-                                        <nop-label asp-for="IsOrderCheckout" />
+                                        <nop-label asp-for="CustomerPhone" />
                                     </div>
                                     <div class="col-md-8">
-                                        <nop-select asp-for="IsOrderCheckout" asp-items="@Model.IsOrderCheckoutStatusItems" />
+                                        <nop-editor asp-for="CustomerPhone" />
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <nop-label asp-for="TodayFilter" />
+                                    </div>
+                                    <div class="col-md-8">
+                                        <nop-editor asp-for="TodayFilter" />
                                     </div>
                                 </div>
                                 <div class="form-group">
@@ -115,31 +158,13 @@
                                         <nop-editor asp-for="IsSetPackageItemCode" />
                                     </div>
                                 </div>
-                            </div>
-                            <div class="col-md-6">
 
                                 <div class="form-group">
                                     <div class="col-md-4">
-                                        <nop-label asp-for="OrderId" />
+                                        <nop-label asp-for="IsOrderCheckout" />
                                     </div>
                                     <div class="col-md-8">
-                                        <nop-editor asp-for="OrderId" />
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <div class="col-md-4">
-                                        <nop-label asp-for="TodayFilter" />
-                                    </div>
-                                    <div class="col-md-8">
-                                        <nop-editor asp-for="TodayFilter" />
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <div class="col-md-4">
-                                        <nop-label asp-for="CustomerPhone" />
-                                    </div>
-                                    <div class="col-md-8">
-                                        <nop-editor asp-for="CustomerPhone" />
+                                        <nop-select asp-for="IsOrderCheckout" asp-items="@Model.IsOrderCheckoutStatusItems" />
                                     </div>
                                 </div>
                             </div>
@@ -149,6 +174,10 @@
                                 <button type="button" id="search-orders" class="btn btn-primary btn-search">
                                     <i class="fa fa-search"></i>
                                     @T("Admin.Common.Search")
+                                </button>
+                                <button type="button" id="clear-filter" class="btn btn-danger btn-search">
+                                    <i class="fa fa-recycle"></i>
+                                    @T("Admin.Common.ClearFilter")
                                 </button>
                             </div>
                         </div>
@@ -237,7 +266,7 @@
                                                 confirmation: "@T("Admin.Common.DeleteConfirmation")",
                                                 mode: "popup"
                                             },
-                                            height: 540,
+                                            //height: 540,
                                             dataBound: function (e) {
                                                 var dataElement = $(e.sender.element).find(".k-grid-content");
                                                 var fakeScroll = document.getElementById("dummyScroll");
@@ -263,10 +292,10 @@
                                                     headerAttributes: { style: "text-align:center" },
                                                     attributes: { style: "text-align:center" },
                                                     template:
-                                                        "<input type='checkbox' value='#=Id#' class='checkboxGroups'/>",
+                                                        "<div style='display:block;padding: 40%;' onclick='setChecked(#=Id#);'><input onclick='setChecked(#=Id#);' id='ckb#=Id#' type='checkbox' value='#=Id#' class='checkboxGroups'/></div>",
                                                     width: 100,
                                                     sortable: false,
-                                                    editor: disableTextbox
+                                                    editor: hideOnEditor
                                                 }, {
                                                     field: "OrderId",
                                                     title: "@T("Admin.Orders.Products.OrderId")",
@@ -275,8 +304,7 @@
                                                 {
                                                     field: "CustomerInfo",
                                                     title: "@T("Admin.Orders.Products.CustomerInfo")",
-                                                    width: 150,
-                                                    editor: disableTextbox
+                                                    width: 150
                                                 }, {
                                                     field: "CreatedDate",
                                                     title: "@T("Admin.Orders.Fields.OrderCreatedDate")",
@@ -288,8 +316,7 @@
                                                         "<p>#= kendo.toString(kendo.parseDate(CreatedDate, 'yyyy-MM-dd'), 'MM/dd/yyyy') #</p>" +
                                                         "#} else {#" +
                                                         "<p></p>" +
-                                                        "# } #",
-                                                    editor: disableTextbox
+                                                        "# } #"
                                                 },
                                                 {
                                                     field: "PictureThumbnailUrl",
@@ -504,11 +531,41 @@
                                                 });
                                         }
                                     });
+
+
+                                    function setChecked(ckbId) {
+                                       var status =  $('#ckb' + ckbId).is(':checked');
+                                        if (status) {
+                                            status = false;
+                                        } else {
+                                            status = true;
+                                        }
+                                        $('#ckb' + ckbId).attr('checked', status).change();
+                                    }
                                 </script>
                                 <script type="text/javascript">
+
+
                                     var selectedIds = [];
 
                                     $(document).ready(function() {
+
+
+                                        $("#clear-filter").click(function() {
+                                            $('#@Html.IdFor(model => model.OrderId)').val(0);
+                                            $('#@Html.IdFor(model => model.VendorProductUrl)').val('');
+                                            $('#@Html.IdFor(model => model.VendorId)').val(0);
+                                            $('#@Html.IdFor(model => model.PackageOrderId)').val(0);
+                                            $('#@Html.IdFor(model => model.CustomerPhone)').val('');
+
+                                            $('#@Html.IdFor(model => model.TodayFilter)').prop('checked', false);
+                                            $('#@Html.IdFor(model => model.IsPackageItemProcessed)').prop('checked', false);
+                                            $('#@Html.IdFor(model => model.IsSetPackageItemCode)').prop('checked', false);
+                                            $('#@Html.IdFor(model => model.IsOrderCheckout)').val(0);
+
+                                            $("#search-orders").click();
+                                        });
+
 
                                         //search button
                                         $('#search-orders').click(function() {
@@ -562,7 +619,8 @@
                                                 .is(":checked"),
                                             TodayFilter: $('#@Html.IdFor(model => model.TodayFilter)').is(":checked"),
                                             CustomerPhone: $('#@Html.IdFor(model => model.CustomerPhone)').val(),
-                                            PackageOrderId: $('#@Html.IdFor(model => model.PackageOrderId)').val()
+                                            PackageOrderId: $('#@Html.IdFor(model => model.PackageOrderId)').val(),
+                                            VendorId: $('#@Html.IdFor(model => model.VendorId)').val()
                                         };
                                         addAntiForgeryToken(data);
                                         return data;
@@ -651,6 +709,25 @@
             var ids = selectedIds.join(",");
             $('#exportexcel-invoice-vendor-selected-form #selectedIds').val(ids);
             $('#exportexcel-invoice-vendor-selected-form').submit();
+            return false;
+        });
+    });
+</script>
+
+
+
+
+<form asp-controller="Order" asp-action="ExportPdfVendorInvoiceOrderItemsSelected" method="post" id="exportpdf-invoice-vendor-selected-form">
+    <input type="hidden" id="selectedIds" name="selectedIds" value="" />
+</form>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('#exportpdf-invoice-vendor-selected').click(function (e) {
+            e.preventDefault();
+            var ids = selectedIds.join(",");
+            $('#exportpdf-invoice-vendor-selected-form #selectedIds').val(ids);
+            $('#exportpdf-invoice-vendor-selected-form').submit();
             return false;
         });
     });

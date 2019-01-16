@@ -84,6 +84,7 @@ namespace Nop.Web.Areas.Admin.Models.Orders
             }
 
             public int OrderItemId { get; set; }
+            public string OrderItemNumber { get; set; }
             public int ProductId { get; set; }
             [NopResourceDisplayName("Admin.Orders.Shipments.Products.ProductName")]
             public string ProductName { get; set; }

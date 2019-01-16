@@ -85,7 +85,7 @@ namespace Nop.Web.Factories
         private readonly AddressSettings _addressSettings;
         private readonly RewardPointsSettings _rewardPointsSettings;
         private readonly CustomerSettings _customerSettings;
-
+        private readonly ICustomerService _customerService;
         private readonly IMeasureService _measureService;
         private readonly MeasureSettings _measureSettings;
         #endregion
@@ -130,7 +130,7 @@ namespace Nop.Web.Factories
             CaptchaSettings captchaSettings,
             AddressSettings addressSettings,
             RewardPointsSettings rewardPointsSettings,
-            CustomerSettings customerSettings, ICommonModelFactory commonModelFactory, IMeasureService measureService, MeasureSettings measureSettings, IProductAttributeService productAttributeService)
+            CustomerSettings customerSettings, ICommonModelFactory commonModelFactory, IMeasureService measureService, MeasureSettings measureSettings, IProductAttributeService productAttributeService, ICustomerService customerService)
         {
             this._addressModelFactory = addressModelFactory;
             this._workContext = workContext;
@@ -177,6 +177,7 @@ namespace Nop.Web.Factories
             _measureService = measureService;
             _measureSettings = measureSettings;
             _productAttributeService = productAttributeService;
+            _customerService = customerService;
         }
 
         #endregion
@@ -823,7 +824,11 @@ namespace Nop.Web.Factories
             if (customer == null)
             {
                 customer = _workContext.CurrentCustomer;
+
+
             }
+            model.Customer = customer;
+
             if (cart == null)
                 throw new ArgumentNullException(nameof(cart));
 

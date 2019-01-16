@@ -8,6 +8,7 @@ using Nop.Core.Domain.Catalog;
 using Nop.Core.Domain.Common;
 using Nop.Core.Domain.Customers;
 using Nop.Core.Domain.Directory;
+using Nop.Core.Domain.Media;
 using Nop.Core.Domain.Orders;
 using Nop.Core.Domain.Payments;
 using Nop.Core.Domain.Shipping;
@@ -43,6 +44,8 @@ using Nop.Web.Framework.Controllers;
 using Nop.Web.Framework.Kendoui;
 using Nop.Web.Framework.Mvc;
 using Nop.Web.Framework.Mvc.Filters;
+using Nop.Web.Infrastructure.Cache;
+using Nop.Web.Models.Media;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -102,7 +105,7 @@ namespace Nop.Web.Areas.Admin.Controllers
         private readonly ICustomerService _customerService;
         private readonly IShoppingCartModelFactory _shoppingCartModelFactory;
         private readonly IStoreContext _storeContext;
-
+        private readonly MediaSettings _mediaSettings;
         private readonly IPackageOrderService _packageOrderService;
         private readonly IStaticCacheManager _cacheManager;
         private readonly OrderSettings _orderSettings;
@@ -113,6 +116,7 @@ namespace Nop.Web.Areas.Admin.Controllers
         private readonly ShippingSettings _shippingSettings;
         private readonly VendorSettings _vendorSettings;
         private readonly ICommonModelFactory _commonModelFactory;
+        private readonly IWebHelper _webHelper;
         #endregion
 
         #region Ctor
@@ -164,7 +168,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             TaxSettings taxSettings,
             MeasureSettings measureSettings,
             AddressSettings addressSettings,
-            ShippingSettings shippingSettings, VendorSettings vendorSettings, ICustomerService customerService, IShoppingCartModelFactory shoppingCartModelFactory, IStoreContext storeContext, IPackageOrderService packageOrderService, ICommonModelFactory commonModelFactory)
+            ShippingSettings shippingSettings, VendorSettings vendorSettings, ICustomerService customerService, IShoppingCartModelFactory shoppingCartModelFactory, IStoreContext storeContext, IPackageOrderService packageOrderService, ICommonModelFactory commonModelFactory, MediaSettings mediaSettings, IWebHelper webHelper)
         {
             this._orderService = orderService;
             this._orderReportService = orderReportService;
@@ -220,6 +224,8 @@ namespace Nop.Web.Areas.Admin.Controllers
             _storeContext = storeContext;
             _packageOrderService = packageOrderService;
             _commonModelFactory = commonModelFactory;
+            _mediaSettings = mediaSettings;
+            _webHelper = webHelper;
         }
 
         #endregion
@@ -1213,6 +1219,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                     {
                         Id = shipmentItem.Id,
                         OrderItemId = orderItem.Id,
+                        OrderItemNumber = $"{shipment.OrderId}.{orderItem.Id}",
                         ProductId = orderItem.ProductId,
                         ProductName = orderItem.Product.Name,
                         Sku = orderItem.Product.FormatSku(orderItem.AttributesXml, _productAttributeParser),
@@ -1520,6 +1527,11 @@ namespace Nop.Web.Areas.Admin.Controllers
                 Data = orders.Select(x =>
                 {
                     var store = _storeService.GetStoreById(x.StoreId);
+                    var linkFacebook = x.Customer.GetAttribute<string>(SystemCustomerAttributeNames.LinkFacebook1);
+                    if (string.IsNullOrEmpty(linkFacebook))
+                    {
+                        linkFacebook = x.Customer.GetAttribute<string>(SystemCustomerAttributeNames.LinkFacebook2);
+                    }
                     var orderModel = new OrderModelBasic
                     {
                         Id = x.Id,
@@ -1534,6 +1546,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                         //CustomerEmail = x.BillingAddress.Email,
                         CustomerFullName = $"{x.BillingAddress.FirstName} {x.BillingAddress.LastName}",
                         CustomerPhone = x.Customer.GetAttribute<string>(SystemCustomerAttributeNames.Phone),
+                        CustomerLinkFacebook = linkFacebook,
                         CreatedOn = _dateTimeHelper.ConvertToUserTime(x.CreatedOnUtc, DateTimeKind.Utc),
                         CustomOrderNumber = x.CustomOrderNumber,
                         WeightCost = _priceFormatter.FormatPrice(x.WeightCost, true, false),
@@ -2658,8 +2671,57 @@ namespace Nop.Web.Areas.Admin.Controllers
                 }
             }
 
+
+            //picture. used when we want to override a default product picture when some attribute is selected
+            var pictureFullSizeUrl = "";
+            var pictureDefaultSizeUrl = "";
+            if (true)
+            {
+                //just load (return) the first found picture (in case if we have several distinct attributes with associated pictures)
+                //actually we're going to support pictures associated to attribute combinations (not attribute values) soon. it'll more flexible approach
+                var attributeValues = _productAttributeParser.ParseProductAttributeValues(attributeXml);
+                var attributeValueWithPicture = attributeValues.FirstOrDefault(x => x.PictureId > 0);
+                if (attributeValueWithPicture != null)
+                {
+                    var productAttributePictureCacheKey = string.Format(ModelCacheEventConsumer.PRODUCTATTRIBUTE_PICTURE_MODEL_KEY,
+                                    attributeValueWithPicture.PictureId,
+                                    _webHelper.IsCurrentConnectionSecured(),
+                                    _storeContext.CurrentStore.Id);
+                    var pictureModel = _cacheManager.Get(productAttributePictureCacheKey, () =>
+                    {
+                        var valuePicture = _pictureService.GetPictureById(attributeValueWithPicture.PictureId);
+                        if (valuePicture != null)
+                        {
+                            return new PictureModel
+                            {
+                                FullSizeImageUrl = _pictureService.GetPictureUrl(valuePicture),
+                                ImageUrl = _pictureService.GetPictureUrl(valuePicture, _mediaSettings.ProductDetailsPictureSize)
+                            };
+                        }
+                        return new PictureModel();
+                    });
+                    pictureFullSizeUrl = pictureModel.FullSizeImageUrl;
+                    pictureDefaultSizeUrl = pictureModel.ImageUrl;
+                }
+
+            }
+            //base price adjustment
+            var adjustBasePrice = decimal.Zero;
+            var attributeBaseValues = _productAttributeParser.ParseProductAttributeValues(attributeXml);
+            if (attributeBaseValues != null)
+            {
+                foreach (var attributeValue in attributeBaseValues)
+                {
+                    adjustBasePrice += _priceCalculationService.GetProductAttributeValueBasePriceAdjustment(attributeValue);
+                }
+            }
+
+
             return Json(new
             {
+                adjustBasePrice,
+                pictureFullSizeUrl,
+                pictureDefaultSizeUrl,
                 enabledattributemappingids = enabledAttributeMappingIds.ToArray(),
                 disabledattributemappingids = disabledAttributeMappingIds.ToArray(),
                 message = errors.Any() ? errors.ToArray() : null
@@ -3678,16 +3740,7 @@ namespace Nop.Web.Areas.Admin.Controllers
 
             var endDateValue = (model.EndDate == null) ? null
                             : (DateTime?)_dateTimeHelper.ConvertToUtcTime(model.EndDate.Value, _dateTimeHelper.CurrentTimeZone).AddDays(1);
-            int customerId = 0;
-            if (string.IsNullOrEmpty(model.ShipperPhoneNumber) == false)
-            {
-                var customers = _customerService.GetAllCustomers(phone: model.ShipperPhoneNumber).ToList();
-                var customer = customers.FirstOrDefault();
-                if (customer != null)
-                {
-                    customerId = customer.Id;
-                }
-            }
+
             //a vendor should have access only to his products
             var vendorId = 0;
             if (_workContext.CurrentVendor != null)
@@ -3705,8 +3758,8 @@ namespace Nop.Web.Areas.Admin.Controllers
                 createdToUtc: endDateValue,
                 pageIndex: command.Page - 1,
                 pageSize: command.PageSize,
-                customerId: customerId,
-                orderId: model.OrderId);
+                orderId: model.OrderId,
+                phoneShipperNumber: model.ShipperPhoneNumber);
 
             var gridModel = new DataSourceResult
             {
@@ -4100,6 +4153,11 @@ namespace Nop.Web.Areas.Admin.Controllers
                 shipment.ShipmentItems.Add(shipmentItem);
             }
 
+            if (shipment != null && shipment.ShipmentItems != null)
+            {
+                var orderItem = orderItems.FirstOrDefault(s => !string.IsNullOrEmpty(s.PackageItemCode));
+                shipment.BagId = orderItem?.PackageItemCode;
+            }
             //if we have at least one item in the shipment, then save it
             if (shipment != null && shipment.ShipmentItems.Any())
             {
@@ -4652,10 +4710,10 @@ namespace Nop.Web.Areas.Admin.Controllers
             byte[] bytes;
             using (var stream = new MemoryStream())
             {
-                _pdfService.PrintPackagingSlipsToPdf(stream, shipments, _orderSettings.GeneratePdfInvoiceInCustomerLanguage ? 0 : _workContext.WorkingLanguage.Id);
+                _pdfService.PrintPackagingSlipsItemsToPdf(stream, shipments.OrderBy(s => s.Id).ToList(), _orderSettings.GeneratePdfInvoiceInCustomerLanguage ? 0 : _workContext.WorkingLanguage.Id);
                 bytes = stream.ToArray();
             }
-            return File(bytes, MimeTypes.ApplicationPdf, "packagingslips.pdf");
+            return File(bytes, MimeTypes.ApplicationPdf, $"shipments-all-{DateTime.Now:ddMMyyyyHHmmss}.pdf");
         }
 
         [HttpPost]
@@ -4689,10 +4747,10 @@ namespace Nop.Web.Areas.Admin.Controllers
             byte[] bytes;
             using (var stream = new MemoryStream())
             {
-                _pdfService.PrintPackagingSlipsToPdf(stream, shipments, _orderSettings.GeneratePdfInvoiceInCustomerLanguage ? 0 : _workContext.WorkingLanguage.Id);
+                _pdfService.PrintPackagingSlipsItemsToPdf(stream, shipments.OrderBy(s => s.Id).ToList(), _orderSettings.GeneratePdfInvoiceInCustomerLanguage ? 0 : _workContext.WorkingLanguage.Id);
                 bytes = stream.ToArray();
             }
-            return File(bytes, MimeTypes.ApplicationPdf, "packagingslips.pdf");
+            return File(bytes, MimeTypes.ApplicationPdf, $"shipments-selected-{DateTime.Now:ddMMyyyyHHmmss}.pdf");
         }
 
 
@@ -4734,8 +4792,8 @@ namespace Nop.Web.Areas.Admin.Controllers
 
             try
             {
-                var bytes = _exportManager.ExportShipmentToXlsxBasic(shipments.ToList());
-                return File(bytes, MimeTypes.TextXlsx, $"shipments-all-{DateTime.Now.ToShortDateString()}.xlsx");
+                var bytes = _exportManager.ExportShipmentToXlsxBasic(shipments.OrderBy(s => s.Id).ToList());
+                return File(bytes, MimeTypes.TextCsv, $"shipments-all-{DateTime.Now:ddMMyyyyHHmmss}.csv");
             }
             catch (Exception exc)
             {
@@ -4774,8 +4832,8 @@ namespace Nop.Web.Areas.Admin.Controllers
 
             try
             {
-                var bytes = _exportManager.ExportShipmentToXlsxBasic(shipments.ToList());
-                return File(bytes, MimeTypes.TextXlsx, $"shipments-selected-{DateTime.Now.ToShortDateString()}.xlsx");
+                var bytes = _exportManager.ExportShipmentToXlsxBasic(shipments.OrderBy(s => s.Id).ToList());
+                return File(bytes, MimeTypes.TextCsv, $"shipments-selected-{DateTime.Now:ddMMyyyyHHmmss}.csv");
             }
             catch (Exception exc)
             {
@@ -5439,7 +5497,10 @@ namespace Nop.Web.Areas.Admin.Controllers
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.OrderCountryReport))
                 return AccessDeniedView();
-
+            if (string.IsNullOrEmpty(model.PackageName))
+            {
+                model.PackageName = model.PackageCode;
+            }
             if (ModelState.IsValid)
             {
                 var entity = model.ToEntity();
@@ -5480,6 +5541,11 @@ namespace Nop.Web.Areas.Admin.Controllers
             var packageOrderEntity = _packageOrderService.GetById(model.Id);
             if (packageOrderEntity == null)
                 return RedirectToAction("ListPackageOrder");
+
+            if (string.IsNullOrEmpty(model.PackageName))
+            {
+                model.PackageName = model.PackageCode;
+            }
 
             if (ModelState.IsValid)
             {
@@ -5528,12 +5594,22 @@ namespace Nop.Web.Areas.Admin.Controllers
             if (!_permissionService.Authorize(StandardPermissionProvider.OrderCountryReport))
                 return AccessDeniedView();
             var model = new OrderItemExportVendorModel();
+
+            //package orders
             var packageOrders = _packageOrderService.GetPackageOrders(loadIsShipped: false);
             foreach (var packageOrder in packageOrders)
             {
                 model.PackageOrderIds.Add(new SelectListItem { Text = packageOrder.PackageName, Value = packageOrder.Id.ToString() });
             }
             model.PackageOrderIds.Insert(0, new SelectListItem { Text = _localizationService.GetResource("Admin.Common.All"), Value = "0" });
+
+            //vendors 
+            var vendors = _vendorService.GetAllVendors();
+            foreach (var vendor in vendors)
+            {
+                model.VendorItems.Add(new SelectListItem { Text = vendor.Name, Value = vendor.Id.ToString() });
+            }
+            model.VendorItems.Insert(0, new SelectListItem { Text = _localizationService.GetResource("Admin.Common.All"), Value = "0" });
 
             return View(model);
         }
@@ -5546,7 +5622,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             var primaryStoreCurrency = _currencyService.GetCurrencyById(_currencySettings.PrimaryStoreCurrencyId);
             var orderItems = _orderService.GetOrderItemsVendorCheckout(model.VendorProductUrl, model.OrderId, command.Page - 1, command.PageSize,
                 isOrderCheckout: model.IsOrderCheckout, isPackageItemProcessed: model.IsPackageItemProcessed,
-                isSetPackageItemCode: model.IsSetPackageItemCode, todayFilter: model.TodayFilter, customerPhone: model.CustomerPhone, packageOrderId: model.PackageOrderId);
+                isSetPackageItemCode: model.IsSetPackageItemCode, todayFilter: model.TodayFilter, customerPhone: model.CustomerPhone, packageOrderId: model.PackageOrderId, vendorId: model.VendorId);
             var gridModel = new DataSourceResult
             {
                 Data = orderItems.Select(orderItem =>
@@ -5691,12 +5767,71 @@ namespace Nop.Web.Areas.Admin.Controllers
             try
             {
                 var bytes = _exportManager.ExportOrderItemsToXlsxBasic(orderItems);
-                return File(bytes, MimeTypes.TextCsv, $"export-all-vendor-order-items-{DateTime.Now.ToShortDateString()}.csv");
+                return File(bytes, MimeTypes.TextCsv, $"order export-{DateTime.Now.Year}-{DateTime.Now.Month}-{DateTime.Now.Day}-{DateTime.Now.Hour}{DateTime.Now.Minute}.csv");
             }
             catch (Exception exc)
             {
                 ErrorNotification(exc);
                 return RedirectToAction("List");
+            }
+        }
+
+        [HttpPost]
+        [HttpPost, ActionName("OrderItemsVendorCheckout")]
+        [FormValueRequired("exportpdf-orderbasic-all")]
+        public virtual IActionResult ExportPdfVendorInvoiceOrderItems(OrderItemExportVendorModel model)
+        {
+            if (!_permissionService.Authorize(StandardPermissionProvider.ManageOrders))
+                return AccessDeniedView();
+
+            var orderItems = _orderService.GetOrderItemsVendorCheckout(model.VendorProductUrl, model.OrderId, isOrderCheckout: model.IsOrderCheckout);
+            try
+            {
+                byte[] bytes;
+                using (var stream = new MemoryStream())
+                {
+                    _pdfService.PrintOrdersVendorCheckoutToPdf(stream, orderItems, _orderSettings.GeneratePdfInvoiceInCustomerLanguage ? 0 : _workContext.WorkingLanguage.Id);
+                    bytes = stream.ToArray();
+                }
+                return File(bytes, MimeTypes.ApplicationPdf, $"order export-{DateTime.Now.Year}-{DateTime.Now.Month}-{DateTime.Now.Day}-{DateTime.Now.Hour}{DateTime.Now.Minute}.pdf");
+            }
+            catch (Exception exc)
+            {
+                ErrorNotification(exc);
+                return RedirectToAction("OrderItemsVendorCheckout");
+            }
+        }
+
+        [HttpPost]
+        public virtual IActionResult ExportPdfVendorInvoiceOrderItemsSelected(string selectedIds)
+        {
+            if (!_permissionService.Authorize(StandardPermissionProvider.ManageOrders))
+                return AccessDeniedView();
+
+            var orderItems = new List<OrderItem>();
+            if (selectedIds != null)
+            {
+                var ids = selectedIds
+                    .Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
+                    .Select(x => Convert.ToInt32(x))
+                    .ToArray();
+                orderItems.AddRange(_orderService.GetOrderItemsByIds(ids));
+            }
+
+            try
+            {
+                byte[] bytes;
+                using (var stream = new MemoryStream())
+                {
+                    _pdfService.PrintOrdersVendorCheckoutToPdf(stream, orderItems, _orderSettings.GeneratePdfInvoiceInCustomerLanguage ? 0 : _workContext.WorkingLanguage.Id);
+                    bytes = stream.ToArray();
+                }
+                return File(bytes, MimeTypes.ApplicationPdf, $"order export-{DateTime.Now.Year}-{DateTime.Now.Month}-{DateTime.Now.Day}-{DateTime.Now.Hour}{DateTime.Now.Minute}.pdf");
+            }
+            catch (Exception exc)
+            {
+                ErrorNotification(exc);
+                return RedirectToAction("OrderItemsVendorCheckout");
             }
         }
 
@@ -5740,7 +5875,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             try
             {
                 var bytes = _exportManager.ExportOrderItemsToXlsxBasic(orderItems);
-                return File(bytes, MimeTypes.TextCsv, $"vendor-orders-selected-{DateTime.Now.Year}.{DateTime.Now.Month}.{DateTime.Now.Day}.csv");
+                return File(bytes, MimeTypes.TextCsv, $"order export-{DateTime.Now.Year}-{DateTime.Now.Month}-{DateTime.Now.Day}-{DateTime.Now.Hour}{DateTime.Now.Minute}.csv");
             }
             catch (Exception exc)
             {

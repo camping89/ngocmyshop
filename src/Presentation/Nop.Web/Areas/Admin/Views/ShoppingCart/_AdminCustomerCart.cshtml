@@ -465,4 +465,29 @@
         OpenWindow(queryUrl, 1000, 800, true);
         return true;
     };
+
+
+    $("#checkout").on('click', function() {
+        if ('@(Model.Customer == null)' === 'true') {
+
+            alert('"Admin.Customers.Customers.NotExistCustomer');
+            return;
+        } else {
+            @if (Model.Customer != null){
+                <text>
+                    if ('@(Model.Customer.Addresses == null)' === 'true')
+                    {
+
+                        alert('"Admin.Customers.Customers.NotExistAddress');
+                        return;
+                    }
+                    else
+                    {
+                        $("#shopping-cart-form").submit();
+                    }
+                </text>
+            }
+        }
+
+    });
 </script>

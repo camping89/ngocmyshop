@@ -91,21 +91,21 @@
                                     </div>
                                 }
                                 @*<div class="form-group">
-                                    <div class="col-md-4">
-                                        <nop-label asp-for="SearchFirstName" />
+                                        <div class="col-md-4">
+                                            <nop-label asp-for="SearchFirstName" />
+                                        </div>
+                                        <div class="col-md-8">
+                                            <nop-editor asp-for="SearchFirstName" />
+                                        </div>
                                     </div>
-                                    <div class="col-md-8">
-                                        <nop-editor asp-for="SearchFirstName" />
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <div class="col-md-4">
-                                        <nop-label asp-for="SearchLastName" />
-                                    </div>
-                                    <div class="col-md-8">
-                                        <nop-editor asp-for="SearchLastName" />
-                                    </div>
-                                </div>*@
+                                    <div class="form-group">
+                                        <div class="col-md-4">
+                                            <nop-label asp-for="SearchLastName" />
+                                        </div>
+                                        <div class="col-md-8">
+                                            <nop-editor asp-for="SearchLastName" />
+                                        </div>
+                                    </div>*@
                                 @if (Model.DateOfBirthEnabled)
                                 {
                                     <div class="form-group">
@@ -137,7 +137,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                                }
+                                }
                             </div>
                             <div class="col-md-7">
                                 @if (Model.CompanyEnabled)
@@ -152,16 +152,16 @@
                                     </div>
                                 }
                                 @*@if (Model.PhoneEnabled)
-                                {
-                                    <div class="form-group">
-                                        <div class="col-md-4">
-                                            <nop-label asp-for="SearchPhone" />
+                                    {
+                                        <div class="form-group">
+                                            <div class="col-md-4">
+                                                <nop-label asp-for="SearchPhone" />
+                                            </div>
+                                            <div class="col-md-8">
+                                                <nop-editor asp-for="SearchPhone" />
+                                            </div>
                                         </div>
-                                        <div class="col-md-8">
-                                            <nop-editor asp-for="SearchPhone" />
-                                        </div>
-                                    </div>
-                                }*@
+                                    }*@
                                 @if (Model.ZipPostalCodeEnabled)
                                 {
                                     <div class="form-group">
@@ -174,13 +174,13 @@
                                     </div>
                                 }
                                 @*<div class="form-group">
-                                    <div class="col-md-4">
-                                        <nop-label asp-for="SearchIpAddress" />
-                                    </div>
-                                    <div class="col-md-8">
-                                        <nop-editor asp-for="SearchIpAddress" />
-                                    </div>
-                                </div>*@
+                                        <div class="col-md-4">
+                                            <nop-label asp-for="SearchIpAddress" />
+                                        </div>
+                                        <div class="col-md-8">
+                                            <nop-editor asp-for="SearchIpAddress" />
+                                        </div>
+                                    </div>*@
                                 <div class="form-group">
                                     <div class="col-md-4">
                                         <nop-label asp-for="SearchCustomerRoleIds" />
@@ -273,10 +273,17 @@
                     attributes: { style: "text-align:center" },
                     template: "<input type='checkbox' value='#=Id#' class='checkboxGroups'/>",
                     width: 50
-                }, {
+                },
+                @*{
                     field: "Email",
                     title: "@T("Admin.Customers.Customers.Fields.Email")",
                     width: 200
+                },*@
+                {
+                    field: "LinkFacebook1",
+                    title: "@T("Admin.Customers.Customers.Fields.LinkFacebook")",
+                    width: 200,
+                    template: '<a target="_blank" href="#=LinkFacebook1#">#=LinkFacebook1#</a>'
                 },
                 @if (Model.UsernamesEnabled)
                 {
@@ -295,7 +302,7 @@
                     title: "@T("Admin.Customers.Customers.Fields.CustomerRoles")",
                     width: 200
                 },
-                
+
                 @if (Model.PhoneEnabled)
                 {
                     <text>{
@@ -355,7 +362,7 @@
         });
     });
                         </script>
-                        
+
                         <script type="text/javascript">
     var selectedIds = [];
 

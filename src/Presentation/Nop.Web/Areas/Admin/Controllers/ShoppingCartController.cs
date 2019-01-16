@@ -772,6 +772,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 SaveSelectedTabName(activetab);
             }
 
+            modelResult.Customer = _customerService.GetCustomerById(customerId);
             ViewBag.CustomerId = customerId;
             return View(modelResult);
         }
@@ -1176,6 +1177,18 @@ namespace Nop.Web.Areas.Admin.Controllers
                 price = _priceFormatter.FormatPrice(finalPriceWithDiscount);
             }
 
+            //base price adjustment
+            var adjustBasePrice = decimal.Zero;
+            var attributeBaseValues = _productAttributeParser.ParseProductAttributeValues(attributeXml);
+            if (attributeBaseValues != null)
+            {
+                foreach (var attributeValue in attributeBaseValues)
+                {
+                    adjustBasePrice += _priceCalculationService.GetProductAttributeValueBasePriceAdjustment(attributeValue);
+                }
+            }
+
+
             //stock
             var stockAvailability = product.FormatStockMessage(attributeXml, _localizationService, _productAttributeParser, _dateRangeService);
 
@@ -1247,6 +1260,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 mpn,
                 sku,
                 price,
+                adjustBasePrice,
                 stockAvailability,
                 enabledattributemappingids = enabledAttributeMappingIds.ToArray(),
                 disabledattributemappingids = disabledAttributeMappingIds.ToArray(),
@@ -1478,6 +1492,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             model = _shoppingCartModelFactory.PrepareShoppingCartModel(model, cart, customer: customer);
             return RedirectToAction("CreateOrder", new { customerId = customerId, activetab = activetab });
         }
+
 
         [HttpPost, ActionName("AdminCart")]
         [FormValueRequired("updatecart")]

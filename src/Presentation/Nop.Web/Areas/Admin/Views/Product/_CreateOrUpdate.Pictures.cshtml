@@ -122,24 +122,33 @@
             </div>
             <div class="panel-body">
                 <script type="text/javascript">
+
+
                     $(document).ready(function() {
+                        var pictureIds = [];
+                        var pictureUrls = [];
                         $('#addProductPicture').click(function() {
-                            var pictureId = $("#@Html.IdFor(model => model.AddPictureModel.PictureId)").val();
-                            var pictureUrl = $("#@Html.IdFor(model => model.AddPictureModel.PictureUrl)").val();
+                            pictureUrls.push($("#@Html.IdFor(model => model.AddPictureModel.PictureUrl)").val());
+                            pictureUrls.push($("#PictureUrl1").val());
+                            pictureUrls.push($("#PictureUrl2").val());
+                            pictureUrls.push($("#PictureUrl3").val());
+                            pictureUrls.push($("#PictureUrl4").val());
+
+                            var pictureIdStrs = $("#@Html.IdFor(model => model.AddPictureModel.PictureId)").val();
                             var overrideAltAttribute = $("#@Html.IdFor(model => model.AddPictureModel.OverrideAltAttribute)").val();
                             var overrideTitleAttribute = $("#@Html.IdFor(model => model.AddPictureModel.OverrideTitleAttribute)").val();
                             var displayOrder = $("#@Html.IdFor(model => model.AddPictureModel.DisplayOrder)").val();
-
-                            if (pictureId == 0 && pictureUrl === '') {
-                                alert('Upload picture first');
-                                return;
+                            if (pictureIdStrs !== null && pictureIdStrs !== '' && pictureIdStrs != undefined) {
+                                var ids = pictureIdStrs.split(';');
+                                for (var i = 0; i <ids.length; i++) {
+                                    pictureIds.push(ids[i]);
+                                }
                             }
-
                             $('#addProductPicture').attr('disabled', true);
 
                             var postData = {
-                                pictureId: pictureId,
-                                pictureUrl: pictureUrl,
+                                pictureIds: pictureIds,
+                                pictureUrls: pictureUrls,
                                 displayOrder: displayOrder,
                                 overrideAltAttribute: overrideAltAttribute,
                                 overrideTitleAttribute: overrideTitleAttribute,
@@ -150,54 +159,57 @@
                             $.ajax({
                                 cache: false,
                                 type: "POST",
-                                url: "@(Url.Action("ProductPictureAdd", "Product"))",
+                                url: "@(Url.Action("ProductPicturesAddMulti", "Product"))",
                                 data: postData,
                                 success: function(data) {
-                                    var grid = $("#productpictures-grid");
-                                    grid.data('kendoGrid').dataSource.read();
-                                    $('#addProductPicture').attr('disabled', false);
-                                    $("#@Html.IdFor(model => model.AddPictureModel.PictureUrl)").val("");
-                                    $("#imageFromUrl").html("");
+                                    reloadData();
                                 },
                                 error: function(xhr, ajaxOptions, thrownError) {
-                                    alert('Failed to add product picture.');
-                                    $('#addProductPicture').attr('disabled', false);
+
                                 }
                             });
                         });
-                    });
-                </script>
-                <script type="text/javascript">
-                    $(document).ready(function() {
-                        $("#btnDownloadImage").on("click", function() {
-                            downloadImageFromUrl();
-                        });
-                        $("#@Html.IdFor(model => model.AddPictureModel.PictureUrl)").focusout(function() {
-                            downloadImageFromUrl();
-                        });
-                        function downloadImageFromUrl() {
-                            var postData = {
-                                url: $("#@Html.IdFor(model => model.AddPictureModel.PictureUrl)").val()
-                            };
-                            addAntiForgeryToken(postData);
-                            $.ajax({
-                                cache: false,
-                                type: "POST",
-                                url: "@(Url.Action("AsyncImageFromUrl", "Picture"))",
-                                data: postData,
-                                success: function(data) {
-                                    if (data.success) {
-                                        $("#@Html.IdFor(model => model.AddPictureModel.PictureId)").val(data.pictureId);
-                                        $("#imageFromUrl").html("<img src='" + data.imageUrl + "'/>");
-                                    }
-                                },
-                                error: function(xhr, ajaxOptions, thrownError) {
-                                    alert('Failed to add product picture.');
-                                }
-                            });
+                        function reloadData() {
+                            var grid = $("#productpictures-grid");
+                            grid.data('kendoGrid').dataSource.read();
+                            $('#addProductPicture').attr('disabled', false);
+                            $("#imageFromUrl0").html("");
+                            $("#@Html.IdFor(model => model.AddPictureModel.PictureUrl)").val("");
+                            $("#imageFromUrl1").html("");
+                            $("#PictureUrl1").val("");
+                            $("#imageFromUrl2").html("");
+                            $("#PictureUrl2").val("");
+                            $("#imageFromUrl3").html("");
+                            $("#PictureUrl3").val("");
+                            $("#imageFromUrl4").html("");
+                            $("#PictureUrl4").val("");
+                            $("#@Html.IdFor(model => model.AddPictureModel.PictureId)").val("0");
                         }
+                        @*function downloadImage(control,number) {
+                            if (control.val() != null && control.val() !== '') {
+                                var postData = {
+                                    url: control.val()
+                                };
+                                addAntiForgeryToken(postData);
+                                $.ajax({
+                                    cache: false,
+                                    type: "POST",
+                                    url: "@(Url.Action("AsyncImageFromUrl", "Picture"))",
+                                    data: postData,
+                                    success: function(data) {
+                                        if (data.success) {
+                                            pictureIds.push(data.pictureId);
+                                        }
+                                    },
+                                    error: function(xhr, ajaxOptions, thrownError) {
+                                        //alert('Failed to add product picture.');
+                                    }
+                                });
+                            }
+                        }*@
                     });
                 </script>
+
                 <div class="form-group">
                     <div class="col-md-3">
                         <nop-label asp-for="AddPictureModel.PictureId" />
@@ -210,16 +222,68 @@
                 <div class="form-group">
                     <div class="col-md-3">
                         <div class="label-wrapper">
-                            <label class="control-label">Hình ảnh url</label>
+                            <label class="control-label">Picture Url 1</label>
                         </div>
                     </div>
                     <div class="col-md-9">
                         <nop-editor asp-for="AddPictureModel.PictureUrl" />
                         @*<button type="button" class="btn btn-success" id="btnDownloadImage">@T("Admin.Common.ButtonDownloadImageProduct")</button>*@
-                        <div id="imageFromUrl">
-                            
+                        <div id="imageFromUrl0">
+
                         </div>
                         <span asp-validation-for="AddPictureModel.PictureUrl"></span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-md-3">
+                        <div class="label-wrapper">
+                            <label class="control-label">Picture Url 2</label>
+                        </div>
+                    </div>
+                    <div class="col-md-9">
+                        <input id="PictureUrl1" class="form-control" type="text" />
+                        <div id="imageFromUrl1">
+
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-md-3">
+                        <div class="label-wrapper">
+                            <label class="control-label">Picture Url 3</label>
+                        </div>
+                    </div>
+                    <div class="col-md-9">
+                        <input id="PictureUrl2" class="form-control" type="text" />
+                        <div id="imageFromUrl2">
+
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-md-3">
+                        <div class="label-wrapper">
+                            <label class="control-label">Picture Url 4</label>
+                        </div>
+                    </div>
+                    <div class="col-md-9">
+                        <input id="PictureUrl3" class="form-control" type="text" />
+                        <div id="imageFromUrl3">
+
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-md-3">
+                        <div class="label-wrapper">
+                            <label class="control-label">Picture Url 5</label>
+                        </div>
+                    </div>
+                    <div class="col-md-9">
+                        <input id="PictureUrl4" class="form-control" type="text" />
+                        <div id="imageFromUrl4">
+
+                        </div>
                     </div>
                 </div>
                 <div class="form-group">

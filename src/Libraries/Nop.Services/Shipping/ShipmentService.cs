@@ -1,6 +1,8 @@
 using Nop.Core;
 using Nop.Core.Data;
 using Nop.Core.Domain.Catalog;
+using Nop.Core.Domain.Common;
+using Nop.Core.Domain.Customers;
 using Nop.Core.Domain.Orders;
 using Nop.Core.Domain.Shipping;
 using Nop.Services.Events;
@@ -16,7 +18,7 @@ namespace Nop.Services.Shipping
     public partial class ShipmentService : IShipmentService
     {
         #region Fields
-
+        private readonly IRepository<GenericAttribute> _gaRepository;
         private readonly IRepository<Shipment> _shipmentRepository;
         private readonly IRepository<ShipmentItem> _siRepository;
         private readonly IRepository<OrderItem> _orderItemRepository;
@@ -36,12 +38,13 @@ namespace Nop.Services.Shipping
         public ShipmentService(IRepository<Shipment> shipmentRepository,
             IRepository<ShipmentItem> siRepository,
             IRepository<OrderItem> orderItemRepository,
-            IEventPublisher eventPublisher)
+            IEventPublisher eventPublisher, IRepository<GenericAttribute> gaRepository)
         {
             this._shipmentRepository = shipmentRepository;
             this._siRepository = siRepository;
             this._orderItemRepository = orderItemRepository;
             this._eventPublisher = eventPublisher;
+            _gaRepository = gaRepository;
         }
 
         #endregion
@@ -86,14 +89,22 @@ namespace Nop.Services.Shipping
             string trackingNumber = null,
             bool loadNotShipped = false,
             DateTime? createdFromUtc = null, DateTime? createdToUtc = null,
-            int pageIndex = 0, int pageSize = int.MaxValue, int customerId = 0, int orderId = 0)
+            int pageIndex = 0, int pageSize = int.MaxValue, int orderId = 0, string phoneShipperNumber = null)
         {
             var query = _shipmentRepository.Table;
             if (!string.IsNullOrEmpty(trackingNumber))
                 query = query.Where(s => s.TrackingNumber.Contains(trackingNumber));
 
-            if (customerId > 0)
-                query = query.Where(s => s.CustomerId.Equals(customerId));
+            if (!string.IsNullOrWhiteSpace(phoneShipperNumber))
+            {
+                query = query
+                    .Join(_gaRepository.Table, x => x.CustomerId, y => y.EntityId, (x, y) => new { Customer = x, Attribute = y })
+                    .Where((z => z.Attribute.KeyGroup == "Customer" &&
+                                 z.Attribute.Key == SystemCustomerAttributeNames.Phone &&
+                                 z.Attribute.Value.Contains(phoneShipperNumber)))
+                    .Select(z => z.Customer);
+            }
+
             if (orderId > 0)
             {
                 query = query.Where(s => s.Order.Id == orderId);
@@ -127,8 +138,8 @@ namespace Nop.Services.Shipping
                         where s.ShipmentItems.Any(si => si.WarehouseId == warehouseId)
                         select s;
             }
-            query = query.OrderByDescending(s => s.CreatedOnUtc);
-
+            //query = query.OrderByDescending(s => s.CreatedOnUtc);
+            query = query.OrderBy(o => o.CustomerId).ThenByDescending(o => o.CreatedOnUtc);
             var shipments = new PagedList<Shipment>(query, pageIndex, pageSize);
             return shipments;
         }

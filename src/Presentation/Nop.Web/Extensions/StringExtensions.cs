@@ -12,11 +12,22 @@ namespace Nop.Web.Extensions
         public static CustomerFirstLastName GetFirstLastNameFromFullName(string fullName)
         {
             var index = fullName.LastIndexOf(' ');
-            return new CustomerFirstLastName
+            if (index != -1)
             {
-                LastName = fullName.Substring(index + 1),
-                FirstName = fullName.Substring(0, index)
-            };
+                return new CustomerFirstLastName
+                {
+                    LastName = fullName.Substring(index + 1),
+                    FirstName = fullName.Substring(0, index)
+                };
+            }
+            else
+            {
+                return new CustomerFirstLastName
+                {
+                    LastName = string.Empty,
+                    FirstName = fullName
+                };
+            }
         }
         public static string RemoveWhitespace(string str)
         {
@@ -35,7 +46,7 @@ namespace Nop.Web.Extensions
             var random = new Random();
             firstName = ConvertToUnSign3(firstName.Trim());
             lastName = ConvertToUnSign3(lastName);
-            return $"{lastName.ToLower()}.{firstName.ToLower()}{random.Next(100, 999)}@gmail.com";
+            return $"{lastName.ToLower()}{firstName.ToLower()}{random.Next(100, 999)}@gmail.com";
         }
 
         public static string Encrypt(string toEncrypt, bool useHashing, string keyEncryptUserName)

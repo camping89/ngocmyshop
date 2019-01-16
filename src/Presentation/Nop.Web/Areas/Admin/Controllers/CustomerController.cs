@@ -900,26 +900,33 @@ namespace Nop.Web.Areas.Admin.Controllers
             if (!string.IsNullOrEmpty(model.Phone))
             {
                 model.Phone = model.Phone.Replace(" ", "").Trim();
-                model.Username = model.Phone;
+                if (string.IsNullOrEmpty(model.Username))
+                {
+                    model.Username = model.Phone;
+                }
             }
-            //if (!string.IsNullOrWhiteSpace(model.Email))
-            //{
-            //    var cust2 = _customerService.GetCustomerByEmail(model.Email);
-            //    if (cust2 != null)
-            //        ModelState.AddModelError("", "Email is already registered");
-            //}
+            if (!string.IsNullOrWhiteSpace(model.Email))
+            {
+                var cust2 = _customerService.GetCustomerByEmail(model.Email);
+                if (cust2 != null)
+                    ModelState.AddModelError("", _localizationService.GetResource("Admin.Customers.Customers.Error.ExistingEmail"));
+            }
+
             if (!string.IsNullOrWhiteSpace(model.Username) & _customerSettings.UsernamesEnabled)
             {
                 var cust2 = _customerService.GetCustomerByUsername(model.Username);
                 if (cust2 != null)
-                    ModelState.AddModelError("", _localizationService.GetResource("Admin.Customers.Customers.Error.EmailAlreadyRegisted"));
+                    ModelState.AddModelError("", _localizationService.GetResource("Admin.Customers.Customers.Error.ExistingUsername"));
             }
             if (!string.IsNullOrEmpty(model.FullName))
             {
                 var customerFirstLastName = StringExtensions.GetFirstLastNameFromFullName(model.FullName);
                 model.FirstName = customerFirstLastName.FirstName;
                 model.LastName = customerFirstLastName.LastName;
-                model.Email = StringExtensions.GenerateEmailAddress(customerFirstLastName.FirstName, customerFirstLastName.LastName);
+                if (string.IsNullOrEmpty(model.Email))
+                {
+                    model.Email = StringExtensions.GenerateEmailAddress(customerFirstLastName.FirstName, customerFirstLastName.LastName);
+                }
             }
             //validate customer roles
             var allCustomerRoles = _customerService.GetAllCustomerRoles(true);

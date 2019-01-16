@@ -1789,6 +1789,7 @@ namespace Nop.Services.ExportImport
                 new PropertyByName<ExportVendorInvoiceItemModel>("ProductInfo", oi => oi.ProductInfo),
                 new PropertyByName<ExportVendorInvoiceItemModel>("ProductAttributeInfo", oi => oi.ProductAttributeInfo),
                 new PropertyByName<ExportVendorInvoiceItemModel>("VendorProductUrl", oi => oi.VendorProductUrl),
+                new PropertyByName<ExportVendorInvoiceItemModel>("Sku", oi => oi.Sku),
                 new PropertyByName<ExportVendorInvoiceItemModel>("BaseUnitPrice", oi => oi.BaseUnitPrice),
                 new PropertyByName<ExportVendorInvoiceItemModel>("Note", oi => oi.Note),
                 new PropertyByName<ExportVendorInvoiceItemModel>("VendorName", oi => oi.VendorName),
@@ -1832,6 +1833,7 @@ namespace Nop.Services.ExportImport
                     OrderDate = orderItem.Order.CreatedOnUtc.ToString("g"),
                     VendorName = vendor != null ? vendor.Name : string.Empty,
                     VendorProductUrl = orderItem.Product.VendorProductUrl,
+                    Sku = orderItem.Product.Sku,
                     Quantity = orderItem.Quantity,
                     TotalWithoutWeightCost = orderItem.PriceExclTax - orderItem.WeightCost,
                     WeightCost = orderItem.WeightCost,
@@ -1862,12 +1864,16 @@ namespace Nop.Services.ExportImport
             var ignore = _workContext.CurrentVendor != null;
             var orderItemProperties = new[]
             {
-                new PropertyByName<ShipmentExportModel>("ShipmentId", oi => oi.ShipmentId),
                 new PropertyByName<ShipmentExportModel>("BagId", oi => oi.BagId),
-                new PropertyByName<ShipmentExportModel>("OrderId", oi => oi.OrderId),
+                new PropertyByName<ShipmentExportModel>("ShipmentId", oi => oi.ShipmentId),
+                new PropertyByName<ShipmentExportModel>("OrderItemId", oi => oi.OrderItemId),
+                //new PropertyByName<ShipmentExportModel>("OrderId", oi => oi.OrderId),
                 new PropertyByName<ShipmentExportModel>("TrackingNumber", oi => oi.TrackingNumber),
                 new PropertyByName<ShipmentExportModel>("ShipperInfo", oi => oi.ShipperInfo),
-                new PropertyByName<ShipmentExportModel>("CustomerInfo", oi => oi.CustomerInfo),
+                //new PropertyByName<ShipmentExportModel>("ProductInfo", oi => oi.ProductInfo),
+                new PropertyByName<ShipmentExportModel>("CustomerFacebookUrl", oi => oi.CustomerFacebookUrl),
+                new PropertyByName<ShipmentExportModel>("CustomerName", oi => oi.CustomerName),
+                new PropertyByName<ShipmentExportModel>("CustomerPhone", oi => oi.CustomerPhone),
                 new PropertyByName<ShipmentExportModel>("DeliveryDate", oi => oi.DeliveryDate),
                 new PropertyByName<ShipmentExportModel>("ShippedDate", oi => oi.ShippedDate),
                 new PropertyByName<ShipmentExportModel>("Note", oi => oi.Note),
@@ -1891,45 +1897,53 @@ namespace Nop.Services.ExportImport
 
                 var shipper = _customerService.GetCustomerById(shipment.CustomerId);
                 var shipperInfo = string.Empty;
-                if (customerOrder != null)
+                if (shipper != null)
                 {
-                    var linkFacebook = customerOrder.GetAttribute<string>(SystemCustomerAttributeNames.LinkFacebook1);
-
-                    shipperInfo = customerOrder.GetFullName()
-                                   + $"\n {customerOrder.GetAttribute<string>(SystemCustomerAttributeNames.Phone)}";
+                    shipperInfo = shipper.GetFullName()
+                                   + $"\n {shipper.GetAttribute<string>(SystemCustomerAttributeNames.Phone)}";
                 }
 
-                var exportShipmentModel = new ShipmentExportModel()
+                foreach (var shipmentItem in shipment.ShipmentItems)
                 {
-                    ShipmentId = shipment.Id.ToString(),
-                    BagId = shipment.BagId,
-                    OrderId = shipment.OrderId.ToString(),
-                    TrackingNumber = shipment.TrackingNumber,
-                    CustomerInfo = customerInfo,
-                    ShipperInfo = shipperInfo,
-                    DeliveryDate = shipment.DeliveryDateUtc?.ToString("dd/MM/yyyy"),
-                    ShippedDate = shipment.DeliveryDateUtc?.ToString("dd/MM/yyyy"),
-                    Note = shipment.ShipmentNote,
-                    Deposit = shipment.Deposit,
-                    TotalShippingFee = 0
-                };
-                var shipmentItem = shipment.ShipmentItems.FirstOrDefault();
-                if (shipmentItem != null)
-                {
+                    var exportShipmentModel = new ShipmentExportModel()
+                    {
+                        ShipmentId = shipment.Id.ToString(),
+                        BagId = shipment.BagId,
+                        OrderId = shipment.OrderId.ToString(),
+                        OrderItemId = $"{shipment.OrderId}.{shipmentItem.OrderItemId}",
+                        TrackingNumber = shipment.TrackingNumber,
+                        //CustomerInfo = customerInfo,
+                        ShipperInfo = shipperInfo,
+                        DeliveryDate = shipment.DeliveryDateUtc?.ToString("dd/MM/yyyy"),
+                        ShippedDate = shipment.DeliveryDateUtc?.ToString("dd/MM/yyyy"),
+                        Note = shipment.ShipmentNote,
+                        Deposit = shipment.Deposit,
+                        TotalShippingFee = 0,
+                        CustomerPhone = string.Empty,
+                        CustomerFacebookUrl = string.Empty,
+                        CustomerName = string.Empty
+                    };
+
+                    if (customerOrder != null)
+                    {
+                        exportShipmentModel.CustomerName = customerOrder.GetFullName();
+                        exportShipmentModel.CustomerPhone = customerOrder.GetAttribute<string>(SystemCustomerAttributeNames.Phone);
+                        exportShipmentModel.CustomerFacebookUrl = customerOrder.GetAttribute<string>(SystemCustomerAttributeNames.LinkFacebook1);
+                    }
+
                     var orderItem = _orderService.GetOrderItemById(shipmentItem.OrderItemId);
                     if (orderItem != null)
                     {
                         exportShipmentModel.TotalShippingFee = orderItem.UnitPriceInclTax * orderItem.Quantity;
 
-                        exportShipmentModel.ProductInfo = orderItem.Product.GetLocalized(x => x.Name, _workContext.WorkingLanguage.Id);
+                        //exportShipmentModel.ProductInfo = orderItem.Product.GetLocalized(x => x.Name, _workContext.WorkingLanguage.Id);
 
-                        exportShipmentModel.ProductInfo += "\n " + HtmlHelper.ConvertHtmlToPlainText(orderItem.AttributeDescription, true, true);
-                        exportShipmentModel.ProductInfo += "\n " + orderItem.Product.FormatSku(orderItem.AttributesXml, _productAttributeParser);
+                        //exportShipmentModel.ProductInfo += "\n " + HtmlHelper.ConvertHtmlToPlainText(orderItem.AttributeDescription, true, true);
+                        //exportShipmentModel.ProductInfo += "\n " + orderItem.Product.FormatSku(orderItem.AttributesXml, _productAttributeParser);
 
                     }
+                    listItem.Add(exportShipmentModel);
                 }
-
-                listItem.Add(exportShipmentModel);
             }
 
             return ExportToXlsx(orderItemProperties, listItem);

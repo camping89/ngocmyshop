@@ -78,7 +78,7 @@ namespace Nop.Services.Catalog
             string result;
             if (!string.IsNullOrEmpty(targetCurrency.CustomFormatting))
             {
-                result = amount == 0 ? $"{amount} ({targetCurrency.CurrencyCode})" : amount.ToString(targetCurrency.CustomFormatting);
+                result = amount == 0 ? $"0 {targetCurrency.CurrencyCode}" : amount.ToString(targetCurrency.CustomFormatting);
             }
             else
             {

@@ -1,4 +1,5 @@
-﻿using Nop.Web.Areas.Admin.Models.Catalog;
+﻿using Nop.Core.Domain.Customers;
+using Nop.Web.Areas.Admin.Models.Catalog;
 using Nop.Web.Framework.Mvc.ModelBinding;
 
 namespace Nop.Web.Areas.Admin.Models.Orders
@@ -11,6 +12,7 @@ namespace Nop.Web.Areas.Admin.Models.Orders
         }
         [NopResourceDisplayName("Admin.Catalog.Orders.CreateOrder.CustomerName")]
         public int CustomerId { get; set; }
+        public Customer Customer { get; set; }
         [NopResourceDisplayName("Admin.Catalog.Orders.CreateOrder.CustomerPhone")]
         public string CustomerPhone { get; set; }
         [NopResourceDisplayName("Admin.Catalog.Orders.CreateOrder.CustomerFacebook")]

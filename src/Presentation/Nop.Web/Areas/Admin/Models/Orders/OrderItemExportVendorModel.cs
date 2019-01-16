@@ -17,6 +17,8 @@ namespace Nop.Web.Areas.Admin.Models.Orders
                 new SelectListItem{ Value = "False",Text = "Chưa xuất đơn"}
             };
             PackageOrderIds = new List<SelectListItem>();
+
+            VendorItems = new List<SelectListItem>();
         }
         [NopResourceDisplayName("Admin.OrderItem.ExportVendor.Fields.VendorProductUrl")]
         public string VendorProductUrl { get; set; }
@@ -49,6 +51,11 @@ namespace Nop.Web.Areas.Admin.Models.Orders
         [NopResourceDisplayName("Admin.Orders.List.PackageItemProcessedDatetimeNew")]
         [UIHint("DateNullable")]
         public DateTime? PackageItemProcessedDatetimeNew { get; set; }
+
+        [NopResourceDisplayName("Admin.Orders.List.VendorId")]
+        public int VendorId { get; set; }
+
+        public List<SelectListItem> VendorItems { get; set; }
     }
 
     public class OrderItemExportVendorModelBasic : OrderModel.OrderItemModel

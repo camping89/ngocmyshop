@@ -22,6 +22,8 @@ namespace Nop.Web.Models.ShoppingCart
             ButtonPaymentMethodViewComponentNames = new List<string>();
         }
         public int CustomerId { get; set; }
+
+        public Core.Domain.Customers.Customer Customer { get; set; }
         public bool OnePageCheckoutEnabled { get; set; }
 
         public bool ShowSku { get; set; }

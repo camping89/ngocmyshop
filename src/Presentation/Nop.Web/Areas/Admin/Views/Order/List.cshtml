@@ -388,7 +388,8 @@
                                             headerTemplate: "<input id='mastercheckbox' type='checkbox'/>",
                                             headerAttributes: { style: "text-align:center" },
                                             attributes: { style: "text-align:center" },
-                                            template: "<input type='checkbox' value='#=Id#' class='checkboxGroups'/>",
+                                            template:
+                                                "<div style='display:block;padding: 50% 30%;' onclick='setChecked(#=Id#);'><input onclick='setChecked(#=Id#);' id='ckb#=Id#' type='checkbox' value='#=Id#' class='checkboxGroups'/></div>",
                                             width: 50,
                                             sortable: false
                                         }, {
@@ -437,6 +438,12 @@
                                             template: '<p>#=CustomerFullName#</p>' +
                                                 '<p>#=CustomerPhone#</p>',
                                             sortable: false
+                                        },
+                                        {
+                                            field: "CustomerLinkFacebook",
+                                            title: "@T("Admin.Customers.Customers.Fields.LinkFacebook")",
+                                            width: 200,
+                                            template: '<a target="_blank" href="#=CustomerLinkFacebook#">#=CustomerLinkFacebook#</a>'
                                         },
                                         {
                                             field: "StoreName",
@@ -589,6 +596,11 @@
                                     },
                                     columns: [
                                         {
+                                            field: "Id",
+                                            title: "@T("Admin.Orders.OrderItemId")",
+                                            width: 50,
+                                            template: '<p>#=OrderId#.#=Id#</p>'
+                                        },{
                                             field: "PictureThumbnailUrl",
                                             title: "@T("Admin.Orders.Products.Picture")",
                                             template: '<img src="#=PictureThumbnailUrl#" />',
@@ -683,21 +695,21 @@
                                 //    height: 'auto'
                                 //});
                                 //console.log(e);
-                                var weightCostElement = e.container.find("input[name=WeightCostDec]");
-                                e.container.find("input[name=ItemWeight]").on('change',function() {
+                                var weightCostElement = $("input[name=WeightCostDec]");
+                                $("input[name=ItemWeight]").on('input',function() {
                                     var itemWeight = parseFloat($(this).val());
                                     if (itemWeight > 0) {
-                                        var unitWeightCost = e.container.find("input[name=UnitWeightCost]").val();
+                                        var unitWeightCost = $("input[name=UnitWeightCost]").val();
                                         var weightCostDec = parseFloat(unitWeightCost) * itemWeight;
                                         //need trigger change update data to model
                                         weightCostElement.val(weightCostDec).change();
                                     }
                                 });
 
-                                e.container.find("input[name=UnitWeightCost]").on('change',function() {
+                                $("input[name=UnitWeightCost]").on('input',function() {
                                     var unitWeightCost = parseFloat($(this).val());
                                     if (unitWeightCost > 0) {
-                                        var itemWeight = e.container.find("input[name=ItemWeight]").val();
+                                        var itemWeight = $("input[name=ItemWeight]").val();
                                         var weightCostDec = parseFloat(itemWeight) * unitWeightCost;
                                         //need trigger change update data to model
                                         weightCostElement.val(weightCostDec).change();
@@ -708,7 +720,7 @@
 
                             function addExtendCustom(container, options) {
 
-                                var element = $('<input class="k-input k-textbox" data-text-field="' + options.field + '" data-value-field="' + options.field + '" data-bind="value:' + options.field + '" /><span> ' + options.model.PrimaryStoreCurrencyCode+'</span >');
+                                var element = $('<input class="k-input k-textbox" name="'+options.field+ '" data-text-field="' + options.field + '" data-value-field="' + options.field + '" data-bind="value:' + options.field + '" /><span> ' + options.model.PrimaryStoreCurrencyCode+'</span >');
 
                                 element.appendTo(container);
                             }
@@ -759,6 +771,16 @@
                                     grid.collapseRow(this);
                                 });
                             });
+
+                            function setChecked(ckbId) {
+                                var status =  $('#ckb' + ckbId).is(':checked');
+                                if (status) {
+                                    status = false;
+                                } else {
+                                    status = true;
+                                }
+                                $('#ckb' + ckbId).attr('checked', status).change();
+                            }
                         </script>
 
                         <script type="text/javascript">

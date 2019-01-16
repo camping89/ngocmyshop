@@ -30,57 +30,57 @@
                 </button>
                 <ul class="dropdown-menu" role="menu">
                     <li>
-                        <button type="submit" name="exportpackagingslips-all">
-                            @T("Admin.Orders.Shipments.PrintPackagingSlips.All")
-                        </button>
-                    </li>
-                    <li>
                         <button type="button" id="exportpackagingslips-selected">
                             @T("Admin.Orders.Shipments.PrintPackagingSlips.Selected")
                         </button>
                     </li>
-                </ul>
-            </div>
-
-            <div class="btn-group">
-                <button type="button" class="btn btn-success">
-                    <i class="fa fa-download"></i>
-                    @T("Admin.Common.Export")
-                </button>
-                <button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
-                    <span class="caret"></span>
-                    <span class="sr-only">&nbsp;</span>
-                </button>
-                <ul class="dropdown-menu" role="menu">
-
                     <li>
-                        <button type="button" id="exportexcel-shipment-selected">
-                            <i class="fa fa-file-excel-o"></i>
-                            @T("Admin.Common.ExportToExcel.ShipmentItems.Selected")
-                        </button>
-                    </li>
-                    <li>
-                        <button type="submit" name="exportexcel-shipment-all">
-                            <i class="fa fa-file-excel-o"></i>
-                            @T("Admin.Common.ExportToExcel.ShipmentItems.All")
+                        <button type="submit" name="exportpackagingslips-all">
+                            @T("Admin.Orders.Shipments.PrintPackagingSlips.All")
                         </button>
                     </li>
                 </ul>
             </div>
+
+            @*<div class="btn-group">
+                    <button type="button" class="btn btn-success">
+                        <i class="fa fa-download"></i>
+                        @T("Admin.Common.Export")
+                    </button>
+                    <button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+                        <span class="caret"></span>
+                        <span class="sr-only">&nbsp;</span>
+                    </button>
+                    <ul class="dropdown-menu" role="menu">
+
+                        <li>
+                            <button type="button" id="exportexcel-shipment-selected">
+                                <i class="fa fa-file-excel-o"></i>
+                                @T("Admin.Common.ExportToExcel.ShipmentItems.Selected")
+                            </button>
+                        </li>
+                        <li>
+                            <button type="submit" name="exportexcel-shipment-all">
+                                <i class="fa fa-file-excel-o"></i>
+                                @T("Admin.Common.ExportToExcel.ShipmentItems.All")
+                            </button>
+                        </li>
+                    </ul>
+                </div>*@
 
             <button type="button" id="assign-shipper-selected" class="btn bg-aqua" data-toggle="modal" data-target="#assign-shipment-new-customer-window">
                 @T("Admin.Orders.Shipments.AssignToShipperSelected")
             </button>
 
-            <button type="button" id="apply-tracking-number-selected" class="btn bg-aqua" data-toggle="modal" data-target="#apply-tracking-number-window">
+            <button type="button" id="apply-tracking-number-selected" class="btn bg-fuchsia" data-toggle="modal" data-target="#apply-tracking-number-window">
                 @T("Admin.Orders.Shipments.ApplyTrackingNumber")
             </button>
 
-            <button type="button" id="apply-bagid-selected" class="btn bg-aqua" data-toggle="modal" data-target="#apply-bagid-window">
+            <button type="button" id="apply-bagid-selected" class="btn bg-orange" data-toggle="modal" data-target="#apply-bagid-window">
                 @T("Admin.Orders.Shipments.ApplyBagId")
             </button>
 
-            <button type="button" id="ship-selected" class="btn bg-aqua">
+            <button type="button" id="ship-selected" class="btn bg-teal">
                 <i class="fa fa-truck"></i>
                 @T("Admin.Orders.Shipments.ShipSelected")
             </button>
@@ -203,22 +203,22 @@
                                     </div>*@
                             </div>
                             <div class="col-md-7">
-                                <div class="form-group">
-                                    <div class="col-md-4">
-                                        <nop-label asp-for="CountryId" />
+                                @*<div class="form-group">
+                                        <div class="col-md-4">
+                                            <nop-label asp-for="CountryId" />
+                                        </div>
+                                        <div class="col-md-8">
+                                            <nop-select asp-for="CountryId" asp-items="Model.AvailableCountries" />
+                                        </div>
                                     </div>
-                                    <div class="col-md-8">
-                                        <nop-select asp-for="CountryId" asp-items="Model.AvailableCountries" />
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <div class="col-md-4">
-                                        <nop-label asp-for="StateProvinceId" />
-                                    </div>
-                                    <div class="col-md-8">
-                                        <nop-select asp-for="StateProvinceId" asp-items="Model.AvailableStates" />
-                                    </div>
-                                </div>
+                                    <div class="form-group">
+                                        <div class="col-md-4">
+                                            <nop-label asp-for="StateProvinceId" />
+                                        </div>
+                                        <div class="col-md-8">
+                                            <nop-select asp-for="StateProvinceId" asp-items="Model.AvailableStates" />
+                                        </div>
+                                    </div>*@
                                 <div class="form-group">
                                     <div class="col-md-4">
                                         <nop-label asp-for="City" />
@@ -319,7 +319,8 @@
                                             headerTemplate: "<input id='mastercheckbox' type='checkbox'/>",
                                             headerAttributes: { style: "text-align:center" },
                                             attributes: { style: "text-align:center" },
-                                            template: "<input type='checkbox' value='#=Id#' class='checkboxGroups'/>",
+                                            template:
+                                                "<div style='display:block;padding: 27px 40%;' onclick='setChecked(#=Id#);'><input onclick='setChecked(#=Id#);' id='ckb#=Id#' type='checkbox' value='#=Id#' class='checkboxGroups'/></div>",
                                             width: 50
                                         }, {
                                             field: "Id",
@@ -392,6 +393,23 @@
                                         }
                                     ]
                                 });
+
+                                $("#shipments-grid").on("click", "td", function(e) {
+                                    var grid = $("#shipments-grid").data("kendoGrid");
+                                    console.log($(this).hasClass("k-hierarchy-cell"));
+                                    console.log($(this).parent().get(0));
+                                    if ($(this).hasClass("k-hierarchy-cell")) {
+                                        var row = $(this).parent().get(0);
+                                        if ($(this).find(".k-icon").hasClass("k-minus")) {
+
+                                            grid.collapseRow(row);
+                                        } else {
+                                            grid.expandRow(row);
+                                        }
+                                    }
+
+
+                                });
                             });
 
                             //details grid
@@ -434,6 +452,10 @@
                                     },
                                     columns: [
                                         {
+                                            field: "OrderItemNumber",
+                                            title: "@T("Admin.Orders.Shipments.Products.OrderItemNumber")",
+                                            width: 50
+                                        },{
                                             field: "ImageUrl",
                                             title: "@T("Admin.Orders.Shipments.Products.ProductName")",
                                             template: '<p>#=ProductName#</p>' +
@@ -472,12 +494,24 @@
                             //    });
                             //});
 
+
                             $('#collapse').click(function (e) {
                                 var grid = $("#shipments-grid").data("kendoGrid");
                                 $(".k-master-row").each(function (index) {
                                     grid.collapseRow(this);
                                 });
                             });
+
+
+                            function setChecked(ckbId) {
+                                var status =  $('#ckb' + ckbId).is(':checked');
+                                if (status) {
+                                    status = false;
+                                } else {
+                                    status = true;
+                                }
+                                $('#ckb' + ckbId).attr('checked', status).change();
+                            }
                         </script>
                     </div>
                 </div>
@@ -497,6 +531,8 @@
 
                             $('#@Html.IdFor(model => model.LoadNotShipped)').prop('checked', false);
                             $('#@Html.IdFor(model => model.OrderId)').val('');
+
+                            $("#search-shipments").click();
                         });
 
                         $('#@Html.IdFor(model => model.TodayFilter)').click(function () {
@@ -635,6 +671,8 @@
                             updateMasterCheckbox();
 
                         });
+
+
                     });
 
                     function additionalData() {
@@ -671,6 +709,7 @@
                                 $('#aggregator-total-block').text(reportAggregates['aggregatortotal']);
                             }
                         }
+
                     }
 
                     function updateMasterCheckbox() {
@@ -678,6 +717,8 @@
                         var numChkBoxesChecked = $('#shipments-grid input[type=checkbox][id!=mastercheckbox][class=checkboxGroups]:checked').length;
                         $('#mastercheckbox').attr('checked', numChkBoxes == numChkBoxesChecked && numChkBoxes > 0);
                     }
+
+
                 </script>
             </div>
         </div>
