@@ -1,0 +1,499 @@
+﻿@model ShelfListModel
+@inject AdminAreaSettings adminAreaSettings
+
+@{
+    var defaultGridPageSize = adminAreaSettings.DefaultGridPageSize;
+    var gridPageSizes = adminAreaSettings.GridPageSizes;
+
+    //page title
+    ViewBag.Title = T("Admin.ShelfItems").Text;
+    //active menu item (system name)
+    Html.SetActiveMenuItemSystemName("Shelf List");
+}
+
+<nop-antiforgery-token />
+<div class="content-header clearfix">
+    <h1 class="pull-left">
+        @T("Admin.ShelfItems")
+    </h1>
+    <div class="pull-right">
+        @*<a asp-action="Create" class="btn bg-blue">
+                <i class="fa fa-plus-square"></i>
+                @T("Admin.Common.AddNew")
+            </a>*@
+        @await Component.InvokeAsync("AdminWidget", new { widgetZone = "admin_shelf_list_buttons" })
+    </div>
+</div>
+
+<div class="content">
+    <div class="form-horizontal">
+        <div class="panel-group">
+            @*hide the entire search block if no elements are displayed*@
+            <div class="panel panel-default panel-search">
+                <div class="panel-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <div class="col-md-4">
+                                    <nop-label asp-for="CustomerId" />
+                                </div>
+                                <div class="col-md-8">
+                                    <nop-select asp-for="CustomerId" asp-items="Model.Customers" />
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="col-md-4">
+                                    <nop-label asp-for="ShelfOrderItemIsActive" />
+                                </div>
+                                <div class="col-md-8">
+                                    <nop-select asp-for="ShelfOrderItemIsActive" asp-items="Model.ShelfOrderItemsStatus" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <div class="col-md-4">
+                                    <nop-label asp-for="AssignedFromDate" />
+                                </div>
+                                <div class="col-md-8">
+                                    <nop-editor asp-for="AssignedFromDate" />
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="col-md-4">
+                                    <nop-label asp-for="AssignedToDate" />
+                                </div>
+                                <div class="col-md-8">
+                                    <nop-editor asp-for="AssignedToDate" />
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="col-md-4">
+                                    <nop-label asp-for="ShelfIsEmpty" />
+                                </div>
+                                <div class="col-md-8">
+                                    <nop-editor asp-for="ShelfIsEmpty" />
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="form-group">
+                            <div class="col-md-8 col-md-offset-4">
+                                <button type="button" id="search-shelf" class="btn btn-primary btn-search">
+                                    <i class="fa fa-search"></i>
+                                    @T("Admin.Common.Search")
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel panel-default">
+                <div class="panel-body">
+                    <button type="button" class="k-button" id="collapse" style="margin-bottom: 10px;">@T("Admin.Common.CollapseAll")</button>
+                    <div id="shelf-grid"></div>
+
+                    <script type="text/javascript">
+                        var selectedIds = [];
+
+
+                        $(document).ready(function() {
+                            var grid = $("#shelf-grid").kendoGrid({
+                                dataSource: {
+                                    type: "json",
+                                    transport: {
+                                        read: {
+                                            url: "@Html.Raw(Url.Action("List", "Shelf"))",
+                                            type: "POST",
+                                            dataType: "json",
+                                            data: additionalData
+                                        },
+                                        update: {
+                                            url: "@Html.Raw(Url.Action("EditAjax", "Shelf"))",
+                                            type: "POST",
+                                            dataType: "json",
+                                            data: additionalData
+                                        },
+                                        destroy: {
+                                            url: "@Html.Raw(Url.Action("DeleteAjax", "Shelf"))",
+                                            type: "POST",
+                                            dataType: "json",
+                                            data: additionalData
+                                        },
+                                        create: {
+                                            url: "@Html.Raw(Url.Action("CreateAjax", "Shelf"))",
+                                            type: "POST",
+                                            dataType: "json",
+                                            data: additionalData
+                                        }
+                                    },
+                                    schema: {
+                                        model: {
+                                            id: "Id",
+                                            fields: {
+                                                ShelfCode: { validation: { required: true }, type: "string" },
+                                                CustomerId: { type: "number", editable: true },
+                                                AssignedDate: { editable: true, type: "date", nullable: true },
+                                                CustomerFullName: { editable: false, type: "string" },
+                                                CustomerPhone: { editable: false, type: "string" }
+                                            }
+                                        },
+                                        data: "Data",
+                                        total: "Total",
+                                        errors: "Errors"
+                                    },
+                                    requestEnd: function(e) {
+                                        if (e.type !== "read") {
+                                            var grid = $("#shelf-grid").data('kendoGrid');
+                                            grid.dataSource.read();
+                                        }
+                                    },
+                                    error: function(e) {
+                                        display_kendoui_grid_error(e);
+                                        // Cancel the changes
+                                        this.cancelChanges();
+                                    },
+                                    pageSize: @(defaultGridPageSize),
+                                    serverPaging: true,
+                                    serverFiltering: true,
+                                    serverSorting: true
+                                },
+                                toolbar: [
+                                    {
+                                        name: "create",
+                                        text: "@T("Admin.Common.AddNew")"
+                                    }
+                                ],
+                                pageable: {
+                                    refresh: true,
+                                    pageSizes: [@(gridPageSizes)],
+                                    @await Html.PartialAsync("_GridPagerMessages")
+                                },
+                                editable: {
+                                    confirmation: "@T("Admin.Common.DeleteConfirmation")",
+                                    mode: "inline"
+                                },
+                                //details grid
+                                detailInit: detailInit,
+                                scrollable: false,
+                                columns: [
+                                    {
+                                        field: "ShelfCode",
+                                        title: "@T("Admin.Shelf.Fields.ShelfCode")"
+                                    }, {
+                                        field: "CustomerId",
+                                        title: "@T("Admin.Shelf.Fields.CustomerInfo")",
+                                        width: 200,
+                                        editor: editCustomerId,
+                                        template:
+                                            '# if(CustomerFullName != null && CustomerPhone != null ) {# <p>#=CustomerFullName#</p><p>#=CustomerPhone#</p> #}  #'
+                                    },
+                                    {
+                                        field: "AssignedDate",
+                                        title: "@T("Admin.Shelf.Fields.AssignedDate")",
+                                        width: 150,
+                                        editor: dateTimeEditorCustom,
+                                        template: "# if (AssignedDate != null) { #" +
+                                            "<p>#= kendo.toString(kendo.parseDate(AssignedDate, 'yyyy-MM-dd'), 'MM/dd/yyyy') #</p>" +
+                                            "#} else {#" +
+                                            "<p></p>" +
+                                            "# } #"
+                                    },
+                                    {
+                                        command: [
+                                            {
+                                                name: "edit",
+                                                text: {
+                                                    edit: "@T("Admin.Common.Edit")",
+                                                    update: "@T("Admin.Common.Update")",
+                                                    cancel: "@T("Admin.Common.Cancel")"
+                                                }
+                                            },
+                                            {
+                                                name: "destroy",
+                                                text: "@T("Admin.Common.Delete")",
+                                                template: '<a class="btn btn-danger k-button-icontext k-grid-delete" href="" >@T("Admin.Common.Delete")</a>'
+                                            },
+                                            {
+                                                title: "@T("Admin.Common.Function")",
+                                                template: '<button type="button" id="btnShipmentAll" class="btn btn-success">@T("Admin.ShelfOrderItem.ShipmentAll")</button>'+
+                                                    '<button type="button id="btnShipmentSelected" class="btn btn-primary">@T("Admin.ShelfOrderItem.ShipmentSelected")</button>'
+                                            }
+                                        ],
+                                        title: "@T("Admin.Common.Function")",
+                                        width: 250
+                                    }
+                                    @*{
+                                        field: "Id",
+                                        title: "@T("Admin.Common.Edit")",
+                                        width: 100,
+                                        headerAttributes: { style: "text-align:center" },
+                                        attributes: { style: "text-align:center" },
+                                        template: '<a class="btn btn-default" href="Edit/#=Id#"><i class="fa fa-pencil"></i>@T("Admin.Common.Edit")</a>'
+                                    }*@
+                                ]
+                            });
+
+
+                            $("#shelf-grid").on("click",
+                                "td",
+                                function(e) {
+                                    var grid = $("#shelf-grid").data("kendoGrid");
+
+                                    if ($(this).hasClass("k-hierarchy-cell")) {
+                                        var row = $(this).parent().get(0);
+                                        if ($(this).find(".k-icon").hasClass("k-minus")) {
+
+                                            grid.collapseRow(row);
+                                        } else {
+                                            grid.expandRow(row);
+                                        }
+                                    }
+
+
+                                });
+
+                            $('#collapse').click(function(e) {
+                                var grid = $("#shelf-grid").data("kendoGrid");
+                                $(".k-master-row").each(function(index) {
+                                    grid.collapseRow(this);
+                                });
+                            });
+
+                            function editCustomerId(container, options) {
+                                var jsonCustomers =
+                                    jQuery.parseJSON(
+                                        '@Json.Serialize(Model.Customers.Select(_ => new {CustomerId = _.Value, CustomerName = _.Text}))');
+                                $('<input id="CustomerNameEditor" data-text-field="CustomerName" data-value-field="' +
+                                        options.field +
+                                        '" data-bind="value:' +
+                                        options.field +
+                                        '" />')
+                                    .appendTo(container)
+                                    .kendoDropDownList({
+                                        autoBind: true,
+                                        dataTextField: "CustomerName",
+                                        dataValueField: "CustomerId",
+                                        dataSource: jsonCustomers
+                                    });
+                            }
+
+                            function dateTimeEditorCustom(container, options) {
+                                var dateTime = options.model.AssignedDate;
+                                if (options.model.AssignedDate === null || options.model.AssignedDate === '') {
+                                    dateTime = new Date();
+                                }
+                                $('<input data-text-field="' +
+                                        options.field +
+                                        '" data-value-field="' +
+                                        options.field +
+                                        '" data-bind="value:' +
+                                        options.field +
+                                        '" />')
+                                    .appendTo(container)
+                                    .kendoDatePicker({
+                                        format: "MM/dd/yyyy",
+                                        value: kendo.toString(new Date(dateTime), 'MM/dd/yyyy')
+                                    });
+                            }
+
+                            //details grid
+                            function detailInit(e) {
+                                var isActive = $('#@Html.IdFor(model => model.ShelfOrderItemIsActive)').val();
+                                var postData = { shelfId: e.data.Id, isActive: isActive};
+                                $('<div id="grid-shelf-items"></div>').appendTo(e.detailCell).kendoGrid({
+                                    dataSource: {
+                                        type: "json",
+                                        transport: {
+                                            read: {
+                                                url: '@Html.Raw(Url.Action("OrderItemsByShelfId", "Order"))',
+                                                type: "POST",
+                                                dataType: "json",
+                                                data: addAntiForgeryToken(postData)
+                                            },
+                                            destroy: {
+                                                url: "@Url.Action("DeleteOrderItemId", "Shelf")",
+                                                type: "POST",
+                                                dataType: "json",
+                                                data: addAntiForgeryToken
+                                            }
+                                        },
+                                        schema: {
+                                            data: "Data",
+                                            total: "Total",
+                                            errors: "Errors",
+                                            model: {
+                                                id: "Id",
+                                                fields: {
+                                                    ShelfOrderItemId: { editable: true, type: "number" }
+                                                }
+                                            }
+                                        },
+                                        requestEnd: function(e) {
+                                            if (e.type !== "read") {
+                                                var grid = $("#shelf-grid").data('kendoGrid');
+                                                grid.dataSource.read();
+                                            }
+                                        },
+                                        error: function(e) {
+                                            display_kendoui_grid_error(e);
+                                            // Cancel the changes
+                                            this.cancelChanges();
+                                        },
+                                        serverPaging: true,
+                                        serverFiltering: true
+                                    },
+                                    scrollable: false,
+                                    pageable: {
+                                        refresh: true,
+                                        numeric: false,
+                                        previousNext: false,
+                                        info: false,
+                                        @await Html.PartialAsync("_GridPagerMessages")
+                                    },
+                                    editable: {
+                                        confirmation: "@T("Admin.Common.DeleteConfirmation")",
+                                        mode: "inline"
+                                    },
+                                    columns: [
+                                        //{
+                                        //    field: "Id",
+                                        //    headerTemplate: "<input id='mastercheckbox" + e.data.Id +"' type='checkbox'/>",
+                                        //    headerAttributes: { style: "text-align:center" },
+                                        //    attributes: { style: "text-align:center" },
+                                        //    template:
+                                        //        "<div style='display:block;padding: 40%;' onclick='setChecked(#=Id#);'><input onclick='setChecked(#=Id#);' id='ckb#=Id#' type='checkbox' value='#=Id#' class='checkboxGroups'/></div>",
+                                        //    width: 60,
+                                        //    sortable: false
+                                        //},
+                                        {
+                                            field: "ShelfOrderItemId",
+                                            title: "@T("Admin.Orders.ShelfOrderItemId")",
+                                            width: 50,
+                                            template: '<p>#=ShelfOrderItemId#</p>'
+                                        }, {
+                                            field: "PictureThumbnailUrl",
+                                            title: "@T("Admin.Orders.Products.Picture")",
+                                            template: '<img src="#=PictureThumbnailUrl#" />',
+                                            width: 100
+                                        }, {
+                                            field: "ProductName",
+                                            title: "@T("Admin.Orders.Products.ProductName")",
+                                            template: 'Product name: #=ProductName#' +
+                                                '<p>#=AttributeInfo#</p>' ,
+                                            width: 250
+                                        }, {
+                                            field: "TotalWithoutWeightCost",
+                                            title: "@T("Admin.Orders.Products.TotalWithoutWeightCost")",
+                                            width: 100
+                                        }, {
+                                            field: "WeightCostDec",
+                                            title: "@T("Admin.Orders.Products.WeightCost")",
+                                            width: 100,
+                                            template: "# if (WeightCostDec > 0) { #" +
+                                                "#=WeightCost#" +
+                                                "#} else {#" +
+                                                "<p>@(T("orderitem.includeweightcost.false"))</p>" +
+                                                "# } #"
+                                        }, {
+                                            field: "SubTotalInclTax",
+                                            title: "@T("Admin.Orders.Products.Total")",
+                                            width: 100
+                                        }, {
+                                            field: "PackageOrderId",
+                                            title: "@T("Admin.Orders.Products.PackageOrderId")",
+                                            width: 100,
+                                            template: "# if (PackageOrder != null) { #" +
+                                                "<p>#=PackageOrder.PackageCode#</p>" +
+                                                "#} else {#" +
+                                                "<p></p>" +
+                                                "# } #"
+
+                                        }, {
+                                            field: "ShelfOrderItem.IsActive",
+                                            title: "@T("Admin.ShelfOrderItemIsActive")",
+                                            template: "# if (ShelfOrderItemIsActive) { #" +
+                                                "@T("Admin.ShelfOrderItem.IsActive.True")" +
+                                                "#} else {#" +
+                                                "@T("Admin.ShelfOrderItem.IsActive.False")" +
+                                                "# } #"
+
+                                        } ,
+                                        {
+                                            command: [
+                                                {
+                                                    name: "destroy",
+                                                    text: "@T("Admin.Common.Delete")",
+                                                    template: '<a class="btn btn-danger k-button-icontext k-grid-delete" href="" >@T("Admin.Common.Delete")</a>'
+                                                }
+                                            ],
+                                            width: 100
+                                        }
+                                    ]
+
+                                });
+
+
+                                //========================Function extend========================//
+
+                                function setChecked(ckbId) {
+                                    var status = $('#ckb' + ckbId).is(':checked');
+                                    if (status) {
+                                        status = false;
+                                    } else {
+                                        status = true;
+                                    }
+                                    $('#ckb' + ckbId).attr('checked', status).change();
+                                }
+
+                            }
+
+
+                            $('#collapse').click(function(e) {
+                                var grid = $("#shelf-grid").data("kendoGrid");
+                                $(".k-master-row").each(function(index) {
+                                    grid.collapseRow(this);
+                                });
+                            });
+                        });
+
+
+                    </script>
+
+                    <script type="text/javascript">
+
+                        $(document).ready(function () {
+                            //search button
+                            $('#search-shelf').click(function () {
+                                //search
+                                var grid = $('#shelf-grid').data('kendoGrid');
+                                grid.dataSource.page(1); //new search. Set page size to 1
+                                //grid.dataSource.read(); we already loaded the grid above using "page" function
+                                selectedIds = [];
+                                return false;
+                            });
+
+                        });
+
+
+                        function additionalData() {
+                            var data = {
+                                CustomerId: $('#@Html.IdFor(model => model.CustomerId)').val(),
+                                AssignedFromDate: $('#@Html.IdFor(model => model.AssignedFromDate)').val(),
+                                AssignedToDate: $('#@Html.IdFor(model => model.AssignedToDate)').val(),
+                                ShelfOrderItemIsActive: $('#@Html.IdFor(model => model.ShelfOrderItemIsActive)').val(),
+                                ShelfIsEmpty: $('#@Html.IdFor(model => model.ShelfIsEmpty)').is(":checked")
+                            };
+                            addAntiForgeryToken(data);
+                            return data;
+                        }
+                    </script>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -27,13 +27,18 @@
             @T("Admin.Orders.Exports")
         </h1>
         <div class="pull-right">
-            <button type="button" id="apply-packageorderid-selected" class="btn bg-aqua" data-toggle="modal" data-target="#apply-packageorderid-window">
+            <button type="button" id="apply-packageorderid-selected" class="btn bg-olive" data-toggle="modal" data-target="#apply-packageorderid-window">
                 @T("Admin.Orders.Shipments.ApplyPackageOrderId")
             </button>
             <button type="button" id="apply-processed-datetime-selected" class="btn bg-aqua" data-toggle="modal" data-target="#apply-processed-datetime-window">
                 <i class="fa fa-calendar"></i>
                 @T("Admin.Orders.Shipments.ApplyProcessedDatetime")
             </button>
+
+            <button type="button" id="assign-by-selected" class="btn bg-orange" data-toggle="modal" data-target="#assign-by-new-customer-window">
+                @T("Admin.Orders.Shipments.AssignByCustomerSelected")
+            </button>
+
             <button type="button" class="btn btn-primary" id="btn-set-isordercheckout-selected">
                 <i class="fa fa-save"></i>
                 @T("Admin.Common.SetIsOrderCheckoutSelected")
@@ -121,6 +126,23 @@
                                     </div>
                                 </div>
 
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <nop-label asp-for="IsSetPackageOrderId" />
+                                    </div>
+                                    <div class="col-md-8">
+                                        <nop-select asp-for="IsSetPackageOrderId" asp-items="Model.IsSetPackageOrderIdStatus" />
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <nop-label asp-for="IsShelfAssigned" />
+                                    </div>
+                                    <div class="col-md-8">
+                                        <nop-select asp-for="IsShelfAssigned" asp-items="Model.IsSetShelfIdStatus" />
+                                    </div>
+                                </div>
+
                             </div>
                             <div class="col-md-6">
 
@@ -140,22 +162,6 @@
                                     </div>
                                     <div class="col-md-8">
                                         <nop-editor asp-for="TodayFilter" />
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <div class="col-md-4">
-                                        <nop-label asp-for="IsPackageItemProcessed" />
-                                    </div>
-                                    <div class="col-md-8">
-                                        <nop-editor asp-for="IsPackageItemProcessed" />
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <div class="col-md-4">
-                                        <nop-label asp-for="IsSetPackageItemCode" />
-                                    </div>
-                                    <div class="col-md-8">
-                                        <nop-editor asp-for="IsSetPackageItemCode" />
                                     </div>
                                 </div>
 
@@ -188,7 +194,54 @@
                     <div class="panel-body">
                         <div class="form-group">
                             <div class="col-md-12">
-                                <div id="dummyScrollWrapper" style="overflow-x: scroll; margin-right:17px; margin-left:2px;">
+                                <input id="testData" />
+                                <script>
+                                    $(document).ready(function() {
+                                        $("#testData").kendoDropDownList({
+                                            dataTextField: "ProductName",
+                                            dataValueField: "ProductID",
+                                            dataSource: {
+                                                transport: {
+                                                    read: {
+                                                        dataType: "jsonp",
+                                                        url: "https://demos.telerik.com/kendo-ui/service/Products",
+                                                    }
+                                                }
+                                            },
+                                            filter: "contains"
+                                        });
+
+                                        @*$('#testData').kendoDropDownList({
+                                            //autoBind: false,
+
+                                            filtering: function(e) {
+                                                var filter = e.filter;
+
+                                                if (!filter.value) {
+                                                    //prevent filtering if the filter does not value
+                                                    e.preventDefault();
+                                                }
+                                            },
+                                            dataTextField: "ShelfCode",
+                                            dataValueField: "ShelfId",
+                                            dataSource: {
+                                                type: "json",
+                                                serverFiltering: false,
+                                                transport: {
+                                                    read: {
+                                                        url:
+                                                            "@Html.Raw(Url.Action("GetShelfAvailable", "Shelf"))",
+                                                        type: "POST",
+                                                        dataType: "json",
+                                                        data: addAntiForgeryToken
+                                                    }
+                                                }
+                                            },
+                                            filter: "contains"
+                                        });*@
+                                    });
+                                </script>
+                                <div id="dummyScrollWrapper" style="overflow-x: scroll; margin-right: 17px; margin-left: 2px;">
                                     <div id="dummyScroll" style="height: 20px;">
                                     </div>
                                 </div>
@@ -224,11 +277,12 @@
                                                         fields: {
                                                             OrderId: { editable: false, type: "number" },
                                                             PackageId: { editable: false, type: "string" },
+                                                            CustomerAssignShelfInfo: { editable: true, type: "string" },
                                                             CustomerInfo: { editable: false, type: "string" },
                                                             CreatedDate: { editable: false, type: "string" },
                                                             VendorName: { editable: false, type: "string" },
-                                                            PackageOrderId: { editable: true, type: "string" },
-                                                            PackageItemCode: { editable: true, type: "string" },
+                                                            PackageOrderId: { editable: false, type: "string" },
+                                                            PackageOrderCode: { editable: true, type: "string" },
                                                             PackageItemProcessedDatetime: {
                                                                 editable: true,
                                                                 type: "date"
@@ -240,13 +294,14 @@
                                                             UnitWeightCost: { editable: false, type: "string" },
                                                             ItemWeight: { editable: false, type: "string" },
                                                             SubTotalInclTax: { editable: false, type: "string" },
-                                                            IsOrderCheckout: { editable: true, type: "boolean" }
+                                                            IsOrderCheckout: { editable: true, type: "boolean" },
+                                                            ShelfId: { editable: true, type: "string" }
                                                         }
                                                     }
 
                                                 },
                                                 requestEnd: function(e) {
-                                                    if (e.type == "update") {
+                                                    if (e.type === "update") {
                                                         var grid = $("#order-items-grid").data('kendoGrid');
                                                         grid.dataSource.read();
                                                     }
@@ -264,18 +319,18 @@
                                             edit: grid_edit,
                                             editable: {
                                                 confirmation: "@T("Admin.Common.DeleteConfirmation")",
-                                                mode: "popup"
+                                                mode: "inline"
                                             },
                                             //height: 540,
-                                            dataBound: function (e) {
+                                            dataBound: function(e) {
                                                 var dataElement = $(e.sender.element).find(".k-grid-content");
                                                 var fakeScroll = document.getElementById("dummyScroll");
                                                 fakeScroll.style.width = dataElement.children(0).width() + "px";
 
-                                                dataElement.scroll(function () {
+                                                dataElement.scroll(function() {
                                                     $("#dummyScrollWrapper").scrollLeft(dataElement.scrollLeft());
                                                 });
-                                                $("#dummyScrollWrapper").scroll(function () {
+                                                $("#dummyScrollWrapper").scroll(function() {
                                                     dataElement.scrollLeft($("#dummyScrollWrapper").scrollLeft());
                                                 });
                                             },
@@ -293,13 +348,28 @@
                                                     attributes: { style: "text-align:center" },
                                                     template:
                                                         "<div style='display:block;padding: 40%;' onclick='setChecked(#=Id#);'><input onclick='setChecked(#=Id#);' id='ckb#=Id#' type='checkbox' value='#=Id#' class='checkboxGroups'/></div>",
-                                                    width: 100,
+                                                    width: 60,
                                                     sortable: false,
                                                     editor: hideOnEditor
                                                 }, {
+                                                    field: "ShelfOrderItemId",
+                                                    title: "@T("Admin.Orders.ShelfOrderItemId")",
+                                                    width: 50,
+                                                    template: "# if (ShelfOrderItemId != 0) { #" +
+                                                        "#= ShelfOrderItemId #" +
+                                                        "#} else {#" +
+                                                        "<p></p>" +
+                                                        "# } #"
+                                                }, {
                                                     field: "OrderId",
                                                     title: "@T("Admin.Orders.Products.OrderId")",
-                                                    width: 100
+                                                    width: 50
+                                                },
+                                                {
+                                                    field: "CustomerAssignShelfInfo",
+                                                    title: "@T("admin.orders.shelfassignerinfo")",
+                                                    width: 150,
+                                                    editor: hideOnEditor
                                                 },
                                                 {
                                                     field: "CustomerInfo",
@@ -365,19 +435,31 @@
                                                 }, {
                                                     field: "PackageOrderId",
                                                     title: "@T("Admin.Orders.Products.PackageOrderId")",
-                                                    width: 100,
+                                                    hidden: true,
+                                                    editor: hideOnEditor
+                                                }, {
+                                                    field: "PackageOrderCode",
+                                                    title: "@T("admin.orders.products.packagecode")",
+                                                    width: 180,
                                                     editor: editPackageOrderId,
                                                     template: "# if (PackageOrder != null) { #" +
-                                                        "<p>#=PackageOrder.PackageCode# - #=PackageOrder.PackageName# </p>" +
+                                                        "<p>#=PackageOrder.PackageCode#</p>" +
                                                         "#} else {#" +
                                                         "<p></p>" +
                                                         "# } #"
 
                                                 }, {
-                                                    field: "PackageItemCode",
-                                                    title: "@T("Admin.Orders.Products.PackageItemCode")",
-                                                    width: 100
-                                                }, {
+                                                    field: "ShelfId",
+                                                    title: "@T("Admin.Orders.Shelf.ShelfCode")",
+                                                    width: 200,
+                                                    editor: editShelfOrderId,
+                                                    template: "# if (ShelfCode != null) { #" +
+                                                        "<p>#=ShelfCode# </p>" +
+                                                        "#} else {#" +
+                                                        "<p></p>" +
+                                                        "# } #"
+                                                },
+                                                @*{
                                                     field: "PackageItemProcessedDatetime",
                                                     title: "@T("Admin.Orders.Products.PackageItemProcessedDatetime")",
                                                     width: 150,
@@ -387,7 +469,8 @@
                                                         "#} else {#" +
                                                         "<p></p>" +
                                                         "# } #"
-                                                }, {
+                                                },*@
+                                                {
                                                     field: "IsOrderCheckout",
                                                     title: "@T("Admin.Orders.Products.IsOrderCheckout")",
                                                     width: 150,
@@ -401,53 +484,33 @@
                                                         "@T("Admin.Orders.Products.IsOrderCheckout.False")" +
                                                         "# } #" +
                                                         '</span>'
-
                                                 }, {
-                                                    command: {
-                                                        name: "edit",
-                                                        text: {
-                                                            edit: "@T("Admin.Common.Edit")",
-                                                            update: "@T("Admin.Common.Update")",
-                                                            cancel: "@T("Admin.Common.Cancel")"
+                                                    command: [
+                                                        {
+                                                            name: "edit",
+                                                            text: {
+                                                                edit: "@T("Admin.Common.Edit")",
+                                                                update: "@T("Admin.Common.Update")",
+                                                                cancel: "@T("Admin.Common.Cancel")"
+                                                            }
                                                         }
-                                                    },
-                                                    title: "@T("Admin.Common.Edit")",
-                                                    width: 150
+                                                        @*,
+                                                        {
+                                                            template: "<a class='k-grid-decreaseIndent btn btn-primary' onclick='showDetails($(this))' ><span class='fa fa-plus'> @T("Admin.Shipments.AddNewShipment")</span></a>"
+                                                        }*@
+                                                    ],
+                                                    title: "@T("Admin.Common.Function")",
+                                                    width: 250
                                                 }
                                             ]
                                         });
 
+
                                         function grid_edit(e) {
-                                            //$(e.container).parent().css({
-                                            //    width: '800px',
-                                            //    height: 'auto'
-                                            //});
-                                            //console.log(e);
-                                            var weightCostElement = e.container.find("input[name=WeightCostDec]");
-
-                                            e.container.find("input[name=ItemWeight]").on('change',
-                                                function() {
-                                                    var itemWeight = parseFloat($(this).val());
-                                                    if (itemWeight > 0) {
-                                                        var unitWeightCost = e.container
-                                                            .find("input[name=UnitWeightCost]").val();
-                                                        var weightCostDec = parseFloat(unitWeightCost) * itemWeight;
-                                                        //need trigger change update data to model
-                                                        weightCostElement.val(weightCostDec).change();
-                                                    }
-                                                });
-
-                                            e.container.find("input[name=UnitWeightCost]").on('change',
-                                                function() {
-                                                    var unitWeightCost = parseFloat($(this).val());
-                                                    if (unitWeightCost > 0) {
-                                                        var itemWeight = e.container.find("input[name=ItemWeight]")
-                                                            .val();
-                                                        var weightCostDec = parseFloat(itemWeight) * unitWeightCost;
-                                                        //need trigger change update data to model
-                                                        weightCostElement.val(weightCostDec).change();
-                                                    }
-                                                });
+                                            $(e.container).parent().css({
+                                                width: '500px',
+                                                height: 'auto'
+                                            });
 
                                         }
 
@@ -505,7 +568,40 @@
                                                 });
                                         }
 
+
                                         function editPackageOrderId(container, options) {
+                                            $(
+                                                    '<input id="PackageOrderCode" class="k-input k-textbox" data-text-field="PackageOrderCode" data-value-field="' +
+                                                    options.field +
+                                                    '" data-bind="value:' +
+                                                    options.field +
+                                                    '" />')
+                                                .appendTo(container);
+
+                                            var model = options.model;
+                                            if (model.PackageOrderId === "0") {
+                                                $.ajax({
+                                                    cache: false,
+                                                    url: "@(Url.Action("GetsPackageOrderCodeAvailable", "Order"))",
+                                                    type: "GET",
+                                                    complete: function(data) {
+                                                        var jsonData = data.responseJSON;
+                                                        options.model.set("PackageOrderCode", makeRandomPackageCode());
+                                                        //$('#PackageOrderCode').val(data);
+                                                        //$('#PackageOrderCode').trigger("change");
+                                                    },
+                                                    error: function(xhr, ajaxOptions, thrownError) {
+                                                        alert(thrownError);
+                                                    },
+                                                    traditional: true
+                                                });
+
+                                            }
+
+                                        }
+
+
+                                        @*function editPackageOrderId(container, options) {
                                             $('<input data-text-field="PackageOrderName" data-value-field="' +
                                                     options.field +
                                                     '" data-bind="value:' +
@@ -522,19 +618,68 @@
                                                         transport: {
                                                             read: {
                                                                 url:
-                                                                    "@Html.Raw(Url.Action("GetsPackageOrderAvailble", "Order"))",
+                                                                    "@Html.Raw(Url.Action("GetsPackageOrderAvailable", "Order"))",
                                                                 type: "GET",
                                                                 dataType: "json"
                                                             }
                                                         }
                                                     }
                                                 });
+                                        }*@
+
+                                        function editShelfOrderId(container, options) {
+                                            var orderItemId = options.model.Id;
+                                            var dataModel = { orderItemId: orderItemId }
+                                            var $dropDown = $('<input data-text-field="ShelfCode" data-value-field="' +
+                                                    options.field +
+                                                    '" data-bind="value:' +
+                                                    options.field +
+                                                    '" />')
+                                                .appendTo(container)
+                                                .kendoDropDownList({
+                                                    //autoBind: false,
+                                                    filtering: function(e) {
+                                                        var filter = e.filter;
+
+                                                        if (!filter.value) {
+                                                            //prevent filtering if the filter does not value
+                                                            e.preventDefault();
+                                                        }
+                                                    },
+                                                    dataTextField: "ShelfCode",
+                                                    dataValueField: "ShelfId",
+                                                    dataSource: {
+                                                        type: "json",
+                                                        serverFiltering: false,
+                                                        transport: {
+                                                            read: {
+                                                                url:
+                                                                    "@Html.Raw(Url.Action("GetShelfAvailable", "Shelf"))",
+                                                                type: "POST",
+                                                                dataType: "json",
+                                                                data: addAntiForgeryToken(dataModel)
+                                                            }
+                                                        }
+                                                    },
+                                                    filter: "contains"
+                                                });
                                         }
                                     });
 
+                                    function showDetails(e) {
+                                        var row = e.select().closest("tr");
+                                        var grid = $('#order-items-grid').data('kendoGrid');
+                                        var dataItem = grid.dataItem(row);
+
+                                        window.location.href = "@Url.Action("AddShipment", "Order")?orderId=" +
+                                            dataItem.OrderId +
+                                            "&orderItemId=" +
+                                            dataItem.Id;
+                                    }
+
 
                                     function setChecked(ckbId) {
-                                       var status =  $('#ckb' + ckbId).is(':checked');
+                                        var status = $('#ckb' + ckbId).is(':checked');
                                         if (status) {
                                             status = false;
                                         } else {
@@ -559,9 +704,9 @@
                                             $('#@Html.IdFor(model => model.CustomerPhone)').val('');
 
                                             $('#@Html.IdFor(model => model.TodayFilter)').prop('checked', false);
-                                            $('#@Html.IdFor(model => model.IsPackageItemProcessed)').prop('checked', false);
-                                            $('#@Html.IdFor(model => model.IsSetPackageItemCode)').prop('checked', false);
                                             $('#@Html.IdFor(model => model.IsOrderCheckout)').val(0);
+                                            $('#@Html.IdFor(model => model.IsSetPackageOrderIdStatus)').val(0);
+                                            $('#@Html.IdFor(model => model.IsSetShelfIdStatus)').val(0);
 
                                             $("#search-orders").click();
                                         });
@@ -613,10 +758,11 @@
                                             VendorProductUrl: $('#@Html.IdFor(model => model.VendorProductUrl)').val(),
                                             OrderId: $('#@Html.IdFor(model => model.OrderId)').val(),
                                             IsOrderCheckout: $('#@Html.IdFor(model => model.IsOrderCheckout)').val(),
+                                            IsSetPackageOrderId: $('#@Html.IdFor(model => model.IsSetPackageOrderId)')
+                                                .val(),
+                                            IsSetSetShelfId: $('#@Html.IdFor(model => model.IsShelfAssigned)').val(),
                                             IsPackageItemProcessed: $(
                                                 '#@Html.IdFor(model => model.IsPackageItemProcessed)').is(":checked"),
-                                            IsSetPackageItemCode: $('#@Html.IdFor(model => model.IsSetPackageItemCode)')
-                                                .is(":checked"),
                                             TodayFilter: $('#@Html.IdFor(model => model.TodayFilter)').is(":checked"),
                                             CustomerPhone: $('#@Html.IdFor(model => model.CustomerPhone)').val(),
                                             PackageOrderId: $('#@Html.IdFor(model => model.PackageOrderId)').val(),
@@ -743,15 +889,18 @@
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
                 <h4 class="modal-title" id="apply-packageorderid-window-title">@T("Admin.Common.AddPackageOrderIdTitle")</h4>
             </div>
-            <form asp-controller="Order" asp-action="ApplyPackageOrderIdSelected" method="post" id="apply-packageorderid-selected-form">
+            <form asp-controller="Order" asp-action="ApplyPackageOrderCodeSelected" method="post" id="apply-packageorderid-selected-form">
                 <div class="form-horizontal">
                     <div class="modal-body">
                         <div class="form-group">
                             <div class="col-md-4">
-                                <nop-label asp-for="PackageOrderIdNew" />
+                                <nop-label asp-for="PackageOrderCodeNew" />
                             </div>
-                            <div class="col-md-8">
-                                <nop-select asp-for="PackageOrderIdNew" asp-items="Model.PackageOrderIds" />
+                            <div class="col-md-4">
+                                <nop-editor asp-for="PackageOrderCodeNew" />
+                            </div>
+                            <div class="col-md-4">
+                                <button type="button" class="btn btn-success" id="generatePackageCode">@T("Admin.Common.GeneratePackageCode")</button>
                             </div>
                         </div>
                     </div>
@@ -768,16 +917,32 @@
 </div>
 
 <script type="text/javascript">
+    function makeRandomPackageCode() {
+        var text = "";
+        var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+
+        for (var i = 0; i < 8; i++)
+            text += possible.charAt(Math.floor(Math.random() * possible.length));
+
+        return text;
+    }
+
     $(document).ready(function () {
+        $("#generatePackageCode").click(function(e) {
+            e.preventDefault();
+            var ramdomPackageCode = makeRandomPackageCode();
+            $('#PackageOrderCodeNew').val(ramdomPackageCode);
+        });
+
         $('#btn-apply-packageorderid').click(function (e) {
             e.preventDefault();
-            var packageOrderIdNew = $('#PackageOrderIdNew').val();
-            var postData = { selectedIds: selectedIds, packageOrderIdNew: packageOrderIdNew };
+            var packageOrderCodeNew = $('#PackageOrderCodeNew').val();
+            var postData = { selectedIds: selectedIds, packageOrderCodeNew: packageOrderCodeNew };
             addAntiForgeryToken(postData);
             $.ajax({
                 cache: false,
                 type: "POST",
-                url: "@(Url.Action("ApplyPackageOrderIdSelected", "Order"))",
+                url: "@(Url.Action("ApplyPackageOrderCodeSelected", "Order"))",
                 data: postData,
                 complete: function(data) {
                     var jsonData = data.responseJSON;
@@ -799,6 +964,9 @@
             });
             return false;
         });
+
+
+
     });
 </script>
 
@@ -859,6 +1027,72 @@
                     var grid = $('#order-items-grid').data('kendoGrid');
                     grid.dataSource.read();
                     $('#PackageItemProcessedDatetimeNew').val('');
+                },
+                error: function(xhr, ajaxOptions, thrownError) {
+                    alert(thrownError);
+                },
+                traditional: true
+            });
+            return false;
+        });
+    });
+</script>
+
+
+
+<div id="assign-by-new-customer-window" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="assign-by-new-customer-title">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="assign-by-new-customer-window-title">@T("Admin.Common.AssignNewCustomer")</h4>
+            </div>
+            <form asp-controller="Order" asp-action="AssignNewCustomerSelected" method="post" id="assign-shipper-selected-form">
+                <div class="form-horizontal">
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <div class="col-md-4">
+                                <nop-label asp-for="AssignedByNewCustomerId" />
+                            </div>
+                            <div class="col-md-8">
+                                <nop-select asp-for="AssignedByNewCustomerId" asp-items="Model.AvailableCustomers" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" id="btn-assign-to-new-customer" class="btn btn-primary">
+                            @T("Admin.Common.Save")
+                        </button>
+                    </div>
+                </div>
+
+            </form>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('#btn-assign-to-new-customer').click(function (e) {
+            e.preventDefault();
+            var customerId = $('#AssignedByNewCustomerId').val();
+            var postData = { selectedIds: selectedIds, AssignedByNewCustomerId: customerId };
+            addAntiForgeryToken(postData);
+            $.ajax({
+                cache: false,
+                type: "POST",
+                url: "@(Url.Action("AssignNewCustomerSelected", "Order"))",
+                data: postData,
+                complete: function(data) {
+                    selectedIds = [];
+                    $('#assign-by-new-customer-window').modal('toggle');
+                    //reload grid
+                    var grid = $('#order-items-grid').data('kendoGrid');
+                    grid.dataSource.read();
+                    $('#AssignedByNewCustomerId').val(0);
+
+                    $("#AssignedByNewCustomerId").chosen("destroy");
+                    $("#AssignedByNewCustomerId").chosen();
                 },
                 error: function(xhr, ajaxOptions, thrownError) {
                     alert(thrownError);

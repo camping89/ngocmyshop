@@ -59,9 +59,12 @@ namespace Nop.Web.Areas.Admin.Models.Orders
 
         [NopResourceDisplayName("Admin.Orders.Shipments.List.OrderId")]
         public int OrderId { get; set; }
+        [NopResourceDisplayName("Admin.Orders.Shipments.List.OrderItemId")]
+        public int OrderItemId { get; set; }
 
         [NopResourceDisplayName("Admin.Orders.Shipments.List.CustomerNew")]
         public int CustomerNewId { get; set; }
         public IList<SelectListItem> AvailableShippers { get; set; }
     }
+
 }

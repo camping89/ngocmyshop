@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc.Rendering;
 using Nop.Core.Domain.Catalog;
+using Nop.Core.Domain.Customers;
 using Nop.Core.Domain.Directory;
 using Nop.Core.Domain.Shipping;
 using Nop.Core.Domain.Tax;
@@ -299,14 +300,35 @@ namespace Nop.Web.Areas.Admin.Models.Orders
         {
             public int OrderId { get; set; }
             public int Id { get; set; }
+            public int ProductId { get; set; }
+            public string Sku { get; set; }
+            public string ProductName { get; set; }
             public int PackageOrderId { get; set; }
-            public string PackageItemCode { get; set; }
+            public string PackageOrderCode { get; set; }
+            public PackageOrderModel PackageOrder { get; set; }
             public string PackageItemProcessedDatetime { get; set; }
             public bool IncludeWeightCost { get; set; }
             public bool IsOrderCheckout { get; set; }
             public decimal WeightCostDec { get; set; }
             public decimal UnitWeightCost { get; set; }
             public decimal ItemWeight { get; set; }
+            public string TotalWithoutWeightCost { get; set; }
+
+            public string SubTotalInclTax { get; set; }
+            public string SubTotalExclTax { get; set; }
+            public decimal SubTotalInclTaxValue { get; set; }
+            public decimal SubTotalExclTaxValue { get; set; }
+
+
+            public string ShelfCode { get; set; }
+
+            public int ShelfId { get; set; }
+            public int ShelfOrderItemId { get; set; }
+            public bool ShelfOrderItemIsActive { get; set; }
+
+            public string AttributeInfo { get; set; }
+            public string PictureThumbnailUrl { get; set; }
+
         }
         public partial class OrderItemModel : BaseNopEntityModel
         {
@@ -357,14 +379,26 @@ namespace Nop.Web.Areas.Admin.Models.Orders
             public decimal WeightCostDec { get; set; }
             public string TotalWithoutWeightCost { get; set; }
             public int PackageOrderId { get; set; }
+            public string PackageOrderCode { get; set; }
 
             public PackageOrderModel PackageOrder { get; set; }
-            public string PackageItemCode { get; set; }
+
+
+            public int? AssignedByCustomerId { get; set; }
+            public Customer AssignedByCustomer { get; set; }
+            public string CustomerAssignShelfInfo { get; set; }
             public DateTime? PackageItemProcessedDatetime { get; set; }
 
             public bool IncludeWeightCost { get; set; }
             public bool IsOrderCheckout { get; set; }
             public string PrimaryStoreCurrencyCode { get; set; }
+
+            public string ShelfCode { get; set; }
+
+            public int ShelfId { get; set; }
+            public int ShelfOrderItemId { get; set; }
+            public bool ShelfOrderItemIsActive { get; set; }
+
             #region Nested Classes
 
             public partial class ReturnRequestBriefModel : BaseNopEntityModel

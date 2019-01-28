@@ -3,6 +3,7 @@ using Nop.Core.Data;
 using Nop.Core.Domain.Catalog;
 using Nop.Core.Domain.Customers;
 using Nop.Core.Domain.Orders;
+using Nop.Core.Domain.Shipping;
 using Nop.Services.Events;
 using System;
 using System.Collections.Generic;
@@ -23,6 +24,7 @@ namespace Nop.Services.Orders
         private readonly IRepository<Product> _productRepository;
         private readonly IRepository<RecurringPayment> _recurringPaymentRepository;
         private readonly IRepository<Customer> _customerRepository;
+        private readonly IRepository<ShelfOrderItem> _shelfOrderItemRepository;
         private readonly IEventPublisher _eventPublisher;
 
         #endregion
@@ -45,7 +47,7 @@ namespace Nop.Services.Orders
             IRepository<Product> productRepository,
             IRepository<RecurringPayment> recurringPaymentRepository,
             IRepository<Customer> customerRepository,
-            IEventPublisher eventPublisher)
+            IEventPublisher eventPublisher, IRepository<ShelfOrderItem> shelfOrderItemRepository)
         {
             this._orderRepository = orderRepository;
             this._orderItemRepository = orderItemRepository;
@@ -54,6 +56,7 @@ namespace Nop.Services.Orders
             this._recurringPaymentRepository = recurringPaymentRepository;
             this._customerRepository = customerRepository;
             this._eventPublisher = eventPublisher;
+            _shelfOrderItemRepository = shelfOrderItemRepository;
         }
 
         #endregion
@@ -207,7 +210,7 @@ namespace Nop.Services.Orders
             int billingCountryId = 0, string paymentMethodSystemName = null,
             DateTime? createdFromUtc = null, DateTime? createdToUtc = null,
             List<int> osIds = null, List<int> psIds = null, List<int> ssIds = null, List<int> procIds = null,
-            string billingEmail = null, List<int> custIdsByLinkFace = null, string billingFullName = null, string billingPhone = null, string packageOrderItemCode = null,
+            string billingEmail = null, List<int> custIdsByLinkFace = null, string billingFullName = null, string billingPhone = null,
             string orderNotes = null, int pageIndex = 0, int pageSize = int.MaxValue, OrderSortingEnum orderBy = OrderSortingEnum.CreatedOnDesc, bool? isOrderCheckout = null)
         {
             var query = _orderRepository.Table;
@@ -233,13 +236,6 @@ namespace Nop.Services.Orders
                 query = query
                     .Where(o => o.OrderItems
                         .Any(orderItem => procIds.Contains(orderItem.Product.Id)));
-            }
-
-            if (string.IsNullOrEmpty(packageOrderItemCode) == false)
-            {
-                query = query
-                    .Where(o => o.OrderItems
-                        .Any(orderItem => orderItem.PackageItemCode.Contains(packageOrderItemCode)));
             }
 
             if (warehouseId > 0)
@@ -454,7 +450,7 @@ namespace Nop.Services.Orders
         }
 
         public virtual IPagedList<OrderItem> GetOrderItemsVendorCheckout(string vendorProductUrl, int orderId = 0, int pageIndex = 0, int pageSize = int.MaxValue, OrderSortingEnum orderBy = OrderSortingEnum.CreatedOnDesc, bool? isOrderCheckout = null
-            , bool isPackageItemProcessed = false, bool isSetPackageItemCode = false, bool todayFilter = false, string customerPhone = null, int packageOrderId = 0, int vendorId = 0)
+            , bool isPackageItemProcessed = false, bool todayFilter = false, string customerPhone = null, int packageOrderId = 0, int vendorId = 0, bool? isSetPackageOrderId = null, bool? isSetShelfId = null)
         {
             var query = _orderItemRepository.Table;
             if (string.IsNullOrEmpty(vendorProductUrl) == false)
@@ -472,6 +468,33 @@ namespace Nop.Services.Orders
             {
                 query = query.Where(_ => _.PackageOrderId == packageOrderId);
             }
+            else
+            {
+                if (isSetPackageOrderId.HasValue)
+                {
+                    if (isSetPackageOrderId.Value)
+                    {
+                        query = query.Where(_ => _.PackageOrderId != null && _.PackageOrderId > 0);
+                    }
+                    else
+                    {
+                        query = query.Where(_ => _.PackageOrderId == null || _.PackageOrderId == 0);
+                    }
+                }
+            }
+
+            if (isSetShelfId.HasValue)
+            {
+                var shelfOrderItemIds = _shelfOrderItemRepository.Table.Select(_ => _.OrderItemId).ToList();
+                if (isSetShelfId.Value)
+                {
+                    query = query.Where(_ => shelfOrderItemIds.Contains(_.Id));
+                }
+                else
+                {
+                    query = query.Where(_ => shelfOrderItemIds.Contains(_.Id) == false);
+                }
+            }
 
             if (vendorId > 0)
             {
@@ -486,11 +509,6 @@ namespace Nop.Services.Orders
             if (isPackageItemProcessed)
             {
                 query = query.Where(_ => _.PackageItemProcessedDatetime != null);
-            }
-
-            if (isSetPackageItemCode)
-            {
-                query = query.Where(_ => _.PackageItemCode != null && _.PackageItemCode != string.Empty);
             }
 
             if (todayFilter)

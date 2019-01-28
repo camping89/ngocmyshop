@@ -57,9 +57,6 @@ namespace Nop.Web.Areas.Admin.Models.Orders
         [NopResourceDisplayName("Admin.Orders.List.Product")]
         public int ProductId { get; set; }
 
-        [NopResourceDisplayName("Admin.Orders.List.PackageOrderItemCode")]
-        public string PackageOrderItemCode { get; set; }
-
         [NopResourceDisplayName("Admin.Orders.List.BillingEmail")]
         public string BillingEmail { get; set; }
 

@@ -1,4 +1,5 @@
 using Nop.Core.Domain.Catalog;
+using Nop.Core.Domain.Customers;
 using System;
 using System.Collections.Generic;
 
@@ -119,7 +120,9 @@ namespace Nop.Core.Domain.Orders
         public int? PackageOrderId { get; set; }
         public virtual PackageOrder PackageOrder { get; set; }
 
-        public string PackageItemCode { get; set; }
+
+        public int? AssignedByCustomerId { get; set; }
+        public virtual Customer AssignedByCustomer { get; set; }
 
         public DateTime? PackageItemProcessedDatetime { get; set; }
 

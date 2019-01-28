@@ -9,11 +9,11 @@
     ViewBag.Title = T("Admin.Orders.Shipments.List").Text;
 
     //active menu item (system name)
-    Html.SetActiveMenuItemSystemName("Shipments");
+    Html.SetActiveMenuItemSystemName("ShipmentsCustom");
 }
 
 
-<form asp-controller="Order" asp-action="ShipmentList" method="post">
+<form asp-controller="Order" asp-action="ShipmentCustomList" method="post">
     <div class="content-header clearfix">
         <h1 class="pull-left">
             @T("Admin.Orders.Shipments.List")
@@ -193,32 +193,10 @@
                                         <nop-editor asp-for="LoadNotShipped" />
                                     </div>
                                 </div>
-                                @*<div class="form-group">
-                                        <div class="col-md-4">
-                                            <nop-label asp-for="WarehouseId" />
-                                        </div>
-                                        <div class="col-md-8">
-                                            <nop-select asp-for="WarehouseId" asp-items="Model.AvailableWarehouses" />
-                                        </div>
-                                    </div>*@
+                               
                             </div>
                             <div class="col-md-7">
-                                @*<div class="form-group">
-                                        <div class="col-md-4">
-                                            <nop-label asp-for="CountryId" />
-                                        </div>
-                                        <div class="col-md-8">
-                                            <nop-select asp-for="CountryId" asp-items="Model.AvailableCountries" />
-                                        </div>
-                                    </div>
-                                    <div class="form-group">
-                                        <div class="col-md-4">
-                                            <nop-label asp-for="StateProvinceId" />
-                                        </div>
-                                        <div class="col-md-8">
-                                            <nop-select asp-for="StateProvinceId" asp-items="Model.AvailableStates" />
-                                        </div>
-                                    </div>*@
+                               
                                 <div class="form-group">
                                     <div class="col-md-4">
                                         <nop-label asp-for="City" />
@@ -237,10 +215,10 @@
                                 </div>
                                 <div class="form-group">
                                     <div class="col-md-4">
-                                        <nop-label asp-for="OrderId" />
+                                        <nop-label asp-for="OrderItemId" />
                                     </div>
                                     <div class="col-md-8">
-                                        <nop-editor asp-for="OrderId" />
+                                        <nop-editor asp-for="OrderItemId" />
                                     </div>
                                 </div>
                             </div>
@@ -274,7 +252,7 @@
                                         type: "json",
                                         transport: {
                                             read: {
-                                                url: "@Html.Raw(Url.Action("ShipmentListSelect", "Order"))",
+                                                url: "@Html.Raw(Url.Action("ShipmentCustomListSelect", "Order"))",
                                                 type: "POST",
                                                 dataType: "json",
                                                 data: additionalData
@@ -286,7 +264,7 @@
                                             errors: "Errors"
                                         },
                                         requestEnd: function (e) {
-                                            if (e.type == "read") {
+                                            if (e.type === "read") {
                                                 var response = e.response;
                                                 if (response) {
                                                     //store extra data
@@ -309,8 +287,6 @@
                                         pageSizes: [@(gridPageSizes)],
                                         @await Html.PartialAsync("_GridPagerMessages")
                                     },
-                                    //details grid
-                                    detailInit: detailInit,
                                     scrollable: false,
                                     dataBound: onDataBound,
                                     columns: [
@@ -331,13 +307,22 @@
                                             title: "@T("Admin.Orders.Shipments.BagId")",
                                             width: 100
                                         }, {
-                                            field: "CustomOrderNumber",
-                                            title: "@T("Admin.Orders.Shipments.CustomOrderNumber")",
+                                            field: "OrderItemId",
+                                            title: "@T("Admin.Orders.Shipments.OrderItemId")",
                                             width: 100
                                         }, {
-                                            field: "ProductSkus",
+                                            field: "ProductSku",
                                             title: "@T("Admin.Orders.Shipments.ProductSku")",
                                             width: 100
+                                        },{
+                                            field: "Quantity",
+                                            title: "@T("Admin.Orders.Shipments.Quantity")",
+                                            width: 50
+                                        },{
+                                            field: "ShippingFee",
+                                            title: "@T("Admin.Orders.Shipments.ShippingFee")",
+                                            width: 100,
+                                            template: '#= kendo.toString(ShippingFee, "n2") #'
                                         }, {
                                             field: "TrackingNumber",
                                             title: "@T("Admin.Orders.Shipments.TrackingNumber")",
@@ -376,7 +361,7 @@
                                             field: "Deposit",
                                             title: "@T("Admin.Orders.Shipments.Deposit")",
                                             width: 100,
-                                            template: '#= kendo.toString(Deposit, "n0") #'
+                                            template: '#= kendo.toString(Deposit, "n2") #'
                                         }, {
                                             field: "TotalOrderFee",
                                             title: "@T("Admin.Orders.Shipments.TotalOrderFee")",
@@ -388,14 +373,6 @@
                                                     '<div>@T("Admin.Orders.Shipments.Deposit") <span id=\"aggregator-deposit-block\"></span></div>' +
                                                     '<div>@T("Admin.Orders.Shipments.Total") <span id=\"aggregator-total-block\"></span></div>'
 
-                                        }, {
-                                            field: "Id",
-                                            title: "@T("Admin.Common.View")",
-                                            width: 50,
-                                            headerAttributes: { style: "text-align:center" },
-                                            attributes: { style: "text-align:center" },
-                                            template:
-                                                '<a class="btn btn-default" href="@Url.Content("~/Admin/Order/ShipmentDetails/")#=Id#"><i class="fa fa-eye"></i>@T("Admin.Common.View")</a>'
                                         }
                                     ]
                                 });
@@ -417,89 +394,6 @@
 
                                 });
                             });
-
-                            //details grid
-                            function detailInit(e) {
-                                $("<div/>").appendTo(e.detailCell).kendoGrid({
-                                    dataSource: {
-                                        type: "json",
-                                        transport: {
-                                            read: {
-                                                url:
-                                                    "@Html.Raw(Url.Action("ShipmentsItemsByShipmentId", "Order"))?shipmentId=" +
-                                                        e.data.Id,
-                                                type: "POST",
-                                                dataType: "json",
-                                                data: addAntiForgeryToken
-                                            }
-                                        },
-                                        schema: {
-                                            data: "Data",
-                                            total: "Total",
-                                            errors: "Errors"
-                                        },
-                                        error: function(e) {
-                                            display_kendoui_grid_error(e);
-                                            // Cancel the changes
-                                            this.cancelChanges();
-                                        },
-                                        serverPaging: true,
-                                        serverFiltering: true,
-                                        serverSorting: true
-                                    },
-                                    scrollable: false,
-                                    sortable: true,
-                                    pageable: {
-                                        refresh: true,
-                                        numeric: false,
-                                        previousNext: false,
-                                        info: false,
-                                        @await Html.PartialAsync("_GridPagerMessages")
-                                    },
-                                    columns: [
-                                        {
-                                            field: "OrderItemNumber",
-                                            title: "@T("Admin.Orders.Shipments.Products.OrderItemNumber")",
-                                            width: 50
-                                        },{
-                                            field: "ImageUrl",
-                                            title: "@T("Admin.Orders.Shipments.Products.ProductName")",
-                                            template: '<p>#=ProductName#</p>' +
-                                                '<p><b>Sku: #=Sku#</b></p>' +
-                                                '<img src="#=ImageUrl#" />',
-                                            width: 400
-                                        }, {
-                                            field: "OrderItemFee",
-                                            title: "@T("Admin.Orders.Shipments.Products.Orderitemtotal")",
-                                            width: 150
-                                        }, {
-                                            field: "ShippingFeeStr",
-                                            title: "@T("Admin.Orders.Shipments.Products.ShippingFee")",
-                                            width: 150
-                                        }, {
-                                            field: "QuantityInThisShipment",
-                                            title: "@T("Admin.Orders.Shipments.Products.QtyShipped")",
-                                            width: 150
-                                        }, {
-                                            field: "ItemWeight",
-                                            title: "@T("Admin.Orders.Shipments.Products.ItemWeight")",
-                                            width: 150
-                                        }
-                                        @*, {
-                                            field: "ItemDimensions",
-                                            title: "@T("Admin.Orders.Shipments.Products.ItemDimensions")",
-                                            width: 150
-                                        }*@
-                                    ]
-                                });
-                            }
-
-                            //$('#expand').click(function(e) {
-                            //    var grid = $("#shipments-grid").data("kendoGrid");
-                            //    $(".k-master-row").each(function(index) {
-                            //        grid.expandRow(this);
-                            //    });
-                            //});
 
 
                             $('#collapse').click(function (e) {

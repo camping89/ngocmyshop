@@ -654,8 +654,7 @@ namespace Nop.Services.ExportImport
                 new PropertyByName<OrderItem>("Quantity", oi => oi.Quantity),
                 new PropertyByName<OrderItem>("WeightCost", oi => oi.WeightCost),
                 new PropertyByName<OrderItem>("Total", oi => oi.PriceExclTax + oi.WeightCost),
-                new PropertyByName<OrderItem>("PackageOrderCode", oi => oi.PackageOrder.PackageCode),
-                new PropertyByName<OrderItem>("PackageItemCode", oi => oi.PackageItemCode)
+                new PropertyByName<OrderItem>("PackageOrderCode", oi => oi.PackageOrder.PackageCode)
             };
 
             var orderItemsManager = new PropertyManager<OrderItem>(orderItemProperties);
@@ -1545,8 +1544,7 @@ namespace Nop.Services.ExportImport
                 new PropertyByName<OrderItem>("Quantity", oi => oi.Quantity),
                 new PropertyByName<OrderItem>("WeightCost", oi => oi.WeightCost),
                 new PropertyByName<OrderItem>("Total", oi => oi.PriceExclTax + oi.WeightCost),
-                new PropertyByName<OrderItem>("PackageOrderCode", oi => oi.PackageOrder.PackageCode),
-                new PropertyByName<OrderItem>("PackageItemCode", oi => oi.PackageItemCode)
+                new PropertyByName<OrderItem>("PackageOrderCode", oi => oi.PackageOrder.PackageCode)
             };
 
             var orderItemsManager = new PropertyManager<OrderItem>(orderItemProperties);
@@ -1839,7 +1837,6 @@ namespace Nop.Services.ExportImport
                     WeightCost = orderItem.WeightCost,
                     TotalCost = orderItem.PriceExclTax,
                     //PackageOrderCode = orderItem.PackageOrder != null ? $"{orderItem.PackageOrder.PackageCode} - {orderItem.PackageOrder.PackageName}" : string.Empty,
-                    //PackageOrderItemCode = orderItem.PackageItemCode,
                     //PackageItemProcessedDatetime = orderItem.PackageItemProcessedDatetime?.ToString("g"),
                     //IsVendorCheckout = orderItem.IsOrderCheckout.ToString(),
                     BaseUnitPrice = orderItem.UnitPriceUsd,

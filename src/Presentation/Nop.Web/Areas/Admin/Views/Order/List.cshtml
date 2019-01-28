@@ -240,14 +240,6 @@
                                 </div>
                                 <div class="form-group">
                                     <div class="col-md-4">
-                                        <nop-label asp-for="PackageOrderItemCode" />
-                                    </div>
-                                    <div class="col-md-8">
-                                        <nop-editor asp-for="PackageOrderItemCode" />
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <div class="col-md-4">
                                         <nop-label asp-for="LinkFacebook" />
                                     </div>
                                     <div class="col-md-8">
@@ -424,7 +416,7 @@
                                         @if (!Model.IsLoggedInAsVendor)
                             {
                                 //a vendor does not have access to this functionality
-<text>{
+                                        <text>{
                                             field: "ShippingStatus",
                                             title: "@T("Admin.Orders.Fields.ShippingStatus")",
                                             width: 150,
@@ -441,7 +433,7 @@
                                         },
                                         {
                                             field: "CustomerLinkFacebook",
-                                            title: "@T("Admin.Customers.Customers.Fields.LinkFacebook")",
+                                            title: "@T("admin.customers.customers.fields.facebook")",
                                             width: 200,
                                             template: '<a target="_blank" href="#=CustomerLinkFacebook#">#=CustomerLinkFacebook#</a>'
                                         },
@@ -552,7 +544,7 @@
                                                     OrderId: { editable: false, type: "number" },
                                                     PackageId: { editable: true, type: "string" },
                                                     PackageOrderId: { editable: true, type: "string" },
-                                                    PackageItemCode: { editable: true, type: "string" },
+                                                    PackageOrderCode: { editable: false, type: "string" },
                                                     PackageItemProcessedDatetime: { editable: true, type: "date" },
                                                     PictureThumbnailUrl: { editable: false, type: "string" },
                                                     ProductName: { editable: false, type: "string" },
@@ -561,7 +553,8 @@
                                                     UnitWeightCost: { editable: true, type: "string" },
                                                     ItemWeight: { editable: true, type: "string" },
                                                     SubTotalInclTax: { editable: false, type: "string" },
-                                                    IsOrderCheckout: { editable: true, type: "boolean" }
+                                                    IsOrderCheckout: { editable: true, type: "boolean" },
+                                                    ShelfId: { editable: false, type: "string" }
                                                 }
                                             }
 
@@ -642,19 +635,30 @@
                                         }, {
                                             field: "PackageOrderId",
                                             title: "@T("Admin.Orders.Products.PackageOrderId")",
-                                            width: 100,
-                                            editor: editPackageOrderId,
+                                            hidden: true,
+                                            editor: hideOnEditor
+                                        }, {
+                                            field: "PackageOrderCode",
+                                            title: "@T("admin.orders.products.packagecode")",
+                                            width: 150,
+                                            editor: hideOnEditor,
                                             template: "# if (PackageOrder != null) { #" +
-                                                      "<p>#=PackageOrder.PackageCode# - #=PackageOrder.PackageName# </p>" +
-                                                      "#} else {#" +
-                                                      "<p></p>" +
-                                                      "# } #"
+                                                "<p>#=PackageOrder.PackageCode#</p>" +
+                                                "#} else {#" +
+                                                "<p></p>" +
+                                                "# } #"
 
                                         }, {
-                                            field: "PackageItemCode",
-                                            title: "@T("Admin.Orders.Products.PackageItemCode")",
-                                            width: 100
-                                        }, {
+                                            field: "ShelfId",
+                                            title: "@T("Admin.Orders.Shelf.ShelfCode")",
+                                            width: 100,
+                                            template: "# if (ShelfCode != null) { #" +
+                                                "<p>#=ShelfCode# </p>" +
+                                                "#} else {#" +
+                                                "<p></p>" +
+                                                "# } #"
+                                        },
+                                        @*{
                                             field: "PackageItemProcessedDatetime",
                                             title: "@T("Admin.Orders.Products.PackageItemProcessedDatetime")",
                                             width: 150,
@@ -664,14 +668,20 @@
                                                 "#} else {#" +
                                                 "<p></p>" +
                                                 "# } #"
-                                        }, {
+                                        },*@
+                                        {
                                             field: "IsOrderCheckout",
                                             title: "@T("Admin.Orders.Products.IsOrderCheckout")",
-                                            template: "# if (IsOrderCheckout) { #" +
+                                            template: '<span class="grid-report-item ' +
+                                                '# if(!IsOrderCheckout) {# red #} #' +
+                                                '# if(IsOrderCheckout) {# green #} #' +
+                                                '">' +
+                                                "# if (IsOrderCheckout) { #" +
                                                 "@T("Admin.Orders.Products.IsOrderCheckout.True")" +
                                                 "#} else {#" +
                                                 "@T("Admin.Orders.Products.IsOrderCheckout.False")" +
-                                                "# } #"
+                                                "# } #" +
+                                                '</span>'
 
                                         }, {
                                             command: {
@@ -718,6 +728,32 @@
 
                             }
 
+                            function editShelfOrderId(container, options) {
+                                $('<input data-text-field="ShelfCode" data-value-field="' +
+                                        options.field +
+                                        '" data-bind="value:' +
+                                        options.field +
+                                        '" />')
+                                    .appendTo(container)
+                                    .kendoDropDownList({
+                                        autoBind: false,
+                                        dataTextField: "ShelfCode",
+                                        dataValueField: "ShelfId",
+                                        dataSource: {
+                                            type: "json",
+                                            serverFiltering: true,
+                                            transport: {
+                                                read: {
+                                                    url:
+                                                        "@Html.Raw(Url.Action("GetShelfAvailable", "Shelf"))",
+                                                    type: "GET",
+                                                    dataType: "json"
+                                                }
+                                            }
+                                        }
+                                    });
+                            }
+
                             function addExtendCustom(container, options) {
 
                                 var element = $('<input class="k-input k-textbox" name="'+options.field+ '" data-text-field="' + options.field + '" data-value-field="' + options.field + '" data-bind="value:' + options.field + '" /><span> ' + options.model.PrimaryStoreCurrencyCode+'</span >');
@@ -749,7 +785,7 @@
                                             serverFiltering: true,
                                             transport: {
                                                 read: {
-                                                    url: "@Html.Raw(Url.Action("GetsPackageOrderAvailble", "Order"))",
+                                                    url: "@Html.Raw(Url.Action("GetsPackageOrderAvailable", "Order"))",
                                                     type: "GET",
                                                     dataType: "json"
                                                 }
@@ -875,7 +911,6 @@
                                     VendorId: $('#@Html.IdFor(model => model.VendorId)').val(),
                                     WarehouseId: $('#@Html.IdFor(model => model.WarehouseId)').val(),
                                     LinkSourceProduct: $.trim($('#@Html.IdFor(model => model.LinkSourceProduct)').val()),
-                                    PackageOrderItemCode: $.trim($('#@Html.IdFor(model => model.PackageOrderItemCode)').val()),
                                     BillingEmail: $.trim($('#@Html.IdFor(model => model.BillingEmail)').val()),
                                     BillingPhone: $.trim($('#@Html.IdFor(model => model.BillingPhone)').val()),
                                     LinkFacebook: $.trim($('#@Html.IdFor(model => model.LinkFacebook)').val()),

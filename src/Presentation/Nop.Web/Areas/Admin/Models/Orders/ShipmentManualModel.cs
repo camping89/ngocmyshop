@@ -7,17 +7,15 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Nop.Web.Areas.Admin.Models.Orders
 {
-    public partial class ShipmentModel : BaseNopEntityModel
+    public partial class ShipmentManualModel : BaseNopEntityModel
     {
-        public ShipmentModel()
+        public ShipmentManualModel()
         {
-            this.ShipmentStatusEvents = new List<ShipmentStatusEventModel>();
-            this.Items = new List<ShipmentItemModel>();
+
         }
 
         [NopResourceDisplayName("Admin.Orders.Shipments.ID")]
         public override int Id { get; set; }
-        public int OrderId { get; set; }
         [NopResourceDisplayName("Admin.Orders.Shipments.CustomOrderNumber")]
         public string CustomOrderNumber { get; set; }
         [NopResourceDisplayName("Admin.Orders.Shipments.TotalWeight")]
@@ -72,18 +70,12 @@ namespace Nop.Web.Areas.Admin.Models.Orders
         [NopResourceDisplayName("Admin.Orders.Shipments.Deposit")]
         public decimal Deposit { get; set; }
 
-        public string ProductSkus { get; set; }
-        public List<ShipmentItemModel> Items { get; set; }
+        public List<ShipmentManualItemModel> Items { get; set; }
 
-        public IList<ShipmentStatusEventModel> ShipmentStatusEvents { get; set; }
-
-        #region Nested classes
-
-        public partial class ShipmentItemModel : BaseNopEntityModel
+        public partial class ShipmentManualItemModel : BaseNopEntityModel
         {
-            public ShipmentItemModel()
+            public ShipmentManualItemModel()
             {
-                AvailableWarehouses = new List<WarehouseInfo>();
             }
 
             public int OrderItemId { get; set; }
@@ -112,32 +104,9 @@ namespace Nop.Web.Areas.Admin.Models.Orders
             public string ShippedFromWarehouse { get; set; }
             public decimal ShippingFee { get; set; }
             public string ShippingFeeStr { get; set; }
-            public bool AllowToChooseWarehouse { get; set; }
-            //used before a shipment is created
-            public List<WarehouseInfo> AvailableWarehouses { get; set; }
 
-            #region Nested Classes
-
-            public class WarehouseInfo : BaseNopModel
-            {
-                public int WarehouseId { get; set; }
-                public string WarehouseName { get; set; }
-                public int StockQuantity { get; set; }
-                public int ReservedQuantity { get; set; }
-                public int PlannedQuantity { get; set; }
-            }
-
-            #endregion
         }
-
-        public partial class ShipmentStatusEventModel : BaseNopModel
-        {
-            public string EventName { get; set; }
-            public string Location { get; set; }
-            public string Country { get; set; }
-            public DateTime? Date { get; set; }
-        }
-
-        #endregion
     }
+
+
 }

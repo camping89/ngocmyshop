@@ -75,6 +75,9 @@
     <Content Update="Areas\Admin\Views\Order\CreatePackageOrder.cshtml">
       <Pack>$(IncludeRazorContentInPack)</Pack>
     </Content>
+    <Content Update="Areas\Admin\Views\Order\ShipmentCustomList.cshtml">
+      <Pack>$(IncludeRazorContentInPack)</Pack>
+    </Content>
     <Content Update="Areas\Admin\Views\Order\_CreateOrUpdatePackageOrder.cshtml">
       <Pack>$(IncludeRazorContentInPack)</Pack>
     </Content>
@@ -89,6 +92,21 @@
     </Content>
     <Content Update="Areas\Admin\Views\Shared\_GiftCardBox.cshtml">
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Update="Areas\Admin\Views\Shelf\Create.cshtml">
+      <Pack>$(IncludeRazorContentInPack)</Pack>
+    </Content>
+    <Content Update="Areas\Admin\Views\Shelf\Edit.cshtml">
+      <Pack>$(IncludeRazorContentInPack)</Pack>
+    </Content>
+    <Content Update="Areas\Admin\Views\Shelf\List.cshtml">
+      <Pack>$(IncludeRazorContentInPack)</Pack>
+    </Content>
+    <Content Update="Areas\Admin\Views\Shelf\_CreateOrUpdate.cshtml">
+      <Pack>$(IncludeRazorContentInPack)</Pack>
+    </Content>
+    <Content Update="Areas\Admin\Views\Shelf\_CreateOrUpdate.Info.cshtml">
+      <Pack>$(IncludeRazorContentInPack)</Pack>
     </Content>
 
     <None Update="Areas\Admin\sitemap.config">

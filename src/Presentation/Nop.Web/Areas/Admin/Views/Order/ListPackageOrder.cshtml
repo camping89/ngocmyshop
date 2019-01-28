@@ -169,7 +169,6 @@
                                                     OrderId: { editable: false, type: "number" },
                                                     PackageId: { editable: true, type: "string" },
                                                     PackageOrderId: { editable: true, type: "string" },
-                                                    PackageItemCode: { editable: true, type: "string" },
                                                     PackageItemProcessedDatetime: { editable: true, type: "date" },
                                                     PictureThumbnailUrl: { editable: false, type: "string" },
                                                     ProductName: { editable: false, type: "string" },
@@ -243,11 +242,6 @@
                                                 "# } #"
 
                                         }, {
-                                            field: "PackageItemCode",
-                                            title: "@T("Admin.Orders.Products.PackageItemCode")",
-                                            width: 100
-                                            //template: '<>'
-                                        }, {
                                             field: "PackageItemProcessedDatetime",
                                             title: "@T("Admin.Orders.Products.PackageItemProcessedDatetime")",
                                             width: 150,
@@ -291,7 +285,7 @@
                                         serverFiltering: true,
                                         transport: {
                                             read: {
-                                                url: "@Html.Raw(Url.Action("GetsPackageOrderAvailble", "Order"))",
+                                                url: "@Html.Raw(Url.Action("GetsPackageOrderAvailable", "Order"))",
                                                 type: "GET",
                                                 dataType: "json"
                                             }

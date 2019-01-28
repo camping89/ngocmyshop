@@ -194,6 +194,8 @@ namespace Nop.Web.Framework.Infrastructure
             builder.RegisterType<CookieAuthenticationService>().As<IAuthenticationService>().InstancePerLifetimeScope();
             builder.RegisterType<UrlRecordService>().As<IUrlRecordService>().InstancePerLifetimeScope();
             builder.RegisterType<ShipmentService>().As<IShipmentService>().InstancePerLifetimeScope();
+            builder.RegisterType<ShipmentCustomService>().As<IShipmentCustomService>().InstancePerLifetimeScope();
+            builder.RegisterType<ShelfService>().As<IShelfService>().InstancePerLifetimeScope();
             builder.RegisterType<ShippingService>().As<IShippingService>().InstancePerLifetimeScope();
             builder.RegisterType<DateRangeService>().As<IDateRangeService>().InstancePerLifetimeScope();
             builder.RegisterType<TaxCategoryService>().As<ITaxCategoryService>().InstancePerLifetimeScope();

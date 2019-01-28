@@ -29,6 +29,12 @@ namespace Nop.Web.Extensions
                 };
             }
         }
+
+        public static string GetPackageCode(int lastPackageId)
+        {
+            lastPackageId++;
+            return $"KH.{DateTime.Now.Year}.{DateTime.Now.Month}.{DateTime.Now.Day}_{lastPackageId}";
+        }
         public static string RemoveWhitespace(string str)
         {
             return string.Join("", str.Split(default(string[]), StringSplitOptions.RemoveEmptyEntries));

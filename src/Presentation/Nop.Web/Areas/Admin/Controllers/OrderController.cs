@@ -62,6 +62,7 @@ namespace Nop.Web.Areas.Admin.Controllers
         #region Fields
 
         private readonly IOrderService _orderService;
+        private readonly IShelfService _shelfService;
         private readonly IOrderReportService _orderReportService;
         private readonly IOrderProcessingService _orderProcessingService;
         private readonly IReturnRequestService _returnRequestService;
@@ -93,6 +94,7 @@ namespace Nop.Web.Areas.Admin.Controllers
         private readonly IGiftCardService _giftCardService;
         private readonly IDownloadService _downloadService;
         private readonly IShipmentService _shipmentService;
+        private readonly IShipmentCustomService _shipmentCustomService;
         private readonly IShippingService _shippingService;
         private readonly IStoreService _storeService;
         private readonly IVendorService _vendorService;
@@ -168,7 +170,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             TaxSettings taxSettings,
             MeasureSettings measureSettings,
             AddressSettings addressSettings,
-            ShippingSettings shippingSettings, VendorSettings vendorSettings, ICustomerService customerService, IShoppingCartModelFactory shoppingCartModelFactory, IStoreContext storeContext, IPackageOrderService packageOrderService, ICommonModelFactory commonModelFactory, MediaSettings mediaSettings, IWebHelper webHelper)
+            ShippingSettings shippingSettings, VendorSettings vendorSettings, ICustomerService customerService, IShoppingCartModelFactory shoppingCartModelFactory, IStoreContext storeContext, IPackageOrderService packageOrderService, ICommonModelFactory commonModelFactory, MediaSettings mediaSettings, IWebHelper webHelper, IShelfService shelfService, IShipmentCustomService shipmentCustomService)
         {
             this._orderService = orderService;
             this._orderReportService = orderReportService;
@@ -226,6 +228,8 @@ namespace Nop.Web.Areas.Admin.Controllers
             _commonModelFactory = commonModelFactory;
             _mediaSettings = mediaSettings;
             _webHelper = webHelper;
+            _shelfService = shelfService;
+            _shipmentCustomService = shipmentCustomService;
         }
 
         #endregion
@@ -525,13 +529,195 @@ namespace Nop.Web.Areas.Admin.Controllers
             PrepareProducts(model, order, primaryStoreCurrency);
         }
 
+        protected virtual List<OrderModel.OrderItemModel> PrepareOrderItemsModel(List<OrderItem> orderItems)
+        {
+            var resultDatas = new List<OrderModel.OrderItemModel>();
+            var packageOrderModels = _packageOrderService.GetPackageOrders().Select(x => x.ToModel()).ToList();
+            foreach (var orderItem in orderItems)
+            {
+                var orderItemModel = PrepareOrderItemModel(orderItem, packageOrderModels);
+                resultDatas.Add(orderItemModel);
+            }
+
+            return resultDatas;
+        }
+        protected virtual List<OrderModel.OrderItemModelBasic> PrepareOrderItemsModelBasic(List<OrderItem> orderItems)
+        {
+            var resultDatas = new List<OrderModel.OrderItemModelBasic>();
+            var packageOrderModels = _packageOrderService.GetPackageOrders().Select(x => x.ToModel()).ToList();
+            foreach (var orderItem in orderItems)
+            {
+                var orderItemModel = PrepareOrderItemModelBasic(orderItem, packageOrderModels);
+                resultDatas.Add(orderItemModel);
+            }
+
+            return resultDatas;
+        }
+
+        protected virtual OrderModel.OrderItemModel PrepareOrderItemModel(OrderItem orderItem, List<PackageOrderModel> packageOrderModels)
+        {
+            var primaryStoreCurrency = _currencyService.GetCurrencyById(_currencySettings.PrimaryStoreCurrencyId);
+            var currencyProduct = _currencyService.GetCurrencyById(orderItem.Product.CurrencyId, false);
+            var packageOrder = packageOrderModels?.FirstOrDefault(_ => _.Id == orderItem.PackageOrderId);
+            var orderItemModel = new OrderModel.OrderItemModel
+            {
+                Id = orderItem.Id,
+                OrderId = orderItem.OrderId,
+                ProductId = orderItem.ProductId,
+                ProductName = orderItem.Product.Name,
+                Sku = orderItem.Product.FormatSku(orderItem.AttributesXml, _productAttributeParser),
+                Quantity = orderItem.Quantity,
+                IsDownload = orderItem.Product.IsDownload,
+                DownloadCount = orderItem.DownloadCount,
+                DownloadActivationType = orderItem.Product.DownloadActivationType,
+                IsDownloadActivated = orderItem.IsDownloadActivated,
+                WeightCost = _priceFormatter.FormatPrice(orderItem.WeightCost, true,
+                        primaryStoreCurrency, _workContext.WorkingLanguage, true, true),
+                TotalWithoutWeightCost = _priceFormatter.FormatPrice((orderItem.PriceInclTax - orderItem.WeightCost), true,
+                        primaryStoreCurrency, _workContext.WorkingLanguage, true, true),
+                PackageOrderId = orderItem.PackageOrderId ?? 0,
+                PackageOrderCode = packageOrder != null ? packageOrder.PackageCode : string.Empty,
+                PackageOrder = packageOrder,
+                PackageItemProcessedDatetime = orderItem.PackageItemProcessedDatetime,
+                IsOrderCheckout = orderItem.IsOrderCheckout,
+                AssignedByCustomerId = orderItem.AssignedByCustomerId,
+                IncludeWeightCost = orderItem.IncludeWeightCost,
+                UnitWeightCost = orderItem.UnitWeightCost ?? (currencyProduct != null ? currencyProduct.UnitWeightCost : 0),
+                ItemWeight = orderItem.ItemWeight ?? 0,
+                PrimaryStoreCurrencyCode = _currencyService.GetCurrencyById(_currencySettings.PrimaryStoreCurrencyId).CurrencyCode
+
+            };
+            //picture
+            var orderItemPicture =
+                orderItem.Product.GetProductPicture(orderItem.AttributesXml, _pictureService, _productAttributeParser);
+            orderItemModel.PictureThumbnailUrl = _pictureService.GetPictureUrl(orderItemPicture, 75, true);
+
+            ////license file
+            //if (orderItem.LicenseDownloadId.HasValue)
+            //{
+            //    var licenseDownload = _downloadService.GetDownloadById(orderItem.LicenseDownloadId.Value);
+            //    if (licenseDownload != null)
+            //    {
+            //        orderItemModel.LicenseDownloadGuid = licenseDownload.DownloadGuid;
+            //    }
+            //}
+
+            if (orderItem.AssignedByCustomerId.HasValue)
+            {
+                var assignedByCustomer = _customerService.GetCustomerById(orderItem.AssignedByCustomerId.Value);
+                orderItemModel.AssignedByCustomer = assignedByCustomer;
+                if (assignedByCustomer != null)
+                {
+                    orderItemModel.CustomerAssignShelfInfo = assignedByCustomer.GetFullName();
+                }
+            }
+
+            //Shelf Info
+            var shelfOrderItem = _shelfService.GetShelfOrderItemByOrderItemId(orderItem.Id);
+            if (shelfOrderItem != null)
+            {
+                orderItemModel.ShelfCode = shelfOrderItem.Shelf.ShelfCode;
+                orderItemModel.ShelfId = shelfOrderItem.Shelf.Id;
+                orderItemModel.ShelfOrderItemId = shelfOrderItem.Id;
+                orderItemModel.ShelfOrderItemIsActive = shelfOrderItem.IsActived;
+            }
+
+            //vendor
+            var vendor = _vendorService.GetVendorById(orderItem.Product.VendorId);
+            orderItemModel.VendorName = vendor != null ? vendor.Name : "";
+
+            //unit price
+            orderItemModel.UnitPriceInclTaxValue = orderItem.UnitPriceInclTax;
+            orderItemModel.UnitPriceExclTaxValue = orderItem.UnitPriceExclTax;
+            orderItemModel.UnitPriceInclTax = _priceFormatter.FormatPrice(orderItem.UnitPriceInclTax, true,
+                primaryStoreCurrency, _workContext.WorkingLanguage, true, true);
+            orderItemModel.UnitPriceExclTax = _priceFormatter.FormatPrice(orderItem.UnitPriceExclTax, true,
+                primaryStoreCurrency, _workContext.WorkingLanguage, false, true);
+
+            //discounts
+            orderItemModel.DiscountInclTaxValue = orderItem.DiscountAmountInclTax;
+            orderItemModel.DiscountExclTaxValue = orderItem.DiscountAmountExclTax;
+            orderItemModel.DiscountInclTax = _priceFormatter.FormatPrice(orderItem.DiscountAmountInclTax, true,
+                primaryStoreCurrency, _workContext.WorkingLanguage, true, true);
+            orderItemModel.DiscountExclTax = _priceFormatter.FormatPrice(orderItem.DiscountAmountExclTax, true,
+                primaryStoreCurrency, _workContext.WorkingLanguage, false, true);
+
+            //subtotal
+            orderItemModel.SubTotalInclTaxValue = orderItem.PriceInclTax;
+            orderItemModel.SubTotalExclTaxValue = orderItem.PriceExclTax;
+            orderItemModel.SubTotalInclTax = _priceFormatter.FormatPrice(orderItem.PriceInclTax, true, primaryStoreCurrency,
+                _workContext.WorkingLanguage, true, true);
+            orderItemModel.SubTotalExclTax = _priceFormatter.FormatPrice(orderItem.PriceExclTax, true, primaryStoreCurrency,
+                _workContext.WorkingLanguage, false, true);
+
+            orderItemModel.AttributeInfo = orderItem.AttributeDescription;
+            if (orderItem.Product.IsRecurring)
+                orderItemModel.RecurringInfo = string.Format(
+                    _localizationService.GetResource("Admin.Orders.Products.RecurringPeriod"),
+                    orderItem.Product.RecurringCycleLength,
+                    orderItem.Product.RecurringCyclePeriod.GetLocalizedEnum(_localizationService, _workContext));
+
+            return orderItemModel;
+        }
+        protected virtual OrderModel.OrderItemModelBasic PrepareOrderItemModelBasic(OrderItem orderItem, List<PackageOrderModel> packageOrderModels)
+        {
+            var primaryStoreCurrency = _currencyService.GetCurrencyById(_currencySettings.PrimaryStoreCurrencyId);
+            var currencyProduct = _currencyService.GetCurrencyById(orderItem.Product.CurrencyId, false);
+            var packageOrder = packageOrderModels?.FirstOrDefault(_ => _.Id == orderItem.PackageOrderId);
+            var orderItemModel = new OrderModel.OrderItemModelBasic
+            {
+                Id = orderItem.Id,
+                OrderId = orderItem.OrderId,
+                ProductId = orderItem.ProductId,
+                ProductName = orderItem.Product.Name,
+                Sku = orderItem.Product.FormatSku(orderItem.AttributesXml, _productAttributeParser),
+                TotalWithoutWeightCost = _priceFormatter.FormatPrice((orderItem.PriceInclTax - orderItem.WeightCost), true,
+                        primaryStoreCurrency, _workContext.WorkingLanguage, true, true),
+                PackageOrderId = orderItem.PackageOrderId ?? 0,
+                PackageOrderCode = packageOrder != null ? packageOrder.PackageCode : string.Empty,
+                PackageOrder = packageOrder,
+                IsOrderCheckout = orderItem.IsOrderCheckout,
+                IncludeWeightCost = orderItem.IncludeWeightCost,
+                UnitWeightCost = orderItem.UnitWeightCost ?? (currencyProduct != null ? currencyProduct.UnitWeightCost : 0),
+                ItemWeight = orderItem.ItemWeight ?? 0
+
+            };
+            //picture
+            var orderItemPicture =
+                orderItem.Product.GetProductPicture(orderItem.AttributesXml, _pictureService, _productAttributeParser);
+            orderItemModel.PictureThumbnailUrl = _pictureService.GetPictureUrl(orderItemPicture, 75, true);
+
+
+            //Shelf Info
+            var shelfOrderItem = _shelfService.GetShelfOrderItemByOrderItemId(orderItem.Id);
+            if (shelfOrderItem != null)
+            {
+                orderItemModel.ShelfCode = shelfOrderItem.Shelf.ShelfCode;
+                orderItemModel.ShelfId = shelfOrderItem.Shelf.Id;
+                orderItemModel.ShelfOrderItemId = shelfOrderItem.Id;
+                orderItemModel.ShelfOrderItemIsActive = shelfOrderItem.IsActived;
+            }
+
+            //subtotal
+            orderItemModel.SubTotalInclTaxValue = orderItem.PriceInclTax;
+            orderItemModel.SubTotalExclTaxValue = orderItem.PriceExclTax;
+            orderItemModel.SubTotalInclTax = _priceFormatter.FormatPrice(orderItem.PriceInclTax, true, primaryStoreCurrency,
+                _workContext.WorkingLanguage, true, true);
+            orderItemModel.SubTotalExclTax = _priceFormatter.FormatPrice(orderItem.PriceExclTax, true, primaryStoreCurrency,
+                _workContext.WorkingLanguage, false, true);
+
+            orderItemModel.AttributeInfo = orderItem.AttributeDescription;
+
+            return orderItemModel;
+        }
+
         protected virtual void PrepareProducts(OrderModel model, Order order, Currency primaryStoreCurrency)
         {
-
-            model.PackageOrderModels = _packageOrderService.GetPackageOrders(loadIsShipped: false).Select(x => x.ToModel()).ToList();
+            var packageOrderModels = _packageOrderService.GetPackageOrders().Select(x => x.ToModel()).ToList();
+            model.PackageOrderModels = packageOrderModels.Where(_ => _.IsShipped == false).ToList();
 
             model.CheckoutAttributeInfo = order.CheckoutAttributeDescription;
-            var hasDownloadableItems = false;
+            //var hasDownloadableItems = false;
             var products = order.OrderItems;
             //a vendor should have access only to his products
             if (_workContext.CurrentVendor != null)
@@ -548,118 +734,125 @@ namespace Nop.Web.Areas.Admin.Controllers
             foreach (var orderItem in products)
             {
                 var currencyProduct = _currencyService.GetCurrencyById(orderItem.Product.CurrencyId, false);
-                if (orderItem.Product.IsDownload)
-                    hasDownloadableItems = true;
+                //if (orderItem.Product.IsDownload)
+                //    hasDownloadableItems = true;
 
-                var orderItemModel = new OrderModel.OrderItemModel
-                {
-                    Id = orderItem.Id,
-                    OrderId = order.Id,
-                    ProductId = orderItem.ProductId,
-                    ProductName = orderItem.Product.Name,
-                    Sku = orderItem.Product.FormatSku(orderItem.AttributesXml, _productAttributeParser),
-                    Quantity = orderItem.Quantity,
-                    IsDownload = orderItem.Product.IsDownload,
-                    DownloadCount = orderItem.DownloadCount,
-                    DownloadActivationType = orderItem.Product.DownloadActivationType,
-                    IsDownloadActivated = orderItem.IsDownloadActivated,
-                    WeightCostDec = orderItem.WeightCost,
-                    WeightCost = _priceFormatter.FormatPrice(orderItem.WeightCost, true,
-                        primaryStoreCurrency, _workContext.WorkingLanguage, true, true),
-                    TotalWithoutWeightCost = _priceFormatter.FormatPrice((orderItem.PriceInclTax - orderItem.WeightCost), true,
-                        primaryStoreCurrency, _workContext.WorkingLanguage, true, true),
-                    PackageOrderId = orderItem.PackageOrderId ?? 0,
-                    PackageOrder = model.PackageOrderModels?.FirstOrDefault(_ => _.Id == orderItem.PackageOrderId),
-                    PackageItemCode = orderItem.PackageItemCode,
-                    PackageItemProcessedDatetime = orderItem.PackageItemProcessedDatetime,
-                    IncludeWeightCost = orderItem.IncludeWeightCost,
-                    UnitWeightCost = orderItem.UnitWeightCost ?? (currencyProduct != null ? currencyProduct.UnitWeightCost : 0),
-                    IsOrderCheckout = orderItem.IsOrderCheckout,
-                    ItemWeight = orderItem.ItemWeight ?? 0,
-                    PrimaryStoreCurrencyCode = _currencyService.GetCurrencyById(_currencySettings.PrimaryStoreCurrencyId).CurrencyCode
-                };
-                //picture
-                var orderItemPicture =
-                    orderItem.Product.GetProductPicture(orderItem.AttributesXml, _pictureService, _productAttributeParser);
-                orderItemModel.PictureThumbnailUrl = _pictureService.GetPictureUrl(orderItemPicture, 75, true);
+                //var orderItemModel = new OrderModel.OrderItemModel
+                //{
+                //    Id = orderItem.Id,
+                //    OrderId = order.Id,
+                //    ProductId = orderItem.ProductId,
+                //    ProductName = orderItem.Product.Name,
+                //    Sku = orderItem.Product.FormatSku(orderItem.AttributesXml, _productAttributeParser),
+                //    Quantity = orderItem.Quantity,
+                //    IsDownload = orderItem.Product.IsDownload,
+                //    DownloadCount = orderItem.DownloadCount,
+                //    DownloadActivationType = orderItem.Product.DownloadActivationType,
+                //    IsDownloadActivated = orderItem.IsDownloadActivated,
+                //    WeightCostDec = orderItem.WeightCost,
+                //    WeightCost = _priceFormatter.FormatPrice(orderItem.WeightCost, true,
+                //        primaryStoreCurrency, _workContext.WorkingLanguage, true, true),
+                //    TotalWithoutWeightCost = _priceFormatter.FormatPrice((orderItem.PriceInclTax - orderItem.WeightCost), true,
+                //        primaryStoreCurrency, _workContext.WorkingLanguage, true, true),
+                //    PackageOrderId = orderItem.PackageOrderId ?? 0,
+                //    PackageOrder = model.PackageOrderModels?.FirstOrDefault(_ => _.Id == orderItem.PackageOrderId),
+                //    PackageItemProcessedDatetime = orderItem.PackageItemProcessedDatetime,
+                //    IncludeWeightCost = orderItem.IncludeWeightCost,
+                //    UnitWeightCost = orderItem.UnitWeightCost ?? (currencyProduct != null ? currencyProduct.UnitWeightCost : 0),
+                //    IsOrderCheckout = orderItem.IsOrderCheckout,
+                //    ItemWeight = orderItem.ItemWeight ?? 0,
+                //    PrimaryStoreCurrencyCode = _currencyService.GetCurrencyById(_currencySettings.PrimaryStoreCurrencyId).CurrencyCode
+                //};
+                ////picture
+                //var orderItemPicture =
+                //    orderItem.Product.GetProductPicture(orderItem.AttributesXml, _pictureService, _productAttributeParser);
+                //orderItemModel.PictureThumbnailUrl = _pictureService.GetPictureUrl(orderItemPicture, 75, true);
 
-                //license file
-                if (orderItem.LicenseDownloadId.HasValue)
-                {
-                    var licenseDownload = _downloadService.GetDownloadById(orderItem.LicenseDownloadId.Value);
-                    if (licenseDownload != null)
-                    {
-                        orderItemModel.LicenseDownloadGuid = licenseDownload.DownloadGuid;
-                    }
-                }
+                //////license file
+                ////if (orderItem.LicenseDownloadId.HasValue)
+                ////{
+                ////    var licenseDownload = _downloadService.GetDownloadById(orderItem.LicenseDownloadId.Value);
+                ////    if (licenseDownload != null)
+                ////    {
+                ////        orderItemModel.LicenseDownloadGuid = licenseDownload.DownloadGuid;
+                ////    }
+                ////}
 
-                //vendor
-                var vendor = _vendorService.GetVendorById(orderItem.Product.VendorId);
-                orderItemModel.VendorName = vendor != null ? vendor.Name : "";
+                ////Shelf Info
+                //var shelfOrderItem = _shelfService.GetShelfOrderItemByOrderItemId(orderItem.Id);
+                //if (shelfOrderItem != null)
+                //{
+                //    orderItemModel.ShelfCode = shelfOrderItem.Shelf.ShelfCode;
+                //    orderItemModel.ShelfId = shelfOrderItem.Shelf.Id;
+                //    orderItemModel.ShelfOrderItemId = shelfOrderItem.Id;
+                //}
+                ////vendor
+                //var vendor = _vendorService.GetVendorById(orderItem.Product.VendorId);
+                //orderItemModel.VendorName = vendor != null ? vendor.Name : "";
 
-                //unit price
-                orderItemModel.UnitPriceInclTaxValue = orderItem.UnitPriceInclTax;
-                orderItemModel.UnitPriceExclTaxValue = orderItem.UnitPriceExclTax;
-                orderItemModel.UnitPriceInclTax = _priceFormatter.FormatPrice(orderItem.UnitPriceInclTax, true,
-                    primaryStoreCurrency, _workContext.WorkingLanguage, true, true);
-                orderItemModel.UnitPriceExclTax = _priceFormatter.FormatPrice(orderItem.UnitPriceExclTax, true,
-                    primaryStoreCurrency, _workContext.WorkingLanguage, false, true);
+                ////unit price
+                //orderItemModel.UnitPriceInclTaxValue = orderItem.UnitPriceInclTax;
+                //orderItemModel.UnitPriceExclTaxValue = orderItem.UnitPriceExclTax;
+                //orderItemModel.UnitPriceInclTax = _priceFormatter.FormatPrice(orderItem.UnitPriceInclTax, true,
+                //    primaryStoreCurrency, _workContext.WorkingLanguage, true, true);
+                //orderItemModel.UnitPriceExclTax = _priceFormatter.FormatPrice(orderItem.UnitPriceExclTax, true,
+                //    primaryStoreCurrency, _workContext.WorkingLanguage, false, true);
 
-                //discounts
-                orderItemModel.DiscountInclTaxValue = orderItem.DiscountAmountInclTax;
-                orderItemModel.DiscountExclTaxValue = orderItem.DiscountAmountExclTax;
-                orderItemModel.DiscountInclTax = _priceFormatter.FormatPrice(orderItem.DiscountAmountInclTax, true,
-                    primaryStoreCurrency, _workContext.WorkingLanguage, true, true);
-                orderItemModel.DiscountExclTax = _priceFormatter.FormatPrice(orderItem.DiscountAmountExclTax, true,
-                    primaryStoreCurrency, _workContext.WorkingLanguage, false, true);
+                ////discounts
+                //orderItemModel.DiscountInclTaxValue = orderItem.DiscountAmountInclTax;
+                //orderItemModel.DiscountExclTaxValue = orderItem.DiscountAmountExclTax;
+                //orderItemModel.DiscountInclTax = _priceFormatter.FormatPrice(orderItem.DiscountAmountInclTax, true,
+                //    primaryStoreCurrency, _workContext.WorkingLanguage, true, true);
+                //orderItemModel.DiscountExclTax = _priceFormatter.FormatPrice(orderItem.DiscountAmountExclTax, true,
+                //    primaryStoreCurrency, _workContext.WorkingLanguage, false, true);
 
-                //subtotal
-                orderItemModel.SubTotalInclTaxValue = orderItem.PriceInclTax;
-                orderItemModel.SubTotalExclTaxValue = orderItem.PriceExclTax;
-                orderItemModel.SubTotalInclTax = _priceFormatter.FormatPrice(orderItem.PriceInclTax, true, primaryStoreCurrency,
-                    _workContext.WorkingLanguage, true, true);
-                orderItemModel.SubTotalExclTax = _priceFormatter.FormatPrice(orderItem.PriceExclTax, true, primaryStoreCurrency,
-                    _workContext.WorkingLanguage, false, true);
+                ////subtotal
+                //orderItemModel.SubTotalInclTaxValue = orderItem.PriceInclTax;
+                //orderItemModel.SubTotalExclTaxValue = orderItem.PriceExclTax;
+                //orderItemModel.SubTotalInclTax = _priceFormatter.FormatPrice(orderItem.PriceInclTax, true, primaryStoreCurrency,
+                //    _workContext.WorkingLanguage, true, true);
+                //orderItemModel.SubTotalExclTax = _priceFormatter.FormatPrice(orderItem.PriceExclTax, true, primaryStoreCurrency,
+                //    _workContext.WorkingLanguage, false, true);
 
-                orderItemModel.AttributeInfo = orderItem.AttributeDescription ?? string.Empty;
-                if (orderItem.Product.IsRecurring)
-                    orderItemModel.RecurringInfo = string.Format(
-                        _localizationService.GetResource("Admin.Orders.Products.RecurringPeriod"),
-                        orderItem.Product.RecurringCycleLength,
-                        orderItem.Product.RecurringCyclePeriod.GetLocalizedEnum(_localizationService, _workContext));
-                if (orderItemModel.RecurringInfo == null)
-                {
-                    orderItemModel.RecurringInfo = string.Empty;
-                }
-                //rental info
-                if (orderItem.Product.IsRental)
-                {
-                    var rentalStartDate = orderItem.RentalStartDateUtc.HasValue
-                        ? orderItem.Product.FormatRentalDate(orderItem.RentalStartDateUtc.Value)
-                        : "";
-                    var rentalEndDate = orderItem.RentalEndDateUtc.HasValue
-                        ? orderItem.Product.FormatRentalDate(orderItem.RentalEndDateUtc.Value)
-                        : "";
-                    orderItemModel.RentalInfo = string.Format(_localizationService.GetResource("Order.Rental.FormattedDate"),
-                        rentalStartDate, rentalEndDate);
-                }
+                //orderItemModel.AttributeInfo = orderItem.AttributeDescription ?? string.Empty;
+                //if (orderItem.Product.IsRecurring)
+                //    orderItemModel.RecurringInfo = string.Format(
+                //        _localizationService.GetResource("Admin.Orders.Products.RecurringPeriod"),
+                //        orderItem.Product.RecurringCycleLength,
+                //        orderItem.Product.RecurringCyclePeriod.GetLocalizedEnum(_localizationService, _workContext));
+                //if (orderItemModel.RecurringInfo == null)
+                //{
+                //    orderItemModel.RecurringInfo = string.Empty;
+                //}
+                //////rental info
+                ////if (orderItem.Product.IsRental)
+                ////{
+                ////    var rentalStartDate = orderItem.RentalStartDateUtc.HasValue
+                ////        ? orderItem.Product.FormatRentalDate(orderItem.RentalStartDateUtc.Value)
+                ////        : "";
+                ////    var rentalEndDate = orderItem.RentalEndDateUtc.HasValue
+                ////        ? orderItem.Product.FormatRentalDate(orderItem.RentalEndDateUtc.Value)
+                ////        : "";
+                ////    orderItemModel.RentalInfo = string.Format(_localizationService.GetResource("Order.Rental.FormattedDate"),
+                ////        rentalStartDate, rentalEndDate);
+                ////}
 
-                //return requests
-                orderItemModel.ReturnRequests = _returnRequestService
-                    .SearchReturnRequests(orderItemId: orderItem.Id)
-                    .Select(item => new OrderModel.OrderItemModel.ReturnRequestBriefModel
-                    {
-                        CustomNumber = item.CustomNumber,
-                        Id = item.Id
-                    }).ToList();
+                //////return requests
+                ////orderItemModel.ReturnRequests = _returnRequestService
+                ////    .SearchReturnRequests(orderItemId: orderItem.Id)
+                ////    .Select(item => new OrderModel.OrderItemModel.ReturnRequestBriefModel
+                ////    {
+                ////        CustomNumber = item.CustomNumber,
+                ////        Id = item.Id
+                ////    }).ToList();
 
-                //gift cards
-                orderItemModel.PurchasedGiftCardIds = _giftCardService.GetGiftCardsByPurchasedWithOrderItemId(orderItem.Id)
-                    .Select(gc => gc.Id).ToList();
+                //////gift cards
+                ////orderItemModel.PurchasedGiftCardIds = _giftCardService.GetGiftCardsByPurchasedWithOrderItemId(orderItem.Id)
+                ////    .Select(gc => gc.Id).ToList();
 
-                model.Items.Add(orderItemModel);
+                model.Items.Add(PrepareOrderItemModel(orderItem, packageOrderModels));
             }
-            model.HasDownloadableProducts = hasDownloadableItems;
+            //model.HasDownloadableProducts = hasDownloadableItems;
         }
 
         protected virtual void PreparePackageOrderItems(PackageOrderModel model, List<OrderItem> orderItems)
@@ -696,7 +889,6 @@ namespace Nop.Web.Areas.Admin.Controllers
                     TotalWithoutWeightCost = _priceFormatter.FormatPrice((orderItem.PriceInclTax - orderItem.WeightCost), true,
                         primaryStoreCurrency, _workContext.WorkingLanguage, true, true),
                     PackageOrderId = orderItem.PackageOrderId ?? 0,
-                    PackageItemCode = orderItem.PackageItemCode,
                     PackageOrder = packageOrderModels != null ? packageOrderModels.FirstOrDefault(_ => _.Id == orderItem.PackageOrderId) : null,
                     PackageItemProcessedDatetime = orderItem.PackageItemProcessedDatetime,
                     IncludeWeightCost = orderItem.IncludeWeightCost,
@@ -708,16 +900,23 @@ namespace Nop.Web.Areas.Admin.Controllers
                     orderItem.Product.GetProductPicture(orderItem.AttributesXml, _pictureService, _productAttributeParser);
                 orderItemModel.PictureThumbnailUrl = _pictureService.GetPictureUrl(orderItemPicture, 75, true);
 
-                //license file
-                if (orderItem.LicenseDownloadId.HasValue)
-                {
-                    var licenseDownload = _downloadService.GetDownloadById(orderItem.LicenseDownloadId.Value);
-                    if (licenseDownload != null)
-                    {
-                        orderItemModel.LicenseDownloadGuid = licenseDownload.DownloadGuid;
-                    }
-                }
+                ////license file
+                //if (orderItem.LicenseDownloadId.HasValue)
+                //{
+                //    var licenseDownload = _downloadService.GetDownloadById(orderItem.LicenseDownloadId.Value);
+                //    if (licenseDownload != null)
+                //    {
+                //        orderItemModel.LicenseDownloadGuid = licenseDownload.DownloadGuid;
+                //    }
+                //}
 
+                var shelfOrderItem = _shelfService.GetShelfOrderItemByOrderItemId(orderItem.Id);
+                if (shelfOrderItem != null)
+                {
+                    orderItemModel.ShelfCode = shelfOrderItem.Shelf.ShelfCode;
+                    orderItemModel.ShelfId = shelfOrderItem.Shelf.Id;
+                    orderItemModel.ShelfOrderItemId = shelfOrderItem.Id;
+                }
                 //vendor
                 var vendor = _vendorService.GetVendorById(orderItem.Product.VendorId);
                 orderItemModel.VendorName = vendor != null ? vendor.Name : "";
@@ -1186,9 +1385,9 @@ namespace Nop.Web.Areas.Admin.Controllers
                 {
                     var linkFacebook = customerOrder.GetAttribute<string>(SystemCustomerAttributeNames.LinkFacebook1);
 
-                    model.CustomerFullName = customerOrder.GetFullName()
-                                             + $"\n {customerOrder.GetAttribute<string>(SystemCustomerAttributeNames.Phone)}"
-                                             + $"\n {linkFacebook}";
+                    model.CustomerFullName = customerOrder.GetFullName();
+                    model.CustomerPhone = customerOrder.GetAttribute<string>(SystemCustomerAttributeNames.Phone);
+                    model.CustomerLinkFacebook = linkFacebook;
                 }
             }
             decimal totalOrderFee = 0;
@@ -1256,6 +1455,8 @@ namespace Nop.Web.Areas.Admin.Controllers
                     model.Items.Add(shipmentItemModel);
                 }
 
+                model.ProductSkus = string.Join("; ", model.Items.Select(_ => _.Sku));
+
                 model.TotalOrderFee = _priceFormatter.FormatPrice(totalOrderFee, true, primaryStoreCurrency,
                     _workContext.WorkingLanguage, true, false);
                 model.TotalOrderFeeDecimal = totalOrderFee;
@@ -1288,6 +1489,85 @@ namespace Nop.Web.Areas.Admin.Controllers
                 shipmentStatusEventModel.Location = shipmentEvent.Location;
                 model.ShipmentStatusEvents.Add(shipmentStatusEventModel);
             }
+
+            return model;
+        }
+        protected virtual ShipmentManualModel PrepareShipmentCustomModel(ShipmentManual shipment, bool prepareProducts = false, bool prepareShipmentEvent = false)
+        {
+            //measures
+            var baseWeight = _measureService.GetMeasureWeightById(_measureSettings.BaseWeightId);
+            var baseWeightIn = baseWeight != null ? baseWeight.Name : "";
+            var baseDimension = _measureService.GetMeasureDimensionById(_measureSettings.BaseDimensionId);
+            var baseDimensionIn = baseDimension != null ? baseDimension.Name : "";
+            var primaryStoreCurrency = _currencyService.GetCurrencyById(_currencySettings.PrimaryStoreCurrencyId);
+            var model = new ShipmentManualModel
+            {
+                Id = shipment.Id,
+                TrackingNumber = shipment.TrackingNumber,
+                TotalWeight = shipment.TotalWeight.HasValue ? $"{shipment.TotalWeight:F2} [{baseWeightIn}]" : "",
+                ShippedDate = shipment.ShippedDateUtc.HasValue ? _dateTimeHelper.ConvertToUserTime(shipment.ShippedDateUtc.Value, DateTimeKind.Utc).ToString(CultureInfo.InvariantCulture) : _localizationService.GetResource("Admin.Orders.Shipments.ShippedDate.NotYet"),
+                ShippedDateUtc = shipment.ShippedDateUtc,
+                CanShip = !shipment.ShippedDateUtc.HasValue,
+                DeliveryDate = shipment.DeliveryDateUtc.HasValue ? _dateTimeHelper.ConvertToUserTime(shipment.DeliveryDateUtc.Value, DateTimeKind.Utc).ToString(CultureInfo.InvariantCulture) : _localizationService.GetResource("Admin.Orders.Shipments.DeliveryDate.NotYet"),
+                DeliveryDateUtc = shipment.DeliveryDateUtc,
+                CanDeliver = shipment.ShippedDateUtc.HasValue && !shipment.DeliveryDateUtc.HasValue,
+                AdminComment = shipment.AdminComment,
+                ShipmentNote = shipment.ShipmentNote,
+                Deposit = shipment.Deposit,
+                //CustomOrderNumber = shipment.OrderItem.Order.CustomOrderNumber,
+                TotalShippingFee = _priceFormatter.FormatPrice(shipment.TotalShippingFee, true, primaryStoreCurrency,
+                    _workContext.WorkingLanguage, true, false),
+                BagId = shipment.BagId,
+                //ShipmentAddress = shipment.OrderItem.Order.ShippingAddress.Address1
+            };
+
+            //var order = _orderService.GetOrderById(shipment.OrderItem.OrderId);
+            //if (order != null)
+            //{
+            //    var customerOrder = _customerService.GetCustomerById(order.CustomerId);
+            //    if (customerOrder != null)
+            //    {
+            //        var linkFacebook = customerOrder.GetAttribute<string>(SystemCustomerAttributeNames.LinkFacebook1);
+
+            //        model.CustomerFullName = customerOrder.GetFullName();
+            //        model.CustomerPhone = customerOrder.GetAttribute<string>(SystemCustomerAttributeNames.Phone);
+            //        model.CustomerLinkFacebook = linkFacebook;
+            //    }
+            //}
+            //decimal totalOrderFee = 0;
+            //if (shipment.Customer != null)
+            //{
+            //    model.ShipperId = shipment.CustomerId;
+            //    //model.Customer = shipment.Customer;
+            //    model.ShipperFullName = $"(ID:{shipment.CustomerId}) " + shipment.Customer.GetFullName() + " - " + shipment.Customer.GetAttribute<string>(SystemCustomerAttributeNames.Phone);
+            //}
+
+            //if (prepareProducts)
+            //{
+            //    var packageOrderModels = _packageOrderService.GetPackageOrders().Select(x => x.ToModel()).ToList();
+            //    var shipmentItem = shipment.OrderItem;
+            //    var orderItem = _orderService.GetOrderItemById(shipment.OrderItemId);
+            //    if (orderItem != null)
+            //    {
+            //        model.OrderItem = PrepareOrderItemModel(orderItem, packageOrderModels);
+            //    }
+            //    model.ProductSku = shipment.OrderItem.Product.Sku;
+
+            //    model.TotalOrderFee = _priceFormatter.FormatPrice(totalOrderFee, true, primaryStoreCurrency,
+            //        _workContext.WorkingLanguage, true, false);
+            //    model.TotalOrderFeeDecimal = totalOrderFee;
+            //}
+
+            //if (!prepareShipmentEvent || string.IsNullOrEmpty(shipment.TrackingNumber))
+            //    return model;
+
+            //var shipmentTracker = shipment.GetShipmentTracker(_shippingService, _shippingSettings);
+            //if (shipmentTracker == null)
+            //    return model;
+
+            //model.TrackingNumberUrl = shipmentTracker.GetUrl(shipment.TrackingNumber);
+            //if (!_shippingSettings.DisplayShipmentEventsToStoreOwner)
+            //    return model;
 
             return model;
         }
@@ -1514,7 +1794,6 @@ namespace Nop.Web.Areas.Admin.Controllers
                 billingFullName: model.BillingFullName,
                 billingCountryId: model.BillingCountryId,
                 billingPhone: model.BillingPhone,
-                packageOrderItemCode: model.PackageOrderItemCode,
                 orderNotes: model.OrderNotes,
                 pageIndex: command.Page - 1,
                 pageSize: command.PageSize,
@@ -1718,7 +1997,6 @@ namespace Nop.Web.Areas.Admin.Controllers
                 billingFullName: model.BillingFullName,
                 billingCountryId: model.BillingCountryId,
                 billingPhone: model.BillingPhone,
-                packageOrderItemCode: model.PackageOrderItemCode,
                 orderNotes: model.OrderNotes,
                 isOrderCheckout: model.IsOrderCheckout);
 
@@ -1820,7 +2098,6 @@ namespace Nop.Web.Areas.Admin.Controllers
                 billingCountryId: model.BillingCountryId,
                 billingPhone: model.BillingPhone,
                 orderNotes: model.OrderNotes,
-                packageOrderItemCode: model.PackageOrderItemCode,
                 isOrderCheckout: model.IsOrderCheckout);
 
             try
@@ -1953,7 +2230,6 @@ namespace Nop.Web.Areas.Admin.Controllers
                 custIdsByLinkFace: customerIds,
                 billingFullName: model.BillingFullName,
                 billingCountryId: model.BillingCountryId,
-                packageOrderItemCode: model.PackageOrderItemCode,
                 billingPhone: model.BillingPhone,
                 orderNotes: model.OrderNotes,
                 isOrderCheckout: model.IsOrderCheckout);
@@ -2546,7 +2822,6 @@ namespace Nop.Web.Areas.Admin.Controllers
                 custIdsByLinkFace: customerIds,
                 billingFullName: model.BillingFullName,
                 billingCountryId: model.BillingCountryId,
-                packageOrderItemCode: model.PackageOrderItemCode,
                 billingPhone: model.BillingPhone,
                 orderNotes: model.OrderNotes,
                 isOrderCheckout: model.IsOrderCheckout);
@@ -2858,136 +3133,6 @@ namespace Nop.Web.Areas.Admin.Controllers
             return View(model);
         }
 
-        //[HttpPost, ActionName("Edit")]
-        //[FormValueRequired(FormValueRequirement.StartsWith, "btnSaveOrderItem")]
-        //public virtual IActionResult EditOrderItem(int id, IFormCollection form)
-        //{
-        //    if (!_permissionService.Authorize(StandardPermissionProvider.ManageOrders))
-        //        return AccessDeniedView();
-
-        //    var order = _orderService.GetOrderById(id);
-        //    if (order == null)
-        //        //No order found with the specified id
-        //        return RedirectToAction("List");
-
-        //    //a vendor does not have access to this functionality
-        //    if (_workContext.CurrentVendor != null)
-        //        return RedirectToAction("Edit", "Order", new { id = id });
-
-        //    //get order item identifier
-        //    var orderItemId = 0;
-        //    foreach (var formValue in form.Keys)
-        //        if (formValue.StartsWith("btnSaveOrderItem", StringComparison.InvariantCultureIgnoreCase))
-        //            orderItemId = Convert.ToInt32(formValue.Substring("btnSaveOrderItem".Length));
-
-        //    var orderItem = order.OrderItems.FirstOrDefault(x => x.Id == orderItemId);
-        //    if (orderItem == null)
-        //        throw new ArgumentException("No order item found with the specified id");
-
-        //    if (!decimal.TryParse(form["pvUnitPriceInclTax" + orderItemId], out decimal unitPriceInclTax))
-        //        unitPriceInclTax = orderItem.UnitPriceInclTax;
-        //    //if (!decimal.TryParse(form["pvUnitPriceExclTax" + orderItemId], out decimal unitPriceExclTax))
-        //    //    unitPriceExclTax = orderItem.UnitPriceExclTax;
-        //    if (!int.TryParse(form["pvQuantity" + orderItemId], out int quantity))
-        //        quantity = orderItem.Quantity;
-        //    if (!decimal.TryParse(form["pvDiscountInclTax" + orderItemId], out decimal discountInclTax))
-        //        discountInclTax = orderItem.DiscountAmountInclTax;
-        //    //if (!decimal.TryParse(form["pvDiscountExclTax" + orderItemId], out decimal discountExclTax))
-        //    //    discountExclTax = orderItem.DiscountAmountExclTax;
-        //    if (!decimal.TryParse(form["pvPriceInclTax" + orderItemId], out decimal priceInclTax))
-        //        priceInclTax = orderItem.PriceInclTax;
-        //    //if (!decimal.TryParse(form["pvPriceExclTax" + orderItemId], out decimal priceExclTax))
-        //    //    priceExclTax = orderItem.PriceExclTax;
-        //    if (!bool.TryParse(form["pvIncludeWeightCost" + orderItemId], out bool includeWeightCost))
-        //        includeWeightCost = orderItem.IncludeWeightCost;
-        //    if (!decimal.TryParse(form["pvPackageWeightCostDec" + orderItemId], out decimal weightCost))
-        //        weightCost = orderItem.WeightCost;
-
-        //    if (quantity > 0)
-        //    {
-        //        var qtyDifference = orderItem.Quantity - quantity;
-
-        //        //if (!_orderSettings.AutoUpdateOrderTotalsOnEditingOrder)
-        //        {
-        //            orderItem.UnitPriceInclTax = unitPriceInclTax - orderItem.WeightCost + weightCost;
-        //            orderItem.UnitPriceExclTax = unitPriceInclTax - orderItem.WeightCost + weightCost;
-        //            orderItem.Quantity = quantity;
-        //            orderItem.DiscountAmountInclTax = discountInclTax;
-        //            orderItem.DiscountAmountExclTax = discountInclTax;
-        //            orderItem.PriceInclTax = priceInclTax;
-        //            orderItem.PriceExclTax = priceInclTax;
-
-        //            orderItem.UnitPriceInclTax = orderItem.UnitPriceInclTax - orderItem.WeightCost + weightCost;
-        //            orderItem.UnitPriceExclTax = orderItem.UnitPriceExclTax - orderItem.WeightCost + weightCost;
-        //            orderItem.PriceInclTax = orderItem.PriceInclTax - orderItem.WeightCost + weightCost;
-        //            orderItem.PriceExclTax = orderItem.PriceExclTax - orderItem.WeightCost + weightCost;
-
-        //            orderItem.IncludeWeightCost = includeWeightCost;
-        //            orderItem.WeightCost = weightCost;
-        //            orderItem.PackageOrderId = Int32.Parse(form["pvPackageOrderId" + orderItemId]);
-        //            orderItem.PackageItemCode = form["pvPackageItemCode" + orderItemId];
-        //            if (DateTime.TryParse(form["pvPackageItemProcessedDatetime" + orderItemId], out DateTime pvPackageItemProcessedDatetime))
-        //            {
-        //                orderItem.PackageItemProcessedDatetime = pvPackageItemProcessedDatetime;
-        //            }
-
-        //            order.OrderTotal = order.OrderTotal - order.WeightCost;
-        //            order.WeightCost = order.OrderItems.Sum(_ => _.WeightCost);
-        //            order.OrderTotal = order.OrderTotal + order.WeightCost;
-
-        //            _orderService.UpdateOrder(order);
-        //        }
-
-        //        //adjust inventory
-        //        _productService.AdjustInventory(orderItem.Product, qtyDifference, orderItem.AttributesXml,
-        //            string.Format(_localizationService.GetResource("Admin.StockQuantityHistory.Messages.EditOrder"), order.Id));
-
-        //    }
-        //    else
-        //    {
-        //        //adjust inventory
-        //        _productService.AdjustInventory(orderItem.Product, orderItem.Quantity, orderItem.AttributesXml,
-        //            string.Format(_localizationService.GetResource("Admin.StockQuantityHistory.Messages.DeleteOrderItem"), order.Id));
-
-        //        //delete item
-        //        _orderService.DeleteOrderItem(orderItem);
-        //    }
-
-        //    //update order totals
-        //    var updateOrderParameters = new UpdateOrderParameters
-        //    {
-        //        UpdatedOrder = order,
-        //        UpdatedOrderItem = orderItem,
-        //        PriceInclTax = unitPriceInclTax,
-        //        PriceExclTax = unitPriceInclTax,
-        //        DiscountAmountInclTax = discountInclTax,
-        //        DiscountAmountExclTax = discountInclTax,
-        //        SubTotalInclTax = priceInclTax,
-        //        SubTotalExclTax = priceInclTax,
-        //        Quantity = quantity
-        //    };
-        //    _orderProcessingService.UpdateOrderTotals(updateOrderParameters);
-
-        //    //add a note
-        //    order.OrderNotes.Add(new OrderNote
-        //    {
-        //        Note = "Order item has been edited",
-        //        DisplayToCustomer = false,
-        //        CreatedOnUtc = DateTime.UtcNow
-        //    });
-        //    _orderService.UpdateOrder(order);
-        //    LogEditOrder(order.Id);
-
-        //    var model = new OrderModel();
-        //    PrepareOrderDetailsModel(model, order);
-        //    //foreach (var warning in updateOrderParameters.Warnings)
-        //    //    WarningNotification(warning, false);
-
-        //    //selected tab
-        //    SaveSelectedTabName(persistForTheNextRequest: false);
-
-        //    return View(model);
-        //}
 
         [HttpPost, ActionName("Edit")]
         [FormValueRequired(FormValueRequirement.StartsWith, "btnDeleteOrderItem")]
@@ -3849,8 +3994,30 @@ namespace Nop.Web.Areas.Admin.Controllers
             var orderItem = order.OrderItems.FirstOrDefault(x => x.Id == orderItemModel.Id);
             if (orderItem == null)
                 throw new ArgumentException("No order item found with the specified id");
-            orderItem.PackageOrderId = orderItemModel.PackageOrderId;
-            orderItem.PackageItemCode = orderItemModel.PackageItemCode;
+            if (orderItemModel.PackageOrderId > 0)
+            {
+                orderItem.PackageOrderId = orderItemModel.PackageOrderId;
+                var packageOrder = _packageOrderService.GetById(orderItemModel.PackageOrderId);
+                if (packageOrder != null)
+                {
+                    packageOrder.PackageCode = orderItemModel.PackageOrderCode;
+                    _packageOrderService.Update(packageOrder);
+                }
+            }
+            else
+            {
+                var packageOrderNew = new PackageOrder
+                {
+                    PackageCode = orderItemModel.PackageOrderCode,
+                    PackageName = orderItemModel.PackageOrderCode
+                };
+                _packageOrderService.Create(packageOrderNew);
+                if (packageOrderNew.Id > 0)
+                {
+                    orderItem.PackageOrderId = packageOrderNew.Id;
+                    orderItem.PackageItemProcessedDatetime = DateTime.UtcNow;
+                }
+            }
 
             if (string.IsNullOrEmpty(orderItemModel.PackageItemProcessedDatetime) == false)
             {
@@ -3872,7 +4039,39 @@ namespace Nop.Web.Areas.Admin.Controllers
 
             order.OrderTotal = order.OrderItems.Sum(_ => _.PriceExclTax);
             _orderService.UpdateOrder(order);
+
+            UpdateShelfOrderItem(orderItem, orderItemModel.ShelfId, order.CustomerId);
+
             return new NullJsonResult();
+        }
+
+        private void UpdateShelfOrderItem(OrderItem orderItem, int shelfId, int customerId)
+        {
+            var shelf = _shelfService.GetShelfById(shelfId);
+            if (shelf != null)
+            {
+                shelf.AssignedDate = DateTime.UtcNow;
+                shelf.CustomerId = customerId;
+                _shelfService.UpdateShelf(shelf);
+
+                var shelfOrderItem = _shelfService.GetShelfOrderItemByOrderItemId(orderItem.Id);
+                if (shelfOrderItem != null)
+                {
+                    shelfOrderItem.ShelfId = shelfId;
+                    _shelfService.UpdateShelfOrderItem(shelfOrderItem);
+                }
+                else
+                {
+                    _shelfService.InsertShelfOrderItem(new ShelfOrderItem
+                    {
+                        OrderItemId = orderItem.Id,
+                        ShelfId = shelfId,
+                        CustomerId = customerId,
+                        AssignedDate = DateTime.UtcNow,
+                        IsActived = true
+                    });
+                }
+            }
         }
 
         [HttpPost]
@@ -3907,7 +4106,26 @@ namespace Nop.Web.Areas.Admin.Controllers
 
             return Json(gridModel);
         }
-        public virtual IActionResult AddShipment(int orderId)
+
+        [HttpPost]
+        public virtual IActionResult OrderItemsByShelfId(int shelfId, bool? isActive, DataSourceRequest command)
+        {
+
+            if (!_permissionService.Authorize(StandardPermissionProvider.ManageOrders))
+                return AccessDeniedKendoGridJson();
+            var orderItems = _shelfService.GetAllShelfOrderItem(shelfId, shelfOrderItemIsActive: isActive).Select(_ => _.OrderItem).ToList();
+
+            var resultDatas = PrepareOrderItemsModelBasic(orderItems);
+            var gridModel = new DataSourceResult
+            {
+                Data = resultDatas,
+                Total = resultDatas.Count
+            };
+
+            return Json(gridModel);
+        }
+
+        public virtual IActionResult AddShipment(int orderId, int orderItemId = 0)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageOrders))
                 return AccessDeniedView();
@@ -3938,6 +4156,10 @@ namespace Nop.Web.Areas.Admin.Controllers
             if (_workContext.CurrentVendor != null)
             {
                 orderItems = orderItems.Where(HasAccessToOrderItem).ToList();
+            }
+            if (orderItemId > 0)
+            {
+                orderItems = orderItems.Where(_ => _.Id == orderItemId).ToList();
             }
 
             foreach (var orderItem in orderItems)
@@ -4153,11 +4375,6 @@ namespace Nop.Web.Areas.Admin.Controllers
                 shipment.ShipmentItems.Add(shipmentItem);
             }
 
-            if (shipment != null && shipment.ShipmentItems != null)
-            {
-                var orderItem = orderItems.FirstOrDefault(s => !string.IsNullOrEmpty(s.PackageItemCode));
-                shipment.BagId = orderItem?.PackageItemCode;
-            }
             //if we have at least one item in the shipment, then save it
             if (shipment != null && shipment.ShipmentItems.Any())
             {
@@ -4444,6 +4661,38 @@ namespace Nop.Web.Areas.Admin.Controllers
                 return RedirectToAction("ShipmentDetails", new { id = shipment.Id });
             }
         }
+        [HttpPost]
+        public virtual IActionResult AssignNewCustomerSelected(ICollection<int> selectedIds, int assignedByNewCustomerId)
+        {
+            if (!_permissionService.Authorize(StandardPermissionProvider.ManageOrders))
+                return AccessDeniedView();
+
+            var orderItems = new List<OrderItem>();
+            if (selectedIds != null)
+            {
+                orderItems.AddRange(_orderService.GetOrderItemsByIds(selectedIds.ToArray()));
+            }
+
+            var customer = _customerService.GetCustomerById(assignedByNewCustomerId);
+            if (customer != null)
+            {
+                foreach (var orderItem in orderItems)
+                {
+                    try
+                    {
+                        orderItem.AssignedByCustomerId = assignedByNewCustomerId;
+                        _orderService.UpdateOrderItem(orderItem);
+                    }
+                    catch
+                    {
+                        //ignore any exception
+                    }
+                }
+            }
+
+            return Json(new { Result = true });
+        }
+
 
 
         [HttpPost]
@@ -4553,8 +4802,37 @@ namespace Nop.Web.Areas.Admin.Controllers
         }
 
 
+        //[HttpPost]
+        //public virtual IActionResult ApplyPackageOrderIdSelected(ICollection<int> selectedIds, int packageOrderIdNew)
+        //{
+        //    if (!_permissionService.Authorize(StandardPermissionProvider.ManageOrders))
+        //        return AccessDeniedView();
+
+        //    var orderItems = new List<OrderItem>();
+        //    if (selectedIds != null)
+        //    {
+        //        orderItems.AddRange(_orderService.GetOrderItemsByIds(selectedIds.ToArray()));
+        //    }
+
+        //    foreach (var orderItem in orderItems)
+        //    {
+        //        try
+        //        {
+        //            orderItem.PackageOrderId = packageOrderIdNew;
+        //            _orderService.UpdateOrderItem(orderItem);
+        //        }
+        //        catch
+        //        {
+        //            //ignore any exception
+        //        }
+        //    }
+
+        //    return Json(new { Result = true });
+        //}
+
+
         [HttpPost]
-        public virtual IActionResult ApplyPackageOrderIdSelected(ICollection<int> selectedIds, int packageOrderIdNew)
+        public virtual IActionResult ApplyPackageOrderCodeSelected(ICollection<int> selectedIds, string packageOrderCodeNew)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageOrders))
                 return AccessDeniedView();
@@ -4569,8 +4847,14 @@ namespace Nop.Web.Areas.Admin.Controllers
             {
                 try
                 {
-                    orderItem.PackageOrderId = packageOrderIdNew;
-                    _orderService.UpdateOrderItem(orderItem);
+                    var packageOrder = new PackageOrder() { PackageCode = packageOrderCodeNew, PackageName = packageOrderCodeNew };
+                    _packageOrderService.Create(packageOrder);
+                    if (packageOrder.Id > 0)
+                    {
+                        orderItem.PackageOrderId = packageOrder.Id;
+                        _orderService.UpdateOrderItem(orderItem);
+                    }
+
                 }
                 catch
                 {
@@ -4905,6 +5189,78 @@ namespace Nop.Web.Areas.Admin.Controllers
             }
 
             return Json(new { Result = true });
+        }
+
+        #endregion
+
+        #region  ShipmentCustom
+
+        public virtual IActionResult ShipmentCustomList()
+        {
+            if (!_permissionService.Authorize(StandardPermissionProvider.ManageOrders))
+                return AccessDeniedView();
+
+            var model = new ShipmentListModel();
+            //countries
+            model.AvailableCountries.Add(new SelectListItem { Text = "*", Value = "0" });
+            foreach (var c in _countryService.GetAllCountries(showHidden: true))
+                model.AvailableCountries.Add(new SelectListItem { Text = c.Name, Value = c.Id.ToString() });
+            //states
+            model.AvailableStates.Add(new SelectListItem { Text = "*", Value = "0" });
+
+            //customer info
+            model.AvailableShippers.Add(new SelectListItem { Text = _localizationService.GetResource("Admin.Common.All"), Value = "0" });
+            foreach (var w in _customerService.GetAllCustomers())
+                model.AvailableShippers.Add(new SelectListItem { Text = w.GetFullName(), Value = w.Id.ToString() });
+
+            return View(model);
+        }
+
+        [HttpPost]
+        public virtual IActionResult ShipmentCustomListSelect(DataSourceRequest command, ShipmentListModel model)
+        {
+            if (!_permissionService.Authorize(StandardPermissionProvider.ManageOrders))
+                return AccessDeniedKendoGridJson();
+
+            var startDateValue = (model.StartDate == null) ? null
+                            : (DateTime?)_dateTimeHelper.ConvertToUtcTime(model.StartDate.Value, _dateTimeHelper.CurrentTimeZone);
+
+            var endDateValue = (model.EndDate == null) ? null
+                            : (DateTime?)_dateTimeHelper.ConvertToUtcTime(model.EndDate.Value, _dateTimeHelper.CurrentTimeZone).AddDays(1);
+
+            //a vendor should have access only to his products
+            var vendorId = 0;
+            if (_workContext.CurrentVendor != null)
+                vendorId = _workContext.CurrentVendor.Id;
+
+            //load shipments
+            var shipments = _shipmentCustomService.GetAllShipmentsCustom(vendorId: vendorId,
+                shippingCountryId: model.CountryId,
+                shippingStateId: model.StateProvinceId,
+                shippingCity: model.City,
+                trackingNumber: model.TrackingNumber,
+                loadNotShipped: model.LoadNotShipped,
+                createdFromUtc: startDateValue,
+                createdToUtc: endDateValue,
+                pageIndex: command.Page - 1,
+                pageSize: command.PageSize,
+                orderItemId: model.OrderItemId,
+                phoneShipperNumber: model.ShipperPhoneNumber);
+
+            var gridModel = new DataSourceResult
+            {
+                Data = shipments.Select(shipment => PrepareShipmentCustomModel(shipment)),
+                Total = shipments.TotalCount
+            };
+            var data = gridModel.Data.Cast<ShipmentModel>().ToList();
+            var depositTotal = data.Sum(_ => _.Deposit);
+            var orderTotal = data.Sum(_ => _.TotalOrderFeeDecimal);
+            gridModel.ExtraData = new
+            {
+                aggregatordeposit = _priceFormatter.FormatPrice(depositTotal, true, false),
+                aggregatortotal = _priceFormatter.FormatPrice(orderTotal, true, false)
+            };
+            return Json(gridModel);
         }
 
         #endregion
@@ -5603,6 +5959,14 @@ namespace Nop.Web.Areas.Admin.Controllers
             }
             model.PackageOrderIds.Insert(0, new SelectListItem { Text = _localizationService.GetResource("Admin.Common.All"), Value = "0" });
 
+            //customers
+            var customers = _customerService.GetAllCustomers();
+            foreach (var customer in customers)
+            {
+                model.AvailableCustomers.Add(new SelectListItem { Text = customer.GetFullName(), Value = customer.Id.ToString() });
+            }
+            model.AvailableCustomers.Insert(0, new SelectListItem { Text = _localizationService.GetResource("Admin.Common.All"), Value = "0" });
+
             //vendors 
             var vendors = _vendorService.GetAllVendors();
             foreach (var vendor in vendors)
@@ -5621,8 +5985,11 @@ namespace Nop.Web.Areas.Admin.Controllers
                 return AccessDeniedView();
             var primaryStoreCurrency = _currencyService.GetCurrencyById(_currencySettings.PrimaryStoreCurrencyId);
             var orderItems = _orderService.GetOrderItemsVendorCheckout(model.VendorProductUrl, model.OrderId, command.Page - 1, command.PageSize,
-                isOrderCheckout: model.IsOrderCheckout, isPackageItemProcessed: model.IsPackageItemProcessed,
-                isSetPackageItemCode: model.IsSetPackageItemCode, todayFilter: model.TodayFilter, customerPhone: model.CustomerPhone, packageOrderId: model.PackageOrderId, vendorId: model.VendorId);
+                isOrderCheckout: model.IsOrderCheckout, isPackageItemProcessed: model.IsPackageItemProcessed, todayFilter: model.TodayFilter,
+                customerPhone: model.CustomerPhone, packageOrderId: model.PackageOrderId,
+                vendorId: model.VendorId, isSetPackageOrderId: model.IsSetPackageOrderId,
+                isSetShelfId: model.IsShelfAssigned);
+
             var gridModel = new DataSourceResult
             {
                 Data = orderItems.Select(orderItem =>
@@ -5637,20 +6004,17 @@ namespace Nop.Web.Areas.Admin.Controllers
                                                  + $"\n {customerOrder.GetAttribute<string>(SystemCustomerAttributeNames.Phone)}"
                                                  + $"\n {linkFacebook}";
                     }
+
                     var currencyProduct = _currencyService.GetCurrencyById(orderItem.Product.CurrencyId, false);
 
                     var orderItemModel = new OrderItemExportVendorModelBasic
                     {
                         Id = orderItem.Id,
                         OrderId = orderItem.OrderId,
-                        //ProductId = orderItem.ProductId,
+                        ProductId = orderItem.ProductId,
                         ProductName = orderItem.Product.Name,
                         Sku = orderItem.Product.FormatSku(orderItem.AttributesXml, _productAttributeParser),
                         Quantity = orderItem.Quantity,
-                        //IsDownload = orderItem.Product.IsDownload,
-                        //DownloadCount = orderItem.DownloadCount,
-                        //DownloadActivationType = orderItem.Product.DownloadActivationType,
-                        //IsDownloadActivated = orderItem.IsDownloadActivated,
                         WeightCostDec = orderItem.WeightCost,
                         WeightCost = _priceFormatter.FormatPrice(orderItem.WeightCost, true,
                         primaryStoreCurrency, _workContext.WorkingLanguage, true, true),
@@ -5658,7 +6022,6 @@ namespace Nop.Web.Areas.Admin.Controllers
                         primaryStoreCurrency, _workContext.WorkingLanguage, true, true),
                         PackageOrderId = orderItem.PackageOrderId ?? 0,
                         PackageOrder = orderItem.PackageOrder.ToModel(),
-                        PackageItemCode = orderItem.PackageItemCode,
                         PackageItemProcessedDatetime = orderItem.PackageItemProcessedDatetime,
                         IncludeWeightCost = orderItem.IncludeWeightCost,
                         UnitWeightCost = orderItem.UnitWeightCost ?? (currencyProduct != null ? currencyProduct.UnitWeightCost : 0),
@@ -5666,22 +6029,38 @@ namespace Nop.Web.Areas.Admin.Controllers
                         ItemWeight = orderItem.ItemWeight ?? 0,
                         CustomerInfo = customerInfo,
                         CreatedDate = orderItem.Order.CreatedOnUtc,
-                        PrimaryStoreCurrencyCode = primaryStoreCurrency.CurrencyCode
+                        PrimaryStoreCurrencyCode = primaryStoreCurrency.CurrencyCode,
+                        AssignedByCustomerId = orderItem.AssignedByCustomerId
                     };
+                    if (orderItemModel.PackageOrderId > 0)
+                    {
+                        var packageOrder = _packageOrderService.GetById(orderItemModel.PackageOrderId);
+                        if (packageOrder != null)
+                        {
+                            orderItemModel.PackageOrderCode = packageOrder.PackageCode;
+                        }
+                    }
+                    var shelfOrderItem = _shelfService.GetShelfOrderItemByOrderItemId(orderItem.Id);
+                    if (shelfOrderItem != null && shelfOrderItem.Shelf != null)
+                    {
+                        orderItemModel.ShelfCode = shelfOrderItem.Shelf.ShelfCode;
+                        orderItemModel.ShelfId = shelfOrderItem.Shelf.Id;
+                        orderItemModel.ShelfOrderItemId = shelfOrderItem.Id;
+                    }
+
+                    if (orderItem.AssignedByCustomerId.HasValue)
+                    {
+                        var assignedByCustomer = _customerService.GetCustomerById(orderItem.AssignedByCustomerId.Value);
+                        //orderItemModel.AssignedByCustomer = assignedByCustomer;
+                        if (assignedByCustomer != null)
+                        {
+                            orderItemModel.CustomerAssignShelfInfo = assignedByCustomer.GetFullName();
+                        }
+                    }
                     //picture
                     var orderItemPicture =
                         orderItem.Product.GetProductPicture(orderItem.AttributesXml, _pictureService, _productAttributeParser);
                     orderItemModel.PictureThumbnailUrl = _pictureService.GetPictureUrl(orderItemPicture, 75, true);
-
-                    ////license file
-                    //if (orderItem.LicenseDownloadId.HasValue)
-                    //{
-                    //    var licenseDownload = _downloadService.GetDownloadById(orderItem.LicenseDownloadId.Value);
-                    //    if (licenseDownload != null)
-                    //    {
-                    //        orderItemModel.LicenseDownloadGuid = licenseDownload.DownloadGuid;
-                    //    }
-                    //}
 
                     //vendor
                     var vendor = _vendorService.GetVendorById(orderItem.Product.VendorId);
@@ -5695,14 +6074,6 @@ namespace Nop.Web.Areas.Admin.Controllers
                     orderItemModel.UnitPriceExclTax = _priceFormatter.FormatPrice(orderItem.UnitPriceExclTax, true,
                         primaryStoreCurrency, _workContext.WorkingLanguage, false, true);
 
-                    ////discounts
-                    //orderItemModel.DiscountInclTaxValue = orderItem.DiscountAmountInclTax;
-                    //orderItemModel.DiscountExclTaxValue = orderItem.DiscountAmountExclTax;
-                    //orderItemModel.DiscountInclTax = _priceFormatter.FormatPrice(orderItem.DiscountAmountInclTax, true,
-                    //    primaryStoreCurrency, _workContext.WorkingLanguage, true, true);
-                    //orderItemModel.DiscountExclTax = _priceFormatter.FormatPrice(orderItem.DiscountAmountExclTax, true,
-                    //    primaryStoreCurrency, _workContext.WorkingLanguage, false, true);
-
                     //subtotal
                     orderItemModel.SubTotalInclTaxValue = orderItem.PriceInclTax;
                     orderItemModel.SubTotalExclTaxValue = orderItem.PriceExclTax;
@@ -5714,38 +6085,6 @@ namespace Nop.Web.Areas.Admin.Controllers
                     orderItemModel.AttributeInfo = orderItem.AttributeDescription ?? string.Empty;
                     orderItemModel.RentalInfo = string.Empty;
                     orderItemModel.RecurringInfo = string.Empty;
-
-                    //if (orderItem.Product.IsRecurring)
-                    //    orderItemModel.RecurringInfo = string.Format(
-                    //        _localizationService.GetResource("Admin.Orders.Products.RecurringPeriod"),
-                    //        orderItem.Product.RecurringCycleLength,
-                    //        orderItem.Product.RecurringCyclePeriod.GetLocalizedEnum(_localizationService, _workContext));
-
-                    //rental info
-                    //if (orderItem.Product.IsRental)
-                    //{
-                    //    var rentalStartDate = orderItem.RentalStartDateUtc.HasValue
-                    //        ? orderItem.Product.FormatRentalDate(orderItem.RentalStartDateUtc.Value)
-                    //        : "";
-                    //    var rentalEndDate = orderItem.RentalEndDateUtc.HasValue
-                    //        ? orderItem.Product.FormatRentalDate(orderItem.RentalEndDateUtc.Value)
-                    //        : "";
-                    //    orderItemModel.RentalInfo = string.Format(_localizationService.GetResource("Order.Rental.FormattedDate"),
-                    //        rentalStartDate, rentalEndDate);
-                    //}
-
-                    //return requests
-                    //orderItemModel.ReturnRequests = _returnRequestService
-                    //    .SearchReturnRequests(orderItemId: orderItem.Id)
-                    //    .Select(item => new OrderModel.OrderItemModel.ReturnRequestBriefModel
-                    //    {
-                    //        CustomNumber = item.CustomNumber,
-                    //        Id = item.Id
-                    //    }).ToList();
-
-                    ////gift cards
-                    //orderItemModel.PurchasedGiftCardIds = _giftCardService.GetGiftCardsByPurchasedWithOrderItemId(orderItem.Id)
-                    //    .Select(gc => gc.Id).ToList();
 
                     return orderItemModel;
                 }),
@@ -5838,22 +6177,20 @@ namespace Nop.Web.Areas.Admin.Controllers
         [HttpPost]
         public virtual IActionResult SetIsOrderCheckoutSelected(string selectedIds)
         {
-            var orderItems = new List<OrderItem>();
             if (selectedIds != null)
             {
                 var ids = selectedIds
                     .Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
                     .Select(x => Convert.ToInt32(x))
                     .ToArray();
-                orderItems.AddRange(_orderService.GetOrderItemsByIds(ids));
-            }
+                var orderItems = _orderService.GetOrderItemsByIds(ids);
+                foreach (var orderItem in orderItems)
+                {
+                    orderItem.IsOrderCheckout = true;
 
-            foreach (var orderItem in orderItems)
-            {
-                orderItem.IsOrderCheckout = true;
-                _orderService.UpdateOrderItem(orderItem);
+                    _orderService.UpdateOrderItem(orderItem);
+                }
             }
-
             return RedirectToAction("OrderItemsVendorCheckout");
         }
         [HttpPost]
@@ -5907,15 +6244,25 @@ namespace Nop.Web.Areas.Admin.Controllers
             return Json(gridModel);
         }
 
-        public IActionResult GetsPackageOrderAvailble()
+        public IActionResult GetsPackageOrderAvailable()
         {
             var packageOrdersAvailble = _packageOrderService.GetPackageOrders(loadIsShipped: false).Select(p => new
             {
                 PackageOrderId = p.Id,
-                PackageOrderName = $"{p.PackageCode} - {p.PackageName}"
-            });
+                PackageOrderName = $"{p.PackageCode}"
+            }).ToList();
+            packageOrdersAvailble.Insert(0, new { PackageOrderId = 0, PackageOrderName = "Chọn mã kiện hàng" });
             return Json(packageOrdersAvailble);
         }
+
+
+        public IActionResult GetsPackageOrderCodeAvailable()
+        {
+            var lastPackageId = _packageOrderService.GetPackageOrders(loadIsShipped: true).Max(_ => _.Id);
+            var packageCode = StringExtensions.GetPackageCode(lastPackageId);
+            return Json(new { PackageCode = packageCode });
+        }
+
 
         #endregion
     }
