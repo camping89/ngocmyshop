@@ -319,7 +319,7 @@ table.adminContent {
 }
 .k-picker-wrap .k-input,
 .k-numeric-wrap .k-input {
-    height: 26px;
+    height: 34px;
     border-radius: 0;
     border: 1px solid #d2d6de;
     text-indent: 0.7em;
@@ -527,13 +527,13 @@ td.k-state-focused.k-state-selected {
     box-shadow: none;
 }
 .k-grid-header .k-header {
-    white-space: normal;
+    white-space: normal !important;
     background-image: none;
-    background-color: #f4f4f4;
-    border: 1px solid #e3e3e3;
-    border-left: none;
-    font-weight: bold;
-    padding: 10px 8px;
+    background-color: #f4f4f4 !important;
+    border: 1px solid #e3e3e3 !important;
+    border-left: none !important;
+    font-weight: bold !important;
+    padding: 10px 8px !important;
 }
 .k-grid-header .k-header:last-child {
     border-right: none;

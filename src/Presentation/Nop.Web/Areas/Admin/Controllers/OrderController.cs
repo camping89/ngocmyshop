@@ -4852,6 +4852,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                     if (packageOrder.Id > 0)
                     {
                         orderItem.PackageOrderId = packageOrder.Id;
+                        orderItem.PackageItemProcessedDatetime = DateTime.UtcNow;
                         _orderService.UpdateOrderItem(orderItem);
                     }
 
@@ -5963,7 +5964,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             var customers = _customerService.GetAllCustomers();
             foreach (var customer in customers)
             {
-                model.AvailableCustomers.Add(new SelectListItem { Text = customer.GetFullName(), Value = customer.Id.ToString() });
+                model.AvailableCustomers.Add(new SelectListItem { Text = $"{customer.GetFullName()} - {customer.GetAttribute<string>(SystemCustomerAttributeNames.Phone)}", Value = customer.Id.ToString() });
             }
             model.AvailableCustomers.Insert(0, new SelectListItem { Text = _localizationService.GetResource("Admin.Common.All"), Value = "0" });
 

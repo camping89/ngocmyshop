@@ -194,53 +194,7 @@
                     <div class="panel-body">
                         <div class="form-group">
                             <div class="col-md-12">
-                                <input id="testData" />
-                                <script>
-                                    $(document).ready(function() {
-                                        $("#testData").kendoDropDownList({
-                                            dataTextField: "ProductName",
-                                            dataValueField: "ProductID",
-                                            dataSource: {
-                                                transport: {
-                                                    read: {
-                                                        dataType: "jsonp",
-                                                        url: "https://demos.telerik.com/kendo-ui/service/Products",
-                                                    }
-                                                }
-                                            },
-                                            filter: "contains"
-                                        });
 
-                                        @*$('#testData').kendoDropDownList({
-                                            //autoBind: false,
-
-                                            filtering: function(e) {
-                                                var filter = e.filter;
-
-                                                if (!filter.value) {
-                                                    //prevent filtering if the filter does not value
-                                                    e.preventDefault();
-                                                }
-                                            },
-                                            dataTextField: "ShelfCode",
-                                            dataValueField: "ShelfId",
-                                            dataSource: {
-                                                type: "json",
-                                                serverFiltering: false,
-                                                transport: {
-                                                    read: {
-                                                        url:
-                                                            "@Html.Raw(Url.Action("GetShelfAvailable", "Shelf"))",
-                                                        type: "POST",
-                                                        dataType: "json",
-                                                        data: addAntiForgeryToken
-                                                    }
-                                                }
-                                            },
-                                            filter: "contains"
-                                        });*@
-                                    });
-                                </script>
                                 <div id="dummyScrollWrapper" style="overflow-x: scroll; margin-right: 17px; margin-left: 2px;">
                                     <div id="dummyScroll" style="height: 20px;">
                                     </div>
@@ -459,7 +413,7 @@
                                                         "<p></p>" +
                                                         "# } #"
                                                 },
-                                                @*{
+                                                {
                                                     field: "PackageItemProcessedDatetime",
                                                     title: "@T("Admin.Orders.Products.PackageItemProcessedDatetime")",
                                                     width: 150,
@@ -469,7 +423,7 @@
                                                         "#} else {#" +
                                                         "<p></p>" +
                                                         "# } #"
-                                                },*@
+                                                },
                                                 {
                                                     field: "IsOrderCheckout",
                                                     title: "@T("Admin.Orders.Products.IsOrderCheckout")",

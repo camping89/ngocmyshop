@@ -59,7 +59,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 return model;
             }).ToList();
 
-            shelfListModel.Customers.Insert(0, new SelectListItem { Value = "0", Text = "*" });
+            shelfListModel.Customers.Insert(0, new SelectListItem { Value = "0", Text = _localizationService.GetResource("Admin.Common.All") });
 
             return View(shelfListModel);
         }
