@@ -1,0 +1,233 @@
+using Nop.Core;
+using Nop.Core.Data;
+using Nop.Core.Domain.Common;
+using Nop.Core.Domain.Customers;
+using Nop.Core.Domain.Orders;
+using Nop.Core.Domain.Shipping;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+namespace Nop.Services.Shipping
+{
+    /// <summary>
+    /// Shipment service
+    /// </summary>
+    public partial class ShipmentManualService : IShipmentManualService
+    {
+        #region Fields
+
+        private readonly IRepository<ShipmentManual> _shipmentManualRepository;
+        private readonly IRepository<ShipmentManualItem> _shipmentManualItemRepository;
+        private readonly IRepository<GenericAttribute> _gaRepository;
+        private readonly IRepository<OrderItem> _orderItemRepository;
+
+        #endregion
+
+        #region Ctor
+
+        /// <summary>
+        /// Ctor
+        /// </summary>
+        /// <param name="shipmentManualRepository">Shipment repository</param>
+        /// <param name="orderItemRepository">Order item repository</param>
+        /// <param name="eventPublisher">Event published</param>
+        /// <param name="gaRepository"></param>
+        /// <param name="shipmentManualItemRepository"></param>
+        public ShipmentManualService(IRepository<ShipmentManual> shipmentManualRepository,
+            IRepository<OrderItem> orderItemRepository, IRepository<GenericAttribute> gaRepository, IRepository<ShipmentManualItem> shipmentManualItemRepository)
+        {
+            this._shipmentManualRepository = shipmentManualRepository;
+            this._orderItemRepository = orderItemRepository;
+            _gaRepository = gaRepository;
+            _shipmentManualItemRepository = shipmentManualItemRepository;
+        }
+
+        #endregion
+
+        #region Methods
+
+        /// <summary>
+        /// Deletes a shipment
+        /// </summary>
+        /// <param name="shipmentManual">shipmentManual</param>
+        public virtual void DeleteShipmentManual(ShipmentManual shipmentManual)
+        {
+            if (shipmentManual == null)
+                throw new ArgumentNullException(nameof(shipmentManual));
+
+            _shipmentManualRepository.Delete(shipmentManual);
+
+        }
+
+        /// <summary>
+        /// Search shipments
+        /// </summary>
+        /// <param name="vendorId">Vendor identifier; 0 to load all records</param>
+        /// <param name="shippingCountryId">Shipping country identifier; 0 to load all records</param>
+        /// <param name="shippingStateId">Shipping state identifier; 0 to load all records</param>
+        /// <param name="shippingCity">Shipping city; null to load all records</param>
+        /// <param name="trackingNumber">Search by tracking number</param>
+        /// <param name="loadNotShipped">A value indicating whether we should load only not shipped shipments</param>
+        /// <param name="createdFromUtc">Created date from (UTC); null to load all records</param>
+        /// <param name="createdToUtc">Created date to (UTC); null to load all records</param>
+        /// <param name="pageIndex">Page index</param>
+        /// <param name="pageSize">Page size</param>
+        /// <param name="orderItemId"></param>
+        /// <param name="phoneShipperNumber"></param>
+        /// <returns>Shipments</returns>
+        public virtual IPagedList<ShipmentManual> GetAllShipmentsManual(int vendorId = 0,
+            int shippingCountryId = 0,
+            int shippingStateId = 0,
+            string shippingCity = null,
+            string trackingNumber = null,
+            bool loadNotShipped = false,
+            DateTime? createdFromUtc = null, DateTime? createdToUtc = null,
+            int pageIndex = 0, int pageSize = int.MaxValue, int orderItemId = 0, string phoneShipperNumber = null)
+        {
+            var query = _shipmentManualRepository.Table;
+            if (!string.IsNullOrEmpty(trackingNumber))
+                query = query.Where(s => s.TrackingNumber.Contains(trackingNumber));
+
+            if (!string.IsNullOrWhiteSpace(phoneShipperNumber))
+            {
+                query = query
+                    .Join(_gaRepository.Table, x => x.CustomerId, y => y.EntityId, (x, y) => new { Customer = x, Attribute = y })
+                    .Where((z => z.Attribute.KeyGroup == "Customer" &&
+                                 z.Attribute.Key == SystemCustomerAttributeNames.Phone &&
+                                 z.Attribute.Value.Contains(phoneShipperNumber)))
+                    .Select(z => z.Customer);
+            }
+
+            if (orderItemId > 0)
+            {
+                query = query.Where(s => s.ShipmentManualItems.Any(m => m.OrderItemId == orderItemId));
+            }
+            if (shippingCountryId > 0)
+                query = query.Where(s => s.Customer.ShippingAddress.CountryId == shippingCountryId);
+            if (shippingStateId > 0)
+                query = query.Where(s => s.Customer.ShippingAddress.StateProvinceId == shippingStateId);
+            if (!string.IsNullOrWhiteSpace(shippingCity))
+                query = query.Where(s => s.Customer.ShippingAddress.City.Contains(shippingCity));
+            if (loadNotShipped)
+                query = query.Where(s => !s.ShippedDateUtc.HasValue);
+            if (createdFromUtc.HasValue)
+                query = query.Where(s => s.ShippedDateUtc != null && createdFromUtc.Value <= s.ShippedDateUtc);
+            if (createdToUtc.HasValue)
+                query = query.Where(s => s.ShippedDateUtc != null && createdToUtc.Value >= s.ShippedDateUtc);
+            if (vendorId > 0)
+            {
+                var queryVendorOrderItems = from orderItem in _orderItemRepository.Table
+                                            where orderItem.Product.VendorId == vendorId
+                                            select orderItem.Id;
+
+                query = from s in query
+                        where s.ShipmentManualItems.Any(_ => queryVendorOrderItems.Contains(_.OrderItemId))
+                        select s;
+            }
+
+            query = query.OrderByDescending(s => s.CreatedOnUtc);
+            query = query.OrderBy(o => o.CustomerId).ThenByDescending(o => o.CreatedOnUtc);
+            var shipments = new PagedList<ShipmentManual>(query, pageIndex, pageSize);
+            return shipments;
+        }
+        /// <summary>
+        /// Get shipment by identifiers
+        /// </summary>
+        /// <param name="shipmentManualIds">Shipment identifiers</param>
+        /// <returns>Shipments</returns>
+        public virtual IList<ShipmentManual> GetShipmentsManualByIds(int[] shipmentManualIds)
+        {
+            if (shipmentManualIds == null || shipmentManualIds.Length == 0)
+                return new List<ShipmentManual>();
+
+            var query = from o in _shipmentManualRepository.Table
+                        where shipmentManualIds.Contains(o.Id)
+                        select o;
+            var shipments = query.ToList();
+            //sort by passed identifiers
+            var sortedOrders = new List<ShipmentManual>();
+            foreach (var id in shipmentManualIds)
+            {
+                var shipment = shipments.Find(x => x.Id == id);
+                if (shipment != null)
+                    sortedOrders.Add(shipment);
+            }
+            return sortedOrders;
+        }
+
+        /// <summary>
+        /// Gets a shipment
+        /// </summary>
+        /// <param name="id">Shipment identifier</param>
+        public virtual ShipmentManual GetShipmentManualById(int id)
+        {
+            if (id == 0)
+                return null;
+
+            return _shipmentManualRepository.GetById(id);
+        }
+
+        public virtual bool CheckExistTrackingNumber(string trackingNumber)
+        {
+            return _shipmentManualRepository.Table.Any(_ => _.TrackingNumber.Equals(trackingNumber, StringComparison.InvariantCultureIgnoreCase));
+        }
+        /// <summary>
+        /// Inserts a shipment
+        /// </summary>
+        /// <param name="shipmentManual">Shipment</param>
+        public virtual void InsertShipmentManual(ShipmentManual shipmentManual)
+        {
+            if (shipmentManual == null)
+                throw new ArgumentNullException(nameof(shipmentManual));
+
+            _shipmentManualRepository.Insert(shipmentManual);
+        }
+
+        /// <summary>
+        /// Updates the shipment
+        /// </summary>
+        /// <param name="shipmentManual">Shipment</param>
+        public virtual void UpdateShipmentManual(ShipmentManual shipmentManual)
+        {
+            if (shipmentManual == null)
+                throw new ArgumentNullException(nameof(shipmentManual));
+
+            _shipmentManualRepository.Update(shipmentManual);
+        }
+
+        public void DeleteShipmentManualItem(ShipmentManualItem shipmentManualItem)
+        {
+            if (shipmentManualItem == null)
+                throw new ArgumentNullException(nameof(shipmentManualItem));
+
+            _shipmentManualItemRepository.Delete(shipmentManualItem);
+        }
+
+        public ShipmentManualItem GetShipmentManualItemById(int id)
+        {
+            if (id == 0)
+                return null;
+
+            return _shipmentManualItemRepository.GetById(id);
+        }
+
+        public void InsertShipmentManualItem(ShipmentManualItem shipmentManualItem)
+        {
+            if (shipmentManualItem == null)
+                throw new ArgumentNullException(nameof(shipmentManualItem));
+
+            _shipmentManualItemRepository.Insert(shipmentManualItem);
+        }
+
+        public void UpdateShipmentManualItem(ShipmentManualItem shipmentManualItem)
+        {
+            if (shipmentManualItem == null)
+                throw new ArgumentNullException(nameof(shipmentManualItem));
+
+            _shipmentManualItemRepository.Update(shipmentManualItem);
+        }
+
+        #endregion
+    }
+}

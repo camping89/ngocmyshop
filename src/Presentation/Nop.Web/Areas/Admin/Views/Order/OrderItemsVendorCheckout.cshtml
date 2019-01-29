@@ -119,10 +119,10 @@
                                 </div>
                                 <div class="form-group">
                                     <div class="col-md-4">
-                                        <nop-label asp-for="PackageOrderId" />
+                                        <nop-label asp-for="PackageOrderCode" />
                                     </div>
                                     <div class="col-md-8">
-                                        <nop-select asp-for="PackageOrderId" asp-items="Model.PackageOrderIds" />
+                                        <nop-editor asp-for="PackageOrderCode" />
                                     </div>
                                 </div>
 
@@ -231,6 +231,7 @@
                                                         fields: {
                                                             OrderId: { editable: false, type: "number" },
                                                             PackageId: { editable: false, type: "string" },
+                                                            ShelfOrderItemId: { editable: false, type: "string" },
                                                             CustomerAssignShelfInfo: { editable: true, type: "string" },
                                                             CustomerInfo: { editable: false, type: "string" },
                                                             CreatedDate: { editable: false, type: "string" },
@@ -306,6 +307,10 @@
                                                     sortable: false,
                                                     editor: hideOnEditor
                                                 }, {
+                                                    field: "OrderId",
+                                                    title: "@T("Admin.Orders.Products.OrderId")",
+                                                    width: 50
+                                                }, {
                                                     field: "ShelfOrderItemId",
                                                     title: "@T("Admin.Orders.ShelfOrderItemId")",
                                                     width: 50,
@@ -314,10 +319,6 @@
                                                         "#} else {#" +
                                                         "<p></p>" +
                                                         "# } #"
-                                                }, {
-                                                    field: "OrderId",
-                                                    title: "@T("Admin.Orders.Products.OrderId")",
-                                                    width: 50
                                                 },
                                                 {
                                                     field: "CustomerAssignShelfInfo",
@@ -654,7 +655,7 @@
                                             $('#@Html.IdFor(model => model.OrderId)').val(0);
                                             $('#@Html.IdFor(model => model.VendorProductUrl)').val('');
                                             $('#@Html.IdFor(model => model.VendorId)').val(0);
-                                            $('#@Html.IdFor(model => model.PackageOrderId)').val(0);
+                                            $('#@Html.IdFor(model => model.PackageOrderCode)').val('');
                                             $('#@Html.IdFor(model => model.CustomerPhone)').val('');
 
                                             $('#@Html.IdFor(model => model.TodayFilter)').prop('checked', false);
@@ -719,7 +720,7 @@
                                                 '#@Html.IdFor(model => model.IsPackageItemProcessed)').is(":checked"),
                                             TodayFilter: $('#@Html.IdFor(model => model.TodayFilter)').is(":checked"),
                                             CustomerPhone: $('#@Html.IdFor(model => model.CustomerPhone)').val(),
-                                            PackageOrderId: $('#@Html.IdFor(model => model.PackageOrderId)').val(),
+                                            PackageOrderCode: $('#@Html.IdFor(model => model.PackageOrderCode)').val(),
                                             VendorId: $('#@Html.IdFor(model => model.VendorId)').val()
                                         };
                                         addAntiForgeryToken(data);

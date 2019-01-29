@@ -10,6 +10,11 @@
     //active menu item (system name)
     Html.SetActiveMenuItemSystemName("Shelf List");
 }
+<style>
+    .k-hierarchy-cell:hover, .k-hierarchy-cell:focus {
+        cursor: pointer;
+    }
+</style>
 
 <nop-antiforgery-token />
 <div class="content-header clearfix">
@@ -70,10 +75,10 @@
                             </div>
                             <div class="form-group">
                                 <div class="col-md-4">
-                                    <nop-label asp-for="ShelfIsEmpty" />
+                                    <nop-label asp-for="IsShelfEmpty" />
                                 </div>
                                 <div class="col-md-8">
-                                    <nop-editor asp-for="ShelfIsEmpty" />
+                                    <nop-editor asp-for="IsShelfEmpty" />
                                 </div>
                             </div>
 
@@ -220,8 +225,8 @@
                                             },
                                             {
                                                 title: "@T("Admin.Common.Function")",
-                                                template: '<button type="button" id="btnShipmentAll" class="btn btn-success">@T("Admin.ShelfOrderItem.ShipmentAll")</button>'+
-                                                    '<button type="button id="btnShipmentSelected" class="btn btn-primary">@T("Admin.ShelfOrderItem.ShipmentSelected")</button>'
+                                                template: '<button type="button" id="btnShipmentAll" class="btn btn-success">@T("Admin.ShelfOrderItem.ShipAll")</button>'+
+                                                    '<button type="button id="btnShipmentSelected" class="btn btn-primary">@T("Admin.ShelfOrderItem.ShipSelected")</button>'
                                             }
                                         ],
                                         title: "@T("Admin.Common.Function")",
@@ -239,23 +244,18 @@
                             });
 
 
-                            $("#shelf-grid").on("click",
-                                "td",
-                                function(e) {
-                                    var grid = $("#shelf-grid").data("kendoGrid");
 
-                                    if ($(this).hasClass("k-hierarchy-cell")) {
-                                        var row = $(this).parent().get(0);
-                                        if ($(this).find(".k-icon").hasClass("k-minus")) {
-
-                                            grid.collapseRow(row);
-                                        } else {
-                                            grid.expandRow(row);
-                                        }
-                                    }
-
-
-                                });
+                            // handle grid row clicks for detail row expansion
+                            grid.on("click","td.k-hierarchy-cell",function(e) {
+                                var $target = $(e.target);
+                                // if you have links or other things in your rows that you don't want to
+                                // trigger the detail row expansion, use an if statement to ignore them.
+                                if (!$target.hasClass("sample-link")){
+                                    var $this = $(this);
+                                    var $link = $this.find(".k-icon");
+                                    $link.click();
+                                }
+                            });
 
                             $('#collapse').click(function(e) {
                                 var grid = $("#shelf-grid").data("kendoGrid");
@@ -415,7 +415,7 @@
 
                                         }, {
                                             field: "ShelfOrderItem.IsActive",
-                                            title: "@T("Admin.ShelfOrderItemIsActive")",
+                                            title: "@T("Admin.ShelfOrderItem.IsActive")",
                                             template: "# if (ShelfOrderItemIsActive) { #" +
                                                 "@T("Admin.ShelfOrderItem.IsActive.True")" +
                                                 "#} else {#" +
@@ -486,7 +486,7 @@
                                 AssignedFromDate: $('#@Html.IdFor(model => model.AssignedFromDate)').val(),
                                 AssignedToDate: $('#@Html.IdFor(model => model.AssignedToDate)').val(),
                                 ShelfOrderItemIsActive: $('#@Html.IdFor(model => model.ShelfOrderItemIsActive)').val(),
-                                ShelfIsEmpty: $('#@Html.IdFor(model => model.ShelfIsEmpty)').is(":checked")
+                                IsShelfEmpty: $('#@Html.IdFor(model => model.IsShelfEmpty)').is(":checked")
                             };
                             addAntiForgeryToken(data);
                             return data;

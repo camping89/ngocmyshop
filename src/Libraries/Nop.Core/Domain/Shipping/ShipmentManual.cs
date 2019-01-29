@@ -1,5 +1,4 @@
 using Nop.Core.Domain.Customers;
-using Nop.Core.Domain.Orders;
 using System;
 using System.Collections.Generic;
 
@@ -12,10 +11,6 @@ namespace Nop.Core.Domain.Shipping
     {
         private ICollection<ShipmentManualItem> _shipmentManualItems;
 
-        /// <summary>
-        /// Gets or sets the order identifier
-        /// </summary>
-        public int OrderId { get; set; }
 
         /// <summary>
         /// Gets or sets the tracking number of this shipment
@@ -59,10 +54,6 @@ namespace Nop.Core.Domain.Shipping
         public int CustomerId { get; set; }
 
         public virtual Customer Customer { get; set; }
-        /// <summary>
-        /// Gets the order
-        /// </summary>
-        public virtual Order Order { get; set; }
 
         /// <summary>
         /// Gets or sets the shipment items

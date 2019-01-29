@@ -30,7 +30,6 @@ namespace Nop.Web.Areas.Admin.Models.Orders
                 new SelectListItem{ Value = "True",Text = "Đã xếp ngăn"},
                 new SelectListItem{ Value = "False",Text = "Chưa xếp ngăn"}
             };
-            PackageOrderIds = new List<SelectListItem>();
 
             VendorItems = new List<SelectListItem>();
             AvailableCustomers = new List<SelectListItem>();
@@ -63,13 +62,8 @@ namespace Nop.Web.Areas.Admin.Models.Orders
         [NopResourceDisplayName("Admin.Orders.List.CustomerPhone")]
         public string CustomerPhone { get; set; }
 
-        public List<SelectListItem> PackageOrderIds { get; set; }
-
-        [NopResourceDisplayName("Admin.Orders.List.PackageOrderId")]
-        public int PackageOrderId { get; set; }
-
-        [NopResourceDisplayName("Admin.Orders.List.PackageOrderIdNew")]
-        public int PackageOrderIdNew { get; set; }
+        [NopResourceDisplayName("Admin.Orders.List.PackageOrderCode")]
+        public string PackageOrderCode { get; set; }
 
         [NopResourceDisplayName("Admin.Orders.List.PackageOrderIdNew")]
         public string PackageOrderCodeNew { get; set; }

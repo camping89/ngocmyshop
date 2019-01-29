@@ -9,14 +9,14 @@
     ViewBag.Title = T("Admin.Orders.Shipments.List").Text;
 
     //active menu item (system name)
-    Html.SetActiveMenuItemSystemName("ShipmentsCustom");
+    Html.SetActiveMenuItemSystemName("ShipmentsManual");
 }
 
 
-<form asp-controller="Order" asp-action="ShipmentCustomList" method="post">
+<form asp-controller="Order" asp-action="ShipmentManualList" method="post">
     <div class="content-header clearfix">
         <h1 class="pull-left">
-            @T("Admin.Orders.Shipments.List")
+            @T("Admin.Orders.ShipmentsManual.List")
         </h1>
         <div class="pull-right">
             <div class="btn-group">
@@ -193,10 +193,10 @@
                                         <nop-editor asp-for="LoadNotShipped" />
                                     </div>
                                 </div>
-                               
+
                             </div>
                             <div class="col-md-7">
-                               
+
                                 <div class="form-group">
                                     <div class="col-md-4">
                                         <nop-label asp-for="City" />
@@ -252,7 +252,7 @@
                                         type: "json",
                                         transport: {
                                             read: {
-                                                url: "@Html.Raw(Url.Action("ShipmentCustomListSelect", "Order"))",
+                                                url: "@Html.Raw(Url.Action("ShipmentManualListSelect", "Order"))",
                                                 type: "POST",
                                                 dataType: "json",
                                                 data: additionalData
@@ -305,10 +305,6 @@
                                         }, {
                                             field: "BagId",
                                             title: "@T("Admin.Orders.Shipments.BagId")",
-                                            width: 100
-                                        }, {
-                                            field: "OrderItemId",
-                                            title: "@T("Admin.Orders.Shipments.OrderItemId")",
                                             width: 100
                                         }, {
                                             field: "ProductSku",

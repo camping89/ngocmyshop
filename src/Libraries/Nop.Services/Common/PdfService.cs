@@ -1439,7 +1439,10 @@ namespace Nop.Services.Common
                 RunDirection = GetDirection(lang),
                 WidthPercentage = 100f
             };
-            var cellProducts = GetPdfCell("PDFVendorExport.Order(s)", lang, titleFont);
+
+            var packageCodes = string.Join(",", orderItems.Where(o => o.PackageOrder != null).Select(_ => _.PackageOrder.PackageCode).Distinct().ToList());
+            var title = _localizationService.GetResource("PDFVendorExport.Order(s)", lang.Id);
+            var cellProducts = GetPdfCell($"{title}: {packageCodes}", titleFont);
             cellProducts.Border = Rectangle.NO_BORDER;
             productsHeader.AddCell(cellProducts);
             doc.Add(productsHeader);

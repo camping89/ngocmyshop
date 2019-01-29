@@ -54,6 +54,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
+using OrderItem = Nop.Core.Domain.Orders.OrderItem;
 
 namespace Nop.Web.Areas.Admin.Controllers
 {
@@ -94,7 +95,7 @@ namespace Nop.Web.Areas.Admin.Controllers
         private readonly IGiftCardService _giftCardService;
         private readonly IDownloadService _downloadService;
         private readonly IShipmentService _shipmentService;
-        private readonly IShipmentCustomService _shipmentCustomService;
+        private readonly IShipmentManualService _shipmentManualService;
         private readonly IShippingService _shippingService;
         private readonly IStoreService _storeService;
         private readonly IVendorService _vendorService;
@@ -170,7 +171,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             TaxSettings taxSettings,
             MeasureSettings measureSettings,
             AddressSettings addressSettings,
-            ShippingSettings shippingSettings, VendorSettings vendorSettings, ICustomerService customerService, IShoppingCartModelFactory shoppingCartModelFactory, IStoreContext storeContext, IPackageOrderService packageOrderService, ICommonModelFactory commonModelFactory, MediaSettings mediaSettings, IWebHelper webHelper, IShelfService shelfService, IShipmentCustomService shipmentCustomService)
+            ShippingSettings shippingSettings, VendorSettings vendorSettings, ICustomerService customerService, IShoppingCartModelFactory shoppingCartModelFactory, IStoreContext storeContext, IPackageOrderService packageOrderService, ICommonModelFactory commonModelFactory, MediaSettings mediaSettings, IWebHelper webHelper, IShelfService shelfService, IShipmentManualService shipmentManualService)
         {
             this._orderService = orderService;
             this._orderReportService = orderReportService;
@@ -229,7 +230,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             _mediaSettings = mediaSettings;
             _webHelper = webHelper;
             _shelfService = shelfService;
-            _shipmentCustomService = shipmentCustomService;
+            _shipmentManualService = shipmentManualService;
         }
 
         #endregion
@@ -1492,7 +1493,7 @@ namespace Nop.Web.Areas.Admin.Controllers
 
             return model;
         }
-        protected virtual ShipmentManualModel PrepareShipmentCustomModel(ShipmentManual shipment, bool prepareProducts = false, bool prepareShipmentEvent = false)
+        protected virtual ShipmentManualModel PrepareShipmentManualModel(ShipmentManual shipment, bool prepareProducts = false, bool prepareShipmentEvent = false)
         {
             //measures
             var baseWeight = _measureService.GetMeasureWeightById(_measureSettings.BaseWeightId);
@@ -4015,7 +4016,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 if (packageOrderNew.Id > 0)
                 {
                     orderItem.PackageOrderId = packageOrderNew.Id;
-                    orderItem.PackageItemProcessedDatetime = DateTime.UtcNow;
+                    //orderItem.PackageItemProcessedDatetime = DateTime.UtcNow;
                 }
             }
 
@@ -4070,8 +4071,41 @@ namespace Nop.Web.Areas.Admin.Controllers
                         AssignedDate = DateTime.UtcNow,
                         IsActived = true
                     });
+
+                    var listOrderItems = GetOrderItemsUnAssignShelfByCustomer(customerId);
+                    foreach (var orderItemUnAssign in listOrderItems)
+                    {
+                        _shelfService.InsertShelfOrderItem(new ShelfOrderItem
+                        {
+                            OrderItemId = orderItemUnAssign.Id,
+                            ShelfId = shelfId,
+                            CustomerId = customerId,
+                            AssignedDate = DateTime.UtcNow,
+                            IsActived = true
+                        });
+
+                    }
                 }
             }
+        }
+
+        private List<OrderItem> GetOrderItemsUnAssignShelfByCustomer(int customerId)
+        {
+            var shelfOrderItemIds = _shelfService.GetAllShelfOrderItem(customerId: customerId).Select(_ => _.OrderItemId).Distinct().ToList();
+            var orders = _orderService.SearchOrders(customerId: customerId);
+            var listOrderItems = new List<OrderItem>();
+            foreach (var order in orders)
+            {
+                foreach (var orderItem in order.OrderItems)
+                {
+                    if (shelfOrderItemIds.All(_ => _.Equals(orderItem.Id)) == false)
+                    {
+                        listOrderItems.Add(orderItem);
+                    }
+                }
+            }
+
+            return listOrderItems;
         }
 
         [HttpPost]
@@ -4843,16 +4877,18 @@ namespace Nop.Web.Areas.Admin.Controllers
                 orderItems.AddRange(_orderService.GetOrderItemsByIds(selectedIds.ToArray()));
             }
 
+            var packageOrder = new PackageOrder() { PackageCode = packageOrderCodeNew, PackageName = packageOrderCodeNew };
+            _packageOrderService.Create(packageOrder);
+
             foreach (var orderItem in orderItems)
             {
                 try
                 {
-                    var packageOrder = new PackageOrder() { PackageCode = packageOrderCodeNew, PackageName = packageOrderCodeNew };
-                    _packageOrderService.Create(packageOrder);
+
                     if (packageOrder.Id > 0)
                     {
                         orderItem.PackageOrderId = packageOrder.Id;
-                        orderItem.PackageItemProcessedDatetime = DateTime.UtcNow;
+                        //orderItem.PackageItemProcessedDatetime = DateTime.UtcNow;
                         _orderService.UpdateOrderItem(orderItem);
                     }
 
@@ -4868,7 +4904,7 @@ namespace Nop.Web.Areas.Admin.Controllers
 
 
         [HttpPost]
-        public virtual IActionResult ApplyPackageItemProcessedDatetimeSelected(ICollection<int> selectedIds, DateTime datetimeNew)
+        public virtual IActionResult ApplyPackageItemProcessedDatetimeSelected(ICollection<int> selectedIds, DateTime? datetimeNew)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageOrders))
                 return AccessDeniedView();
@@ -5194,9 +5230,9 @@ namespace Nop.Web.Areas.Admin.Controllers
 
         #endregion
 
-        #region  ShipmentCustom
+        #region  ShipmentManual
 
-        public virtual IActionResult ShipmentCustomList()
+        public virtual IActionResult ShipmentManualList()
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageOrders))
                 return AccessDeniedView();
@@ -5218,7 +5254,7 @@ namespace Nop.Web.Areas.Admin.Controllers
         }
 
         [HttpPost]
-        public virtual IActionResult ShipmentCustomListSelect(DataSourceRequest command, ShipmentListModel model)
+        public virtual IActionResult ShipmentManualListSelect(DataSourceRequest command, ShipmentListModel model)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageOrders))
                 return AccessDeniedKendoGridJson();
@@ -5235,7 +5271,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 vendorId = _workContext.CurrentVendor.Id;
 
             //load shipments
-            var shipments = _shipmentCustomService.GetAllShipmentsCustom(vendorId: vendorId,
+            var shipments = _shipmentManualService.GetAllShipmentsManual(vendorId: vendorId,
                 shippingCountryId: model.CountryId,
                 shippingStateId: model.StateProvinceId,
                 shippingCity: model.City,
@@ -5250,10 +5286,10 @@ namespace Nop.Web.Areas.Admin.Controllers
 
             var gridModel = new DataSourceResult
             {
-                Data = shipments.Select(shipment => PrepareShipmentCustomModel(shipment)),
+                Data = shipments.Select(shipment => PrepareShipmentManualModel(shipment)),
                 Total = shipments.TotalCount
             };
-            var data = gridModel.Data.Cast<ShipmentModel>().ToList();
+            var data = gridModel.Data.Cast<ShipmentManualModel>().ToList();
             var depositTotal = data.Sum(_ => _.Deposit);
             var orderTotal = data.Sum(_ => _.TotalOrderFeeDecimal);
             gridModel.ExtraData = new
@@ -5953,12 +5989,12 @@ namespace Nop.Web.Areas.Admin.Controllers
             var model = new OrderItemExportVendorModel();
 
             //package orders
-            var packageOrders = _packageOrderService.GetPackageOrders(loadIsShipped: false);
-            foreach (var packageOrder in packageOrders)
-            {
-                model.PackageOrderIds.Add(new SelectListItem { Text = packageOrder.PackageName, Value = packageOrder.Id.ToString() });
-            }
-            model.PackageOrderIds.Insert(0, new SelectListItem { Text = _localizationService.GetResource("Admin.Common.All"), Value = "0" });
+            //var packageOrders = _packageOrderService.GetPackageOrders(loadIsShipped: false);
+            //foreach (var packageOrder in packageOrders)
+            //{
+            //    model.PackageOrderIds.Add(new SelectListItem { Text = packageOrder.PackageName, Value = packageOrder.Id.ToString() });
+            //}
+            //model.PackageOrderIds.Insert(0, new SelectListItem { Text = _localizationService.GetResource("Admin.Common.All"), Value = "0" });
 
             //customers
             var customers = _customerService.GetAllCustomers();
@@ -5987,7 +6023,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             var primaryStoreCurrency = _currencyService.GetCurrencyById(_currencySettings.PrimaryStoreCurrencyId);
             var orderItems = _orderService.GetOrderItemsVendorCheckout(model.VendorProductUrl, model.OrderId, command.Page - 1, command.PageSize,
                 isOrderCheckout: model.IsOrderCheckout, isPackageItemProcessed: model.IsPackageItemProcessed, todayFilter: model.TodayFilter,
-                customerPhone: model.CustomerPhone, packageOrderId: model.PackageOrderId,
+                customerPhone: model.CustomerPhone, packageOrderCode: model.PackageOrderCode,
                 vendorId: model.VendorId, isSetPackageOrderId: model.IsSetPackageOrderId,
                 isSetShelfId: model.IsShelfAssigned);
 

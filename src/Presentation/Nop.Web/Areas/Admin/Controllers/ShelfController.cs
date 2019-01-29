@@ -70,7 +70,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageNews))
                 return AccessDeniedKendoGridJson();
 
-            var shelfs = _shelfService.GetAllShelf(model.CustomerId, model.AssignedFromDate, model.AssignedToDate, command.Page - 1, command.PageSize, model.ShelfIsEmpty);
+            var shelfs = _shelfService.GetAllShelf(model.CustomerId, model.AssignedFromDate, model.AssignedToDate, command.Page - 1, command.PageSize, model.IsShelfEmpty);
             var gridModel = new DataSourceResult
             {
                 Data = shelfs.Select(x =>

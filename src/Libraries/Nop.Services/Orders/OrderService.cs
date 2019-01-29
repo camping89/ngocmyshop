@@ -450,7 +450,7 @@ namespace Nop.Services.Orders
         }
 
         public virtual IPagedList<OrderItem> GetOrderItemsVendorCheckout(string vendorProductUrl, int orderId = 0, int pageIndex = 0, int pageSize = int.MaxValue, OrderSortingEnum orderBy = OrderSortingEnum.CreatedOnDesc, bool? isOrderCheckout = null
-            , bool isPackageItemProcessed = false, bool todayFilter = false, string customerPhone = null, int packageOrderId = 0, int vendorId = 0, bool? isSetPackageOrderId = null, bool? isSetShelfId = null)
+            , bool isPackageItemProcessed = false, bool todayFilter = false, string customerPhone = null, string packageOrderCode = null, int vendorId = 0, bool? isSetPackageOrderId = null, bool? isSetShelfId = null)
         {
             var query = _orderItemRepository.Table;
             if (string.IsNullOrEmpty(vendorProductUrl) == false)
@@ -464,9 +464,9 @@ namespace Nop.Services.Orders
                 query = query.Where(_ => _.OrderId == orderId);
             }
 
-            if (packageOrderId > 0)
+            if (string.IsNullOrEmpty(packageOrderCode) == false)
             {
-                query = query.Where(_ => _.PackageOrderId == packageOrderId);
+                query = query.Where(_ => _.PackageOrder.PackageCode == packageOrderCode.Trim());
             }
             else
             {

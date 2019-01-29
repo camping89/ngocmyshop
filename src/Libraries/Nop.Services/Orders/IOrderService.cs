@@ -131,7 +131,7 @@ namespace Nop.Services.Orders
         IList<OrderItem> GetOrderItemsByPackageId(int packageId);
 
         IPagedList<OrderItem> GetOrderItemsVendorCheckout(string vendorProductUrl, int orderId = 0, int pageIndex = 0, int pageSize = int.MaxValue, OrderSortingEnum orderBy = OrderSortingEnum.CreatedOnDesc, bool? isOrderCheckout = null
-            , bool isPackageItemProcessed = false, bool todayFilter = false, string customerPhone = null, int packageOrderId = 0, int vendorId = 0, bool? isSetPackageOrderId = null, bool? isSetShelfId = null);
+            , bool isPackageItemProcessed = false, bool todayFilter = false, string customerPhone = null, string packageOrderCode = null, int vendorId = 0, bool? isSetPackageOrderId = null, bool? isSetShelfId = null);
 
         /// <summary>
         /// Delete an order item

@@ -29,8 +29,8 @@ namespace Nop.Web.Areas.Admin.Models.Orders
         [NopResourceDisplayName("Admin.ShelfOrderItem.IsActive")]
         public bool? ShelfOrderItemIsActive { get; set; }
 
-        [NopResourceDisplayName("Admin.ShelfOrderItem.ShelfIsEmpty")]
-        public bool ShelfIsEmpty { get; set; }
+        [NopResourceDisplayName("Admin.ShelfOrderItem.IsShelfEmpty")]
+        public bool IsShelfEmpty { get; set; }
 
         public List<SelectListItem> ShelfOrderItemsStatus { get; set; }
 
