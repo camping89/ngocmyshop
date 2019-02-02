@@ -78,6 +78,9 @@
     <Content Update="Areas\Admin\Views\Order\ShipmentManualList.cshtml">
       <Pack>$(IncludeRazorContentInPack)</Pack>
     </Content>
+    <Content Update="Areas\Admin\Views\Order\ShipmentManualList_old.cshtml">
+      <Pack>$(IncludeRazorContentInPack)</Pack>
+    </Content>
     <Content Update="Areas\Admin\Views\Order\_CreateOrUpdatePackageOrder.cshtml">
       <Pack>$(IncludeRazorContentInPack)</Pack>
     </Content>

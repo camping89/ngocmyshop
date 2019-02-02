@@ -94,7 +94,6 @@ namespace Nop.Services.Tests.Orders
         private CustomerSettings _customerSettings;
         private AddressSettings _addressSettings;
         private ICustomNumberFormatter _customNumberFormatter;
-
         private Store _store;
 
         [SetUp]
@@ -225,23 +224,23 @@ namespace Nop.Services.Tests.Orders
             _rewardPointService = MockRepository.GenerateMock<IRewardPointService>();
             _currencySettings = new CurrencySettings();
 
-            _orderProcessingService = new OrderProcessingService(_orderService, _webHelper,
-                _localizationService, _languageService,
-                _productService, _paymentService, _logger,
-                _orderTotalCalcService, _priceCalcService, _priceFormatter,
-                _productAttributeParser, _productAttributeFormatter,
-                _giftCardService, _shoppingCartService, _checkoutAttributeFormatter,
-                _shippingService, _shipmentService, _taxService,
-                _customerService, _discountService,
-                _encryptionService, _workContext,
-                _workflowMessageService, _vendorService,
-                _customerActivityService, _currencyService, _affiliateService,
-                _eventPublisher, _pdfService, _rewardPointService,
-                _genericAttributeService,
-                _countryService, _stateProvinceService,
-                _shippingSettings, _paymentSettings, _rewardPointsSettings,
-                _orderSettings, _taxSettings, _localizationSettings,
-                _currencySettings, _customNumberFormatter);
+            //_orderProcessingService = new OrderProcessingService(_orderService, _webHelper,
+            //    _localizationService, _languageService,
+            //    _productService, _paymentService, _logger,
+            //    _orderTotalCalcService, _priceCalcService, _priceFormatter,
+            //    _productAttributeParser, _productAttributeFormatter,
+            //    _giftCardService, _shoppingCartService, _checkoutAttributeFormatter,
+            //    _shippingService, _shipmentService, _taxService,
+            //    _customerService, _discountService,
+            //    _encryptionService, _workContext,
+            //    _workflowMessageService, _vendorService,
+            //    _customerActivityService, _currencyService, _affiliateService,
+            //    _eventPublisher, _pdfService, _rewardPointService,
+            //    _genericAttributeService,
+            //    _countryService, _stateProvinceService,
+            //    _shippingSettings, _paymentSettings, _rewardPointsSettings,
+            //    _orderSettings, _taxSettings, _localizationSettings,
+            //    _currencySettings, _customNumberFormatter);
         }
 
         [Test]

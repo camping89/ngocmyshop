@@ -20,6 +20,9 @@ namespace Nop.Web.Areas.Admin.Models.Orders
         [NopResourceDisplayName("Admin.Orders.Shelf.Fields.AssignedFromDate")]
         public DateTime? AssignedFromDate { get; set; }
 
+        [NopResourceDisplayName("Admin.Orders.Shelf.Fields.ShelfCode")]
+        public string ShelfCode { get; set; }
+
         [UIHint("DateNullable")]
         [NopResourceDisplayName("Admin.Orders.Shelf.Fields.AssignedToDate")]
         public DateTime? AssignedToDate { get; set; }

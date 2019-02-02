@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Nop.Core.Domain.Customers;
+using Nop.Core.Domain.Orders;
+using Nop.Core.Domain.Shipping;
 using Nop.Services.Common;
 using Nop.Services.Customers;
 using Nop.Services.Localization;
@@ -13,6 +15,7 @@ using Nop.Web.Extensions;
 using Nop.Web.Framework.Kendoui;
 using Nop.Web.Framework.Mvc;
 using Nop.Web.Framework.Mvc.Filters;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -25,13 +28,15 @@ namespace Nop.Web.Areas.Admin.Controllers
         private readonly IOrderService _orderService;
         private readonly IPermissionService _permissionService;
         private readonly ILocalizationService _localizationService;
-        public ShelfController(ICustomerService customerService, IShelfService shelfService, IOrderService orderService, IPermissionService permissionService, ILocalizationService localizationService)
+        private readonly IShipmentManualService _shipmentManualService;
+        public ShelfController(ICustomerService customerService, IShelfService shelfService, IOrderService orderService, IPermissionService permissionService, ILocalizationService localizationService, IShipmentManualService shipmentManualService)
         {
             _customerService = customerService;
             _shelfService = shelfService;
             _orderService = orderService;
             _permissionService = permissionService;
             _localizationService = localizationService;
+            _shipmentManualService = shipmentManualService;
         }
 
         public IActionResult Index()
@@ -70,7 +75,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageNews))
                 return AccessDeniedKendoGridJson();
 
-            var shelfs = _shelfService.GetAllShelf(model.CustomerId, model.AssignedFromDate, model.AssignedToDate, command.Page - 1, command.PageSize, model.IsShelfEmpty);
+            var shelfs = _shelfService.GetAllShelf(model.CustomerId, model.AssignedFromDate, model.AssignedToDate, command.Page - 1, command.PageSize, model.IsShelfEmpty, shelfCode: model.ShelfCode);
             var gridModel = new DataSourceResult
             {
                 Data = shelfs.Select(x =>
@@ -268,5 +273,119 @@ namespace Nop.Web.Areas.Admin.Controllers
 
             return new NullJsonResult();
         }
+
+
+        #region Shipment
+
+        [HttpPost]
+        public IActionResult CreateShipAll(int shelfId, int customerId)
+        {
+            var shelfOrderItems = _shelfService.GetAllShelfOrderItem(shelfId, shelfOrderItemIsActive: true);
+            if (shelfOrderItems.Count > 0)
+            {
+                CreateShipment(shelfOrderItems.Select(_ => _.OrderItemId).ToList(), customerId);
+            }
+
+            return Json(new { Success = true });
+        }
+
+        [HttpPost]
+        public IActionResult CreateShipSelectedIds(ICollection<int> orderItemIds, int customerId)
+        {
+            CreateShipment(orderItemIds, customerId);
+            return Json(new { Success = true });
+        }
+
+        private void CreateShipment(ICollection<int> orderItemIds, int customerId)
+        {
+            if (customerId > 0 && orderItemIds != null)
+            {
+                var orderItems = _orderService.GetOrderItemsByIds(orderItemIds.ToArray());
+                var totalWeight = orderItems.Sum(_ => _.ItemWeight);
+                var customer = _customerService.GetCustomerById(customerId);
+                if (customer != null)
+                {
+                    var customerAddress = customer.Addresses.OrderByDescending(_ => _.CreatedOnUtc).FirstOrDefault();
+                    var shipmentEntity = new ShipmentManual()
+                    {
+                        CustomerId = customerId,
+                        CreatedOnUtc = DateTime.UtcNow,
+                        BagId = StringExtensions.RandomString(6, false),
+                        TrackingNumber = StringExtensions.RandomString(6, false),
+                        ShippingAddressId = customerAddress?.Id,
+                        TotalShippingFee = 0,
+                        TotalWeight = totalWeight,
+                        Deposit = 0
+                    };
+
+                    _shipmentManualService.InsertShipmentManual(shipmentEntity);
+                    if (shipmentEntity.Id > 0)
+                    {
+                        foreach (var orderItem in orderItems)
+                        {
+                            var shipmentManualItem = PrepareShipmentManualItemEntity(orderItem, shipmentEntity.Id);
+                            _shipmentManualService.InsertShipmentManualItem(shipmentManualItem);
+                        }
+
+                        foreach (var orderItemId in orderItemIds)
+                        {
+
+                            var shelfOrderItem = _shelfService.GetShelfOrderItemByOrderItemId(orderItemId);
+                            if (shelfOrderItem != null)
+                            {
+                                var shelfOrderItemEntity = _shelfService.GetShelfOrderItemById(shelfOrderItem.Id);
+                                shelfOrderItemEntity.IsActived = false;
+                                _shelfService.UpdateShelfOrderItem(shelfOrderItemEntity);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        private ShipmentManualItem PrepareShipmentManualItemEntity(OrderItem orderItem, int shipmentManualId)
+        {
+            var shipmentManualItem = new ShipmentManualItem
+            {
+                OrderItemId = orderItem.Id,
+                Quantity = orderItem.Quantity,
+                ShipmentManualId = shipmentManualId,
+                ShippingFee = 0,
+                WarehouseId = 0
+
+            };
+            return shipmentManualItem;
+        }
+
+        [HttpPost]
+        public IActionResult DeleteShipmentManualAjax(int id)
+        {
+            var shipmentManual = _shipmentManualService.GetShipmentManualById(id);
+            if (shipmentManual != null)
+            {
+                foreach (var shipmentManualItem in shipmentManual.ShipmentManualItems)
+                {
+                    //update status order
+                    var order = _orderService.GetOrderById(shipmentManualItem.OrderItem.OrderId);
+                    //check whether we have more items to ship
+                    if (order.HasItemsToAddToShipment() || order.HasItemsToShip())
+                        order.ShippingStatusId = (int)ShippingStatus.PartiallyShipped;
+                    else
+                        order.ShippingStatusId = (int)ShippingStatus.NotYetShipped;
+                    _orderService.UpdateOrder(order);
+
+                    var shelfOrderItem = _shelfService.GetShelfOrderItemByOrderItemId(shipmentManualItem.OrderItemId);
+                    if (shelfOrderItem != null)
+                    {
+                        shelfOrderItem.IsActived = true;
+                        _shelfService.UpdateShelfOrderItem(shelfOrderItem);
+                    }
+                }
+                _shipmentManualService.DeleteShipmentManual(shipmentManual);
+            }
+
+            return Json(new { Success = true });
+        }
+
+        #endregion
     }
 }

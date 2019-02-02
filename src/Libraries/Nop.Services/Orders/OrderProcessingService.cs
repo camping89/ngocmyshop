@@ -73,7 +73,7 @@ namespace Nop.Services.Orders
         private readonly IGenericAttributeService _genericAttributeService;
         private readonly ICountryService _countryService;
         private readonly IStateProvinceService _stateProvinceService;
-
+        private readonly IShipmentManualService _shipmentManualService;
         private readonly ShippingSettings _shippingSettings;
         private readonly PaymentSettings _paymentSettings;
         private readonly RewardPointsSettings _rewardPointsSettings;
@@ -171,7 +171,7 @@ namespace Nop.Services.Orders
             TaxSettings taxSettings,
             LocalizationSettings localizationSettings,
             CurrencySettings currencySettings,
-            ICustomNumberFormatter customNumberFormatter)
+            ICustomNumberFormatter customNumberFormatter, IShipmentManualService shipmentManualService)
         {
             this._orderService = orderService;
             this._webHelper = webHelper;
@@ -215,6 +215,7 @@ namespace Nop.Services.Orders
             this._localizationSettings = localizationSettings;
             this._currencySettings = currencySettings;
             this._customNumberFormatter = customNumberFormatter;
+            _shipmentManualService = shipmentManualService;
         }
 
         #endregion
@@ -2233,6 +2234,48 @@ namespace Nop.Services.Orders
             //check order status
             CheckOrderStatus(order);
         }
+        public virtual void ShipManual(ShipmentManual shipment, bool notifyCustomer)
+        {
+            if (shipment == null)
+                throw new ArgumentNullException(nameof(shipment));
+
+
+            if (shipment.ShippedDateUtc.HasValue)
+                throw new Exception("This shipment is already shipped");
+
+            shipment.ShippedDateUtc = DateTime.UtcNow;
+            _shipmentManualService.UpdateShipmentManual(shipment);
+
+            //process products with "Multiple warehouse" support enabled
+            foreach (var item in shipment.ShipmentManualItems)
+            {
+                var orderItem = _orderService.GetOrderItemById(item.OrderItemId);
+                _productService.BookReservedInventory(orderItem.Product, item.WarehouseId, -item.Quantity,
+                    string.Format(_localizationService.GetResource("Admin.StockQuantityHistory.Messages.Ship"), orderItem.Order.Id));
+
+                var order = _orderService.GetOrderById(orderItem.OrderId);
+
+                if (order != null)
+                {
+                    order.OrderCurrentSubtotal += orderItem.UnitPriceInclTax * item.Quantity;
+
+                    //check whether we have more items to ship
+                    if (order.HasItemsToAddToShipment() || order.HasItemsToShip())
+                        order.ShippingStatusId = (int)ShippingStatus.PartiallyShipped;
+                    else
+                        order.ShippingStatusId = (int)ShippingStatus.Shipped;
+                    _orderService.UpdateOrder(order);
+
+                    //add a note
+                    AddOrderNote(order, $"Shipment# {shipment.Id} has been sent");
+
+                    //check order status
+                    CheckOrderStatus(order);
+                }
+            }
+
+
+        }
 
         /// <summary>
         /// Marks a shipment as delivered
@@ -2279,6 +2322,47 @@ namespace Nop.Services.Orders
 
             //check order status
             CheckOrderStatus(order);
+        }
+
+        public virtual void DeliverManual(ShipmentManual shipment, bool notifyCustomer)
+        {
+            if (shipment == null)
+                throw new ArgumentNullException(nameof(shipment));
+
+            if (!shipment.ShippedDateUtc.HasValue)
+                throw new Exception("This shipment is not shipped yet");
+
+            if (shipment.DeliveryDateUtc.HasValue)
+                throw new Exception("This shipment is already delivered");
+
+            shipment.DeliveryDateUtc = DateTime.UtcNow;
+            _shipmentManualService.UpdateShipmentManual(shipment);
+
+            foreach (var shipmentManualItem in shipment.ShipmentManualItems)
+            {
+                var shipmentItem = _shipmentManualService.GetShipmentManualItemById(shipmentManualItem.Id);
+                shipmentItem.DeliveryDateUtc = DateTime.UtcNow;
+                _shipmentManualService.UpdateShipmentManualItem(shipmentManualItem);
+
+                var orderItem = _orderService.GetOrderItemById(shipmentItem.OrderItemId);
+                orderItem.DeliveryDateUtc = DateTime.UtcNow;
+                _orderService.UpdateOrderItem(orderItem);
+
+                var order = _orderService.GetOrderById(shipmentManualItem.OrderItem.OrderId);
+                if (order != null)
+                {
+                    if (!order.HasItemsToAddToShipment() && !order.HasItemsToShip() && !order.HasItemsToDeliver())
+                        order.ShippingStatusId = (int)ShippingStatus.Delivered;
+                    _orderService.UpdateOrder(order);
+
+                    //add a note
+                    AddOrderNote(order, $"Shipment# {shipment.Id} has been delivered");
+
+                    //check order status
+                    CheckOrderStatus(order);
+                }
+
+            }
         }
 
         /// <summary>

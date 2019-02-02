@@ -309,6 +309,7 @@ namespace Nop.Web.Areas.Admin.Models.Orders
             public string PackageItemProcessedDatetime { get; set; }
             public bool IncludeWeightCost { get; set; }
             public bool IsOrderCheckout { get; set; }
+            public string WeightCost { get; set; }
             public decimal WeightCostDec { get; set; }
             public decimal UnitWeightCost { get; set; }
             public decimal ItemWeight { get; set; }
@@ -328,6 +329,9 @@ namespace Nop.Web.Areas.Admin.Models.Orders
 
             public string AttributeInfo { get; set; }
             public string PictureThumbnailUrl { get; set; }
+            public DateTime? DeliveryDateUtc { get; set; }
+
+            public string PrimaryStoreCurrencyCode { get; set; }
 
         }
         public partial class OrderItemModel : BaseNopEntityModel
@@ -398,6 +402,8 @@ namespace Nop.Web.Areas.Admin.Models.Orders
             public int ShelfId { get; set; }
             public int ShelfOrderItemId { get; set; }
             public bool ShelfOrderItemIsActive { get; set; }
+
+            public DateTime? DeliveryDateUtc { get; set; }
 
             #region Nested Classes
 

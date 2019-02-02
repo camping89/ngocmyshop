@@ -1,6 +1,7 @@
 using Nop.Core;
 using Nop.Core.Data;
 using Nop.Core.Domain.Catalog;
+using Nop.Core.Domain.Common;
 using Nop.Core.Domain.Customers;
 using Nop.Core.Domain.Orders;
 using Nop.Core.Domain.Shipping;
@@ -19,6 +20,7 @@ namespace Nop.Services.Orders
         #region Fields
 
         private readonly IRepository<Order> _orderRepository;
+        private readonly IRepository<GenericAttribute> _gaRepository;
         private readonly IRepository<OrderItem> _orderItemRepository;
         private readonly IRepository<OrderNote> _orderNoteRepository;
         private readonly IRepository<Product> _productRepository;
@@ -47,7 +49,7 @@ namespace Nop.Services.Orders
             IRepository<Product> productRepository,
             IRepository<RecurringPayment> recurringPaymentRepository,
             IRepository<Customer> customerRepository,
-            IEventPublisher eventPublisher, IRepository<ShelfOrderItem> shelfOrderItemRepository)
+            IEventPublisher eventPublisher, IRepository<ShelfOrderItem> shelfOrderItemRepository, IRepository<GenericAttribute> gaRepository)
         {
             this._orderRepository = orderRepository;
             this._orderItemRepository = orderItemRepository;
@@ -57,6 +59,7 @@ namespace Nop.Services.Orders
             this._customerRepository = customerRepository;
             this._eventPublisher = eventPublisher;
             _shelfOrderItemRepository = shelfOrderItemRepository;
+            _gaRepository = gaRepository;
         }
 
         #endregion
@@ -211,9 +214,15 @@ namespace Nop.Services.Orders
             DateTime? createdFromUtc = null, DateTime? createdToUtc = null,
             List<int> osIds = null, List<int> psIds = null, List<int> ssIds = null, List<int> procIds = null,
             string billingEmail = null, List<int> custIdsByLinkFace = null, string billingFullName = null, string billingPhone = null,
-            string orderNotes = null, int pageIndex = 0, int pageSize = int.MaxValue, OrderSortingEnum orderBy = OrderSortingEnum.CreatedOnDesc, bool? isOrderCheckout = null)
+            string orderNotes = null, int pageIndex = 0, int pageSize = int.MaxValue, OrderSortingEnum orderBy = OrderSortingEnum.CreatedOnDesc, string orderId = null)
         {
             var query = _orderRepository.Table;
+
+            if (string.IsNullOrEmpty(orderId) == false)
+            {
+                orderId = orderId.TrimStart().TrimEnd().Trim();
+                query = query.Where(_ => _.Id.ToString().Contains(orderId));
+            }
             if (storeId > 0)
                 query = query.Where(o => o.StoreId == storeId);
             if (vendorId > 0)
@@ -294,10 +303,10 @@ namespace Nop.Services.Orders
             query = query.Where(o => !o.Deleted);
 
             //filter is checkout order
-            if (isOrderCheckout.HasValue)
-            {
-                query = query.Where(o => o.IsOrderCheckout == isOrderCheckout.Value);
-            }
+            //if (isOrderCheckout.HasValue)
+            //{
+            //    query = query.Where(o => o.IsOrderCheckout == isOrderCheckout.Value);
+            //}
 
             switch (orderBy)
             {
@@ -449,7 +458,7 @@ namespace Nop.Services.Orders
             return orderItems;
         }
 
-        public virtual IPagedList<OrderItem> GetOrderItemsVendorCheckout(string vendorProductUrl, int orderId = 0, int pageIndex = 0, int pageSize = int.MaxValue, OrderSortingEnum orderBy = OrderSortingEnum.CreatedOnDesc, bool? isOrderCheckout = null
+        public virtual IPagedList<OrderItem> GetOrderItemsVendorCheckout(string vendorProductUrl, string orderId = null, string orderItemId = null, int pageIndex = 0, int pageSize = int.MaxValue, OrderSortingEnum orderBy = OrderSortingEnum.CreatedOnDesc, bool? isOrderCheckout = null
             , bool isPackageItemProcessed = false, bool todayFilter = false, string customerPhone = null, string packageOrderCode = null, int vendorId = 0, bool? isSetPackageOrderId = null, bool? isSetShelfId = null)
         {
             var query = _orderItemRepository.Table;
@@ -459,14 +468,22 @@ namespace Nop.Services.Orders
                                          && _.Product.VendorProductUrl.Contains(vendorProductUrl));
             }
 
-            if (orderId > 0)
+            if (string.IsNullOrEmpty(orderItemId) == false)
             {
-                query = query.Where(_ => _.OrderId == orderId);
+                orderItemId = orderItemId.TrimStart().TrimEnd().Trim();
+                query = query.Where(_ => _.Id.ToString().Contains(orderItemId));
+            }
+
+            if (string.IsNullOrEmpty(orderId) == false)
+            {
+                orderId = orderId.TrimStart().TrimEnd().Trim();
+                query = query.Where(_ => _.OrderId.ToString().Contains(orderId));
             }
 
             if (string.IsNullOrEmpty(packageOrderCode) == false)
             {
-                query = query.Where(_ => _.PackageOrder.PackageCode == packageOrderCode.Trim());
+                packageOrderCode = packageOrderCode.TrimStart().TrimEnd().Trim();
+                query = query.Where(_ => _.PackageOrder.PackageCode.Contains(packageOrderCode));
             }
             else
             {
@@ -518,9 +535,18 @@ namespace Nop.Services.Orders
                 query = query.Where(_ => _.Order.CreatedOnUtc != null && startDate <= _.Order.CreatedOnUtc && endDate > _.Order.CreatedOnUtc);
             }
 
-            if (!string.IsNullOrEmpty(customerPhone))
-                query = query.Where(o => o.Order.BillingAddress != null && !string.IsNullOrEmpty(o.Order.BillingAddress.PhoneNumber) && o.Order.BillingAddress.PhoneNumber.Contains(customerPhone));
-
+            //if (!string.IsNullOrEmpty(customerPhone))
+            //    query = query.Where(o => o.Order.BillingAddress != null && !string.IsNullOrEmpty(o.Order.BillingAddress.PhoneNumber) && o.Order.BillingAddress.PhoneNumber.Contains(customerPhone));
+            if (!string.IsNullOrWhiteSpace(customerPhone))
+            {
+                customerPhone = customerPhone.TrimStart().TrimEnd().Trim();
+                query = query
+                    .Join(_gaRepository.Table, x => x.Order.CustomerId, y => y.EntityId, (x, y) => new { Customer = x, Attribute = y })
+                    .Where(z => z.Attribute.KeyGroup == "Customer" &&
+                                z.Attribute.Key == SystemCustomerAttributeNames.Phone &&
+                                z.Attribute.Value.Contains(customerPhone))
+                    .Select(z => z.Customer);
+            }
             switch (orderBy)
             {
                 case OrderSortingEnum.CreatedOnAsc:

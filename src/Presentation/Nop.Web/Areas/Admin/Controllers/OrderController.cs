@@ -572,6 +572,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 DownloadCount = orderItem.DownloadCount,
                 DownloadActivationType = orderItem.Product.DownloadActivationType,
                 IsDownloadActivated = orderItem.IsDownloadActivated,
+                WeightCostDec = orderItem.WeightCost,
                 WeightCost = _priceFormatter.FormatPrice(orderItem.WeightCost, true,
                         primaryStoreCurrency, _workContext.WorkingLanguage, true, true),
                 TotalWithoutWeightCost = _priceFormatter.FormatPrice((orderItem.PriceInclTax - orderItem.WeightCost), true,
@@ -585,7 +586,8 @@ namespace Nop.Web.Areas.Admin.Controllers
                 IncludeWeightCost = orderItem.IncludeWeightCost,
                 UnitWeightCost = orderItem.UnitWeightCost ?? (currencyProduct != null ? currencyProduct.UnitWeightCost : 0),
                 ItemWeight = orderItem.ItemWeight ?? 0,
-                PrimaryStoreCurrencyCode = _currencyService.GetCurrencyById(_currencySettings.PrimaryStoreCurrencyId).CurrencyCode
+                DeliveryDateUtc = orderItem.DeliveryDateUtc,
+                PrimaryStoreCurrencyCode = primaryStoreCurrency.CurrencyCode
 
             };
             //picture
@@ -680,7 +682,12 @@ namespace Nop.Web.Areas.Admin.Controllers
                 IsOrderCheckout = orderItem.IsOrderCheckout,
                 IncludeWeightCost = orderItem.IncludeWeightCost,
                 UnitWeightCost = orderItem.UnitWeightCost ?? (currencyProduct != null ? currencyProduct.UnitWeightCost : 0),
-                ItemWeight = orderItem.ItemWeight ?? 0
+                ItemWeight = orderItem.ItemWeight ?? 0,
+                DeliveryDateUtc = orderItem.DeliveryDateUtc,
+                WeightCostDec = orderItem.WeightCost,
+                WeightCost = _priceFormatter.FormatPrice(orderItem.WeightCost, true,
+                    primaryStoreCurrency, _workContext.WorkingLanguage, true, true),
+                PrimaryStoreCurrencyCode = primaryStoreCurrency.CurrencyCode
 
             };
             //picture
@@ -1493,6 +1500,73 @@ namespace Nop.Web.Areas.Admin.Controllers
 
             return model;
         }
+        protected virtual List<ShipmentModel.ShipmentItemModel> PrepareShipmentManualItemsModel(ShipmentManual shipment)
+        {
+            var results = new List<ShipmentModel.ShipmentItemModel>();
+
+            var baseWeight = _measureService.GetMeasureWeightById(_measureSettings.BaseWeightId);
+            var baseWeightIn = baseWeight != null ? baseWeight.Name : "";
+            var baseDimension = _measureService.GetMeasureDimensionById(_measureSettings.BaseDimensionId);
+            var baseDimensionIn = baseDimension != null ? baseDimension.Name : "";
+            var primaryStoreCurrency = _currencyService.GetCurrencyById(_currencySettings.PrimaryStoreCurrencyId);
+            foreach (var shipmentItem in shipment.ShipmentManualItems)
+            {
+                var orderItem = _orderService.GetOrderItemById(shipmentItem.OrderItemId);
+                if (orderItem == null)
+                    continue;
+
+                //quantities
+                var qtyInThisShipment = shipmentItem.Quantity;
+                var maxQtyToAdd = orderItem.GetTotalNumberOfItemsCanBeAddedToShipment();
+                var qtyOrdered = orderItem.Quantity;
+                var qtyInAllShipments = orderItem.GetTotalNumberOfItemsInAllShipment();
+
+                var warehouse = _shippingService.GetWarehouseById(shipmentItem.WarehouseId);
+
+                var shipmentItemModel = new ShipmentModel.ShipmentItemModel
+                {
+                    Id = shipmentItem.Id,
+                    OrderItemId = orderItem.Id,
+                    OrderItemNumber = $"{orderItem.OrderId}.{orderItem.Id}",
+                    ProductId = orderItem.ProductId,
+                    ProductName = orderItem.Product.Name,
+                    Sku = orderItem.Product.FormatSku(orderItem.AttributesXml, _productAttributeParser),
+                    AttributeInfo = orderItem.AttributeDescription,
+                    ShippedFromWarehouse = warehouse != null ? warehouse.Name : null,
+                    ShipSeparately = orderItem.Product.ShipSeparately,
+                    ItemWeight = orderItem.ItemWeight.HasValue ? $"{orderItem.ItemWeight:F2} [{baseWeightIn}]" : "",
+                    ItemDimensions = $"{orderItem.Product.Length:F2} x {orderItem.Product.Width:F2} x {orderItem.Product.Height:F2} [{baseDimensionIn}]",
+                    QuantityOrdered = qtyOrdered,
+                    QuantityInThisShipment = qtyInThisShipment,
+                    QuantityInAllShipments = qtyInAllShipments,
+                    QuantityToAdd = maxQtyToAdd,
+                    ShippingFee = shipmentItem.ShippingFee,
+                    DeliveryDateUtc = shipmentItem.DeliveryDateUtc,
+                    ShippingFeeStr = _priceFormatter.FormatPrice(shipmentItem.ShippingFee, true, primaryStoreCurrency,
+                        _workContext.WorkingLanguage, true, false),
+                    OrderItemFee = _priceFormatter.FormatPrice(orderItem.UnitPriceInclTax * orderItem.Quantity, true, primaryStoreCurrency,
+                        _workContext.WorkingLanguage, true, false)
+                };
+
+                //picture
+                var orderItemPicture =
+                    orderItem.Product.GetProductPicture(orderItem.AttributesXml, _pictureService, _productAttributeParser);
+                shipmentItemModel.ImageUrl = _pictureService.GetPictureUrl(orderItemPicture, 75, true);
+                //rental info
+                if (orderItem.Product.IsRental)
+                {
+                    var rentalStartDate = orderItem.RentalStartDateUtc.HasValue ? orderItem.Product.FormatRentalDate(orderItem.RentalStartDateUtc.Value) : "";
+                    var rentalEndDate = orderItem.RentalEndDateUtc.HasValue ? orderItem.Product.FormatRentalDate(orderItem.RentalEndDateUtc.Value) : "";
+                    shipmentItemModel.RentalInfo = string.Format(_localizationService.GetResource("Order.Rental.FormattedDate"),
+                        rentalStartDate, rentalEndDate);
+                }
+
+                results.Add(shipmentItemModel);
+            }
+
+
+            return results;
+        }
         protected virtual ShipmentManualModel PrepareShipmentManualModel(ShipmentManual shipment, bool prepareProducts = false, bool prepareShipmentEvent = false)
         {
             //measures
@@ -1519,56 +1593,35 @@ namespace Nop.Web.Areas.Admin.Controllers
                 TotalShippingFee = _priceFormatter.FormatPrice(shipment.TotalShippingFee, true, primaryStoreCurrency,
                     _workContext.WorkingLanguage, true, false),
                 BagId = shipment.BagId,
-                //ShipmentAddress = shipment.OrderItem.Order.ShippingAddress.Address1
+                ShipmentAddress = shipment.ShippingAddress.Address1
             };
 
-            //var order = _orderService.GetOrderById(shipment.OrderItem.OrderId);
-            //if (order != null)
-            //{
-            //    var customerOrder = _customerService.GetCustomerById(order.CustomerId);
-            //    if (customerOrder != null)
-            //    {
-            //        var linkFacebook = customerOrder.GetAttribute<string>(SystemCustomerAttributeNames.LinkFacebook1);
+            var customerOrder = shipment.Customer;
+            if (customerOrder != null)
+            {
+                var linkFacebook = customerOrder.GetAttribute<string>(SystemCustomerAttributeNames.LinkFacebook1);
 
-            //        model.CustomerFullName = customerOrder.GetFullName();
-            //        model.CustomerPhone = customerOrder.GetAttribute<string>(SystemCustomerAttributeNames.Phone);
-            //        model.CustomerLinkFacebook = linkFacebook;
-            //    }
-            //}
-            //decimal totalOrderFee = 0;
-            //if (shipment.Customer != null)
-            //{
-            //    model.ShipperId = shipment.CustomerId;
-            //    //model.Customer = shipment.Customer;
-            //    model.ShipperFullName = $"(ID:{shipment.CustomerId}) " + shipment.Customer.GetFullName() + " - " + shipment.Customer.GetAttribute<string>(SystemCustomerAttributeNames.Phone);
-            //}
+                model.CustomerFullName = customerOrder.GetFullName();
+                model.CustomerPhone = customerOrder.GetAttribute<string>(SystemCustomerAttributeNames.Phone);
+                model.CustomerLinkFacebook = linkFacebook;
+            }
 
-            //if (prepareProducts)
-            //{
-            //    var packageOrderModels = _packageOrderService.GetPackageOrders().Select(x => x.ToModel()).ToList();
-            //    var shipmentItem = shipment.OrderItem;
-            //    var orderItem = _orderService.GetOrderItemById(shipment.OrderItemId);
-            //    if (orderItem != null)
-            //    {
-            //        model.OrderItem = PrepareOrderItemModel(orderItem, packageOrderModels);
-            //    }
-            //    model.ProductSku = shipment.OrderItem.Product.Sku;
+            if (shipment.Shipper != null)
+            {
+                model.ShipperId = shipment.ShipperId;
+                //model.Customer = shipment.Customer;
+                model.ShipperFullName = $"(ID:{shipment.CustomerId}) " + shipment.Shipper.GetFullName() + " - " + shipment.Shipper.GetAttribute<string>(SystemCustomerAttributeNames.Phone);
+            }
 
-            //    model.TotalOrderFee = _priceFormatter.FormatPrice(totalOrderFee, true, primaryStoreCurrency,
-            //        _workContext.WorkingLanguage, true, false);
-            //    model.TotalOrderFeeDecimal = totalOrderFee;
-            //}
+            decimal totalOrderFee = 0;
+            foreach (var shipmentItem in shipment.ShipmentManualItems)
+            {
+                totalOrderFee += shipmentItem.OrderItem.PriceInclTax;
+            }
 
-            //if (!prepareShipmentEvent || string.IsNullOrEmpty(shipment.TrackingNumber))
-            //    return model;
-
-            //var shipmentTracker = shipment.GetShipmentTracker(_shippingService, _shippingSettings);
-            //if (shipmentTracker == null)
-            //    return model;
-
-            //model.TrackingNumberUrl = shipmentTracker.GetUrl(shipment.TrackingNumber);
-            //if (!_shippingSettings.DisplayShipmentEventsToStoreOwner)
-            //    return model;
+            model.TotalOrderFee = _priceFormatter.FormatPrice(totalOrderFee, true, primaryStoreCurrency,
+                _workContext.WorkingLanguage, true, false);
+            model.TotalOrderFeeDecimal = totalOrderFee;
 
             return model;
         }
@@ -1672,11 +1725,6 @@ namespace Nop.Web.Areas.Admin.Controllers
             var vendors = SelectListHelper.GetVendorList(_vendorService, _cacheManager, true);
             foreach (var v in vendors)
                 model.AvailableVendors.Add(v);
-
-            //ordercheckoutstatus
-            model.AvailableOrderCheckoutStatus.Add(new SelectListItem { Text = _localizationService.GetResource("Admin.Common.All"), Value = "" });
-            model.AvailableOrderCheckoutStatus.Add(new SelectListItem { Text = _localizationService.GetResource("Admin.AvailableOrderCheckoutStatus.UnCheckout"), Value = "false" });
-            model.AvailableOrderCheckoutStatus.Add(new SelectListItem { Text = _localizationService.GetResource("Admin.AvailableOrderCheckoutStatus.Checkouted"), Value = "true" });
 
             //warehouses
             model.AvailableWarehouses.Add(new SelectListItem { Text = _localizationService.GetResource("Admin.Common.All"), Value = "0" });
@@ -1799,7 +1847,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 pageIndex: command.Page - 1,
                 pageSize: command.PageSize,
                 orderBy: sortingEnum,
-                isOrderCheckout: model.IsOrderCheckout);
+                orderId: model.OrderId);
 
             secondRun = stopwatch.ElapsedMilliseconds;
             var gridModel = new DataSourceResult
@@ -1998,8 +2046,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 billingFullName: model.BillingFullName,
                 billingCountryId: model.BillingCountryId,
                 billingPhone: model.BillingPhone,
-                orderNotes: model.OrderNotes,
-                isOrderCheckout: model.IsOrderCheckout);
+                orderNotes: model.OrderNotes);
 
 
             try
@@ -2098,8 +2145,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 billingFullName: model.BillingFullName,
                 billingCountryId: model.BillingCountryId,
                 billingPhone: model.BillingPhone,
-                orderNotes: model.OrderNotes,
-                isOrderCheckout: model.IsOrderCheckout);
+                orderNotes: model.OrderNotes);
 
             try
             {
@@ -2232,8 +2278,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 billingFullName: model.BillingFullName,
                 billingCountryId: model.BillingCountryId,
                 billingPhone: model.BillingPhone,
-                orderNotes: model.OrderNotes,
-                isOrderCheckout: model.IsOrderCheckout);
+                orderNotes: model.OrderNotes);
 
 
             try
@@ -2824,8 +2869,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 billingFullName: model.BillingFullName,
                 billingCountryId: model.BillingCountryId,
                 billingPhone: model.BillingPhone,
-                orderNotes: model.OrderNotes,
-                isOrderCheckout: model.IsOrderCheckout);
+                orderNotes: model.OrderNotes);
 
 
             byte[] bytes;
@@ -3972,11 +4016,12 @@ namespace Nop.Web.Areas.Admin.Controllers
                 return Content("");
 
             var model = new OrderModel();
-            PrepareOrderDetailsModel(model, order);
+
+            var orderItemsModel = PrepareOrderItemsModelBasic(order.OrderItems.ToList());
             var gridModel = new DataSourceResult
             {
-                Data = model.Items,
-                Total = model.Items.Count
+                Data = orderItemsModel,
+                Total = orderItemsModel.Count
             };
 
             return Json(gridModel);
@@ -3992,7 +4037,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             if (order == null)
                 //No order found with the specified id
                 return RedirectToAction("List");
-            var orderItem = order.OrderItems.FirstOrDefault(x => x.Id == orderItemModel.Id);
+            var orderItem = _orderService.GetOrderItemById(orderItemModel.Id);
             if (orderItem == null)
                 throw new ArgumentException("No order item found with the specified id");
             if (orderItemModel.PackageOrderId > 0)
@@ -4007,16 +4052,19 @@ namespace Nop.Web.Areas.Admin.Controllers
             }
             else
             {
-                var packageOrderNew = new PackageOrder
+                if (string.IsNullOrEmpty(orderItemModel.PackageOrderCode) == false)
                 {
-                    PackageCode = orderItemModel.PackageOrderCode,
-                    PackageName = orderItemModel.PackageOrderCode
-                };
-                _packageOrderService.Create(packageOrderNew);
-                if (packageOrderNew.Id > 0)
-                {
-                    orderItem.PackageOrderId = packageOrderNew.Id;
-                    //orderItem.PackageItemProcessedDatetime = DateTime.UtcNow;
+                    var packageOrderNew = new PackageOrder
+                    {
+                        PackageCode = orderItemModel.PackageOrderCode,
+                        PackageName = orderItemModel.PackageOrderCode
+                    };
+                    _packageOrderService.Create(packageOrderNew);
+                    if (packageOrderNew.Id > 0)
+                    {
+                        orderItem.PackageOrderId = packageOrderNew.Id;
+                        //orderItem.PackageItemProcessedDatetime = DateTime.UtcNow;
+                    }
                 }
             }
 
@@ -4035,6 +4083,8 @@ namespace Nop.Web.Areas.Admin.Controllers
             orderItem.ItemWeight = orderItemModel.ItemWeight;
             orderItem.UnitWeightCost = orderItemModel.UnitWeightCost;
             orderItem.IsOrderCheckout = orderItemModel.IsOrderCheckout;
+
+            _orderService.UpdateOrderItem(orderItem);
 
             order.WeightCost = order.OrderItems.Sum(_ => _.WeightCost);
 
@@ -4136,6 +4186,26 @@ namespace Nop.Web.Areas.Admin.Controllers
             {
                 Data = shipmentModel.Items,
                 Total = shipmentModel.Items.Count
+            };
+
+            return Json(gridModel);
+        }
+        [HttpPost]
+        public virtual IActionResult ShipmentsManualItemsByShipmentManualId(int shipmentId, DataSourceRequest command)
+        {
+            if (!_permissionService.Authorize(StandardPermissionProvider.ManageOrders))
+                return AccessDeniedKendoGridJson();
+
+            var shipment = _shipmentManualService.GetShipmentManualById(shipmentId);
+            if (shipment == null)
+                throw new ArgumentException("No shipment found with the specified id");
+
+            //shipments
+            var shipmentItemsModel = PrepareShipmentManualItemsModel(shipment);
+            var gridModel = new DataSourceResult
+            {
+                Data = shipmentItemsModel,
+                Total = shipmentItemsModel.Count
             };
 
             return Json(gridModel);
@@ -4768,6 +4838,39 @@ namespace Nop.Web.Areas.Admin.Controllers
 
 
         [HttpPost]
+        public virtual IActionResult AssignShipmentManualNewShipperSelected(ICollection<int> selectedIds, int customerNewId)
+        {
+            if (!_permissionService.Authorize(StandardPermissionProvider.ManageOrders))
+                return AccessDeniedView();
+
+            var shipments = new List<ShipmentManual>();
+            if (selectedIds != null)
+            {
+                shipments.AddRange(_shipmentManualService.GetShipmentsManualByIds(selectedIds.ToArray()));
+            }
+
+            var customer = _customerService.GetCustomerById(customerNewId);
+            if (customer != null)
+            {
+                foreach (var shipment in shipments)
+                {
+                    try
+                    {
+                        shipment.ShipperId = customerNewId;
+                        _shipmentManualService.UpdateShipmentManual(shipment);
+                    }
+                    catch
+                    {
+                        //ignore any exception
+                    }
+                }
+            }
+
+            return Json(new { Result = true });
+        }
+
+
+        [HttpPost]
         public virtual IActionResult ApplyTrackingNumberSelected(ICollection<int> selectedIds, string trackingNumberNew)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageOrders))
@@ -4825,6 +4928,36 @@ namespace Nop.Web.Areas.Admin.Controllers
                 {
                     shipment.BagId = bagIdNew;
                     _shipmentService.UpdateShipment(shipment);
+                }
+                catch
+                {
+                    //ignore any exception
+                }
+            }
+
+            return Json(new { Result = true });
+        }
+
+
+
+        [HttpPost]
+        public virtual IActionResult ApplyShipmentManualBagIdSelected(ICollection<int> selectedIds, string bagIdNew)
+        {
+            if (!_permissionService.Authorize(StandardPermissionProvider.ManageOrders))
+                return AccessDeniedView();
+
+            var shipments = new List<ShipmentManual>();
+            if (selectedIds != null)
+            {
+                shipments.AddRange(_shipmentManualService.GetShipmentsManualByIds(selectedIds.ToArray()));
+            }
+
+            foreach (var shipment in shipments)
+            {
+                try
+                {
+                    shipment.BagId = bagIdNew;
+                    _shipmentManualService.UpdateShipmentManual(shipment);
                 }
                 catch
                 {
@@ -5197,6 +5330,35 @@ namespace Nop.Web.Areas.Admin.Controllers
         }
 
         [HttpPost]
+        public virtual IActionResult SetAsShippedManualSelected(ICollection<int> selectedIds)
+        {
+            if (!_permissionService.Authorize(StandardPermissionProvider.ManageOrders))
+                return AccessDeniedView();
+
+            var shipments = new List<ShipmentManual>();
+            if (selectedIds != null)
+            {
+                shipments.AddRange(_shipmentManualService.GetShipmentsManualByIds(selectedIds.ToArray()));
+            }
+
+            foreach (var shipment in shipments)
+            {
+                try
+                {
+                    _orderProcessingService.ShipManual(shipment, true);
+                }
+                catch
+                {
+                    //ignore any exception
+                }
+            }
+
+            return Json(new { Result = true });
+        }
+
+
+
+        [HttpPost]
         public virtual IActionResult SetAsDeliveredSelected(ICollection<int> selectedIds)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageOrders))
@@ -5218,6 +5380,34 @@ namespace Nop.Web.Areas.Admin.Controllers
                 try
                 {
                     _orderProcessingService.Deliver(shipment, true);
+                }
+                catch
+                {
+                    //ignore any exception
+                }
+            }
+
+            return Json(new { Result = true });
+        }
+
+
+        [HttpPost]
+        public virtual IActionResult SetAsDeliveredManualSelected(ICollection<int> selectedIds)
+        {
+            if (!_permissionService.Authorize(StandardPermissionProvider.ManageOrders))
+                return AccessDeniedView();
+
+            var shipments = new List<ShipmentManual>();
+            if (selectedIds != null)
+            {
+                shipments.AddRange(_shipmentManualService.GetShipmentsManualByIds(selectedIds.ToArray()));
+            }
+
+            foreach (var shipment in shipments)
+            {
+                try
+                {
+                    _orderProcessingService.DeliverManual(shipment, true);
                 }
                 catch
                 {
@@ -6021,7 +6211,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             if (!_permissionService.Authorize(StandardPermissionProvider.OrderCountryReport))
                 return AccessDeniedView();
             var primaryStoreCurrency = _currencyService.GetCurrencyById(_currencySettings.PrimaryStoreCurrencyId);
-            var orderItems = _orderService.GetOrderItemsVendorCheckout(model.VendorProductUrl, model.OrderId, command.Page - 1, command.PageSize,
+            var orderItems = _orderService.GetOrderItemsVendorCheckout(model.VendorProductUrl, model.OrderId, model.OrderItemId, command.Page - 1, command.PageSize,
                 isOrderCheckout: model.IsOrderCheckout, isPackageItemProcessed: model.IsPackageItemProcessed, todayFilter: model.TodayFilter,
                 customerPhone: model.CustomerPhone, packageOrderCode: model.PackageOrderCode,
                 vendorId: model.VendorId, isSetPackageOrderId: model.IsSetPackageOrderId,
@@ -6067,7 +6257,8 @@ namespace Nop.Web.Areas.Admin.Controllers
                         CustomerInfo = customerInfo,
                         CreatedDate = orderItem.Order.CreatedOnUtc,
                         PrimaryStoreCurrencyCode = primaryStoreCurrency.CurrencyCode,
-                        AssignedByCustomerId = orderItem.AssignedByCustomerId
+                        AssignedByCustomerId = orderItem.AssignedByCustomerId,
+                        DeliveryDateUtc = orderItem.DeliveryDateUtc
                     };
                     if (orderItemModel.PackageOrderId > 0)
                     {
@@ -6139,7 +6330,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageOrders))
                 return AccessDeniedView();
 
-            var orderItems = _orderService.GetOrderItemsVendorCheckout(model.VendorProductUrl, model.OrderId, isOrderCheckout: model.IsOrderCheckout);
+            var orderItems = _orderService.GetOrderItemsVendorCheckout(model.VendorProductUrl, model.OrderItemId, isOrderCheckout: model.IsOrderCheckout);
             try
             {
                 var bytes = _exportManager.ExportOrderItemsToXlsxBasic(orderItems);
@@ -6160,7 +6351,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageOrders))
                 return AccessDeniedView();
 
-            var orderItems = _orderService.GetOrderItemsVendorCheckout(model.VendorProductUrl, model.OrderId, isOrderCheckout: model.IsOrderCheckout);
+            var orderItems = _orderService.GetOrderItemsVendorCheckout(model.VendorProductUrl, model.OrderItemId, isOrderCheckout: model.IsOrderCheckout);
             try
             {
                 byte[] bytes;
@@ -6228,7 +6419,8 @@ namespace Nop.Web.Areas.Admin.Controllers
                     _orderService.UpdateOrderItem(orderItem);
                 }
             }
-            return RedirectToAction("OrderItemsVendorCheckout");
+            //return RedirectToAction("OrderItemsVendorCheckout");
+            return Json(new { Result = true });
         }
         [HttpPost]
         public virtual IActionResult ExportExcelVendorInvoiceOrderItemsSelected(string selectedIds)

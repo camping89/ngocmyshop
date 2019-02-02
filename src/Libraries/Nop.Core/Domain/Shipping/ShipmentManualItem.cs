@@ -1,3 +1,6 @@
+using Nop.Core.Domain.Orders;
+using System;
+
 namespace Nop.Core.Domain.Shipping
 {
     /// <summary>
@@ -15,6 +18,8 @@ namespace Nop.Core.Domain.Shipping
         /// </summary>
         public int OrderItemId { get; set; }
 
+        public virtual OrderItem OrderItem { get; set; }
+
         /// <summary>
         /// Gets or sets the quantity
         /// </summary>
@@ -27,6 +32,8 @@ namespace Nop.Core.Domain.Shipping
 
 
         public decimal ShippingFee { get; set; }
+
+        public DateTime? DeliveryDateUtc { get; set; }
         /// <summary>
         /// Gets the shipment
         /// </summary>

@@ -16,27 +16,53 @@
 <form asp-controller="Order" asp-action="ShipmentManualList" method="post">
     <div class="content-header clearfix">
         <h1 class="pull-left">
-            @T("Admin.Orders.Shipments.List")
+            @T("Admin.Orders.ShipmentsManual.List")
         </h1>
         <div class="pull-right">
+            <div class="btn-group">
+                <button type="button" class="btn bg-purple">
+                    <i class="fa fa-file-pdf-o"></i>
+                    @T("Admin.Orders.Shipments.PrintPackagingSlips")
+                </button>
+                <button type="button" class="btn bg-purple dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+                    <span class="caret"></span>
+                    <span class="sr-only">&nbsp;</span>
+                </button>
+                <ul class="dropdown-menu" role="menu">
+                    <li>
+                        <button type="button" id="exportpackagingslips-selected">
+                            @T("Admin.Orders.Shipments.PrintPackagingSlips.Selected")
+                        </button>
+                    </li>
+                    <li>
+                        <button type="submit" name="exportpackagingslips-all">
+                            @T("Admin.Orders.Shipments.PrintPackagingSlips.All")
+                        </button>
+                    </li>
+                </ul>
+            </div>
+
             @*<div class="btn-group">
-                    <button type="button" class="btn bg-purple">
-                        <i class="fa fa-file-pdf-o"></i>
-                        @T("Admin.Orders.Shipments.PrintPackagingSlips")
+                    <button type="button" class="btn btn-success">
+                        <i class="fa fa-download"></i>
+                        @T("Admin.Common.Export")
                     </button>
-                    <button type="button" class="btn bg-purple dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+                    <button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
                         <span class="caret"></span>
                         <span class="sr-only">&nbsp;</span>
                     </button>
                     <ul class="dropdown-menu" role="menu">
+
                         <li>
-                            <button type="button" id="exportpackagingslips-selected">
-                                @T("Admin.Orders.Shipments.PrintPackagingSlips.Selected")
+                            <button type="button" id="exportexcel-shipment-selected">
+                                <i class="fa fa-file-excel-o"></i>
+                                @T("Admin.Common.ExportToExcel.ShipmentItems.Selected")
                             </button>
                         </li>
                         <li>
-                            <button type="submit" name="exportpackagingslips-all">
-                                @T("Admin.Orders.Shipments.PrintPackagingSlips.All")
+                            <button type="submit" name="exportexcel-shipment-all">
+                                <i class="fa fa-file-excel-o"></i>
+                                @T("Admin.Common.ExportToExcel.ShipmentItems.All")
                             </button>
                         </li>
                     </ul>
@@ -44,6 +70,10 @@
 
             <button type="button" id="assign-shipper-selected" class="btn bg-aqua" data-toggle="modal" data-target="#assign-shipment-new-customer-window">
                 @T("Admin.Orders.Shipments.AssignToShipperSelected")
+            </button>
+
+            <button type="button" id="apply-tracking-number-selected" class="btn bg-fuchsia" data-toggle="modal" data-target="#apply-tracking-number-window">
+                @T("Admin.Orders.Shipments.ApplyTrackingNumber")
             </button>
 
             <button type="button" id="apply-bagid-selected" class="btn bg-orange" data-toggle="modal" data-target="#apply-bagid-window">
@@ -175,13 +205,20 @@
                                         <nop-editor asp-for="City" />
                                     </div>
                                 </div>
-
                                 <div class="form-group">
                                     <div class="col-md-4">
-                                        <nop-label asp-for="OrderId" />
+                                        <nop-label asp-for="TrackingNumber" />
                                     </div>
                                     <div class="col-md-8">
-                                        <nop-editor asp-for="OrderId" />
+                                        <nop-editor asp-for="TrackingNumber" />
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <nop-label asp-for="OrderItemId" />
+                                    </div>
+                                    <div class="col-md-8">
+                                        <nop-editor asp-for="OrderItemId" />
                                     </div>
                                 </div>
                             </div>
@@ -210,39 +247,29 @@
 
                         <script type="text/javascript">
                             $(document).ready(function() {
-                                var grid = $("#shipments-grid").kendoGrid({
+                                $("#shipments-grid").kendoGrid({
                                     dataSource: {
+                                        type: "json",
                                         transport: {
                                             read: {
                                                 url: "@Html.Raw(Url.Action("ShipmentManualListSelect", "Order"))",
                                                 type: "POST",
-                                                data: additionalData
-                                            },
-                                            destroy: {
-                                                url: "@Html.Raw(Url.Action("DeleteShipmentManualAjax", "Shelf"))",
-                                                type: "POST",
+                                                dataType: "json",
                                                 data: additionalData
                                             }
                                         },
                                         schema: {
-                                            model: {
-                                                id: "Id",
-                                                fields: {}
-                                            },
                                             data: "Data",
                                             total: "Total",
                                             errors: "Errors"
                                         },
                                         requestEnd: function (e) {
-                                            if (e.type == "read") {
+                                            if (e.type === "read") {
                                                 var response = e.response;
                                                 if (response) {
                                                     //store extra data
                                                     reportAggregates = e.response["ExtraData"];
                                                 }
-                                            } else {
-                                                var grid = $("#shipments-grid").data('kendoGrid');
-                                                grid.dataSource.page(1);
                                             }
                                         },
                                         error: function(e) {
@@ -260,12 +287,6 @@
                                         pageSizes: [@(gridPageSizes)],
                                         @await Html.PartialAsync("_GridPagerMessages")
                                     },
-                                    editable: {
-                                        confirmation: "@T("Admin.Common.DeleteConfirmation")",
-                                        mode: "inline"
-                                    },
-                                    //details grid
-                                    detailInit: detailInit,
                                     scrollable: false,
                                     dataBound: onDataBound,
                                     columns: [
@@ -284,6 +305,23 @@
                                         }, {
                                             field: "BagId",
                                             title: "@T("Admin.Orders.Shipments.BagId")",
+                                            width: 100
+                                        }, {
+                                            field: "ProductSku",
+                                            title: "@T("Admin.Orders.Shipments.ProductSku")",
+                                            width: 100
+                                        },{
+                                            field: "Quantity",
+                                            title: "@T("Admin.Orders.Shipments.Quantity")",
+                                            width: 50
+                                        },{
+                                            field: "ShippingFee",
+                                            title: "@T("Admin.Orders.Shipments.ShippingFee")",
+                                            width: 100,
+                                            template: '#= kendo.toString(TotalShippingFee, "n2") #'
+                                        }, {
+                                            field: "TrackingNumber",
+                                            title: "@T("Admin.Orders.Shipments.TrackingNumber")",
                                             width: 100
                                         }, {
                                             field: "ShipperFullName",
@@ -319,7 +357,7 @@
                                             field: "Deposit",
                                             title: "@T("Admin.Orders.Shipments.Deposit")",
                                             width: 100,
-                                            template: '#= kendo.toString(Deposit, "n0") #'
+                                            template: '#= kendo.toString(Deposit, "n2") #'
                                         }, {
                                             field: "TotalOrderFee",
                                             title: "@T("Admin.Orders.Shipments.TotalOrderFee")",
@@ -331,130 +369,28 @@
                                                     '<div>@T("Admin.Orders.Shipments.Deposit") <span id=\"aggregator-deposit-block\"></span></div>' +
                                                     '<div>@T("Admin.Orders.Shipments.Total") <span id=\"aggregator-total-block\"></span></div>'
 
-                                        }, {
-                                        command: [
-                                            {
-                                                name: "destroy",
-                                                text: "@T("Admin.Common.Delete")",
-                                                template: '<a class="btn btn-danger k-button-icontext k-grid-delete" href="" >@T("Admin.Common.Delete")</a>'
-                                            }
-                                        ],
-                                        title: "@T("Admin.Common.Function")",
-                                        width: 400
-                                    }
+                                        }
                                     ]
                                 });
 
+                                $("#shipments-grid").on("click", "td", function(e) {
+                                    var grid = $("#shipments-grid").data("kendoGrid");
+                                    console.log($(this).hasClass("k-hierarchy-cell"));
+                                    console.log($(this).parent().get(0));
+                                    if ($(this).hasClass("k-hierarchy-cell")) {
+                                        var row = $(this).parent().get(0);
+                                        if ($(this).find(".k-icon").hasClass("k-minus")) {
 
-
-                                // handle grid row clicks for detail row expansion
-                                grid.on("click", "td.k-hierarchy-cell", function (e) {
-                                    e.preventDefault();
-
-                                    var $target = $(e.target);
-                                    // if you have links or other things in your rows that you don't want to
-                                    // trigger the detail row expansion, use an if statement to ignore them.
-                                    if (!$target.hasClass("sample-link")) {
-                                        var $this = $(this);
-                                        var $link = $this.find(".k-icon");
-                                        $link.click();
+                                            grid.collapseRow(row);
+                                        } else {
+                                            grid.expandRow(row);
+                                        }
                                     }
-                                });
 
+
+                                });
                             });
 
-                            //details grid
-                            function detailInit(e) {
-                                $("<div/>").appendTo(e.detailCell).kendoGrid({
-                                    dataSource: {
-                                        type: "json",
-                                        transport: {
-                                            read: {
-                                                url:
-                                                    "@Html.Raw(Url.Action("ShipmentsManualItemsByShipmentManualId", "Order"))?shipmentId=" +
-                                                        e.data.Id,
-                                                type: "POST",
-                                                dataType: "json",
-                                                data: addAntiForgeryToken
-                                            }
-                                        },
-                                        schema: {
-                                            data: "Data",
-                                            total: "Total",
-                                            errors: "Errors"
-                                        },
-                                        error: function(e) {
-                                            display_kendoui_grid_error(e);
-                                            // Cancel the changes
-                                            this.cancelChanges();
-                                        },
-                                        serverPaging: true,
-                                        serverFiltering: true,
-                                        serverSorting: true
-                                    },
-                                    scrollable: false,
-                                    sortable: true,
-                                    pageable: {
-                                        refresh: true,
-                                        numeric: false,
-                                        previousNext: false,
-                                        info: false,
-                                        @await Html.PartialAsync("_GridPagerMessages")
-                                    },
-                                    columns: [
-                                        {
-                                            field: "OrderItemNumber",
-                                            title: "@T("Admin.Orders.Shipments.Products.OrderItemNumber")",
-                                            width: 50
-                                        },{
-                                            field: "ImageUrl",
-                                            title: "@T("Admin.Orders.Shipments.Products.ProductName")",
-                                            template: '<p>#=ProductName#</p>' +
-                                                '<p><b>Sku: #=Sku#</b></p>' +
-                                                '<img src="#=ImageUrl#" />',
-                                            width: 400
-                                        }, {
-                                            field: "OrderItemFee",
-                                            title: "@T("Admin.Orders.Shipments.Products.Orderitemtotal")",
-                                            width: 150
-                                        }, {
-                                            field: "ShippingFeeStr",
-                                            title: "@T("Admin.Orders.Shipments.Products.ShippingFee")",
-                                            width: 150
-                                        }, {
-                                            field: "QuantityInThisShipment",
-                                            title: "@T("Admin.Orders.Shipments.Products.QtyShipped")",
-                                            width: 150
-                                        }, {
-                                            field: "ItemWeight",
-                                            title: "@T("Admin.Orders.Shipments.Products.ItemWeight")",
-                                            width: 150
-                                        },
-                                        {
-                                                    field: "DeliveryDateUtc",
-                                                    title: "@T("Admin.Orders.Products.DeliveryDateUtc")",
-                                                    width: 150,
-                                                    template: "# if (DeliveryDateUtc != null) { #" +
-                                                        "<p>#= kendo.toString(kendo.parseDate(DeliveryDateUtc, 'yyyy-MM-dd'), 'MM/dd/yyyy') #</p>" +
-                                                        "#} else {#" +
-                                                        "<p></p>" +
-                                                        "# } #"
-                                                }
-                                        @*, {
-                                            field: "ItemDimensions",
-                                            title: "@T("Admin.Orders.Shipments.Products.ItemDimensions")",
-                                            width: 150
-                                        }*@
-                                    ]
-                                });
-                            }
-
-                            //$('#expand').click(function(e) {
-                            //    var grid = $("#shipments-grid").data("kendoGrid");
-                            //    $(".k-master-row").each(function(index) {
-                            //        grid.expandRow(this);
-                            //    });
-                            //});
 
                             $('#collapse').click(function (e) {
                                 var grid = $("#shipments-grid").data("kendoGrid");
@@ -565,7 +501,7 @@
                             $.ajax({
                                 cache: false,
                                 type: "POST",
-                                url: "@(Url.Action("SetAsShippedManualSelected", "Order"))",
+                                url: "@(Url.Action("SetAsShippedSelected", "Order"))",
                                 data: postData,
                                 complete: function(data) {
                                     //reload grid
@@ -592,7 +528,7 @@
                             $.ajax({
                                 cache: false,
                                 type: "POST",
-                                url: "@(Url.Action("SetAsDeliveredManualSelected", "Order"))",
+                                url: "@(Url.Action("SetAsDeliveredSelected", "Order"))",
                                 data: postData,
                                 complete: function(data) {
                                     //reload grid
@@ -794,7 +730,7 @@
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
                 <h4 class="modal-title" id="apply-bagid-window-title">@T("Admin.Common.AddBagIdTitle")</h4>
             </div>
-            <form asp-controller="Order" asp-action="ApplyShipmentManualBagIdSelected" method="post" id="apply-bagid-selected-form">
+            <form asp-controller="Order" asp-action="ApplyBagIdSelected" method="post" id="apply-bagid-selected-form">
                 <div class="form-horizontal">
                     <div class="modal-body">
                         <div class="form-group">
@@ -828,7 +764,7 @@
             $.ajax({
                 cache: false,
                 type: "POST",
-                url: "@(Url.Action("ApplyShipmentManualBagIdSelected", "Order"))",
+                url: "@(Url.Action("ApplyBagIdSelected", "Order"))",
                 data: postData,
                 complete: function(data) {
                     var jsonData = data.responseJSON;
@@ -860,7 +796,7 @@
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
                 <h4 class="modal-title" id="assign-shipment-new-customer-window-title">@T("Admin.Common.AssignNewShipper")</h4>
             </div>
-            <form asp-controller="Order" asp-action="AssignShipmentManualNewShipperSelected" method="post" id="assign-shipper-selected-form">
+            <form asp-controller="Order" asp-action="AssignNewShipperSelected" method="post" id="assign-shipper-selected-form">
                 <div class="form-horizontal">
                     <div class="modal-body">
                         <div class="form-group">
@@ -894,7 +830,7 @@
             $.ajax({
                 cache: false,
                 type: "POST",
-                url: "@(Url.Action("AssignShipmentManualNewShipperSelected", "Order"))",
+                url: "@(Url.Action("AssignNewShipperSelected", "Order"))",
                 data: postData,
                 complete: function(data) {
                     selectedIds = [];

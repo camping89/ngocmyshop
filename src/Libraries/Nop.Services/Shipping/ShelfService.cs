@@ -27,9 +27,15 @@ namespace Nop.Services.Shipping
             }
         }
 
-        public IPagedList<Shelf> GetAllShelf(int customerId = 0, DateTime? assignedFromUtc = null, DateTime? assignedToUtc = null, int pageIndex = 0, int pageSize = Int32.MaxValue, bool isShelfEmpty = false)
+        public IPagedList<Shelf> GetAllShelf(int customerId = 0, DateTime? assignedFromUtc = null, DateTime? assignedToUtc = null, int pageIndex = 0, int pageSize = Int32.MaxValue, bool isShelfEmpty = false, string shelfCode = null)
         {
             var query = _shelfRepository.Table;
+
+            if (string.IsNullOrEmpty(shelfCode) == false)
+            {
+                shelfCode = shelfCode.TrimStart().TrimEnd().Trim().ToLowerInvariant();
+                query = query.Where(_ => _.ShelfCode.ToLower().Contains(shelfCode));
+            }
 
             if (customerId > 0)
             {
@@ -49,7 +55,7 @@ namespace Nop.Services.Shipping
             if (isShelfEmpty)
             {
                 var shelfOrderItems = _shelfOrderItemRepository.Table.Where(s => s.IsActived).Select(_ => _.ShelfId).Distinct().ToList();
-                query = query.Where(_ => _.CustomerId == null || shelfOrderItems.Contains(_.Id) == false);
+                query = query.Where(_ => _.CustomerId == null || _.CustomerId == 0 || shelfOrderItems.Contains(_.Id) == false);
             }
             query = query.OrderByDescending(_ => _.ShelfCode);
             var shelfList = new PagedList<Shelf>(query, pageIndex, pageSize);

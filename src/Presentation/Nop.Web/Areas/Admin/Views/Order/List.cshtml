@@ -115,6 +115,14 @@
                             <div class="col-md-5">
                                 <div class="form-group">
                                     <div class="col-md-4">
+                                        <nop-label asp-for="OrderId" />
+                                    </div>
+                                    <div class="col-md-8">
+                                        <nop-editor asp-for="OrderId" />
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-md-4">
                                         <nop-label asp-for="StartDate" />
                                     </div>
                                     <div class="col-md-8">
@@ -214,14 +222,7 @@
                                 </div>
                             </div>
                             <div class="col-md-7">
-                                <div class="form-group">
-                                    <div class="col-md-4">
-                                        <nop-label asp-for="IsOrderCheckout" />
-                                    </div>
-                                    <div class="col-md-8">
-                                        <nop-select asp-for="IsOrderCheckout" asp-items="Model.AvailableOrderCheckoutStatus" />
-                                    </div>
-                                </div>
+
                                 <div class="form-group" @(Model.AvailableStores.SelectionIsNotPossible() ? Html.Raw("style=\"display:none\"") : null)>
                                     <div class="col-md-4">
                                         <nop-label asp-for="StoreId" />
@@ -516,7 +517,7 @@
 
                             //details grid
                             function detailInit(e) {
-                                $("<div/>").appendTo(e.detailCell).kendoGrid({
+                                $('<div id="grid-shelf-items' + e.data.Id + '"></div>').appendTo(e.detailCell).kendoGrid({
                                     dataSource: {
                                         type: "json",
                                         transport: {
@@ -603,7 +604,7 @@
                                             title: "@T("Admin.Orders.Products.ProductName")",
                                             template: 'Product name: #=ProductName#' +
                                                 '<p>#=AttributeInfo#</p>' +
-                                                '<p>#=RecurringInfo#</p>',
+                                                '<p>Sku: #=Sku#</p>',
                                             width: 250
                                         }, {
                                             field: "TotalWithoutWeightCost",
@@ -658,17 +659,17 @@
                                                 "<p></p>" +
                                                 "# } #"
                                         },
-                                        @*{
-                                            field: "PackageItemProcessedDatetime",
-                                            title: "@T("Admin.Orders.Products.PackageItemProcessedDatetime")",
+                                        {
+                                            field: "DeliveryDateUtc",
+                                            title: "@T("Admin.Orders.Products.DeliveryDateUtc")",
                                             width: 150,
                                             editor: dateTimeEditorCustom,
-                                            template: "# if (PackageItemProcessedDatetime != null) { #" +
-                                                "<p>#= kendo.toString(kendo.parseDate(PackageItemProcessedDatetime, 'yyyy-MM-dd'), 'MM/dd/yyyy') #</p>" +
+                                            template: "# if (DeliveryDateUtc != null) { #" +
+                                                "<p>#= kendo.toString(kendo.parseDate(DeliveryDateUtc, 'yyyy-MM-dd'), 'MM/dd/yyyy') #</p>" +
                                                 "#} else {#" +
                                                 "<p></p>" +
                                                 "# } #"
-                                        },*@
+                                        },
                                         {
                                             field: "IsOrderCheckout",
                                             title: "@T("Admin.Orders.Products.IsOrderCheckout")",
@@ -902,6 +903,7 @@
 
                             function additionalData() {
                                 var data = {
+                                    OrderId: $('#@Html.IdFor(model => model.OrderId)').val(),
                                     StartDate: $('#@Html.IdFor(model => model.StartDate)').val(),
                                     EndDate: $('#@Html.IdFor(model => model.EndDate)').val(),
                                     OrderStatusIds: $('#@Html.IdFor(model => model.OrderStatusIds)').val(),
@@ -918,7 +920,6 @@
                                     BillingCountryId: $('#@Html.IdFor(model => model.BillingCountryId)').val(),
                                     PaymentMethodSystemName: $('#@Html.IdFor(model => model.PaymentMethodSystemName)').val(),
                                     ProductId: $('#@Html.IdFor(model => model.ProductId)').val(),
-                                    IsOrderCheckout: $('#@Html.IdFor(model => model.IsOrderCheckout)').val(),
                                     OrderNotes: $.trim($('#@Html.IdFor(model => model.OrderNotes)').val())
                                 };
                                 addAntiForgeryToken(data);

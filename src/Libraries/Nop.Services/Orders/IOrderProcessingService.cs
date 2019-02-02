@@ -1,8 +1,8 @@
-using System.Collections.Generic;
 using Nop.Core.Domain.Customers;
 using Nop.Core.Domain.Orders;
 using Nop.Core.Domain.Shipping;
 using Nop.Services.Payments;
+using System.Collections.Generic;
 
 namespace Nop.Services.Orders
 {
@@ -72,13 +72,15 @@ namespace Nop.Services.Orders
         /// <param name="shipment">Shipment</param>
         /// <param name="notifyCustomer">True to notify customer</param>
         void Ship(Shipment shipment, bool notifyCustomer);
-        
+        void ShipManual(ShipmentManual shipment, bool notifyCustomer);
+
         /// <summary>
         /// Marks a shipment as delivered
         /// </summary>
         /// <param name="shipment">Shipment</param>
         /// <param name="notifyCustomer">True to notify customer</param>
         void Deliver(Shipment shipment, bool notifyCustomer);
+        void DeliverManual(ShipmentManual shipment, bool notifyCustomer);
 
         /// <summary>
         /// Gets a value indicating whether cancel is allowed
@@ -224,7 +226,7 @@ namespace Nop.Services.Orders
         /// </summary>
         /// <param name="order">The order</param>
         void ReOrder(Order order);
-        
+
         /// <summary>
         /// Check whether return request is allowed
         /// </summary>

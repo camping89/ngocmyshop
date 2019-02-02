@@ -1,4 +1,5 @@
 ﻿using Nop.Core.Domain.Customers;
+using Nop.Web.Areas.Admin.Models.Common;
 using Nop.Web.Framework.Mvc.ModelBinding;
 using Nop.Web.Framework.Mvc.Models;
 using System;
@@ -57,7 +58,7 @@ namespace Nop.Web.Areas.Admin.Models.Orders
         public string CustomerPhone { get; set; }
 
         [NopResourceDisplayName("Admin.Orders.Shipments.Shipper")]
-        public int ShipperId { get; set; }
+        public int? ShipperId { get; set; }
         [NopResourceDisplayName("Admin.Orders.Shipments.ShipperFullName")]
         public string ShipperFullName { get; set; }
 
@@ -69,6 +70,10 @@ namespace Nop.Web.Areas.Admin.Models.Orders
 
         [NopResourceDisplayName("Admin.Orders.Shipments.Deposit")]
         public decimal Deposit { get; set; }
+
+
+        [NopResourceDisplayName("Admin.Orders.Fields.ShippingAddress")]
+        public AddressModel ShippingAddress { get; set; }
 
         public List<ShipmentManualItemModel> Items { get; set; }
 

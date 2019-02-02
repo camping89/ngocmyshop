@@ -1,3 +1,4 @@
+using Nop.Core.Domain.Common;
 using Nop.Core.Domain.Customers;
 using System;
 using System.Collections.Generic;
@@ -51,9 +52,16 @@ namespace Nop.Core.Domain.Shipping
 
         public string BagId { get; set; }
 
+        public int? ShipperId { get; set; }
+
+        public virtual Customer Shipper { get; set; }
         public int CustomerId { get; set; }
 
         public virtual Customer Customer { get; set; }
+
+        public int? ShippingAddressId { get; set; }
+
+        public virtual Address ShippingAddress { get; set; }
 
         /// <summary>
         /// Gets or sets the shipment items

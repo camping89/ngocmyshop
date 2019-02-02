@@ -35,6 +35,5 @@ namespace Nop.Services.Shipping.Tracking
 
             return null;
         }
-
     }
 }

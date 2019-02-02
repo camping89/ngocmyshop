@@ -126,6 +126,8 @@ namespace Nop.Core.Domain.Orders
 
         public DateTime? PackageItemProcessedDatetime { get; set; }
 
+        public DateTime? DeliveryDateUtc { get; set; }
+
         public bool IncludeWeightCost { get; set; }
         public bool IsOrderCheckout { get; set; }
         /// <summary>

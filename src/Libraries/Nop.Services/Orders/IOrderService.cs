@@ -81,7 +81,7 @@ namespace Nop.Services.Orders
             DateTime? createdFromUtc = null, DateTime? createdToUtc = null,
             List<int> osIds = null, List<int> psIds = null, List<int> ssIds = null, List<int> procIds = null,
             string billingEmail = null, List<int> custIdsByLinkFace = null, string billingFullName = null, string billingPhone = null,
-            string orderNotes = null, int pageIndex = 0, int pageSize = int.MaxValue, OrderSortingEnum orderBy = OrderSortingEnum.CreatedOnDesc, bool? isOrderCheckout = null);
+            string orderNotes = null, int pageIndex = 0, int pageSize = int.MaxValue, OrderSortingEnum orderBy = OrderSortingEnum.CreatedOnDesc, string orderId = null);
 
         /// <summary>
         /// Inserts an order
@@ -130,7 +130,7 @@ namespace Nop.Services.Orders
 
         IList<OrderItem> GetOrderItemsByPackageId(int packageId);
 
-        IPagedList<OrderItem> GetOrderItemsVendorCheckout(string vendorProductUrl, int orderId = 0, int pageIndex = 0, int pageSize = int.MaxValue, OrderSortingEnum orderBy = OrderSortingEnum.CreatedOnDesc, bool? isOrderCheckout = null
+        IPagedList<OrderItem> GetOrderItemsVendorCheckout(string vendorProductUrl, string orderId = null, string orderItemId = null, int pageIndex = 0, int pageSize = int.MaxValue, OrderSortingEnum orderBy = OrderSortingEnum.CreatedOnDesc, bool? isOrderCheckout = null
             , bool isPackageItemProcessed = false, bool todayFilter = false, string customerPhone = null, string packageOrderCode = null, int vendorId = 0, bool? isSetPackageOrderId = null, bool? isSetShelfId = null);
 
         /// <summary>

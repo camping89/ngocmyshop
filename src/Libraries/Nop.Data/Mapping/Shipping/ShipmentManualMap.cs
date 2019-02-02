@@ -20,6 +20,14 @@ namespace Nop.Data.Mapping.Shipping
             this.HasRequired(s => s.Customer)
                 .WithMany()
                 .HasForeignKey(s => s.CustomerId);
+
+            this.HasRequired(s => s.Shipper)
+                .WithMany()
+                .HasForeignKey(s => s.ShipperId);
+
+            this.HasRequired(s => s.ShippingAddress)
+                .WithMany()
+                .HasForeignKey(s => s.ShippingAddressId);
         }
     }
 }

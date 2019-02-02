@@ -55,6 +55,14 @@
                                     <nop-select asp-for="ShelfOrderItemIsActive" asp-items="Model.ShelfOrderItemsStatus" />
                                 </div>
                             </div>
+                            <div class="form-group">
+                                <div class="col-md-4">
+                                    <nop-label asp-for="ShelfCode" />
+                                </div>
+                                <div class="col-md-8">
+                                    <nop-editor asp-for="ShelfCode" />
+                                </div>
+                            </div>
                         </div>
                         <div class="col-md-6">
                             <div class="form-group">
@@ -91,6 +99,10 @@
                                     <i class="fa fa-search"></i>
                                     @T("Admin.Common.Search")
                                 </button>
+                                <button type="button" id="clear-filter" class="btn btn-danger btn-search">
+                                    <i class="fa fa-recycle"></i>
+                                    @T("Admin.Common.ClearFilter")
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -109,7 +121,6 @@
                         $(document).ready(function() {
                             var grid = $("#shelf-grid").kendoGrid({
                                 dataSource: {
-                                    type: "json",
                                     transport: {
                                         read: {
                                             url: "@Html.Raw(Url.Action("List", "Shelf"))",
@@ -144,6 +155,7 @@
                                                 CustomerId: { type: "number", editable: true },
                                                 AssignedDate: { editable: true, type: "date", nullable: true },
                                                 CustomerFullName: { editable: false, type: "string" },
+                                                CustomerLinkFacebook: { editable: false, type: "string" },
                                                 CustomerPhone: { editable: false, type: "string" }
                                             }
                                         },
@@ -188,14 +200,15 @@
                                 columns: [
                                     {
                                         field: "ShelfCode",
-                                        title: "@T("Admin.Shelf.Fields.ShelfCode")"
+                                        title: "@T("Admin.Shelf.Fields.ShelfCode")",
+                                        width: 200
                                     }, {
                                         field: "CustomerId",
                                         title: "@T("Admin.Shelf.Fields.CustomerInfo")",
                                         width: 200,
                                         editor: editCustomerId,
                                         template:
-                                            '# if(CustomerFullName != null && CustomerPhone != null ) {# <p>#=CustomerFullName#</p><p>#=CustomerPhone#</p> #}  #'
+                                            '# if(CustomerFullName != null && CustomerPhone != null ) {# <p>#=CustomerFullName#</p><p>#=CustomerPhone#</p> <p><a href="#=CustomerLinkFacebook#" target="_blank" >#=CustomerLinkFacebook#</a></p> #}  #'
                                     },
                                     {
                                         field: "AssignedDate",
@@ -224,13 +237,103 @@
                                                 template: '<a class="btn btn-danger k-button-icontext k-grid-delete" href="" >@T("Admin.Common.Delete")</a>'
                                             },
                                             {
-                                                title: "@T("Admin.Common.Function")",
-                                                template: '<button type="button" id="btnShipmentAll" class="btn btn-success">@T("Admin.ShelfOrderItem.ShipAll")</button>'+
-                                                    '<button type="button id="btnShipmentSelected" class="btn btn-primary">@T("Admin.ShelfOrderItem.ShipSelected")</button>'
+                                                name: "shipall",
+                                                text: "@T("Admin.ShelfOrderItem.ShipAll")",
+                                                template: '<a role="button" href="javascript:void(0);" class="btn btn-success k-button-icontext k-grid-shipall">@T("Admin.ShelfOrderItem.ShipAll")</a>',
+                                                click: function(e) {
+
+                                                    e.preventDefault();
+
+                                                    var r = confirm("@T("Admin.Common.CreateConfirmation")");
+                                                    if (r === false) {
+                                                        return false;
+                                                    }
+                                                    var tr = $(e.target).closest("tr");
+                                                    var data = this.dataItem(tr);
+                                                    console.log("Details for: " + data.Id);
+                                                    //shipOrderItemsSelected(data.Id);
+
+                                                    var shelfOrderItemIs = $("#grid-shelf-items" + data.Id +" input.checkboxGroups" + data.Id +":checkbox:checked").map(function(){
+                                                        return $(this).val();
+                                                    }).get();
+                                                    console.log(shelfOrderItemIs);
+
+                                                    var postData = { shelfId: data.Id, customerId: data.CustomerId };
+                                                    addAntiForgeryToken(postData);
+                                                    $.ajax({
+                                                        cache: false,
+                                                        type: "POST",
+                                                        url: "@(Url.Action("CreateShipAll", "Shelf"))",
+                                                        data: postData,
+                                                        complete: function(result) {
+                                                            var jsonData = result.responseJSON;
+                                                            if (jsonData.Result === false) {
+                                                                alert("@T("Admin.Shipment.CantNotCreate")");
+                                                                return;
+                                                            }
+
+                                                            //reload grid
+                                                            var gridChild = $("#grid-shelf-items" + data.Id).data('kendoGrid');
+                                                            gridChild.dataSource.read();
+                                                        },
+                                                        error: function(xhr, ajaxOptions, thrownError) {
+                                                            alert(thrownError);
+                                                        },
+                                                        traditional: true
+                                                    });
+                                                    return false;
+                                                }
+                                            },
+                                            {
+                                                name: "shipselected",
+                                                text: "@T("Admin.ShelfOrderItem.ShipSelected")",
+                                                template: '<a role="button" href="javascript:void(0);" class="btn btn-primary k-button-icontext k-grid-shipselected">@T("Admin.ShelfOrderItem.ShipSelected")</a>',
+                                                click: function(e) {
+                                                    e.preventDefault();
+                                                    var r = confirm("@T("Admin.Common.CreateConfirmation")");
+                                                    if (r === false) {
+                                                        return false;
+                                                    }
+
+                                                    var tr = $(e.target).closest("tr");
+                                                    var data = this.dataItem(tr);
+                                                    console.log("Details for: " + data.Id);
+                                                    //shipOrderItemsSelected(data.Id);
+
+                                                    var shelfOrderItemIs = $("#grid-shelf-items" + data.Id +" input.checkboxGroups" + data.Id +":checkbox:checked").map(function(){
+                                                        return $(this).val();
+                                                    }).get();
+                                                    console.log(shelfOrderItemIs);
+
+                                                    var postData = { orderItemIds: shelfOrderItemIs, customerId: data.CustomerId };
+                                                    addAntiForgeryToken(postData);
+                                                    $.ajax({
+                                                        cache: false,
+                                                        type: "POST",
+                                                        url: "@(Url.Action("CreateShipSelectedIds", "Shelf"))",
+                                                        data: postData,
+                                                        complete: function(result) {
+                                                            var jsonData = result.responseJSON;
+                                                            if (jsonData.Result === false) {
+                                                                alert("@T("Admin.Shipment.CantNotCreate")");
+                                                                return;
+                                                            }
+
+                                                            //reload grid
+                                                            var gridChild = $("#grid-shelf-items" + data.Id).data('kendoGrid');
+                                                            gridChild.dataSource.read();
+                                                        },
+                                                        error: function(xhr, ajaxOptions, thrownError) {
+                                                            alert(thrownError);
+                                                        },
+                                                        traditional: true
+                                                    });
+                                                    return false;
+                                                }
                                             }
                                         ],
                                         title: "@T("Admin.Common.Function")",
-                                        width: 250
+                                        width: 400
                                     }
                                     @*{
                                         field: "Id",
@@ -247,6 +350,8 @@
 
                             // handle grid row clicks for detail row expansion
                             grid.on("click","td.k-hierarchy-cell",function(e) {
+                                e.preventDefault();
+
                                 var $target = $(e.target);
                                 // if you have links or other things in your rows that you don't want to
                                 // trigger the detail row expansion, use an if statement to ignore them.
@@ -258,6 +363,7 @@
                             });
 
                             $('#collapse').click(function(e) {
+                                e.preventDefault();
                                 var grid = $("#shelf-grid").data("kendoGrid");
                                 $(".k-master-row").each(function(index) {
                                     grid.collapseRow(this);
@@ -278,7 +384,8 @@
                                         autoBind: true,
                                         dataTextField: "CustomerName",
                                         dataValueField: "CustomerId",
-                                        dataSource: jsonCustomers
+                                        dataSource: jsonCustomers,
+                                        filter: "contains"
                                     });
                             }
 
@@ -303,11 +410,13 @@
 
                             //details grid
                             function detailInit(e) {
+                                e.preventDefault();
+
                                 var isActive = $('#@Html.IdFor(model => model.ShelfOrderItemIsActive)').val();
                                 var postData = { shelfId: e.data.Id, isActive: isActive};
-                                $('<div id="grid-shelf-items"></div>').appendTo(e.detailCell).kendoGrid({
+                                $('<div id="grid-shelf-items' + e.data.Id +'"></div>').appendTo(e.detailCell).kendoGrid({
                                     dataSource: {
-                                        type: "json",
+                                        //type: "json",
                                         transport: {
                                             read: {
                                                 url: '@Html.Raw(Url.Action("OrderItemsByShelfId", "Order"))',
@@ -360,21 +469,22 @@
                                         mode: "inline"
                                     },
                                     columns: [
-                                        //{
-                                        //    field: "Id",
-                                        //    headerTemplate: "<input id='mastercheckbox" + e.data.Id +"' type='checkbox'/>",
-                                        //    headerAttributes: { style: "text-align:center" },
-                                        //    attributes: { style: "text-align:center" },
-                                        //    template:
-                                        //        "<div style='display:block;padding: 40%;' onclick='setChecked(#=Id#);'><input onclick='setChecked(#=Id#);' id='ckb#=Id#' type='checkbox' value='#=Id#' class='checkboxGroups'/></div>",
-                                        //    width: 60,
-                                        //    sortable: false
-                                        //},
                                         {
-                                            field: "ShelfOrderItemId",
+                                            field: "Id",
+                                            headerTemplate: "",
+                                            //headerTemplate: "<input  onclick='setCheckedMaster(" + e.data.Id + ");' id='mastercheckbox" + e.data.Id +"' type='checkbox'/>",
+                                            headerAttributes: { style: "text-align:center" },
+                                            attributes: { style: "text-align:center" },
+                                            template:
+                                                "<div style='display:block;padding: 40% 0;' onclick='setChecked(#=Id#);'><input onclick='setChecked(#=Id#);' id='ckb#=Id#' type='checkbox' value='#=Id#' class='checkboxGroups"+e.data.Id+"'/></div>",
+                                            width: 80,
+                                            sortable: false
+                                        },
+                                        {
+                                            field: "Id",
                                             title: "@T("Admin.Orders.ShelfOrderItemId")",
                                             width: 50,
-                                            template: '<p>#=ShelfOrderItemId#</p>'
+                                            template: '<p>#=OrderId#.#=Id#</p>'
                                         }, {
                                             field: "PictureThumbnailUrl",
                                             title: "@T("Admin.Orders.Products.Picture")",
@@ -438,30 +548,43 @@
                                 });
 
 
-                                //========================Function extend========================//
-
-                                function setChecked(ckbId) {
-                                    var status = $('#ckb' + ckbId).is(':checked');
-                                    if (status) {
-                                        status = false;
-                                    } else {
-                                        status = true;
-                                    }
-                                    $('#ckb' + ckbId).attr('checked', status).change();
-                                }
 
                             }
 
 
                             $('#collapse').click(function(e) {
+                                e.preventDefault();
                                 var grid = $("#shelf-grid").data("kendoGrid");
                                 $(".k-master-row").each(function(index) {
                                     grid.collapseRow(this);
                                 });
                             });
+
                         });
 
 
+                        //========================Function extend========================//
+
+                        function setChecked(ckbId) {
+                            var status = $('#ckb' + ckbId).is(':checked');
+                            if (status) {
+                                status = false;
+                            } else {
+                                status = true;
+                            }
+                            $('#ckb' + ckbId).attr('checked', status);
+                        }
+
+                        //function shipOrderItemsSelected(shelfId) {
+
+                        //    var shelfOrderItemIs = $("#grid-shelf-items input.checkboxGroups" + shelfId +":checkbox:checked").map(function(){
+                        //        return $(this).val();
+                        //    }).get();
+                        //    console.log(shelfOrderItemIs);
+
+                        //    var grid = $('#shelf-grid').data('kendoGrid');
+                        //    grid.dataSource.page(1); //new search. Set page size to 1
+                        //}
                     </script>
 
                     <script type="text/javascript">
@@ -477,6 +600,19 @@
                                 return false;
                             });
 
+                            $("#clear-filter").click(function() {
+                                $('#@Html.IdFor(model => model.CustomerId)').val(0);
+                                $('#@Html.IdFor(model => model.CustomerId)').trigger("chosen:updated");
+                                $('#@Html.IdFor(model => model.AssignedFromDate)').val('');
+                                $('#@Html.IdFor(model => model.AssignedToDate)').val('');
+                                $('#@Html.IdFor(model => model.ShelfCode)').val('');
+                                $('#@Html.IdFor(model => model.ShelfOrderItemIsActive)').val('True');
+
+                                $('#@Html.IdFor(model => model.IsShelfEmpty)').prop('checked', false);
+                                $("#search-shelf").click();
+                            });
+
+
                         });
 
 
@@ -485,6 +621,7 @@
                                 CustomerId: $('#@Html.IdFor(model => model.CustomerId)').val(),
                                 AssignedFromDate: $('#@Html.IdFor(model => model.AssignedFromDate)').val(),
                                 AssignedToDate: $('#@Html.IdFor(model => model.AssignedToDate)').val(),
+                                ShelfCode: $('#@Html.IdFor(model => model.ShelfCode)').val(),
                                 ShelfOrderItemIsActive: $('#@Html.IdFor(model => model.ShelfOrderItemIsActive)').val(),
                                 IsShelfEmpty: $('#@Html.IdFor(model => model.IsShelfEmpty)').is(":checked")
                             };

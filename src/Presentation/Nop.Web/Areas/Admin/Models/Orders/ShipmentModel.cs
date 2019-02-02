@@ -113,6 +113,8 @@ namespace Nop.Web.Areas.Admin.Models.Orders
             public decimal ShippingFee { get; set; }
             public string ShippingFeeStr { get; set; }
             public bool AllowToChooseWarehouse { get; set; }
+
+            public DateTime? DeliveryDateUtc { get; set; }
             //used before a shipment is created
             public List<WarehouseInfo> AvailableWarehouses { get; set; }
 

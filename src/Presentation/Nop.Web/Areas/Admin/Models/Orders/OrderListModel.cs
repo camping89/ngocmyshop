@@ -16,7 +16,6 @@ namespace Nop.Web.Areas.Admin.Models.Orders
             AvailableShippingStatuses = new List<SelectListItem>();
             AvailableStores = new List<SelectListItem>();
             AvailableVendors = new List<SelectListItem>();
-            AvailableOrderCheckoutStatus = new List<SelectListItem>();
             AvailableWarehouses = new List<SelectListItem>();
             AvailablePaymentMethods = new List<SelectListItem>();
             AvailableCountries = new List<SelectListItem>();
@@ -32,6 +31,9 @@ namespace Nop.Web.Areas.Admin.Models.Orders
 
         [NopResourceDisplayName("Admin.Orders.List.TodayFilter")]
         public bool TodayFilter { get; set; }
+
+        [NopResourceDisplayName("Admin.Orders.List.OrderId")]
+        public string OrderId { get; set; }
 
         [NopResourceDisplayName("Admin.Orders.List.OrderStatus")]
         public int[] OrderStatusIds { get; set; }
@@ -82,8 +84,6 @@ namespace Nop.Web.Areas.Admin.Models.Orders
 
         public bool IsLoggedInAsVendor { get; set; }
 
-        [NopResourceDisplayName("Admin.Orders.List.IsOrderCheckout")]
-        public bool? IsOrderCheckout { get; set; }
 
         [NopResourceDisplayName("Admin.Orders.List.OrderCheckoutDatetime")]
         public DateTime? OrderCheckoutDatetime { get; set; }
@@ -94,7 +94,6 @@ namespace Nop.Web.Areas.Admin.Models.Orders
         public IList<SelectListItem> AvailableShippingStatuses { get; set; }
         public IList<SelectListItem> AvailableStores { get; set; }
         public IList<SelectListItem> AvailableVendors { get; set; }
-        public IList<SelectListItem> AvailableOrderCheckoutStatus { get; set; }
         public IList<SelectListItem> AvailableWarehouses { get; set; }
         public IList<SelectListItem> AvailablePaymentMethods { get; set; }
         public IList<SelectListItem> AvailableCountries { get; set; }
