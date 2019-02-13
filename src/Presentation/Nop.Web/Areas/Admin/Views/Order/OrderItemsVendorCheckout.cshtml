@@ -254,8 +254,8 @@
                                                             ProductName: { editable: false, type: "string" },
                                                             TotalWithoutWeightCost: { editable: false, type: "string" },
                                                             WeightCostDec: { editable: true, type: "string" },
-                                                            UnitWeightCost: { editable: false, type: "string" },
-                                                            ItemWeight: { editable: false, type: "string" },
+                                                            UnitWeightCost: { editable: true, type: "string" },
+                                                            ItemWeight: { editable: true, type: "string" },
                                                             SubTotalInclTax: { editable: false, type: "string" },
                                                             IsOrderCheckout: { editable: true, type: "boolean" },
                                                             ShelfId: { editable: true, type: "string" }
@@ -340,7 +340,9 @@
                                                 {
                                                     field: "CustomerInfo",
                                                     title: "@T("Admin.Orders.Products.CustomerInfo")",
-                                                    width: 150
+                                                    width: 150,
+                                                    template: '<p>#=CustomerInfo#</p>' +
+                                                        '<p><a target="_blank" href="#=CustomerLinkFacebook#">#=CustomerLinkFacebook#</a></p>'
                                                 }, {
                                                     field: "CreatedDate",
                                                     title: "@T("Admin.Orders.Fields.OrderCreatedDate")",
@@ -371,7 +373,7 @@
                                                         '<p>Sku: #=Sku#</p>' +
                                                         '<p>#=AttributeInfo#</p>' +
                                                         '<p><strong>#=VendorName#</strong></p>',
-                                                    width: 250
+                                                    width: 200
                                                 }, {
                                                     field: "TotalWithoutWeightCost",
                                                     title: "@T("Admin.Orders.Products.TotalWithoutWeightCost")",
@@ -379,7 +381,7 @@
                                                 }, {
                                                     field: "WeightCostDec",
                                                     title: "@T("Admin.Orders.Products.WeightCost")",
-                                                    width: 100,
+                                                    width: 70,
                                                     template: "# if (WeightCostDec > 0) { #" +
                                                         "#=WeightCost#" +
                                                         "#} else {#" +
@@ -389,12 +391,14 @@
                                                 }, {
                                                     field: "UnitWeightCost",
                                                     title: "@T("Admin.Orders.Products.UnitWeightCost")",
-                                                    hidden: true,
+                                                    width: 70,
+                                                    //hidden: true,
                                                     editor: addExtendCustom
                                                 }, {
                                                     field: "ItemWeight",
                                                     title: "@T("Admin.Orders.Products.ItemWeight")",
-                                                    hidden: true
+                                                    width: 70,
+                                                    //hidden: true
                                                 }, {
                                                     field: "SubTotalInclTax",
                                                     title: "@T("Admin.Orders.Products.Total")",
@@ -484,9 +488,30 @@
 
 
                                         function grid_edit(e) {
-                                            $(e.container).parent().css({
-                                                width: '500px',
-                                                height: 'auto'
+                                            //$(e.container).parent().css({
+                                            //    width: '500px',
+                                            //    height: 'auto'
+                                            //});
+
+                                            var weightCostElement = $("input[name=WeightCostDec]");
+                                            $("input[name=ItemWeight]").on('input',function() {
+                                                var itemWeight = parseFloat($(this).val());
+                                                if (itemWeight > 0) {
+                                                    var unitWeightCost = $("input[name=UnitWeightCost]").val();
+                                                    var weightCostDec = parseFloat(unitWeightCost) * itemWeight;
+                                                    //need trigger change update data to model
+                                                    weightCostElement.val(weightCostDec).change();
+                                                }
+                                            });
+
+                                            $("input[name=UnitWeightCost]").on('input',function() {
+                                                var unitWeightCost = parseFloat($(this).val());
+                                                if (unitWeightCost > 0) {
+                                                    var itemWeight = $("input[name=ItemWeight]").val();
+                                                    var weightCostDec = parseFloat(itemWeight) * unitWeightCost;
+                                                    //need trigger change update data to model
+                                                    weightCostElement.val(weightCostDec).change();
+                                                }
                                             });
 
                                         }
@@ -917,16 +942,21 @@
 
 <script type="text/javascript">
     function makeRandomPackageCode() {
-        var text = "";
+        var text = "TAM_";
         var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
-        for (var i = 0; i < 8; i++)
+        for (var i = 0; i < 6; i++)
             text += possible.charAt(Math.floor(Math.random() * possible.length));
 
         return text;
     }
 
     $(document).ready(function () {
+        $("#apply-packageorderid-selected").click(function() {
+            $('#@Html.IdFor(model => model.PackageOrderCodeNew)').val('');
+        });
+
+
         $("#generatePackageCode").click(function(e) {
             e.preventDefault();
             var ramdomPackageCode = makeRandomPackageCode();
@@ -1004,6 +1034,7 @@
 
 <script type="text/javascript">
     $(document).ready(function () {
+
         $('#btn-apply-processed-datetime').click(function (e) {
             e.preventDefault();
             var datetimeNew = $('#PackageItemProcessedDatetimeNew').val();

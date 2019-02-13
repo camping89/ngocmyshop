@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc.Rendering;
 using Nop.Web.Framework.Mvc.ModelBinding;
 using Nop.Web.Framework.Mvc.Models;
+using Nop.Web.Models.Common;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -15,6 +16,7 @@ namespace Nop.Web.Areas.Admin.Models.Orders
             AvailableStates = new List<SelectListItem>();
             AvailableWarehouses = new List<SelectListItem>();
             AvailableShippers = new List<SelectListItem>();
+            AvailableCities = ProvinceVietNam.GetSelectListItems();
         }
         [NopResourceDisplayName("Admin.Orders.Shipments.List.ShipperPhoneNumber")]
         public string ShipperPhoneNumber { get; set; }
@@ -49,6 +51,7 @@ namespace Nop.Web.Areas.Admin.Models.Orders
 
         [NopResourceDisplayName("Admin.Orders.Shipments.List.City")]
         public string City { get; set; }
+        public IList<SelectListItem> AvailableCities { get; set; }
 
         [NopResourceDisplayName("Admin.Orders.Shipments.List.LoadNotShipped")]
         public bool LoadNotShipped { get; set; }
@@ -65,6 +68,7 @@ namespace Nop.Web.Areas.Admin.Models.Orders
         [NopResourceDisplayName("Admin.Orders.Shipments.List.CustomerNew")]
         public int CustomerNewId { get; set; }
         public IList<SelectListItem> AvailableShippers { get; set; }
+
     }
 
 }

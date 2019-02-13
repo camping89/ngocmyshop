@@ -12,13 +12,32 @@ namespace Nop.Core.Domain.Shipping
         public int? CustomerId { get; set; }
 
         public DateTime? AssignedDate { get; set; }
-
+        public DateTime? ShippedDate { get; set; }
+        public DateTime? UpdatedNoteDate { get; set; }
+        public bool IsCustomerNotified { get; set; }
+        public int ShelfNoteId { get; set; }
         public virtual Customer Customer { get; set; }
 
         public virtual ICollection<ShelfOrderItem> ShipmentItems
         {
             get { return _shelfOrderItems ?? (_shelfOrderItems = new List<ShelfOrderItem>()); }
             protected set { _shelfOrderItems = value; }
+        }
+
+
+        /// <summary>
+        /// Gets or sets the shipping status
+        /// </summary>
+        public ShelfNoteStatus ShelfNoteStatus
+        {
+            get
+            {
+                return (ShelfNoteStatus)ShelfNoteId;
+            }
+            set
+            {
+                ShelfNoteId = (int)value;
+            }
         }
     }
 }

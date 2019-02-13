@@ -11,7 +11,7 @@ namespace Nop.Data.Mapping.Shipping
         {
             this.ToTable("Shelf");
             this.HasKey(s => s.Id);
-
+            this.Ignore(o => o.ShelfNoteStatus);
             this.HasRequired(s => s.Customer)
                 .WithMany()
                 .HasForeignKey(s => s.CustomerId);

@@ -1811,9 +1811,10 @@ namespace Nop.Web.Areas.Admin.Controllers
                 }
             Stopwatch stopwatch = Stopwatch.StartNew();
 
-            var customerIds = new List<int>();
+            List<int> customerIds = null;
             if (string.IsNullOrEmpty(model.LinkFacebook) == false)
             {
+                customerIds = new List<int>();
                 customerIds = _customerService.GetAllCustomers(linkFacebook: model.LinkFacebook).Select(_ => _.Id).ToList();
             }
             var procIds = new List<int>();
@@ -4225,6 +4226,10 @@ namespace Nop.Web.Areas.Admin.Controllers
                 Data = resultDatas,
                 Total = resultDatas.Count
             };
+            gridModel.ExtraData = new OrderAggreratorModel
+            {
+                aggregatortotal = _priceFormatter.FormatPrice(resultDatas.Sum(_ => _.SubTotalInclTaxValue), true, false)
+            };
 
             return Json(gridModel);
         }
@@ -6223,13 +6228,13 @@ namespace Nop.Web.Areas.Admin.Controllers
                 {
                     var customerOrder = _customerService.GetCustomerById(orderItem.Order.CustomerId);
                     var customerInfo = string.Empty;
+                    var customerFacebook = string.Empty;
                     if (customerOrder != null)
                     {
-                        var linkFacebook = customerOrder.GetAttribute<string>(SystemCustomerAttributeNames.LinkFacebook1);
+                        customerFacebook = customerOrder.GetAttribute<string>(SystemCustomerAttributeNames.LinkFacebook1);
 
                         customerInfo = customerOrder.GetFullName()
-                                                 + $"\n {customerOrder.GetAttribute<string>(SystemCustomerAttributeNames.Phone)}"
-                                                 + $"\n {linkFacebook}";
+                                                 + $"\n {customerOrder.GetAttribute<string>(SystemCustomerAttributeNames.Phone)}";
                     }
 
                     var currencyProduct = _currencyService.GetCurrencyById(orderItem.Product.CurrencyId, false);
@@ -6255,6 +6260,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                         IsOrderCheckout = orderItem.IsOrderCheckout,
                         ItemWeight = orderItem.ItemWeight ?? 0,
                         CustomerInfo = customerInfo,
+                        CustomerLinkFacebook = customerFacebook,
                         CreatedDate = orderItem.Order.CreatedOnUtc,
                         PrimaryStoreCurrencyCode = primaryStoreCurrency.CurrencyCode,
                         AssignedByCustomerId = orderItem.AssignedByCustomerId,

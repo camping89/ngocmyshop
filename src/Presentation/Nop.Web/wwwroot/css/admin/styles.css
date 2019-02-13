@@ -310,7 +310,7 @@ table.adminContent {
     background: #fff;
     border: 1px solid #d2d6de;
     height: 32px;
-    width: 4.5em;
+    width: 32px;
     padding-left: 1px;
     -moz-box-sizing: content-box;
 }
@@ -872,7 +872,7 @@ td.k-state-focused.k-state-selected {
 }
 .k-grid .k-textbox{
     width: 100% !important;
-    min-width: 150px !important;
+    /*min-width: 150px !important;*/
 }
 .tag-editor {
     border: 1px solid #d2d6de !important;

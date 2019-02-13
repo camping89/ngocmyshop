@@ -12,6 +12,8 @@ namespace Nop.Web.Areas.Admin.Models.Orders
         {
             Customers = new List<SelectListItem>();
             ShelfOrderItemsStatus = new List<SelectListItem>();
+            CustomerNotifiedStatus = new List<SelectListItem>();
+            ShelfNoteStatus = new List<SelectListItem>();
         }
         [NopResourceDisplayName("Admin.Orders.Shelf.Fields.CustomerId")]
         public int CustomerId { get; set; }
@@ -20,22 +22,42 @@ namespace Nop.Web.Areas.Admin.Models.Orders
         [NopResourceDisplayName("Admin.Orders.Shelf.Fields.AssignedFromDate")]
         public DateTime? AssignedFromDate { get; set; }
 
-        [NopResourceDisplayName("Admin.Orders.Shelf.Fields.ShelfCode")]
-        public string ShelfCode { get; set; }
-
         [UIHint("DateNullable")]
         [NopResourceDisplayName("Admin.Orders.Shelf.Fields.AssignedToDate")]
         public DateTime? AssignedToDate { get; set; }
+
+        [UIHint("DateNullable")]
+        [NopResourceDisplayName("Admin.Orders.Shelf.Fields.ShippedFromDate")]
+        public DateTime? ShippedFromDate { get; set; }
+
+        [UIHint("DateNullable")]
+        [NopResourceDisplayName("Admin.Orders.Shelf.Fields.ShippedToDate")]
+        public DateTime? ShippedToDate { get; set; }
+
+        [NopResourceDisplayName("Admin.Orders.Shelf.Fields.ShelfCode")]
+        public string ShelfCode { get; set; }
+
 
         public List<SelectListItem> Customers { get; set; }
 
         [NopResourceDisplayName("Admin.ShelfOrderItem.IsActive")]
         public bool? ShelfOrderItemIsActive { get; set; }
 
+        [NopResourceDisplayName("Admin.ShelfOrderItem.IsCustomerNotified")]
+        public bool? IsCustomerNotified { get; set; }
+
         [NopResourceDisplayName("Admin.ShelfOrderItem.IsShelfEmpty")]
         public bool IsShelfEmpty { get; set; }
 
+        [NopResourceDisplayName("Admin.ShelfOrderItem.ShipTodayFilter")]
+        public bool ShipTodayFilter { get; set; }
+
+        [NopResourceDisplayName("Admin.ShelfOrderItem.ShelfNoteId")]
+        public int ShelfNoteId { get; set; }
+
         public List<SelectListItem> ShelfOrderItemsStatus { get; set; }
+        public List<SelectListItem> CustomerNotifiedStatus { get; set; }
+        public List<SelectListItem> ShelfNoteStatus { get; set; }
 
     }
 }

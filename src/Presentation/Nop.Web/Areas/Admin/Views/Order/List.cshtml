@@ -23,10 +23,29 @@
 
 <form asp-controller="Order" asp-action="List" method="post">
     <div class="content-header clearfix">
+
         <h1 class="pull-left">
             @T("Admin.Orders")
         </h1>
+        @*<div class="row">
+                <div class="col-md-12 clearfix">
+                    <div class="pull-left">
+                        @await Component.InvokeAsync("SettingMode", new { modeName = "product-advanced-mode" })
+                    </div>
+                    @if (!Model.IsLoggedInAsVendor)
+                    {
+                        <button type="button" class="btn btn-info pull-left margin-l-10" id="product-editor-settings" data-toggle="modal" data-target="#productsettings-window">
+                            <i class="fa fa-gear"></i>
+                            @T("Admin.Configuration.Settings.ProductEditor.Button")
+                        </button>
+                    }
+                </div>
+            </div>*@
+        <div class="pull-left">
+            @await Component.InvokeAsync("SettingMode", new { modeName = "order-advanced-mode" })
+        </div>
         <div class="pull-right">
+
             <div class="btn-group">
                 <button type="button" class="btn btn-success">
                     <i class="fa fa-download"></i>
@@ -115,13 +134,54 @@
                             <div class="col-md-5">
                                 <div class="form-group">
                                     <div class="col-md-4">
-                                        <nop-label asp-for="OrderId" />
+                                        <nop-label asp-for="LinkFacebook" />
                                     </div>
                                     <div class="col-md-8">
-                                        <nop-editor asp-for="OrderId" />
+                                        <nop-editor asp-for="LinkFacebook" />
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <nop-label asp-for="BillingPhone" />
+                                    </div>
+                                    <div class="col-md-8">
+                                        <nop-editor asp-for="BillingPhone" />
                                     </div>
                                 </div>
                                 <div class="form-group">
+                                    <div class="col-md-4">
+                                        <nop-label asp-for="BillingFullName" />
+                                    </div>
+                                    <div class="col-md-8">
+                                        <nop-editor asp-for="BillingFullName" />
+                                    </div>
+                                </div>
+
+                                <div class="form-group advanced-setting">
+                                    <div class="col-md-4">
+                                        <nop-label asp-for="GoDirectlyToCustomOrderNumber" />
+                                    </div>
+                                    <div class="col-md-8">
+                                        <div class="input-group input-group-short">
+                                            <nop-editor asp-for="GoDirectlyToCustomOrderNumber" />
+                                            <span class="input-group-btn">
+                                                <button type="submit" id="go-to-order-by-number" name="go-to-order-by-number" class="btn btn-info btn-flat">
+                                                    @T("Admin.Common.Go")
+                                                </button>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-group advanced-setting" @(Model.AvailableVendors.SelectionIsNotPossible() || Model.IsLoggedInAsVendor ? Html.Raw("style='display: none;' ") : null)>
+                                    <div class="col-md-4">
+                                        <nop-label asp-for="VendorId" />
+                                    </div>
+                                    <div class="col-md-8">
+                                        <nop-select asp-for="VendorId" asp-items="Model.AvailableVendors" />
+                                    </div>
+                                </div>
+                                <div class="form-group advanced-setting">
                                     <div class="col-md-4">
                                         <nop-label asp-for="StartDate" />
                                     </div>
@@ -129,7 +189,7 @@
                                         <nop-editor asp-for="StartDate" />
                                     </div>
                                 </div>
-                                <div class="form-group">
+                                <div class="form-group advanced-setting">
                                     <div class="col-md-4">
                                         <nop-label asp-for="EndDate" />
                                     </div>
@@ -137,14 +197,15 @@
                                         <nop-editor asp-for="EndDate" />
                                     </div>
                                 </div>
-                                <div class="form-group">
+                                <div class="form-group advanced-setting">
                                     <div class="col-md-4">
-                                        <nop-label asp-for="TodayFilter" />
+                                        <nop-label asp-for="OrderId" />
                                     </div>
                                     <div class="col-md-8">
-                                        <nop-editor asp-for="TodayFilter" />
+                                        <nop-editor asp-for="OrderId" />
                                     </div>
                                 </div>
+
                                 @*<div class="form-group" @(Model.AvailableWarehouses.SelectionIsNotPossible() ? Html.Raw("style=\"display:none\"") : null)>
                                         <div class="col-md-4">
                                             <nop-label asp-for="WarehouseId" />
@@ -153,6 +214,10 @@
                                             <nop-select asp-for="WarehouseId" asp-items="Model.AvailableWarehouses" />
                                         </div>
                                     </div>*@
+
+
+                            </div>
+                            <div class="col-md-7">
                                 <div class="form-group">
                                     <div class="col-md-4">
                                         <nop-label asp-for="ProductId" />
@@ -161,7 +226,7 @@
                                         <input type="text" id="search-product-name" autocomplete="off" class="form-control" />
                                         <span id="search-product-friendly-name"></span>
                                         <button type="button" id="search-product-clear" class="btn bg-gray" style="display: none; margin-top: 5px;">@T("Admin.Common.Clear")</button>
-                                        <input asp-for="ProductId" autocomplete="off" style="display:none;" />
+                                        <input asp-for="ProductId" autocomplete="off" style="display: none;" />
                                         <script type="text/javascript">
                                             $(document).ready(function() {
                                                 $('#search-product-name').autocomplete({
@@ -169,7 +234,8 @@
                                                     minLength: 3,
                                                     source: '@(Url.Action("ProductSearchAutoComplete"))',
                                                     select: function(event, ui) {
-                                                        $('#@Html.IdFor(model => model.ProductId)').val(ui.item.productid);
+                                                        $('#@Html.IdFor(model => model.ProductId)')
+                                                            .val(ui.item.productid);
                                                         $('#search-product-friendly-name').text(ui.item.label);
 
                                                         $('#search-product-clear').show();
@@ -196,7 +262,17 @@
                                         <nop-editor asp-for="LinkSourceProduct" />
                                     </div>
                                 </div>
-                                <div class="form-group" @(Model.IsLoggedInAsVendor ? Html.Raw("style='display: none;' ") : null)>
+
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <nop-label asp-for="TodayFilter" />
+                                    </div>
+                                    <div class="col-md-8">
+                                        <nop-editor asp-for="TodayFilter" />
+                                    </div>
+                                </div>
+
+                                <div class="form-group advanced-setting" @(Model.IsLoggedInAsVendor ? Html.Raw("style='display: none;' ") : null)>
                                     <div class="col-md-4">
                                         <nop-label asp-for="OrderStatusIds" />
                                     </div>
@@ -204,7 +280,7 @@
                                         <nop-select asp-for="OrderStatusIds" asp-items="Model.AvailableOrderStatuses" asp-multiple="true" />
                                     </div>
                                 </div>
-                                <div class="form-group">
+                                <div class="form-group advanced-setting">
                                     <div class="col-md-4">
                                         <nop-label asp-for="PaymentStatusIds" />
                                     </div>
@@ -212,7 +288,7 @@
                                         <nop-select asp-for="PaymentStatusIds" asp-items="Model.AvailablePaymentStatuses" asp-multiple="true" />
                                     </div>
                                 </div>
-                                <div class="form-group" @(Model.IsLoggedInAsVendor ? Html.Raw("style='display: none;' ") : null)>
+                                <div class="form-group advanced-setting" @(Model.IsLoggedInAsVendor ? Html.Raw("style='display: none;' ") : null)>
                                     <div class="col-md-4">
                                         <nop-label asp-for="ShippingStatusIds" />
                                     </div>
@@ -220,49 +296,15 @@
                                         <nop-select asp-for="ShippingStatusIds" asp-items="Model.AvailableShippingStatuses" asp-multiple="true" />
                                     </div>
                                 </div>
-                            </div>
-                            <div class="col-md-7">
+                                @*<div class="form-group" @(Model.AvailableStores.SelectionIsNotPossible() ? Html.Raw("style=\"display:none\"") : null)>
+                                        <div class="col-md-4">
+                                            <nop-label asp-for="StoreId" />
+                                        </div>
+                                        <div class="col-md-8">
+                                            <nop-select asp-for="StoreId" asp-items="Model.AvailableStores" />
+                                        </div>
+                                    </div>*@
 
-                                <div class="form-group" @(Model.AvailableStores.SelectionIsNotPossible() ? Html.Raw("style=\"display:none\"") : null)>
-                                    <div class="col-md-4">
-                                        <nop-label asp-for="StoreId" />
-                                    </div>
-                                    <div class="col-md-8">
-                                        <nop-select asp-for="StoreId" asp-items="Model.AvailableStores" />
-                                    </div>
-                                </div>
-                                <div class="form-group" @(Model.AvailableVendors.SelectionIsNotPossible() || Model.IsLoggedInAsVendor ? Html.Raw("style='display: none;' ") : null)>
-                                    <div class="col-md-4">
-                                        <nop-label asp-for="VendorId" />
-                                    </div>
-                                    <div class="col-md-8">
-                                        <nop-select asp-for="VendorId" asp-items="Model.AvailableVendors" />
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <div class="col-md-4">
-                                        <nop-label asp-for="LinkFacebook" />
-                                    </div>
-                                    <div class="col-md-8">
-                                        <nop-editor asp-for="LinkFacebook" />
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <div class="col-md-4">
-                                        <nop-label asp-for="BillingPhone" />
-                                    </div>
-                                    <div class="col-md-8">
-                                        <nop-editor asp-for="BillingPhone" />
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <div class="col-md-4">
-                                        <nop-label asp-for="BillingFullName" />
-                                    </div>
-                                    <div class="col-md-8">
-                                        <nop-editor asp-for="BillingFullName" />
-                                    </div>
-                                </div>
                                 @*<div class="form-group" @(Model.AvailableCountries.SelectionIsNotPossible() ? Html.Raw("style=\"display:none\"") : null)>
                                         <div class="col-md-4">
                                             <nop-label asp-for="BillingCountryId" />
@@ -279,7 +321,7 @@
                                             <nop-select asp-for="PaymentMethodSystemName" asp-items="Model.AvailablePaymentMethods" />
                                         </div>
                                     </div>*@
-                                <div class="form-group">
+                                <div class="form-group advanced-setting">
                                     <div class="col-md-4">
                                         <nop-label asp-for="OrderNotes" />
                                     </div>
@@ -287,21 +329,7 @@
                                         <nop-editor asp-for="OrderNotes" />
                                     </div>
                                 </div>
-                                <div class="form-group">
-                                    <div class="col-md-4">
-                                        <nop-label asp-for="GoDirectlyToCustomOrderNumber" />
-                                    </div>
-                                    <div class="col-md-8">
-                                        <div class="input-group input-group-short">
-                                            <nop-editor asp-for="GoDirectlyToCustomOrderNumber" />
-                                            <span class="input-group-btn">
-                                                <button type="submit" id="go-to-order-by-number" name="go-to-order-by-number" class="btn btn-info btn-flat">
-                                                    @T("Admin.Common.Go")
-                                                </button>
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
+
                             </div>
                         </div>
                         <div class="row">

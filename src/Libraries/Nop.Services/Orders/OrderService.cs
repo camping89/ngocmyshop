@@ -283,8 +283,17 @@ namespace Nop.Services.Orders
             if (ssIds != null && ssIds.Any())
                 query = query.Where(o => ssIds.Contains(o.ShippingStatusId));
 
-            if (custIdsByLinkFace != null && custIdsByLinkFace.Any())
-                query = query.Where(o => custIdsByLinkFace.Contains(o.CustomerId));
+            if (custIdsByLinkFace != null)
+            {
+                if (custIdsByLinkFace.Count > 0)
+                {
+                    query = query.Where(o => custIdsByLinkFace.Contains(o.CustomerId));
+                }
+                else
+                {
+                    query = query.Where(o => 1 == 0);
+                }
+            }
 
             if (!string.IsNullOrEmpty(billingEmail))
                 query = query.Where(o => o.BillingAddress != null && !string.IsNullOrEmpty(o.BillingAddress.Email) && o.BillingAddress.Email.Contains(billingEmail));

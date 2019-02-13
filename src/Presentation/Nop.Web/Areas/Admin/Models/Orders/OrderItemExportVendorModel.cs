@@ -93,6 +93,7 @@ namespace Nop.Web.Areas.Admin.Models.Orders
     public class OrderItemExportVendorModelBasic : OrderModel.OrderItemModel
     {
         public string CustomerInfo { get; set; }
+        public string CustomerLinkFacebook { get; set; }
 
         public DateTime CreatedDate { get; set; }
 

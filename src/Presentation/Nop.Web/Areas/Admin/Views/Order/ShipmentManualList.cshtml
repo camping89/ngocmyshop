@@ -172,7 +172,8 @@
                                         <nop-label asp-for="City" />
                                     </div>
                                     <div class="col-md-8">
-                                        <nop-editor asp-for="City" />
+                                        @*<nop-editor asp-for="City" />*@
+                                        <nop-select asp-for="City" asp-items="Model.AvailableCities" />
                                     </div>
                                 </div>
 

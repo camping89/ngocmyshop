@@ -63,6 +63,25 @@
                                     <nop-editor asp-for="ShelfCode" />
                                 </div>
                             </div>
+
+                            <div class="form-group">
+                                <div class="col-md-4">
+                                    <nop-label asp-for="IsCustomerNotified" />
+                                </div>
+                                <div class="col-md-8">
+                                    <nop-select asp-for="IsCustomerNotified" asp-items="Model.CustomerNotifiedStatus" />
+                                </div>
+                            </div>
+
+
+                            <div class="form-group">
+                                <div class="col-md-4">
+                                    <nop-label asp-for="ShelfNoteId" />
+                                </div>
+                                <div class="col-md-8">
+                                    <nop-select asp-for="ShelfNoteId" asp-items="Model.ShelfNoteStatus" />
+                                </div>
+                            </div>
                         </div>
                         <div class="col-md-6">
                             <div class="form-group">
@@ -81,6 +100,32 @@
                                     <nop-editor asp-for="AssignedToDate" />
                                 </div>
                             </div>
+                            <div class="form-group">
+                                <div class="col-md-4">
+                                    <nop-label asp-for="ShippedFromDate" />
+                                </div>
+                                <div class="col-md-8">
+                                    <nop-editor asp-for="ShippedFromDate" />
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="col-md-4">
+                                    <nop-label asp-for="ShippedToDate" />
+                                </div>
+                                <div class="col-md-8">
+                                    <nop-editor asp-for="ShippedToDate" />
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="col-md-4">
+                                    <nop-label asp-for="ShipTodayFilter" />
+                                </div>
+                                <div class="col-md-8">
+                                    <nop-editor asp-for="ShipTodayFilter" />
+                                </div>
+                            </div>
+
                             <div class="form-group">
                                 <div class="col-md-4">
                                     <nop-label asp-for="IsShelfEmpty" />
@@ -154,9 +199,14 @@
                                                 ShelfCode: { validation: { required: true }, type: "string" },
                                                 CustomerId: { type: "number", editable: true },
                                                 AssignedDate: { editable: true, type: "date", nullable: true },
+                                                ShippedDate: { editable: true, type: "date", nullable: true },
+                                                UpdatedNoteDate: { editable: true, type: "date", nullable: true },
                                                 CustomerFullName: { editable: false, type: "string" },
                                                 CustomerLinkFacebook: { editable: false, type: "string" },
-                                                CustomerPhone: { editable: false, type: "string" }
+                                                CustomerPhone: { editable: false, type: "string" },
+                                                IsCustomerNotified: { editable: true, type: "boolean" },
+                                                ShelfNoteId: { editable: true, type: "number" },
+                                                ShelfNoteStatus: { editable: false, type: "string" }
                                             }
                                         },
                                         data: "Data",
@@ -201,11 +251,11 @@
                                     {
                                         field: "ShelfCode",
                                         title: "@T("Admin.Shelf.Fields.ShelfCode")",
-                                        width: 200
+                                        width: 100
                                     }, {
                                         field: "CustomerId",
                                         title: "@T("Admin.Shelf.Fields.CustomerInfo")",
-                                        width: 200,
+                                        width: 150,
                                         editor: editCustomerId,
                                         template:
                                             '# if(CustomerFullName != null && CustomerPhone != null ) {# <p>#=CustomerFullName#</p><p>#=CustomerPhone#</p> <p><a href="#=CustomerLinkFacebook#" target="_blank" >#=CustomerLinkFacebook#</a></p> #}  #'
@@ -213,10 +263,55 @@
                                     {
                                         field: "AssignedDate",
                                         title: "@T("Admin.Shelf.Fields.AssignedDate")",
-                                        width: 150,
+                                        width: 80,
                                         editor: dateTimeEditorCustom,
                                         template: "# if (AssignedDate != null) { #" +
                                             "<p>#= kendo.toString(kendo.parseDate(AssignedDate, 'yyyy-MM-dd'), 'MM/dd/yyyy') #</p>" +
+                                            "#} else {#" +
+                                            "<p></p>" +
+                                            "# } #"
+                                    },
+                                    {
+                                        field: "ShippedDate",
+                                        title: "@T("Admin.Shelf.Fields.ShippedDate")",
+                                        width: 80,
+                                        editor: dateTimeEditorCustom,
+                                        template: "# if (ShippedDate != null) { #" +
+                                            "<p>#= kendo.toString(kendo.parseDate(ShippedDate, 'yyyy-MM-dd'), 'MM/dd/yyyy') #</p>" +
+                                            "#} else {#" +
+                                            "<p></p>" +
+                                            "# } #"
+                                    },{
+                                        field: "IsCustomerNotified",
+                                        width: 70,
+                                        title: "@T("Admin.Shelf.Fields.IsCustomerNotified")",
+                                        template: "# if (IsCustomerNotified) { #" +
+                                            "@T("Admin.Shelf.Fields.IsCustomerNotified.True")" +
+                                            "#} else {#" +
+                                            "@T("Admin.Shelf.Fields.IsCustomerNotified.False")" +
+                                            "# } #"
+
+                                    },{
+                                        field: "ShelfNoteId",
+                                        title: "@T("Admin.Shelf.Fields.ShelfNoteStatus")",
+                                        width: 100,
+                                        editor: editShelfNoteId,
+                                        template: '<span class="grid-report-item ' +
+                                            '# if(ShelfNoteId == 0) {# gray #} #' +
+                                            '# if(ShelfNoteId == 1) {# yellow #} #' +
+                                            '# if(ShelfNoteId == 5) {# blue #} #' +
+                                            '# if(ShelfNoteId == 10) {# green #} #' +
+                                            '# if(ShelfNoteId == 15) {# red #} #' +
+                                            '">#=ShelfNoteStatus#</span>'
+                                    },
+                                    {
+                                        field: "UpdatedNoteDate",
+                                        title: "@T("Admin.Shelf.Fields.UpdatedNoteDate")",
+                                        width: 80,
+                                        hidden: true,
+                                        editor: dateTimeEditorCustom,
+                                        template: "# if (UpdatedNoteDate != null) { #" +
+                                            "<p>#= kendo.toString(kendo.parseDate(UpdatedNoteDate, 'yyyy-MM-dd'), 'MM/dd/yyyy') #</p>" +
                                             "#} else {#" +
                                             "<p></p>" +
                                             "# } #"
@@ -389,6 +484,25 @@
                                     });
                             }
 
+                            function editShelfNoteId(container, options) {
+                                var jsonShelfNotes =
+                                    jQuery.parseJSON(
+                                        '@Json.Serialize(Model.ShelfNoteStatus.Select(_ => new {ShelfNoteId = _.Value, ShelfNoteName = _.Text}))');
+                                $('<input id="ShelfNoteEditor" data-text-field="ShelfNoteName" data-value-field="' +
+                                        options.field +
+                                        '" data-bind="value:' +
+                                        options.field +
+                                        '" />')
+                                    .appendTo(container)
+                                    .kendoDropDownList({
+                                        autoBind: true,
+                                        dataTextField: "ShelfNoteName",
+                                        dataValueField: "ShelfNoteId",
+                                        dataSource: jsonShelfNotes,
+                                        filter: "contains"
+                                    });
+                            }
+
                             function dateTimeEditorCustom(container, options) {
                                 var dateTime = options.model.AssignedDate;
                                 if (options.model.AssignedDate === null || options.model.AssignedDate === '') {
@@ -443,10 +557,19 @@
                                             }
                                         },
                                         requestEnd: function(e) {
+                                            if (e.type === "read") {
+                                                var response = e.response;
+                                                if (response) {
+                                                    //store extra data
+                                                    reportAggregates = e.response["ExtraData"];
+                                                }
+                                            }
+
                                             if (e.type !== "read") {
                                                 var grid = $("#shelf-grid").data('kendoGrid');
                                                 grid.dataSource.read();
                                             }
+
                                         },
                                         error: function(e) {
                                             display_kendoui_grid_error(e);
@@ -468,6 +591,7 @@
                                         confirmation: "@T("Admin.Common.DeleteConfirmation")",
                                         mode: "inline"
                                     },
+                                    dataBound: onDataBoundDetail(e.data.Id),
                                     columns: [
                                         {
                                             field: "Id",
@@ -512,7 +636,10 @@
                                         }, {
                                             field: "SubTotalInclTax",
                                             title: "@T("Admin.Orders.Products.Total")",
-                                            width: 100
+                                            width: 100,
+                                            @*footerTemplate:
+                                                '<div><strong>@T("Admin.Orders.Report.Summary")</strong></div>' +
+                                                '<div>@T("Admin.Orders.Report.Total") <span id=\"aggregator-total-block' + e.data.Id +'\"></span></div>'*@
                                         }, {
                                             field: "PackageOrderId",
                                             title: "@T("Admin.Orders.Products.PackageOrderId")",
@@ -532,7 +659,7 @@
                                                 "@T("Admin.ShelfOrderItem.IsActive.False")" +
                                                 "# } #"
 
-                                        } ,
+                                        },
                                         {
                                             command: [
                                                 {
@@ -562,6 +689,16 @@
 
                         });
 
+                        function onDataBoundDetail(shelfId) {
+                            console.log(reportAggregates);
+                            //update order totals summary
+                            if (reportAggregates !== "") {
+                                for(var key in reportAggregates) {
+                                    $('#aggregator-total-block' + shelfId).text(reportAggregates['aggregatortotal']);
+                                }
+                            }
+                        }
+
 
                         //========================Function extend========================//
 
@@ -588,8 +725,25 @@
                     </script>
 
                     <script type="text/javascript">
-
+                        var reportAggregates = "";
                         $(document).ready(function () {
+
+                            $('#@Html.IdFor(model => model.ShipTodayFilter)').click(function() {
+                                if ($(this).is(':checked')) {
+                                    var start = new Date();
+                                    start.setHours(0, 0, 0, 0);
+                                    var end = new Date();
+                                    end.setHours(23, 59, 59, 999);
+                                    var startDate = kendo.toString(kendo.parseDate(start), 'MM/dd/yyyy HH:mm tt');
+                                    var endDate = kendo.toString(kendo.parseDate(end), 'MM/dd/yyyy HH:mm tt');
+                                    $('#@Html.IdFor(model => model.ShippedFromDate)').val(startDate);
+                                    $('#@Html.IdFor(model => model.ShippedToDate)').val(endDate);
+                                } else {
+                                    $('#@Html.IdFor(model => model.ShippedFromDate)').val('');
+                                    $('#@Html.IdFor(model => model.ShippedToDate)').val('');
+                                }
+                            });
+
                             //search button
                             $('#search-shelf').click(function () {
                                 //search
@@ -605,10 +759,15 @@
                                 $('#@Html.IdFor(model => model.CustomerId)').trigger("chosen:updated");
                                 $('#@Html.IdFor(model => model.AssignedFromDate)').val('');
                                 $('#@Html.IdFor(model => model.AssignedToDate)').val('');
+                                $('#@Html.IdFor(model => model.ShippedFromDate)').val('');
+                                $('#@Html.IdFor(model => model.ShippedToDate)').val('');
                                 $('#@Html.IdFor(model => model.ShelfCode)').val('');
                                 $('#@Html.IdFor(model => model.ShelfOrderItemIsActive)').val('True');
 
                                 $('#@Html.IdFor(model => model.IsShelfEmpty)').prop('checked', false);
+                                $('#@Html.IdFor(model => model.ShipTodayFilter)').prop('checked', false);
+                                $('#@Html.IdFor(model => model.IsCustomerNotified)').val(0);
+                                $('#@Html.IdFor(model => model.ShelfNoteId)').val(0);
                                 $("#search-shelf").click();
                             });
 
@@ -621,9 +780,13 @@
                                 CustomerId: $('#@Html.IdFor(model => model.CustomerId)').val(),
                                 AssignedFromDate: $('#@Html.IdFor(model => model.AssignedFromDate)').val(),
                                 AssignedToDate: $('#@Html.IdFor(model => model.AssignedToDate)').val(),
+                                ShippedFromDate: $('#@Html.IdFor(model => model.ShippedFromDate)').val(),
+                                ShippedToDate: $('#@Html.IdFor(model => model.ShippedToDate)').val(),
                                 ShelfCode: $('#@Html.IdFor(model => model.ShelfCode)').val(),
                                 ShelfOrderItemIsActive: $('#@Html.IdFor(model => model.ShelfOrderItemIsActive)').val(),
-                                IsShelfEmpty: $('#@Html.IdFor(model => model.IsShelfEmpty)').is(":checked")
+                                IsShelfEmpty: $('#@Html.IdFor(model => model.IsShelfEmpty)').is(":checked"),
+                                IsCustomerNotified: $('#@Html.IdFor(model => model.IsCustomerNotified)').val(),
+                                ShelfNoteId: $('#@Html.IdFor(model => model.ShelfNoteId)').val()
                             };
                             addAntiForgeryToken(data);
                             return data;

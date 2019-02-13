@@ -1,11 +1,11 @@
-﻿using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using FluentValidation.Attributes;
+﻿using FluentValidation.Attributes;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Nop.Web.Areas.Admin.Validators.Common;
 using Nop.Core.Domain.Catalog;
+using Nop.Web.Areas.Admin.Validators.Common;
 using Nop.Web.Framework.Mvc.ModelBinding;
 using Nop.Web.Framework.Mvc.Models;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace Nop.Web.Areas.Admin.Models.Common
 {
@@ -17,6 +17,7 @@ namespace Nop.Web.Areas.Admin.Models.Common
             AvailableCountries = new List<SelectListItem>();
             AvailableStates = new List<SelectListItem>();
             CustomAddressAttributes = new List<AddressAttributeModel>();
+            AvailableCities = new List<SelectListItem>();
         }
 
         [NopResourceDisplayName("Admin.Address.Fields.FirstName")]
@@ -73,6 +74,7 @@ namespace Nop.Web.Areas.Admin.Models.Common
 
         public IList<SelectListItem> AvailableCountries { get; set; }
         public IList<SelectListItem> AvailableStates { get; set; }
+        public IList<SelectListItem> AvailableCities { get; set; }
 
         public bool FirstNameEnabled { get; set; }
         public bool FirstNameRequired { get; set; }

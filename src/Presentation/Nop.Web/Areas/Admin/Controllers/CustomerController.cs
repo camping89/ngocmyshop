@@ -35,7 +35,6 @@ using Nop.Services.Tax;
 using Nop.Services.Vendors;
 using Nop.Web.Areas.Admin.Extensions;
 using Nop.Web.Areas.Admin.Helpers;
-using Nop.Web.Areas.Admin.Models.Common;
 using Nop.Web.Areas.Admin.Models.Customers;
 using Nop.Web.Areas.Admin.Models.ShoppingCart;
 using Nop.Web.Extensions;
@@ -44,12 +43,14 @@ using Nop.Web.Framework.Extensions;
 using Nop.Web.Framework.Kendoui;
 using Nop.Web.Framework.Mvc;
 using Nop.Web.Framework.Mvc.Filters;
+using Nop.Web.Models.Common;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Text;
+using AddressModel = Nop.Web.Areas.Admin.Models.Common.AddressModel;
 
 namespace Nop.Web.Areas.Admin.Controllers
 {
@@ -728,10 +729,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             model.Address.CountryRequired = _addressSettings.CountryEnabled; //country is required when enabled
             model.Address.StateProvinceEnabled = _addressSettings.StateProvinceEnabled;
             model.Address.CityEnabled = _addressSettings.CityEnabled;
-            if (string.IsNullOrEmpty(model.Address.City))
-            {
-                model.Address.City = "Chưa xác định";
-            }
+
             model.Address.CityRequired = _addressSettings.CityRequired;
             model.Address.StreetAddressEnabled = _addressSettings.StreetAddressEnabled;
             model.Address.StreetAddressRequired = _addressSettings.StreetAddressRequired;
@@ -743,6 +741,13 @@ namespace Nop.Web.Areas.Admin.Controllers
             model.Address.PhoneRequired = _addressSettings.PhoneRequired;
             model.Address.FaxEnabled = _addressSettings.FaxEnabled;
             model.Address.FaxRequired = _addressSettings.FaxRequired;
+
+            model.Address.AvailableCities = ProvinceVietNam.GetSelectListItems(model.Address.City);
+
+            if (string.IsNullOrEmpty(model.Address.City))
+            {
+                model.Address.City = "Chưa xác định";
+            }
             //countries
             model.Address.AvailableCountries.Add(new SelectListItem { Text = _localizationService.GetResource("Admin.Address.SelectCountry"), Value = "0" });
             foreach (var c in _countryService.GetAllCountries(showHidden: true))

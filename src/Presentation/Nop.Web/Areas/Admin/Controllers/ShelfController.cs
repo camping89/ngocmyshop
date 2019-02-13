@@ -1,8 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Nop.Core;
 using Nop.Core.Domain.Customers;
 using Nop.Core.Domain.Orders;
 using Nop.Core.Domain.Shipping;
+using Nop.Services;
 using Nop.Services.Common;
 using Nop.Services.Customers;
 using Nop.Services.Localization;
@@ -29,7 +31,8 @@ namespace Nop.Web.Areas.Admin.Controllers
         private readonly IPermissionService _permissionService;
         private readonly ILocalizationService _localizationService;
         private readonly IShipmentManualService _shipmentManualService;
-        public ShelfController(ICustomerService customerService, IShelfService shelfService, IOrderService orderService, IPermissionService permissionService, ILocalizationService localizationService, IShipmentManualService shipmentManualService)
+        private readonly IWorkContext _workContext;
+        public ShelfController(ICustomerService customerService, IShelfService shelfService, IOrderService orderService, IPermissionService permissionService, ILocalizationService localizationService, IShipmentManualService shipmentManualService, IWorkContext workContext)
         {
             _customerService = customerService;
             _shelfService = shelfService;
@@ -37,6 +40,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             _permissionService = permissionService;
             _localizationService = localizationService;
             _shipmentManualService = shipmentManualService;
+            _workContext = workContext;
         }
 
         public IActionResult Index()
@@ -53,6 +57,13 @@ namespace Nop.Web.Areas.Admin.Controllers
                 new SelectListItem() {Value = "False",Text = _localizationService.GetResource("Admin.ShelfOrderItem.IsActive.False")},
             });
 
+            shelfListModel.CustomerNotifiedStatus.AddRange(new List<SelectListItem>()
+            {
+                new SelectListItem { Value = "", Text = _localizationService.GetResource("Admin.Common.All"), Selected = true},
+                new SelectListItem() {Value = "True",Text = _localizationService.GetResource("Admin.ShelfOrderItem.IsCustomerNotified.True")},
+                new SelectListItem() {Value = "False",Text = _localizationService.GetResource("Admin.ShelfOrderItem.IsCustomerNotified.False")},
+            });
+
             var customers = _customerService.GetAllCustomers().Where(_ => string.IsNullOrEmpty(_.GetFullName()) == false);
             shelfListModel.Customers = customers.Select(x =>
             {
@@ -66,6 +77,9 @@ namespace Nop.Web.Areas.Admin.Controllers
 
             shelfListModel.Customers.Insert(0, new SelectListItem { Value = "0", Text = _localizationService.GetResource("Admin.Common.All") });
 
+            shelfListModel.ShelfNoteStatus = ShelfNoteStatus.NoReply.ToSelectList(true).ToList();
+            //shelfListModel.ShelfNoteStatus.Insert(0, new SelectListItem { Value = "0", Text = _localizationService.GetResource("Admin.Common.All") });
+
             return View(shelfListModel);
         }
 
@@ -75,13 +89,16 @@ namespace Nop.Web.Areas.Admin.Controllers
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageNews))
                 return AccessDeniedKendoGridJson();
 
-            var shelfs = _shelfService.GetAllShelf(model.CustomerId, model.AssignedFromDate, model.AssignedToDate, command.Page - 1, command.PageSize, model.IsShelfEmpty, shelfCode: model.ShelfCode);
+            var shelfs = _shelfService.GetAllShelf(model.CustomerId, model.AssignedFromDate, model.AssignedToDate, model.ShippedFromDate, model.ShippedToDate, command.Page - 1, command.PageSize, model.IsShelfEmpty, shelfCode: model.ShelfCode, isCustomerNotified: model.IsCustomerNotified, shelfNoteId: model.ShelfNoteId);
             var gridModel = new DataSourceResult
             {
                 Data = shelfs.Select(x =>
                 {
                     var m = x.ToModel();
+                    m.ShelfNoteStatus = x.ShelfNoteStatus.GetLocalizedEnum(_localizationService, _workContext);
                     m.AssignedDate = x.AssignedDate?.ToString("MM/dd/yyyy");
+                    m.ShippedDate = x.ShippedDate?.ToString("MM/dd/yyyy");
+                    m.UpdatedNoteDate = x.UpdatedNoteDate?.ToString("MM/dd/yyyy");
                     var customer = x.Customer;
                     if (customer != null)
                     {
@@ -135,6 +152,21 @@ namespace Nop.Web.Areas.Admin.Controllers
         public IActionResult CreateAjax(ShelfModel model)
         {
             var entity = model.ToEntity();
+
+            if (string.IsNullOrEmpty(model.AssignedDate) == false)
+            {
+                entity.AssignedDate = StringExtensions.StringToDateTime(model.AssignedDate);
+            }
+
+            if (string.IsNullOrEmpty(model.ShippedDate) == false)
+            {
+                entity.ShippedDate = StringExtensions.StringToDateTime(model.ShippedDate);
+            }
+
+            if (string.IsNullOrEmpty(model.UpdatedNoteDate) == false)
+            {
+                entity.UpdatedNoteDate = StringExtensions.StringToDateTime(model.UpdatedNoteDate);
+            }
             _shelfService.InsertShelf(entity);
             return Json(new { Success = true });
         }
@@ -157,6 +189,16 @@ namespace Nop.Web.Areas.Admin.Controllers
                 if (string.IsNullOrEmpty(model.AssignedDate) == false)
                 {
                     entity.AssignedDate = StringExtensions.StringToDateTime(model.AssignedDate);
+                }
+
+                if (string.IsNullOrEmpty(model.ShippedDate) == false)
+                {
+                    entity.ShippedDate = StringExtensions.StringToDateTime(model.ShippedDate);
+                }
+
+                if (string.IsNullOrEmpty(model.UpdatedNoteDate) == false)
+                {
+                    entity.UpdatedNoteDate = StringExtensions.StringToDateTime(model.UpdatedNoteDate);
                 }
 
 
@@ -184,6 +226,16 @@ namespace Nop.Web.Areas.Admin.Controllers
             if (string.IsNullOrEmpty(model.AssignedDate) == false)
             {
                 entity.AssignedDate = StringExtensions.StringToDateTime(model.AssignedDate);
+            }
+
+            if (string.IsNullOrEmpty(model.ShippedDate) == false)
+            {
+                entity.ShippedDate = StringExtensions.StringToDateTime(model.ShippedDate);
+            }
+
+            if (string.IsNullOrEmpty(model.UpdatedNoteDate) == false)
+            {
+                entity.UpdatedNoteDate = StringExtensions.StringToDateTime(model.UpdatedNoteDate);
             }
 
             _shelfService.UpdateShelf(entity);

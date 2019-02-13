@@ -129,8 +129,10 @@
             <nop-label asp-for="City" />
         </div>
         <div class="col-md-9">
-            <nop-editor asp-for="City" asp-required="@Model.CityRequired" />
+            <nop-select id="City" asp-for="City" asp-items="Model.AvailableCities" />
             <span asp-validation-for="City"></span>
+            @*<nop-editor asp-for="City" asp-required="@Model.CityRequired" />
+                <span asp-validation-for="City"></span>*@
         </div>
     </div>
 }
