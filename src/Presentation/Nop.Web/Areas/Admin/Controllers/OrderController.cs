@@ -6282,6 +6282,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                         ItemWeight = orderItem.ItemWeight ?? 0,
                         CustomerInfo = customerInfo,
                         CustomerLinkFacebook = customerFacebook,
+                        CustomerLinkShortFacebook = customerFacebook.Split('/').ToList().LastOrDefault(),
                         CreatedDate = orderItem.Order.CreatedOnUtc,
                         PrimaryStoreCurrencyCode = primaryStoreCurrency.CurrencyCode,
                         AssignedByCustomerId = orderItem.AssignedByCustomerId,

@@ -94,6 +94,7 @@ namespace Nop.Web.Areas.Admin.Models.Orders
     {
         public string CustomerInfo { get; set; }
         public string CustomerLinkFacebook { get; set; }
+        public string CustomerLinkShortFacebook { get; set; }
 
         public DateTime CreatedDate { get; set; }
 
