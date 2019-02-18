@@ -348,34 +348,38 @@
                                                     console.log("Details for: " + data.Id);
                                                     //shipOrderItemsSelected(data.Id);
 
-                                                    var shelfOrderItemIs = $("#grid-shelf-items" + data.Id +" input.checkboxGroups" + data.Id +":checkbox:checked").map(function(){
+                                                    var shelfOrderItemIs = $("#grid-shelf-items" + data.Id +" input.checkboxGroups" + data.Id +":checkbox").map(function(){
                                                         return $(this).val();
                                                     }).get();
                                                     console.log(shelfOrderItemIs);
+                                                    if (shelfOrderItemIs.length > 0) {
+                                                        var postData = { shelfId: data.Id, customerId: data.CustomerId };
+                                                        addAntiForgeryToken(postData);
+                                                        $.ajax({
+                                                            cache: false,
+                                                            type: "POST",
+                                                            url: "@(Url.Action("CreateShipAll", "Shelf"))",
+                                                            data: postData,
+                                                            complete: function(result) {
+                                                                var jsonData = result.responseJSON;
+                                                                if (jsonData.Result === false) {
+                                                                    alert("@T("Admin.Shipment.CantNotCreate")");
+                                                                    return;
+                                                                }
 
-                                                    var postData = { shelfId: data.Id, customerId: data.CustomerId };
-                                                    addAntiForgeryToken(postData);
-                                                    $.ajax({
-                                                        cache: false,
-                                                        type: "POST",
-                                                        url: "@(Url.Action("CreateShipAll", "Shelf"))",
-                                                        data: postData,
-                                                        complete: function(result) {
-                                                            var jsonData = result.responseJSON;
-                                                            if (jsonData.Result === false) {
-                                                                alert("@T("Admin.Shipment.CantNotCreate")");
-                                                                return;
-                                                            }
+                                                                //reload grid
+                                                                var gridChild = $("#grid-shelf-items" + data.Id).data('kendoGrid');
+                                                                gridChild.dataSource.read();
+                                                            },
+                                                            error: function(xhr, ajaxOptions, thrownError) {
+                                                                alert(thrownError);
+                                                            },
+                                                            traditional: true
+                                                        });
+                                                    } else {
+                                                        alert("@T("Admin.Shipment.NotItemToShip")");
+                                                    }
 
-                                                            //reload grid
-                                                            var gridChild = $("#grid-shelf-items" + data.Id).data('kendoGrid');
-                                                            gridChild.dataSource.read();
-                                                        },
-                                                        error: function(xhr, ajaxOptions, thrownError) {
-                                                            alert(thrownError);
-                                                        },
-                                                        traditional: true
-                                                    });
                                                     return false;
                                                 }
                                             },
@@ -399,30 +403,34 @@
                                                         return $(this).val();
                                                     }).get();
                                                     console.log(shelfOrderItemIs);
+                                                    if (shelfOrderItemIs.length > 0) {
+                                                        var postData = { shelfId: data.Id, orderItemIds: shelfOrderItemIs, customerId: data.CustomerId };
+                                                        addAntiForgeryToken(postData);
+                                                        $.ajax({
+                                                            cache: false,
+                                                            type: "POST",
+                                                            url: "@(Url.Action("CreateShipSelectedIds", "Shelf"))",
+                                                            data: postData,
+                                                            complete: function(result) {
+                                                                var jsonData = result.responseJSON;
+                                                                if (jsonData.Result === false) {
+                                                                    alert("@T("Admin.Shipment.CantNotCreate")");
+                                                                    return;
+                                                                }
 
-                                                    var postData = { orderItemIds: shelfOrderItemIs, customerId: data.CustomerId };
-                                                    addAntiForgeryToken(postData);
-                                                    $.ajax({
-                                                        cache: false,
-                                                        type: "POST",
-                                                        url: "@(Url.Action("CreateShipSelectedIds", "Shelf"))",
-                                                        data: postData,
-                                                        complete: function(result) {
-                                                            var jsonData = result.responseJSON;
-                                                            if (jsonData.Result === false) {
-                                                                alert("@T("Admin.Shipment.CantNotCreate")");
-                                                                return;
-                                                            }
+                                                                //reload grid
+                                                                var gridChild = $("#grid-shelf-items" + data.Id).data('kendoGrid');
+                                                                gridChild.dataSource.read();
+                                                            },
+                                                            error: function(xhr, ajaxOptions, thrownError) {
+                                                                alert(thrownError);
+                                                            },
+                                                            traditional: true
+                                                        });
+                                                    } else {
+                                                        alert("@T("Admin.Shipment.NotItemToShip")");
+                                                    }
 
-                                                            //reload grid
-                                                            var gridChild = $("#grid-shelf-items" + data.Id).data('kendoGrid');
-                                                            gridChild.dataSource.read();
-                                                        },
-                                                        error: function(xhr, ajaxOptions, thrownError) {
-                                                            alert(thrownError);
-                                                        },
-                                                        traditional: true
-                                                    });
                                                     return false;
                                                 }
                                             }
@@ -624,6 +632,11 @@
                                             field: "TotalWithoutWeightCost",
                                             title: "@T("Admin.Orders.Products.TotalWithoutWeightCost")",
                                             width: 100
+                                        },{
+                                            field: "Deposit",
+                                            title: "@T("Admin.Orders.Shipments.Deposit")",
+                                            width: 70,
+                                            template: '#= kendo.toString(Deposit, "n0") #'
                                         }, {
                                             field: "WeightCostDec",
                                             title: "@T("Admin.Orders.Products.WeightCost")",

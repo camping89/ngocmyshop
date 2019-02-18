@@ -176,6 +176,15 @@
                                         <nop-select asp-for="City" asp-items="Model.AvailableCities" />
                                     </div>
                                 </div>
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <nop-label asp-for="District" />
+                                    </div>
+                                    <div class="col-md-8">
+                                        @*<nop-editor asp-for="City" />*@
+                                        <nop-select asp-for="District" asp-items="@(new List<SelectListItem>(){})" />
+                                    </div>
+                                </div>
 
                                 <div class="form-group">
                                     <div class="col-md-4">
@@ -219,6 +228,12 @@
                                                 type: "POST",
                                                 data: additionalData
                                             },
+                                            update: {
+                                                url: "@Html.Raw(Url.Action("EditShipmentManualAjax", "Shelf"))",
+                                                type: "POST",
+                                                dataType: "json",
+                                                data: additionalData
+                                            },
                                             destroy: {
                                                 url: "@Html.Raw(Url.Action("DeleteShipmentManualAjax", "Shelf"))",
                                                 type: "POST",
@@ -228,7 +243,22 @@
                                         schema: {
                                             model: {
                                                 id: "Id",
-                                                fields: {}
+                                                fields: {
+                                                    Id: { editable: false, type: "number" },
+                                                    BagId: { editable: false, type: "string" },
+                                                    ShipperId: { type: "number", editable: true },
+                                                    CustomerId: { editable: false, type: "number" },
+                                                    ShipmentAddress: { editable: true, type: "string" },
+                                                    ShipmentCityId: { editable: true, type: "string" },
+                                                    ShipmentCity: { editable: true, type: "string" },
+                                                    ShipmentDistrictId: { editable: true, type: "string" },
+                                                    ShipmentDistrict: { editable: true, type: "string" },
+                                                    ShippedDate: { editable: true, type: "date", nullable: true },
+                                                    DeliveryDate: { editable: false, type: "date", nullable: true },
+                                                    ShipmentNote: { editable: true, type: "string" },
+                                                    Deposit: { editable: false, type: "number" },
+                                                    TotalOrderFee: { editable: false, type: "string" }
+                                                }
                                             },
                                             data: "Data",
                                             total: "Total",
@@ -271,7 +301,6 @@
                                     dataBound: onDataBound,
                                     columns: [
                                         {
-                                            field: "Id",
                                             headerTemplate: "<input id='mastercheckbox' type='checkbox'/>",
                                             headerAttributes: { style: "text-align:center" },
                                             attributes: { style: "text-align:center" },
@@ -281,50 +310,86 @@
                                         }, {
                                             field: "Id",
                                             title: "@T("Admin.Orders.Shipments.ID")",
-                                            width: 50
+                                            width: 50,
+                                            editor: hideOnEditor
                                         }, {
                                             field: "BagId",
                                             title: "@T("Admin.Orders.Shipments.BagId")",
-                                            width: 100
+                                            width: 100,
+                                            hidden: true
                                         }, {
-                                            field: "ShipperFullName",
+                                            field: "ShipperId",
+                                            editor: editShipperId,
                                             title: "@T("Admin.Orders.Shipments.ShipperFullName")",
-                                            width: 200
+                                            width: 150,
+                                            template: "# if (ShipperFullName != null) { #" +
+                                                    "<p>#= ShipperFullName #</p>" +
+                                                    "#} else {#" +
+                                                    "<p></p>" +
+                                                    "# } #"
                                         }, {
-                                            field: "CustomerFullName",
+                                            field: "CustomerId",
                                             title: "@T("Admin.Orders.Shipments.CustomerFullName")",
-                                            width: 200,
+                                            width: 100,
                                             template: '<p>#=CustomerFullName# - #=CustomerPhone#<p>' +
-                                                        '<p><a href="#=CustomerLinkFacebook#" target="_blank">#=CustomerLinkFacebook#</a></p>'
+                                                        '<p><a href="#=CustomerLinkFacebook#" target="_blank">#=CustomerLinkFacebookShort#</a></p>'
                                         }, {
                                             field: "ShipmentAddress",
                                             title: "@T("Admin.Orders.Shipments.ShipmentAddress")",
-                                            width: 200
+                                            width: 100
+                                        }, {
+                                            field: "ShipmentCityId",
+                                            title: "@T("Admin.Orders.Shipments.City")",
+                                            editor: editProvince,
+                                            width: 100,
+                                            template: "# if (ShipmentCity != null) { #" +
+                                                        "<p>#= ShipmentCity #</p>" +
+                                                        "#} else {#" +
+                                                        "<p></p>" +
+                                                        "# } #"
+                                        }, {
+                                            field: "ShipmentDistrictId",
+                                            title: "@T("Admin.Orders.Shipments.District")",
+                                            editor: editDistrict,
+                                            width: 100,
+                                            template: "# if (ShipmentDistrict != null) { #" +
+                                                        "<p>#= ShipmentDistrict #</p>" +
+                                                        "#} else {#" +
+                                                        "<p></p>" +
+                                                        "# } #"
                                         }, {
                                             field: "ShippedDate",
                                             title: "@T("Admin.Orders.Shipments.ShippedDate")",
-                                            width: 200,
-                                            type: "date",
-                                            format: "{0:dd/MM/yyyy}"
+                                            editor: dateTimeEditorCustom,
+                                            width: 80,
+                                            template: "# if (ShippedDate != null) { #" +
+                                                "<p>#= kendo.toString(kendo.parseDate(ShippedDate, 'yyyy-MM-dd'), 'MM/dd/yyyy') #</p>" +
+                                                "#} else {#" +
+                                                "<p></p>" +
+                                                "# } #"
                                         }, {
                                             field: "DeliveryDate",
                                             title: "@T("Admin.Orders.Shipments.ReceivedDate")",
-                                            width: 200,
-                                            type: "date",
-                                            format: "{0:dd/MM/yyyy}"
+                                            editor: dateTimeEditorCustom,
+                                            width: 80,
+                                            template: "# if (DeliveryDate != null) { #" +
+                                                "<p>#= kendo.toString(kendo.parseDate(DeliveryDate, 'yyyy-MM-dd'), 'MM/dd/yyyy') #</p>" +
+                                                "#} else {#" +
+                                                "<p></p>" +
+                                                "# } #"
                                         }, {
                                             field: "ShipmentNote",
                                             title: "@T("Admin.Orders.Shipments.ShipmentNote")",
-                                            width: 100
+                                            width: 200
                                         },{
                                             field: "Deposit",
                                             title: "@T("Admin.Orders.Shipments.Deposit")",
-                                            width: 100,
+                                            width: 70,
                                             template: '#= kendo.toString(Deposit, "n0") #'
                                         }, {
                                             field: "TotalOrderFee",
                                             title: "@T("Admin.Orders.Shipments.TotalOrderFee")",
-                                            width: 150,
+                                            width: 100,
                                             template: '<strong>#=TotalOrderFee#</strong><br/>' +
                                                 '<p>@T("Admin.Orders.Shipments.TotalOrderFeeNote")</p>',
                                             footerTemplate:
@@ -334,6 +399,14 @@
 
                                         }, {
                                         command: [
+                                            {
+                                                name: "edit",
+                                                text: {
+                                                    edit: "@T("Admin.Common.Edit")",
+                                                    update: "@T("Admin.Common.Update")",
+                                                    cancel: "@T("Admin.Common.Cancel")"
+                                                }
+                                            },
                                             {
                                                 name: "destroy",
                                                 text: "@T("Admin.Common.Delete")",
@@ -363,6 +436,94 @@
                                 });
 
                             });
+
+                            function hideOnEditor(container, options) {
+                                container.prevObject.find("div[data-container-for='" + options.field + "']").hide();
+                                container.prevObject.find("label[for='" + options.field + "']").parent().hide();
+                            }
+
+                            function editShipperId(container, options) {
+                                var jsonCustomers =
+                                    jQuery.parseJSON(
+                                        '@Json.Serialize(Model.AvailableShippers.Select(_ => new { ShipperId = _.Value, ShipperFullName = _.Text}))');
+                                $('<input id="ShipperFullNameEditor" data-text-field="ShipperFullName" data-value-field="' +
+                                        options.field +
+                                        '" data-bind="value:' +
+                                        options.field +
+                                        '" />')
+                                    .appendTo(container)
+                                    .kendoDropDownList({
+                                        autoBind: true,
+                                        dataTextField: "ShipperFullName",
+                                        dataValueField: "ShipperId",
+                                        dataSource: jsonCustomers,
+                                        filter: "contains"
+                                    });
+                            }
+
+
+                            function editProvince(container, options) {
+                                var jsonCustomers =
+                                    jQuery.parseJSON(
+                                        '@Json.Serialize(Model.AvailableCities.Select(_ => new {ShipmentCityId = _.Value, ShipmentCity = _.Text}))');
+                                $('<input id="ShipmentCityId" data-text-field="ShipmentCity" data-value-field="' +
+                                        options.field +
+                                        '" data-bind="value:' +
+                                        options.field +
+                                        '" />')
+                                    .appendTo(container)
+                                    .kendoDropDownList({
+                                        autoBind: true,
+                                        dataTextField: "ShipmentCity",
+                                        dataValueField: "ShipmentCityId",
+                                        dataSource: jsonCustomers,
+                                        filter: "contains"
+                                    });
+                            }
+
+
+                            function editDistrict(container, options) {
+
+                                $('<input id="ShipmentDistrictId" data-text-field="ShipmentDistrict" data-value-field="' +
+                                        options.field +
+                                        '" data-bind="value:' +
+                                        options.field +
+                                        '" />')
+                                    .appendTo(container)
+                                    .kendoDropDownList({
+                                        autoBind: true,
+                                        dataTextField: "ShipmentDistrict",
+                                        dataValueField: "ShipmentDistrictId",
+                                        cascadeFrom: "ShipmentCityId",
+                                        dataSource: {
+                                            serverFiltering: true,
+                                            transport: {
+                                                read: "@(Url.Action("GetDistricts", "Country"))"
+                                            }
+                                        },
+                                        filter: "contains"
+                                    });
+                            }
+
+
+                            function dateTimeEditorCustom(container, options) {
+                                var dateTime = options.model.AssignedDate;
+                                if (options.model.AssignedDate === null || options.model.AssignedDate === '') {
+                                    dateTime = new Date();
+                                }
+                                $('<input data-text-field="' +
+                                    options.field +
+                                    '" data-value-field="' +
+                                    options.field +
+                                    '" data-bind="value:' +
+                                    options.field +
+                                    '" />')
+                                    .appendTo(container)
+                                    .kendoDatePicker({
+                                        format: "MM/dd/yyyy",
+                                        value: kendo.toString(new Date(dateTime), 'MM/dd/yyyy')
+                                    });
+                            }
 
                             //details grid
                             function detailInit(e) {
@@ -430,6 +591,11 @@
                                             field: "ItemWeight",
                                             title: "@T("Admin.Orders.Shipments.Products.ItemWeight")",
                                             width: 150
+                                        },{
+                                            field: "Deposit",
+                                            title: "@T("Admin.Orders.Shipments.Deposit")",
+                                            width: 70,
+                                            template: '#= kendo.toString(Deposit, "n0") #'
                                         },
                                         {
                                                     field: "DeliveryDateUtc",
@@ -482,6 +648,34 @@
                     var selectedIds = [];
                     var reportAggregates = "";
                     $(document).ready(function() {
+                        $('#@Html.IdFor(model => model.City)').val('');
+                        $('#@Html.IdFor(model => model.City)').trigger("chosen:updated");
+                        var grid = $('#shipments-grid').data('kendoGrid');
+                        grid.dataSource.read();
+
+                        $('#@Html.IdFor(model => model.City)').change(function() {
+                            var selectedItem = $(this).val();
+                            var ddlDistrict = $("#@Html.IdFor(model => model.District)");
+                            ddlDistrict.empty();
+                            ddlDistrict.chosen('destroy');
+                            $.ajax({
+                                cache: false,
+                                type: "GET",
+                                url: "@(Url.Action("GetDistrictByStateProvinceName", "Country"))",
+                                data: { "stateProvinceName": selectedItem},
+                                success: function(data) {
+                                    ddlDistrict.html('');
+                                    $.each(data, function(id, option) {
+                                        ddlDistrict.append($('<option></option>').val(option.Value).html(option.Text));
+                                    });
+                                    ddlDistrict.chosen({ search_contains: true });
+                                },
+                                error: function(xhr, ajaxOptions, thrownError) {
+                                    alert('Failed to retrieve states.');
+                                }
+                            });
+                        });
+
                         $("#clear-filter").click(function() {
                             $('#@Html.IdFor(model => model.ShipperPhoneNumber)').val('');
                             $('#@Html.IdFor(model => model.StartDate)').val('');
@@ -490,7 +684,9 @@
                             $('#@Html.IdFor(model => model.CountryId)').val(0);
                             $('#@Html.IdFor(model => model.StateProvinceId)').val(0);
                             $('#@Html.IdFor(model => model.City)').val('');
-
+                            $('#@Html.IdFor(model => model.City)').trigger("chosen:updated");
+                            $('#@Html.IdFor(model => model.District)').val('');
+                            $('#@Html.IdFor(model => model.District)').trigger("chosen:updated");
                             $('#@Html.IdFor(model => model.LoadNotShipped)').prop('checked', false);
                             $('#@Html.IdFor(model => model.OrderId)').val('');
 
@@ -646,6 +842,7 @@
                             CountryId: $('#@Html.IdFor(model => model.CountryId)').val(),
                             StateProvinceId: $('#@Html.IdFor(model => model.StateProvinceId)').val(),
                             City: $('#@Html.IdFor(model => model.City)').val(),
+                            District: $('#@Html.IdFor(model => model.District)').val(),
                             WarehouseId: $('#@Html.IdFor(model => model.WarehouseId)').val(),
                             LoadNotShipped: $('#@Html.IdFor(model => model.LoadNotShipped)').is(':checked'),
                             OrderId: $('#@Html.IdFor(model => model.OrderId)').val()

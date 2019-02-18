@@ -1,11 +1,11 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using Nop.Core.Caching;
 using Nop.Core.Data;
 using Nop.Core.Domain.Directory;
 using Nop.Services.Events;
 using Nop.Services.Localization;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Nop.Services.Directory
 {
@@ -35,6 +35,7 @@ namespace Nop.Services.Directory
         #region Fields
 
         private readonly IRepository<StateProvince> _stateProvinceRepository;
+        private readonly IRepository<District> _districtRepository;
         private readonly IEventPublisher _eventPublisher;
         private readonly ICacheManager _cacheManager;
 
@@ -50,11 +51,12 @@ namespace Nop.Services.Directory
         /// <param name="eventPublisher">Event published</param>
         public StateProvinceService(ICacheManager cacheManager,
             IRepository<StateProvince> stateProvinceRepository,
-            IEventPublisher eventPublisher)
+            IEventPublisher eventPublisher, IRepository<District> districtRepository)
         {
             _cacheManager = cacheManager;
             _stateProvinceRepository = stateProvinceRepository;
             _eventPublisher = eventPublisher;
+            _districtRepository = districtRepository;
         }
 
         #endregion
@@ -68,7 +70,7 @@ namespace Nop.Services.Directory
         {
             if (stateProvince == null)
                 throw new ArgumentNullException(nameof(stateProvince));
-            
+
             _stateProvinceRepository.Delete(stateProvince);
 
             _cacheManager.RemoveByPattern(STATEPROVINCES_PATTERN_KEY);
@@ -110,7 +112,7 @@ namespace Nop.Services.Directory
             var stateProvince = query.FirstOrDefault();
             return stateProvince;
         }
-        
+
         /// <summary>
         /// Gets a state/province collection by country identifier
         /// </summary>
@@ -151,8 +153,8 @@ namespace Nop.Services.Directory
         {
             var query = from sp in _stateProvinceRepository.Table
                         orderby sp.CountryId, sp.DisplayOrder, sp.Name
-                where showHidden || sp.Published
-                select sp;
+                        where showHidden || sp.Published
+                        select sp;
             var stateProvinces = query.ToList();
             return stateProvinces;
         }
@@ -189,6 +191,37 @@ namespace Nop.Services.Directory
 
             //event notification
             _eventPublisher.EntityUpdated(stateProvince);
+        }
+
+        public void DeleteDistrict(District district)
+        {
+            _districtRepository.Delete(district);
+        }
+
+        public District GetDistrictById(int id)
+        {
+            return _districtRepository.GetById(id);
+        }
+
+        public IList<District> GetDistricts(int stateProvinceId = 0)
+        {
+            var query = _districtRepository.Table;
+            if (stateProvinceId > 0)
+            {
+                query = query.Where(_ => _.StateProvinceId == stateProvinceId);
+            }
+
+            return query.OrderBy(_ => _.Name).ToList();
+        }
+
+        public void InsertDistrict(District district)
+        {
+            _districtRepository.Insert(district);
+        }
+
+        public void UpdateDistrict(District district)
+        {
+            _districtRepository.Update(district);
         }
 
         #endregion

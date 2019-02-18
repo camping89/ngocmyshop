@@ -289,12 +289,13 @@ namespace Nop.Web.Areas.Admin.Controllers
 
         }
 
-        [HttpPost]
+        [HttpGet]
         public IActionResult GetShelfAvailable(int orderItemId = 0)
         {
+            var shelfCode = Request.Query.FirstOrDefault(_ => _.Key.Contains("filter[filters][0][value]")).Value;
             var orderItem = _orderService.GetOrderItemById(orderItemId);
             var customerId = orderItem != null ? orderItem.Order.CustomerId : 0;
-            var shelfAvailable = _shelfService.GetAllShelfAvailable(customerId).Select(x => new
+            var shelfAvailable = _shelfService.GetAllShelfAvailable(customerId, shelfCode: shelfCode).Select(x => new
             {
                 ShelfId = x.Id,
                 ShelfCode = x.ShelfCode
@@ -333,22 +334,28 @@ namespace Nop.Web.Areas.Admin.Controllers
         public IActionResult CreateShipAll(int shelfId, int customerId)
         {
             var shelfOrderItems = _shelfService.GetAllShelfOrderItem(shelfId, shelfOrderItemIsActive: true);
-            if (shelfOrderItems.Count > 0)
+            var shelf = _shelfService.GetShelfById(shelfId);
+            if (shelfOrderItems.Count > 0 && shelf != null)
             {
-                CreateShipment(shelfOrderItems.Select(_ => _.OrderItemId).ToList(), customerId);
+
+                CreateShipment(shelf, shelfOrderItems.Select(_ => _.OrderItemId).ToList(), customerId);
             }
 
             return Json(new { Success = true });
         }
 
         [HttpPost]
-        public IActionResult CreateShipSelectedIds(ICollection<int> orderItemIds, int customerId)
+        public IActionResult CreateShipSelectedIds(int shelfId, ICollection<int> orderItemIds, int customerId)
         {
-            CreateShipment(orderItemIds, customerId);
+            var shelf = _shelfService.GetShelfById(shelfId);
+            if (shelf != null)
+            {
+                CreateShipment(shelf, orderItemIds, customerId);
+            }
             return Json(new { Success = true });
         }
 
-        private void CreateShipment(ICollection<int> orderItemIds, int customerId)
+        private void CreateShipment(Shelf shelf, ICollection<int> orderItemIds, int customerId)
         {
             if (customerId > 0 && orderItemIds != null)
             {
@@ -358,7 +365,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 if (customer != null)
                 {
                     var customerAddress = customer.Addresses.OrderByDescending(_ => _.CreatedOnUtc).FirstOrDefault();
-                    var shipmentEntity = new ShipmentManual()
+                    var shipmentEntity = new ShipmentManual
                     {
                         CustomerId = customerId,
                         CreatedOnUtc = DateTime.UtcNow,
@@ -367,7 +374,10 @@ namespace Nop.Web.Areas.Admin.Controllers
                         ShippingAddressId = customerAddress?.Id,
                         TotalShippingFee = 0,
                         TotalWeight = totalWeight,
-                        Deposit = 0
+                        ShippedDateUtc = shelf.ShippedDate ?? DateTime.Now.AddDays(1),
+                        Address = customerAddress?.Address1,
+                        Province = customerAddress?.City,
+                        District = customerAddress?.District
                     };
 
                     _shipmentManualService.InsertShipmentManual(shipmentEntity);
@@ -408,6 +418,28 @@ namespace Nop.Web.Areas.Admin.Controllers
             return shipmentManualItem;
         }
 
+        public IActionResult EditShipmentManualAjax(ShipmentManualModel model)
+        {
+            if (model.Id > 0)
+            {
+                var shipmentManual = _shipmentManualService.GetShipmentManualById(model.Id);
+
+                if (string.IsNullOrEmpty(model.ShippedDate) == false)
+                {
+                    shipmentManual.ShippedDateUtc = StringExtensions.StringToDateTime(model.ShippedDate);
+                }
+                shipmentManual.BagId = model.BagId;
+                shipmentManual.ShipperId = model.ShipperId;
+                shipmentManual.Province = model.ShipmentCityId;
+                shipmentManual.District = model.ShipmentDistrictId;
+                shipmentManual.Address = model.ShipmentAddress;
+                shipmentManual.ShipmentNote = model.ShipmentNote;
+
+                _shipmentManualService.UpdateShipmentManual(shipmentManual);
+            }
+            return Json(new { Success = true });
+        }
+
         [HttpPost]
         public IActionResult DeleteShipmentManualAjax(int id)
         {
@@ -438,6 +470,46 @@ namespace Nop.Web.Areas.Admin.Controllers
             return Json(new { Success = true });
         }
 
+
+        public IActionResult CreateAuto()
+        {
+            var shelfItems = _shelfService.GetAllShelfOrderItem();
+            foreach (var shelfItem in shelfItems)
+            {
+                _shelfService.DeleteShelfOrderItem(shelfItem.Id);
+            }
+
+            var shelfs = _shelfService.GetAllShelf().Select(_ => _.Id);
+            foreach (var shelf in shelfs)
+            {
+                _shelfService.DeleteShelf(shelf);
+            }
+
+            var listLetter = new List<string> { "A", "B", "C", "D", "E", "F", "G", "H", "I", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "V", "X", "Y", "Z" };
+            var listResult = new List<string>();
+            for (int i = 1; i < 6; i++)
+            {
+                foreach (var letter in listLetter)
+                {
+                    for (int j = 101; j < 1000; j++)
+                    {
+                        if (j != 200 && j != 300 && j != 400 && j != 500 && j != 600 && j != 700 && j != 800 && j != 900)
+                        {
+                            listResult.Add($"{i}{letter}{j}");
+                        }
+                    }
+                }
+            }
+
+            var count = listResult.Count;
+
+            foreach (var item in listResult)
+            {
+                _shelfService.InsertShelf(new Shelf() { ShelfCode = item, ShelfNoteStatus = ShelfNoteStatus.NoReply });
+            }
+
+            return Json(true);
+        }
         #endregion
     }
 }

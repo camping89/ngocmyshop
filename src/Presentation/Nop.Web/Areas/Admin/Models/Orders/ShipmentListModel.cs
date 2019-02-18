@@ -1,10 +1,9 @@
-﻿using Microsoft.AspNetCore.Mvc.Rendering;
-using Nop.Web.Framework.Mvc.ModelBinding;
+﻿using Nop.Web.Framework.Mvc.ModelBinding;
 using Nop.Web.Framework.Mvc.Models;
-using Nop.Web.Models.Common;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using SelectListItem = Microsoft.AspNetCore.Mvc.Rendering.SelectListItem;
 
 namespace Nop.Web.Areas.Admin.Models.Orders
 {
@@ -16,7 +15,7 @@ namespace Nop.Web.Areas.Admin.Models.Orders
             AvailableStates = new List<SelectListItem>();
             AvailableWarehouses = new List<SelectListItem>();
             AvailableShippers = new List<SelectListItem>();
-            AvailableCities = ProvinceVietNam.GetSelectListItems();
+            AvailableCities = new List<SelectListItem>();
         }
         [NopResourceDisplayName("Admin.Orders.Shipments.List.ShipperPhoneNumber")]
         public string ShipperPhoneNumber { get; set; }
@@ -24,11 +23,11 @@ namespace Nop.Web.Areas.Admin.Models.Orders
         [NopResourceDisplayName("Admin.Orders.Shipments.List.TodayFilter")]
         public bool TodayFilter { get; set; }
 
-        [NopResourceDisplayName("Admin.Orders.Shipments.List.StartDate")]
+        [NopResourceDisplayName("Admin.Orders.Shipments.List.ShippedStartDate")]
         [UIHint("DateTimeNullable")]
         public DateTime? StartDate { get; set; }
 
-        [NopResourceDisplayName("Admin.Orders.Shipments.List.EndDate")]
+        [NopResourceDisplayName("Admin.Orders.Shipments.List.ShippedEndDate")]
         [UIHint("DateTimeNullable")]
         public DateTime? EndDate { get; set; }
 
@@ -52,6 +51,9 @@ namespace Nop.Web.Areas.Admin.Models.Orders
         [NopResourceDisplayName("Admin.Orders.Shipments.List.City")]
         public string City { get; set; }
         public IList<SelectListItem> AvailableCities { get; set; }
+
+        [NopResourceDisplayName("Admin.Orders.Shipments.List.District")]
+        public string District { get; set; }
 
         [NopResourceDisplayName("Admin.Orders.Shipments.List.LoadNotShipped")]
         public bool LoadNotShipped { get; set; }

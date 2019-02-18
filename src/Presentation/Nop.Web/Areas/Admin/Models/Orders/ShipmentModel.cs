@@ -111,6 +111,7 @@ namespace Nop.Web.Areas.Admin.Models.Orders
 
             public string ShippedFromWarehouse { get; set; }
             public decimal ShippingFee { get; set; }
+            public decimal Deposit { get; set; }
             public string ShippingFeeStr { get; set; }
             public bool AllowToChooseWarehouse { get; set; }
 

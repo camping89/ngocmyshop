@@ -587,13 +587,14 @@ namespace Nop.Web.Areas.Admin.Controllers
                 UnitWeightCost = orderItem.UnitWeightCost ?? (currencyProduct != null ? currencyProduct.UnitWeightCost : 0),
                 ItemWeight = orderItem.ItemWeight ?? 0,
                 DeliveryDateUtc = orderItem.DeliveryDateUtc,
-                PrimaryStoreCurrencyCode = primaryStoreCurrency.CurrencyCode
+                PrimaryStoreCurrencyCode = primaryStoreCurrency.CurrencyCode,
+                Deposit = orderItem.Deposit
 
             };
             //picture
             var orderItemPicture =
                 orderItem.Product.GetProductPicture(orderItem.AttributesXml, _pictureService, _productAttributeParser);
-            orderItemModel.PictureThumbnailUrl = _pictureService.GetPictureUrl(orderItemPicture, 75, true);
+            orderItemModel.PictureThumbnailUrl = _pictureService.GetPictureUrl(orderItemPicture, 100, true);
 
             ////license file
             //if (orderItem.LicenseDownloadId.HasValue)
@@ -687,7 +688,8 @@ namespace Nop.Web.Areas.Admin.Controllers
                 WeightCostDec = orderItem.WeightCost,
                 WeightCost = _priceFormatter.FormatPrice(orderItem.WeightCost, true,
                     primaryStoreCurrency, _workContext.WorkingLanguage, true, true),
-                PrimaryStoreCurrencyCode = primaryStoreCurrency.CurrencyCode
+                PrimaryStoreCurrencyCode = primaryStoreCurrency.CurrencyCode,
+                Deposit = orderItem.Deposit
 
             };
             //picture
@@ -1541,6 +1543,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                     QuantityInAllShipments = qtyInAllShipments,
                     QuantityToAdd = maxQtyToAdd,
                     ShippingFee = shipmentItem.ShippingFee,
+                    Deposit = shipmentItem.OrderItem.Deposit,
                     DeliveryDateUtc = shipmentItem.DeliveryDateUtc,
                     ShippingFeeStr = _priceFormatter.FormatPrice(shipmentItem.ShippingFee, true, primaryStoreCurrency,
                         _workContext.WorkingLanguage, true, false),
@@ -1588,12 +1591,16 @@ namespace Nop.Web.Areas.Admin.Controllers
                 CanDeliver = shipment.ShippedDateUtc.HasValue && !shipment.DeliveryDateUtc.HasValue,
                 AdminComment = shipment.AdminComment,
                 ShipmentNote = shipment.ShipmentNote,
-                Deposit = shipment.Deposit,
+                Deposit = shipment.ShipmentManualItems.Sum(_ => _.OrderItem.Deposit),
                 //CustomOrderNumber = shipment.OrderItem.Order.CustomOrderNumber,
                 TotalShippingFee = _priceFormatter.FormatPrice(shipment.TotalShippingFee, true, primaryStoreCurrency,
                     _workContext.WorkingLanguage, true, false),
                 BagId = shipment.BagId,
-                ShipmentAddress = shipment.ShippingAddress.Address1
+                ShipmentAddress = shipment.Address,
+                ShipmentCity = Core.Extensions.StringExtensions.IsNotNullOrEmpty(shipment.Province) ? shipment.Province : "Chưa xác định",
+                ShipmentCityId = Core.Extensions.StringExtensions.IsNotNullOrEmpty(shipment.Province) ? shipment.Province : "0",
+                ShipmentDistrict = Core.Extensions.StringExtensions.IsNotNullOrEmpty(shipment.District) ? shipment.District : "Chưa xác định",
+                ShipmentDistrictId = Core.Extensions.StringExtensions.IsNotNullOrEmpty(shipment.District) ? shipment.District : "0"
             };
 
             var customerOrder = shipment.Customer;
@@ -1604,6 +1611,10 @@ namespace Nop.Web.Areas.Admin.Controllers
                 model.CustomerFullName = customerOrder.GetFullName();
                 model.CustomerPhone = customerOrder.GetAttribute<string>(SystemCustomerAttributeNames.Phone);
                 model.CustomerLinkFacebook = linkFacebook;
+                if (Core.Extensions.StringExtensions.IsNotNullOrEmpty(linkFacebook))
+                {
+                    model.CustomerLinkFacebookShort = linkFacebook.Split('/').LastOrDefault();
+                }
             }
 
             if (shipment.Shipper != null)
@@ -1611,6 +1622,10 @@ namespace Nop.Web.Areas.Admin.Controllers
                 model.ShipperId = shipment.ShipperId;
                 //model.Customer = shipment.Customer;
                 model.ShipperFullName = $"(ID:{shipment.CustomerId}) " + shipment.Shipper.GetFullName() + " - " + shipment.Shipper.GetAttribute<string>(SystemCustomerAttributeNames.Phone);
+            }
+            else
+            {
+                model.ShipperId = 0;
             }
 
             decimal totalOrderFee = 0;
@@ -3914,7 +3929,9 @@ namespace Nop.Web.Areas.Admin.Controllers
 
             //customer info
             model.AvailableShippers.Add(new SelectListItem { Text = _localizationService.GetResource("Admin.Common.All"), Value = "0" });
-            foreach (var w in _customerService.GetAllCustomers())
+
+            var customers = _customerService.GetAllCustomers().Where(_ => string.IsNullOrEmpty(_.GetFullName()) == false);
+            foreach (var w in customers)
                 model.AvailableShippers.Add(new SelectListItem { Text = w.GetFullName(), Value = w.Id.ToString() });
 
             return View(model);
@@ -4084,7 +4101,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             orderItem.ItemWeight = orderItemModel.ItemWeight;
             orderItem.UnitWeightCost = orderItemModel.UnitWeightCost;
             orderItem.IsOrderCheckout = orderItemModel.IsOrderCheckout;
-
+            orderItem.Deposit = orderItemModel.Deposit;
             _orderService.UpdateOrderItem(orderItem);
 
             order.WeightCost = order.OrderItems.Sum(_ => _.WeightCost);
@@ -4092,14 +4109,15 @@ namespace Nop.Web.Areas.Admin.Controllers
             order.OrderTotal = order.OrderItems.Sum(_ => _.PriceExclTax);
             _orderService.UpdateOrder(order);
 
-            UpdateShelfOrderItem(orderItem, orderItemModel.ShelfId, order.CustomerId);
+            UpdateShelfOrderItem(orderItem, orderItemModel.ShelfCode, order.CustomerId);
 
             return new NullJsonResult();
         }
 
-        private void UpdateShelfOrderItem(OrderItem orderItem, int shelfId, int customerId)
+        private void UpdateShelfOrderItem(OrderItem orderItem, string shelfCode, int customerId)
         {
-            var shelf = _shelfService.GetShelfById(shelfId);
+            shelfCode = shelfCode.Trim();
+            var shelf = _shelfService.GetShelfByCode(shelfCode);
             if (shelf != null)
             {
                 shelf.AssignedDate = DateTime.UtcNow;
@@ -4109,7 +4127,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 var shelfOrderItem = _shelfService.GetShelfOrderItemByOrderItemId(orderItem.Id);
                 if (shelfOrderItem != null)
                 {
-                    shelfOrderItem.ShelfId = shelfId;
+                    shelfOrderItem.ShelfId = shelf.Id;
                     _shelfService.UpdateShelfOrderItem(shelfOrderItem);
                 }
                 else
@@ -4117,7 +4135,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                     _shelfService.InsertShelfOrderItem(new ShelfOrderItem
                     {
                         OrderItemId = orderItem.Id,
-                        ShelfId = shelfId,
+                        ShelfId = shelf.Id,
                         CustomerId = customerId,
                         AssignedDate = DateTime.UtcNow,
                         IsActived = true
@@ -4129,7 +4147,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                         _shelfService.InsertShelfOrderItem(new ShelfOrderItem
                         {
                             OrderItemId = orderItemUnAssign.Id,
-                            ShelfId = shelfId,
+                            ShelfId = shelf.Id,
                             CustomerId = customerId,
                             AssignedDate = DateTime.UtcNow,
                             IsActived = true
@@ -5442,9 +5460,11 @@ namespace Nop.Web.Areas.Admin.Controllers
 
             //customer info
             model.AvailableShippers.Add(new SelectListItem { Text = _localizationService.GetResource("Admin.Common.All"), Value = "0" });
-            foreach (var w in _customerService.GetAllCustomers())
+            var customers = _customerService.GetAllCustomers().Where(_ => string.IsNullOrEmpty(_.GetFullName()) == false);
+            foreach (var w in customers)
                 model.AvailableShippers.Add(new SelectListItem { Text = w.GetFullName(), Value = w.Id.ToString() });
 
+            model.AvailableCities = SelectListHelper.GetStateProvinceSelectListItems(_stateProvinceService);
             return View(model);
         }
 
@@ -5470,6 +5490,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 shippingCountryId: model.CountryId,
                 shippingStateId: model.StateProvinceId,
                 shippingCity: model.City,
+                shippingDistrict: model.District,
                 trackingNumber: model.TrackingNumber,
                 loadNotShipped: model.LoadNotShipped,
                 createdFromUtc: startDateValue,
@@ -6264,7 +6285,8 @@ namespace Nop.Web.Areas.Admin.Controllers
                         CreatedDate = orderItem.Order.CreatedOnUtc,
                         PrimaryStoreCurrencyCode = primaryStoreCurrency.CurrencyCode,
                         AssignedByCustomerId = orderItem.AssignedByCustomerId,
-                        DeliveryDateUtc = orderItem.DeliveryDateUtc
+                        DeliveryDateUtc = orderItem.DeliveryDateUtc,
+                        Deposit = orderItem.Deposit
                     };
                     if (orderItemModel.PackageOrderId > 0)
                     {
@@ -6294,7 +6316,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                     //picture
                     var orderItemPicture =
                         orderItem.Product.GetProductPicture(orderItem.AttributesXml, _pictureService, _productAttributeParser);
-                    orderItemModel.PictureThumbnailUrl = _pictureService.GetPictureUrl(orderItemPicture, 75, true);
+                    orderItemModel.PictureThumbnailUrl = _pictureService.GetPictureUrl(orderItemPicture, 100, true);
 
                     //vendor
                     var vendor = _vendorService.GetVendorById(orderItem.Product.VendorId);

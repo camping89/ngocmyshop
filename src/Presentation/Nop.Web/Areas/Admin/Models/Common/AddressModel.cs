@@ -48,6 +48,9 @@ namespace Nop.Web.Areas.Admin.Models.Common
         [NopResourceDisplayName("Admin.Address.Fields.City")]
         public string City { get; set; }
 
+        [NopResourceDisplayName("Admin.Address.Fields.District")]
+        public string District { get; set; }
+
         [NopResourceDisplayName("Admin.Address.Fields.Address1")]
         public string Address1 { get; set; }
 

@@ -130,6 +130,8 @@ namespace Nop.Core.Domain.Orders
 
         public bool IncludeWeightCost { get; set; }
         public bool IsOrderCheckout { get; set; }
+
+        public decimal Deposit { get; set; }
         /// <summary>
         /// Gets the order
         /// </summary>

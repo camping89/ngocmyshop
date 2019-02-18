@@ -32,9 +32,20 @@ namespace Nop.Web.Areas.Admin.Models.Orders
 
         [NopResourceDisplayName("Admin.Orders.Shipments.ShipmentAddress")]
         public string ShipmentAddress { get; set; }
+
+        [NopResourceDisplayName("Admin.Orders.Shipments.ShipmentCity")]
+        public string ShipmentCity { get; set; }
+        public string ShipmentCityId { get; set; }
+
+        [NopResourceDisplayName("Admin.Orders.Shipments.ShipmentDistrict")]
+        public string ShipmentDistrict { get; set; }
+        public string ShipmentDistrictId { get; set; }
+
         [NopResourceDisplayName("Admin.Orders.Shipments.ShippedDate")]
         public string ShippedDate { get; set; }
+
         public bool CanShip { get; set; }
+
         [UIHint("DateNullable")]
         public DateTime? ShippedDateUtc { get; set; }
 
@@ -55,6 +66,7 @@ namespace Nop.Web.Areas.Admin.Models.Orders
         [NopResourceDisplayName("Admin.Orders.Shipments.ShipperFullName")]
         public string CustomerFullName { get; set; }
         public string CustomerLinkFacebook { get; set; }
+        public string CustomerLinkFacebookShort { get; set; }
         public string CustomerPhone { get; set; }
 
         [NopResourceDisplayName("Admin.Orders.Shipments.Shipper")]

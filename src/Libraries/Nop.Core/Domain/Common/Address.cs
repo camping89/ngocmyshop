@@ -1,5 +1,5 @@
-﻿using System;
-using Nop.Core.Domain.Directory;
+﻿using Nop.Core.Domain.Directory;
+using System;
 
 namespace Nop.Core.Domain.Common
 {
@@ -37,11 +37,12 @@ namespace Nop.Core.Domain.Common
         /// Gets or sets the state/province identifier
         /// </summary>
         public int? StateProvinceId { get; set; }
-        
+
         /// <summary>
         /// Gets or sets the city
         /// </summary>
         public string City { get; set; }
+        public string District { get; set; }
 
         /// <summary>
         /// Gets or sets the address 1
@@ -77,7 +78,7 @@ namespace Nop.Core.Domain.Common
         /// Gets or sets the date and time of instance creation
         /// </summary>
         public DateTime CreatedOnUtc { get; set; }
-        
+
         /// <summary>
         /// Gets or sets the country
         /// </summary>

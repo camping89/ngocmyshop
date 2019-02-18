@@ -1,10 +1,10 @@
-﻿using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using FluentValidation.Attributes;
+﻿using FluentValidation.Attributes;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Nop.Web.Framework.Mvc.ModelBinding;
 using Nop.Web.Framework.Mvc.Models;
 using Nop.Web.Validators.Common;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace Nop.Web.Models.Common
 {
@@ -48,6 +48,8 @@ namespace Nop.Web.Models.Common
         public bool CityRequired { get; set; }
         [NopResourceDisplayName("Address.Fields.City")]
         public string City { get; set; }
+        [NopResourceDisplayName("Address.Fields.District")]
+        public string District { get; set; }
 
         public bool StreetAddressEnabled { get; set; }
         public bool StreetAddressRequired { get; set; }
@@ -74,7 +76,7 @@ namespace Nop.Web.Models.Common
         public bool FaxRequired { get; set; }
         [NopResourceDisplayName("Address.Fields.FaxNumber")]
         public string FaxNumber { get; set; }
-        
+
         public IList<SelectListItem> AvailableCountries { get; set; }
         public IList<SelectListItem> AvailableStates { get; set; }
 

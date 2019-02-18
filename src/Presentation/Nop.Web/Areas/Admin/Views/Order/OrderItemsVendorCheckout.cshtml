@@ -258,7 +258,8 @@
                                                             ItemWeight: { editable: true, type: "string" },
                                                             SubTotalInclTax: { editable: false, type: "string" },
                                                             IsOrderCheckout: { editable: true, type: "boolean" },
-                                                            ShelfId: { editable: true, type: "string" }
+                                                            ShelfId: { editable: true, type: "string" },
+                                                            Deposit: { editable: true, type: "string" }
                                                         }
                                                     }
 
@@ -315,6 +316,17 @@
                                                     sortable: false,
                                                     editor: hideOnEditor
                                                 }, {
+                                                    field: "PackageOrderCode",
+                                                    title: "@T("admin.orders.products.packagecode")",
+                                                    width: 100,
+                                                    editor: editPackageOrderId,
+                                                    template: "# if (PackageOrder != null) { #" +
+                                                        "<p>#=PackageOrder.PackageCode#</p>" +
+                                                        "#} else {#" +
+                                                        "<p></p>" +
+                                                        "# } #"
+
+                                                }, {
                                                     field: "OrderId",
                                                     title: "@T("Admin.Orders.ShelfOrderItemId")",
                                                     width: 70,
@@ -360,7 +372,7 @@
                                                     field: "PictureThumbnailUrl",
                                                     title: "@T("Admin.Orders.Products.Picture")",
                                                     template: '<img src="#=PictureThumbnailUrl#" />',
-                                                    width: 60
+                                                    width: 100
                                                 }, {
                                                     field: "VendorName",
                                                     title: "@T("Admin.Orders.Products.VendorName")",
@@ -400,6 +412,11 @@
                                                     width: 70,
                                                     //hidden: true
                                                 }, {
+                                                    field: "Deposit",
+                                                    title: "@T("Admin.Orders.Products.Deposit")",
+                                                    width: 70,
+                                                    template: '#= kendo.toString(Deposit, "n0") #'
+                                                }, {
                                                     field: "SubTotalInclTax",
                                                     title: "@T("Admin.Orders.Products.Total")",
                                                     width: 100
@@ -408,17 +425,6 @@
                                                     title: "@T("Admin.Orders.Products.PackageOrderId")",
                                                     hidden: true,
                                                     editor: hideOnEditor
-                                                }, {
-                                                    field: "PackageOrderCode",
-                                                    title: "@T("admin.orders.products.packagecode")",
-                                                    width: 100,
-                                                    editor: editPackageOrderId,
-                                                    template: "# if (PackageOrder != null) { #" +
-                                                        "<p>#=PackageOrder.PackageCode#</p>" +
-                                                        "#} else {#" +
-                                                        "<p></p>" +
-                                                        "# } #"
-
                                                 }, {
                                                     field: "ShelfId",
                                                     title: "@T("Admin.Orders.Shelf.ShelfCode")",
@@ -629,7 +635,7 @@
                                                 });
                                         }*@
 
-                                        function editShelfOrderId(container, options) {
+                                        @*function editShelfOrderId(container, options) {
                                             var orderItemId = options.model.Id;
                                             var dataModel = { orderItemId: orderItemId }
                                             var $dropDown = $('<input data-text-field="ShelfCode" data-value-field="' +
@@ -663,6 +669,42 @@
                                                             }
                                                         }
                                                     },
+                                                    filter: "contains"
+                                                });
+                                        }*@
+
+                                        function editShelfOrderId(container, options) {
+                                            var orderItemId = options.model.Id;
+                                            var dataModel = { orderItemId: orderItemId }
+                                            var $dropDown = $('<input data-text-field="ShelfCode" data-value-field="' +
+                                                    options.field +
+                                                    '" data-bind="value:ShelfCode" />')
+                                                .appendTo(container)
+                                                .kendoAutoComplete({
+                                                    filtering: function (e) {
+                                                        var filter = e.filter;
+
+                                                        if (!filter.value) {
+                                                            //prevent filtering if the filter does not value
+                                                            e.preventDefault();
+                                                        }
+                                                    },
+                                                    dataTextField: "ShelfCode",
+                                                    dataValueField: "ShelfId",
+                                                    dataSource: {
+                                                        type: "json",
+                                                        serverFiltering: true,
+                                                        transport: {
+                                                            read: {
+                                                                url:
+                                                                    "@Html.Raw(Url.Action("GetShelfAvailable", "Shelf"))",
+                                                                type: "GET",
+                                                                dataType: "json",
+                                                                data: dataModel
+                                                            }
+                                                        }
+                                                    },
+                                                    minLength: 3,
                                                     filter: "contains"
                                                 });
                                         }
@@ -819,7 +861,7 @@
             //$('#set-isordercheckout-selected-form #selectedIds').val(ids);
             //$('#set-isordercheckout-selected-form').submit();
             //return false;
-            var postData = { selectedIds: selectedIds};
+            var postData = { selectedIds: ids};
             addAntiForgeryToken(postData);
             $.ajax({
                 cache: false,

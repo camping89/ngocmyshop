@@ -1,5 +1,5 @@
-using System.Collections.Generic;
 using Nop.Core.Domain.Directory;
+using System.Collections.Generic;
 
 namespace Nop.Services.Directory
 {
@@ -28,7 +28,7 @@ namespace Nop.Services.Directory
         /// <param name="countryId">Country identifier; pass null to load the state regardless of a country</param>
         /// <returns>State/province</returns>
         StateProvince GetStateProvinceByAbbreviation(string abbreviation, int? countryId = null);
-        
+
         /// <summary>
         /// Gets a state/province collection by country identifier
         /// </summary>
@@ -56,5 +56,13 @@ namespace Nop.Services.Directory
         /// </summary>
         /// <param name="stateProvince">State/province</param>
         void UpdateStateProvince(StateProvince stateProvince);
+
+        void DeleteDistrict(District district);
+
+        District GetDistrictById(int id);
+        IList<District> GetDistricts(int stateProvinceId = 0);
+
+        void InsertDistrict(District district);
+        void UpdateDistrict(District district);
     }
 }

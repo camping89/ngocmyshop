@@ -332,6 +332,7 @@ namespace Nop.Web.Areas.Admin.Models.Orders
             public DateTime? DeliveryDateUtc { get; set; }
 
             public string PrimaryStoreCurrencyCode { get; set; }
+            public decimal Deposit { get; set; }
 
         }
         public partial class OrderItemModel : BaseNopEntityModel
@@ -404,6 +405,8 @@ namespace Nop.Web.Areas.Admin.Models.Orders
             public bool ShelfOrderItemIsActive { get; set; }
 
             public DateTime? DeliveryDateUtc { get; set; }
+
+            public decimal Deposit { get; set; }
 
             #region Nested Classes
 

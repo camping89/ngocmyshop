@@ -46,6 +46,7 @@ namespace Nop.Core.Domain.Customers
         /// City
         /// </summary>
         public static string City { get { return "City"; } }
+        public static string District { get { return "District"; } }
         /// <summary>
         /// CountryId
         /// </summary>

@@ -43,8 +43,6 @@ namespace Nop.Core.Domain.Shipping
         /// Admin note 
         /// </summary>
         public string ShipmentNote { get; set; }
-
-        public decimal Deposit { get; set; }
         /// <summary>
         /// Gets or sets the entity creation date
         /// </summary>
@@ -58,6 +56,10 @@ namespace Nop.Core.Domain.Shipping
         public int CustomerId { get; set; }
 
         public virtual Customer Customer { get; set; }
+
+        public string Address { get; set; }
+        public string Province { get; set; }
+        public string District { get; set; }
 
         public int? ShippingAddressId { get; set; }
 

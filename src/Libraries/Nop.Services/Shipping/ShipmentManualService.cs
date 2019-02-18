@@ -80,6 +80,7 @@ namespace Nop.Services.Shipping
             int shippingCountryId = 0,
             int shippingStateId = 0,
             string shippingCity = null,
+            string shippingDistrict = null,
             string trackingNumber = null,
             bool loadNotShipped = false,
             DateTime? createdFromUtc = null, DateTime? createdToUtc = null,
@@ -92,7 +93,7 @@ namespace Nop.Services.Shipping
             if (!string.IsNullOrWhiteSpace(phoneShipperNumber))
             {
                 query = query
-                    .Join(_gaRepository.Table, x => x.CustomerId, y => y.EntityId, (x, y) => new { Customer = x, Attribute = y })
+                    .Join(_gaRepository.Table, x => x.ShipperId, y => y.EntityId, (x, y) => new { Customer = x, Attribute = y })
                     .Where((z => z.Attribute.KeyGroup == "Customer" &&
                                  z.Attribute.Key == SystemCustomerAttributeNames.Phone &&
                                  z.Attribute.Value.Contains(phoneShipperNumber)))
@@ -108,9 +109,13 @@ namespace Nop.Services.Shipping
             if (shippingStateId > 0)
                 query = query.Where(s => s.Customer.ShippingAddress.StateProvinceId == shippingStateId);
             if (!string.IsNullOrWhiteSpace(shippingCity))
-                query = query.Where(s => s.Customer.ShippingAddress.City.Contains(shippingCity));
+                query = query.Where(s => s.Province.Contains(shippingCity));
+
+            if (!string.IsNullOrWhiteSpace(shippingDistrict))
+                query = query.Where(s => s.District.Contains(shippingDistrict));
+
             if (loadNotShipped)
-                query = query.Where(s => !s.ShippedDateUtc.HasValue);
+                query = query.Where(s => !s.DeliveryDateUtc.HasValue);
             if (createdFromUtc.HasValue)
                 query = query.Where(s => s.ShippedDateUtc != null && createdFromUtc.Value <= s.ShippedDateUtc);
             if (createdToUtc.HasValue)
@@ -127,7 +132,7 @@ namespace Nop.Services.Shipping
             }
 
             query = query.OrderByDescending(s => s.CreatedOnUtc);
-            query = query.OrderBy(o => o.CustomerId).ThenByDescending(o => o.CreatedOnUtc);
+            query = query.OrderByDescending(o => o.Id).ThenByDescending(o => o.CreatedOnUtc);
             var shipments = new PagedList<ShipmentManual>(query, pageIndex, pageSize);
             return shipments;
         }

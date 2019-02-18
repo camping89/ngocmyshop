@@ -17,6 +17,7 @@ namespace Nop.Services.Shipping
             int shippingCountryId = 0,
             int shippingStateId = 0,
             string shippingCity = null,
+            string shippingDistrict = null,
             string trackingNumber = null,
             bool loadNotShipped = false,
             DateTime? createdFromUtc = null, DateTime? createdToUtc = null,

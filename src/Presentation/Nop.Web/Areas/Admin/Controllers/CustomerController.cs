@@ -43,7 +43,6 @@ using Nop.Web.Framework.Extensions;
 using Nop.Web.Framework.Kendoui;
 using Nop.Web.Framework.Mvc;
 using Nop.Web.Framework.Mvc.Filters;
-using Nop.Web.Models.Common;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -742,7 +741,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             model.Address.FaxEnabled = _addressSettings.FaxEnabled;
             model.Address.FaxRequired = _addressSettings.FaxRequired;
 
-            model.Address.AvailableCities = ProvinceVietNam.GetSelectListItems(model.Address.City);
+            model.Address.AvailableCities = SelectListHelper.GetStateProvinceSelectListItems(_stateProvinceService, model.Address.District);
 
             if (string.IsNullOrEmpty(model.Address.City))
             {
@@ -1820,6 +1819,8 @@ namespace Nop.Web.Areas.Admin.Controllers
                         addressHtmlSb.AppendFormat("{0}<br />", WebUtility.HtmlEncode(model.Address1));
                     if (_addressSettings.StreetAddress2Enabled && !string.IsNullOrEmpty(model.Address2))
                         addressHtmlSb.AppendFormat("{0}<br />", WebUtility.HtmlEncode(model.Address2));
+                    if (_addressSettings.CityEnabled && !string.IsNullOrEmpty(model.District))
+                        addressHtmlSb.AppendFormat("{0},", WebUtility.HtmlEncode(model.District));
                     if (_addressSettings.CityEnabled && !string.IsNullOrEmpty(model.City))
                         addressHtmlSb.AppendFormat("{0},", WebUtility.HtmlEncode(model.City));
                     if (_addressSettings.StateProvinceEnabled && !string.IsNullOrEmpty(model.StateProvinceName))

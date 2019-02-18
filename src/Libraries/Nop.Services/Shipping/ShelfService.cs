@@ -78,15 +78,20 @@ namespace Nop.Services.Shipping
                 var shelfOrderItems = _shelfOrderItemRepository.Table.Where(s => s.IsActived).Select(_ => _.ShelfId).Distinct().ToList();
                 query = query.Where(_ => _.CustomerId == null || _.CustomerId == 0 || shelfOrderItems.Contains(_.Id) == false);
             }
-            query = query.OrderByDescending(_ => _.ShelfCode);
+            query = query.OrderBy(_ => _.ShelfCode);
             var shelfList = new PagedList<Shelf>(query, pageIndex, pageSize);
             return shelfList;
         }
 
-        public List<Shelf> GetAllShelfAvailable(int customerId = 0)
+        public List<Shelf> GetAllShelfAvailable(int customerId = 0, string shelfCode = null)
         {
             var shelfOrderItems = _shelfOrderItemRepository.Table.Where(s => s.IsActived && (customerId == 0 || s.CustomerId != customerId)).Select(_ => _.ShelfId).Distinct().ToList();
             var query = _shelfRepository.Table;
+            if (string.IsNullOrEmpty(shelfCode) == false)
+            {
+                shelfCode = shelfCode.TrimStart().TrimEnd().Trim().ToLowerInvariant();
+                query = query.Where(_ => _.ShelfCode.ToLower().Contains(shelfCode));
+            }
             query = query.Where(_ => shelfOrderItems.Contains(_.Id) == false);
             return query.OrderBy(_ => _.ShelfCode).ToList();
         }
@@ -109,6 +114,13 @@ namespace Nop.Services.Shipping
         public Shelf GetShelfById(int id)
         {
             return _shelfRepository.GetById(id);
+        }
+
+        public Shelf GetShelfByCode(string shelfCode)
+        {
+            var query = _shelfRepository.Table;
+            query = query.Where(_ => _.ShelfCode.Contains(shelfCode));
+            return query.FirstOrDefault();
         }
 
         public void DeleteShelfOrderItem(int shelfOrderItemId)
