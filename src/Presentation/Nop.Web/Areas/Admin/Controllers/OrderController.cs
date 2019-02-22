@@ -580,8 +580,10 @@ namespace Nop.Web.Areas.Admin.Controllers
                 PackageOrderId = orderItem.PackageOrderId ?? 0,
                 PackageOrderCode = packageOrder != null ? packageOrder.PackageCode : string.Empty,
                 PackageOrder = packageOrder,
+                EstimatedTimeArrival = orderItem.EstimatedTimeArrival,
                 PackageItemProcessedDatetime = orderItem.PackageItemProcessedDatetime,
                 IsOrderCheckout = orderItem.IsOrderCheckout,
+                OutOfStock = orderItem.OutOfStock,
                 AssignedByCustomerId = orderItem.AssignedByCustomerId,
                 IncludeWeightCost = orderItem.IncludeWeightCost,
                 UnitWeightCost = orderItem.UnitWeightCost ?? (currencyProduct != null ? currencyProduct.UnitWeightCost : 0),
@@ -668,6 +670,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             var primaryStoreCurrency = _currencyService.GetCurrencyById(_currencySettings.PrimaryStoreCurrencyId);
             var currencyProduct = _currencyService.GetCurrencyById(orderItem.Product.CurrencyId, false);
             var packageOrder = packageOrderModels?.FirstOrDefault(_ => _.Id == orderItem.PackageOrderId);
+
             var orderItemModel = new OrderModel.OrderItemModelBasic
             {
                 Id = orderItem.Id,
@@ -677,6 +680,8 @@ namespace Nop.Web.Areas.Admin.Controllers
                 Sku = orderItem.Product.FormatSku(orderItem.AttributesXml, _productAttributeParser),
                 TotalWithoutWeightCost = _priceFormatter.FormatPrice((orderItem.PriceInclTax - orderItem.WeightCost), true,
                         primaryStoreCurrency, _workContext.WorkingLanguage, true, true),
+                UnitPriceBase = _priceFormatter.FormatPrice((orderItem.UnitPriceUsd), true,
+                        currencyProduct, _workContext.WorkingLanguage, true, true),
                 PackageOrderId = orderItem.PackageOrderId ?? 0,
                 PackageOrderCode = packageOrder != null ? packageOrder.PackageCode : string.Empty,
                 PackageOrder = packageOrder,
@@ -901,8 +906,10 @@ namespace Nop.Web.Areas.Admin.Controllers
                     PackageOrderId = orderItem.PackageOrderId ?? 0,
                     PackageOrder = packageOrderModels != null ? packageOrderModels.FirstOrDefault(_ => _.Id == orderItem.PackageOrderId) : null,
                     PackageItemProcessedDatetime = orderItem.PackageItemProcessedDatetime,
+                    EstimatedTimeArrival = orderItem.EstimatedTimeArrival,
                     IncludeWeightCost = orderItem.IncludeWeightCost,
-                    IsOrderCheckout = orderItem.IsOrderCheckout
+                    IsOrderCheckout = orderItem.IsOrderCheckout,
+                    OutOfStock = orderItem.OutOfStock
 
                 };
                 //picture
@@ -4091,6 +4098,11 @@ namespace Nop.Web.Areas.Admin.Controllers
                 orderItem.PackageItemProcessedDatetime = StringExtensions.StringToDateTime(orderItemModel.PackageItemProcessedDatetime);
             }
 
+            if (string.IsNullOrEmpty(orderItemModel.EstimatedTimeArrival) == false)
+            {
+                orderItem.EstimatedTimeArrival = StringExtensions.StringToDateTime(orderItemModel.EstimatedTimeArrival);
+            }
+
             orderItem.IncludeWeightCost = orderItemModel.IncludeWeightCost;
 
             orderItem.UnitPriceInclTax = orderItem.UnitPriceInclTax - orderItem.WeightCost + orderItemModel.WeightCostDec;
@@ -4099,6 +4111,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             orderItem.PriceExclTax = orderItem.PriceExclTax - orderItem.WeightCost + orderItemModel.WeightCostDec;
             orderItem.WeightCost = orderItemModel.WeightCostDec;
             orderItem.ItemWeight = orderItemModel.ItemWeight;
+            orderItem.OutOfStock = orderItemModel.OutOfStock;
             orderItem.UnitWeightCost = orderItemModel.UnitWeightCost;
             orderItem.IsOrderCheckout = orderItemModel.IsOrderCheckout;
             orderItem.Deposit = orderItemModel.Deposit;
@@ -4116,7 +4129,10 @@ namespace Nop.Web.Areas.Admin.Controllers
 
         private void UpdateShelfOrderItem(OrderItem orderItem, string shelfCode, int customerId)
         {
-            shelfCode = shelfCode.Trim();
+            if (Core.Extensions.StringExtensions.IsNotNullOrEmpty(shelfCode))
+            {
+                shelfCode = shelfCode.Trim();
+            }
             var shelf = _shelfService.GetShelfByCode(shelfCode);
             if (shelf != null)
             {
@@ -5167,15 +5183,17 @@ namespace Nop.Web.Areas.Admin.Controllers
                 vendorId = _workContext.CurrentVendor.Id;
 
             //load shipments
-            var shipments = _shipmentService.GetAllShipments(vendorId: vendorId,
-                warehouseId: model.WarehouseId,
+            var shipments = _shipmentManualService.GetAllShipmentsManual(vendorId: vendorId,
                 shippingCountryId: model.CountryId,
                 shippingStateId: model.StateProvinceId,
                 shippingCity: model.City,
                 trackingNumber: model.TrackingNumber,
                 loadNotShipped: model.LoadNotShipped,
                 createdFromUtc: startDateValue,
-                createdToUtc: endDateValue);
+                createdToUtc: endDateValue,
+                shippingDistrict: model.District,
+                phoneShipperNumber: model.ShipperPhoneNumber
+                );
 
             //ensure that we at least one shipment selected
             if (!shipments.Any())
@@ -5199,19 +5217,14 @@ namespace Nop.Web.Areas.Admin.Controllers
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageOrders))
                 return AccessDeniedView();
 
-            var shipments = new List<Shipment>();
+            var shipments = new List<ShipmentManual>();
             if (selectedIds != null)
             {
                 var ids = selectedIds
                     .Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
                     .Select(x => Convert.ToInt32(x))
                     .ToArray();
-                shipments.AddRange(_shipmentService.GetShipmentsByIds(ids));
-            }
-            //a vendor should have access only to his products
-            if (_workContext.CurrentVendor != null)
-            {
-                shipments = shipments.Where(HasAccessToShipment).ToList();
+                shipments.AddRange(_shipmentManualService.GetShipmentsManualByIds(ids));
             }
 
             //ensure that we at least one shipment selected
@@ -5503,7 +5516,8 @@ namespace Nop.Web.Areas.Admin.Controllers
             var gridModel = new DataSourceResult
             {
                 Data = shipments.Select(shipment => PrepareShipmentManualModel(shipment)),
-                Total = shipments.TotalCount
+                Total = shipments.TotalCount,
+                TotalIds = shipments.TotalIds
             };
             var data = gridModel.Data.Cast<ShipmentManualModel>().ToList();
             var depositTotal = data.Sum(_ => _.Deposit);
@@ -6250,10 +6264,14 @@ namespace Nop.Web.Areas.Admin.Controllers
                     var customerOrder = _customerService.GetCustomerById(orderItem.Order.CustomerId);
                     var customerInfo = string.Empty;
                     var customerFacebook = string.Empty;
+                    var customerShortFacebook = string.Empty;
                     if (customerOrder != null)
                     {
                         customerFacebook = customerOrder.GetAttribute<string>(SystemCustomerAttributeNames.LinkFacebook1);
-
+                        if (Core.Extensions.StringExtensions.IsNotNullOrEmpty(customerFacebook) && customerFacebook.Split('/').ToList().Count > 0)
+                        {
+                            customerShortFacebook = customerFacebook.Split('/').ToList().Last();
+                        }
                         customerInfo = customerOrder.GetFullName()
                                                  + $"\n {customerOrder.GetAttribute<string>(SystemCustomerAttributeNames.Phone)}";
                     }
@@ -6273,18 +6291,22 @@ namespace Nop.Web.Areas.Admin.Controllers
                         primaryStoreCurrency, _workContext.WorkingLanguage, true, true),
                         TotalWithoutWeightCost = _priceFormatter.FormatPrice((orderItem.PriceInclTax - orderItem.WeightCost), true,
                         primaryStoreCurrency, _workContext.WorkingLanguage, true, true),
+                        UnitPriceBase = _priceFormatter.FormatPrice((orderItem.Product.UnitPriceUsd), true,
+                            currencyProduct, _workContext.WorkingLanguage, true, true),
                         PackageOrderId = orderItem.PackageOrderId ?? 0,
-                        PackageOrder = orderItem.PackageOrder.ToModel(),
+                        PackageOrder = orderItem.PackageOrder != null ? orderItem.PackageOrder.ToModel() : null,
+                        EstimatedTimeArrival = orderItem.EstimatedTimeArrival,
                         PackageItemProcessedDatetime = orderItem.PackageItemProcessedDatetime,
                         IncludeWeightCost = orderItem.IncludeWeightCost,
                         UnitWeightCost = orderItem.UnitWeightCost ?? (currencyProduct != null ? currencyProduct.UnitWeightCost : 0),
                         IsOrderCheckout = orderItem.IsOrderCheckout,
+                        OutOfStock = orderItem.OutOfStock,
                         ItemWeight = orderItem.ItemWeight ?? 0,
                         CustomerInfo = customerInfo,
                         CustomerLinkFacebook = customerFacebook,
-                        CustomerLinkShortFacebook = customerFacebook.Split('/').ToList().LastOrDefault(),
+                        CustomerLinkShortFacebook = customerShortFacebook,
                         CreatedDate = orderItem.Order.CreatedOnUtc,
-                        PrimaryStoreCurrencyCode = primaryStoreCurrency.CurrencyCode,
+                        PrimaryStoreCurrencyCode = primaryStoreCurrency != null ? primaryStoreCurrency.CurrencyCode : string.Empty,
                         AssignedByCustomerId = orderItem.AssignedByCustomerId,
                         DeliveryDateUtc = orderItem.DeliveryDateUtc,
                         Deposit = orderItem.Deposit
@@ -6345,7 +6367,8 @@ namespace Nop.Web.Areas.Admin.Controllers
 
                     return orderItemModel;
                 }),
-                Total = orderItems.TotalCount
+                Total = orderItems.TotalCount,
+                TotalIds = orderItems.TotalIds
             };
 
             return Json(gridModel);

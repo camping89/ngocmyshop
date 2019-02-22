@@ -124,12 +124,15 @@ namespace Nop.Core.Domain.Orders
         public int? AssignedByCustomerId { get; set; }
         public virtual Customer AssignedByCustomer { get; set; }
 
+        public DateTime? EstimatedTimeArrival { get; set; }
         public DateTime? PackageItemProcessedDatetime { get; set; }
 
         public DateTime? DeliveryDateUtc { get; set; }
 
+
         public bool IncludeWeightCost { get; set; }
         public bool IsOrderCheckout { get; set; }
+        public bool OutOfStock { get; set; }
 
         public decimal Deposit { get; set; }
         /// <summary>

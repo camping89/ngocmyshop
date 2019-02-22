@@ -578,7 +578,8 @@ namespace Nop.Services.Orders
                     break;
             }
 
-            return new PagedList<OrderItem>(query, pageIndex, pageSize);
+            var results = new PagedList<OrderItem>(query, pageIndex, pageSize) { TotalIds = query.Select(_ => _.Id).ToList() };
+            return results;
         }
         /// <summary>
         /// Delete an order item

@@ -133,7 +133,7 @@ namespace Nop.Services.Shipping
 
             query = query.OrderByDescending(s => s.CreatedOnUtc);
             query = query.OrderByDescending(o => o.Id).ThenByDescending(o => o.CreatedOnUtc);
-            var shipments = new PagedList<ShipmentManual>(query, pageIndex, pageSize);
+            var shipments = new PagedList<ShipmentManual>(query, pageIndex, pageSize) { TotalIds = query.Select(_ => _.Id).ToList() };
             return shipments;
         }
         /// <summary>

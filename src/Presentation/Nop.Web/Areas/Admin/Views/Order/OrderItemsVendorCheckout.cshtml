@@ -246,6 +246,10 @@
                                                             VendorName: { editable: false, type: "string" },
                                                             PackageOrderId: { editable: false, type: "string" },
                                                             PackageOrderCode: { editable: true, type: "string" },
+                                                            EstimatedTimeArrival: {
+                                                                editable: true,
+                                                                type: "date"
+                                                            },
                                                             PackageItemProcessedDatetime: {
                                                                 editable: true,
                                                                 type: "date"
@@ -255,9 +259,11 @@
                                                             TotalWithoutWeightCost: { editable: false, type: "string" },
                                                             WeightCostDec: { editable: true, type: "string" },
                                                             UnitWeightCost: { editable: true, type: "string" },
+                                                            UnitPriceBase: { editable: false, type: "string" },
                                                             ItemWeight: { editable: true, type: "string" },
                                                             SubTotalInclTax: { editable: false, type: "string" },
                                                             IsOrderCheckout: { editable: true, type: "boolean" },
+                                                            OutOfStock: { editable: true, type: "boolean" },
                                                             ShelfId: { editable: true, type: "string" },
                                                             Deposit: { editable: true, type: "string" }
                                                         }
@@ -315,7 +321,8 @@
                                                     width: 60,
                                                     sortable: false,
                                                     editor: hideOnEditor
-                                                }, {
+                                                },
+                                               {
                                                     field: "PackageOrderCode",
                                                     title: "@T("admin.orders.products.packagecode")",
                                                     width: 100,
@@ -331,6 +338,23 @@
                                                     title: "@T("Admin.Orders.ShelfOrderItemId")",
                                                     width: 70,
                                                     template: "#=OrderId#.#=Id#"
+                                                }, {
+                                                    field: "CustomerAssignShelfInfo",
+                                                    title: "@T("admin.orders.shelfassignerinfo")",
+                                                    width: 100,
+                                                    editor: hideOnEditor
+                                                }, {
+                                                    field: "CreatedDate",
+                                                    title: "@T("Admin.Orders.Fields.OrderCreatedDate")",
+                                                    width: 80,
+                                                    type: "date",
+                                                    //format: "{0:G}",
+                                                    sortable: true,
+                                                    template: "# if (CreatedDate != null) { #" +
+                                                        "<p>#= kendo.toString(kendo.parseDate(CreatedDate, 'yyyy-MM-dd'), 'MM/dd/yyyy') #</p>" +
+                                                        "#} else {#" +
+                                                        "<p></p>" +
+                                                        "# } #"
                                                 },
                                                 {
                                                     field: "ShelfOrderItemId",
@@ -344,29 +368,11 @@
                                                     //    "# } #"
                                                 },
                                                 {
-                                                    field: "CustomerAssignShelfInfo",
-                                                    title: "@T("admin.orders.shelfassignerinfo")",
-                                                    width: 100,
-                                                    editor: hideOnEditor
-                                                },
-                                                {
                                                     field: "CustomerInfo",
                                                     title: "@T("Admin.Orders.Products.CustomerInfo")",
                                                     width: 150,
                                                     template: '<p>#=CustomerInfo#</p>' +
                                                         '<p><a target="_blank" href="#=CustomerLinkFacebook#">#=CustomerLinkShortFacebook#</a></p>'
-                                                }, {
-                                                    field: "CreatedDate",
-                                                    title: "@T("Admin.Orders.Fields.OrderCreatedDate")",
-                                                    width: 80,
-                                                    type: "date",
-                                                    //format: "{0:G}",
-                                                    sortable: true,
-                                                    template: "# if (CreatedDate != null) { #" +
-                                                        "<p>#= kendo.toString(kendo.parseDate(CreatedDate, 'yyyy-MM-dd'), 'MM/dd/yyyy') #</p>" +
-                                                        "#} else {#" +
-                                                        "<p></p>" +
-                                                        "# } #"
                                                 },
                                                 {
                                                     field: "PictureThumbnailUrl",
@@ -386,6 +392,10 @@
                                                         '<p>#=AttributeInfo#</p>' +
                                                         '<p><strong>#=VendorName#</strong></p>',
                                                     width: 200
+                                                }, {
+                                                    field: "UnitPriceBase",
+                                                    title: "@T("Admin.Orders.Products.UnitPriceBase")",
+                                                    width: 100
                                                 }, {
                                                     field: "TotalWithoutWeightCost",
                                                     title: "@T("Admin.Orders.Products.TotalWithoutWeightCost")",
@@ -437,6 +447,17 @@
                                                         "# } #"
                                                 },
                                                 {
+                                                    field: "EstimatedTimeArrival",
+                                                    title: "@T("Admin.Orders.Products.EstimatedTimeArrival")",
+                                                    width: 100,
+                                                    editor: dateTimeEditorCustom,
+                                                    template: "# if (EstimatedTimeArrival != null) { #" +
+                                                        "<p>#= kendo.toString(kendo.parseDate(EstimatedTimeArrival, 'yyyy-MM-dd'), 'MM/dd/yyyy') #</p>" +
+                                                        "#} else {#" +
+                                                        "<p></p>" +
+                                                        "# } #"
+                                                },
+                                                {
                                                     field: "PackageItemProcessedDatetime",
                                                     title: "@T("Admin.Orders.Products.PackageItemProcessedDatetime")",
                                                     width: 100,
@@ -456,6 +477,21 @@
                                                         "#} else {#" +
                                                         "<p></p>" +
                                                         "# } #"
+                                                },
+                                                {
+                                                    field: "OutOfStock",
+                                                    title: "@T("Admin.Orders.Products.OutOfStock")",
+                                                    width: 70,
+                                                    template: '<span class="grid-report-item ' +
+                                                        '# if(!OutOfStock) {# gray #} #' +
+                                                        '# if(OutOfStock) {# yellow #} #' +
+                                                        '">' +
+                                                        "# if (OutOfStock) { #" +
+                                                        "@T("Admin.Orders.Products.OutOfStock.True")" +
+                                                        "#} else {#" +
+                                                        "@T("Admin.Orders.Products.OutOfStock.False")" +
+                                                        "# } #" +
+                                                        '</span>'
                                                 },
                                                 {
                                                     field: "IsOrderCheckout",

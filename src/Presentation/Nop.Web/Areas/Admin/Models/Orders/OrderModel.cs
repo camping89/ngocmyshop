@@ -302,10 +302,12 @@ namespace Nop.Web.Areas.Admin.Models.Orders
             public int Id { get; set; }
             public int ProductId { get; set; }
             public string Sku { get; set; }
+            public string UnitPriceBase { get; set; }
             public string ProductName { get; set; }
             public int PackageOrderId { get; set; }
             public string PackageOrderCode { get; set; }
             public PackageOrderModel PackageOrder { get; set; }
+            public string EstimatedTimeArrival { get; set; }
             public string PackageItemProcessedDatetime { get; set; }
             public bool IncludeWeightCost { get; set; }
             public bool IsOrderCheckout { get; set; }
@@ -332,6 +334,7 @@ namespace Nop.Web.Areas.Admin.Models.Orders
             public DateTime? DeliveryDateUtc { get; set; }
 
             public string PrimaryStoreCurrencyCode { get; set; }
+            public bool OutOfStock { get; set; }
             public decimal Deposit { get; set; }
 
         }
@@ -348,6 +351,7 @@ namespace Nop.Web.Areas.Admin.Models.Orders
             public string VendorName { get; set; }
             public string Sku { get; set; }
 
+            public string UnitPriceBase { get; set; }
             public string PictureThumbnailUrl { get; set; }
 
             public string UnitPriceInclTax { get; set; }
@@ -392,10 +396,12 @@ namespace Nop.Web.Areas.Admin.Models.Orders
             public int? AssignedByCustomerId { get; set; }
             public Customer AssignedByCustomer { get; set; }
             public string CustomerAssignShelfInfo { get; set; }
+            public DateTime? EstimatedTimeArrival { get; set; }
             public DateTime? PackageItemProcessedDatetime { get; set; }
 
             public bool IncludeWeightCost { get; set; }
             public bool IsOrderCheckout { get; set; }
+            public bool OutOfStock { get; set; }
             public string PrimaryStoreCurrencyCode { get; set; }
 
             public string ShelfCode { get; set; }

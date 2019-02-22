@@ -471,45 +471,45 @@ namespace Nop.Web.Areas.Admin.Controllers
         }
 
 
-        public IActionResult CreateAuto()
-        {
-            var shelfItems = _shelfService.GetAllShelfOrderItem();
-            foreach (var shelfItem in shelfItems)
-            {
-                _shelfService.DeleteShelfOrderItem(shelfItem.Id);
-            }
+        //public IActionResult CreateAuto()
+        //{
+        //    var shelfItems = _shelfService.GetAllShelfOrderItem();
+        //    foreach (var shelfItem in shelfItems)
+        //    {
+        //        _shelfService.DeleteShelfOrderItem(shelfItem.Id);
+        //    }
 
-            var shelfs = _shelfService.GetAllShelf().Select(_ => _.Id);
-            foreach (var shelf in shelfs)
-            {
-                _shelfService.DeleteShelf(shelf);
-            }
+        //    var shelfs = _shelfService.GetAllShelf().Select(_ => _.Id);
+        //    foreach (var shelf in shelfs)
+        //    {
+        //        _shelfService.DeleteShelf(shelf);
+        //    }
 
-            var listLetter = new List<string> { "A", "B", "C", "D", "E", "F", "G", "H", "I", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "V", "X", "Y", "Z" };
-            var listResult = new List<string>();
-            for (int i = 1; i < 6; i++)
-            {
-                foreach (var letter in listLetter)
-                {
-                    for (int j = 101; j < 1000; j++)
-                    {
-                        if (j != 200 && j != 300 && j != 400 && j != 500 && j != 600 && j != 700 && j != 800 && j != 900)
-                        {
-                            listResult.Add($"{i}{letter}{j}");
-                        }
-                    }
-                }
-            }
+        //    var listLetter = new List<string> { "A", "B", "C", "D", "E", "F", "G", "H", "I", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "V", "X", "Y", "Z" };
+        //    var listResult = new List<string>();
+        //    for (int i = 1; i < 6; i++)
+        //    {
+        //        foreach (var letter in listLetter)
+        //        {
+        //            for (int j = 101; j < 1000; j++)
+        //            {
+        //                if (j != 200 && j != 300 && j != 400 && j != 500 && j != 600 && j != 700 && j != 800 && j != 900)
+        //                {
+        //                    listResult.Add($"{i}{letter}{j}");
+        //                }
+        //            }
+        //        }
+        //    }
 
-            var count = listResult.Count;
+        //    var count = listResult.Count;
 
-            foreach (var item in listResult)
-            {
-                _shelfService.InsertShelf(new Shelf() { ShelfCode = item, ShelfNoteStatus = ShelfNoteStatus.NoReply });
-            }
+        //    foreach (var item in listResult)
+        //    {
+        //        _shelfService.InsertShelf(new Shelf() { ShelfCode = item, ShelfNoteStatus = ShelfNoteStatus.NoReply });
+        //    }
 
-            return Json(true);
-        }
+        //    return Json(true);
+        //}
         #endregion
     }
 }

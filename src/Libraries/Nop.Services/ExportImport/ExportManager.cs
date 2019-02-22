@@ -1843,7 +1843,7 @@ namespace Nop.Services.ExportImport
                     OrderingFee = orderItem.OrderingFee,
                     ExchangeRate = orderItem.ExchangeRate,
                     SaleOff = orderItem.SaleOffPercent,
-                    ETA = orderItem.PackageItemProcessedDatetime?.ToString("dd/MM/yyyy"),
+                    ETA = orderItem.EstimatedTimeArrival?.ToString("dd/MM/yyyy"),
                     Note = orderItem.Order.AdminNote
                 };
                 //exportVendorInvoiceModel.ProductInfo += "\n " + HtmlHelper.ConvertHtmlToPlainText(orderItem.AttributeDescription, true, true);

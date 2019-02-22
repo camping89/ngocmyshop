@@ -579,10 +579,12 @@
                                                     ProductName: { editable: false, type: "string" },
                                                     TotalWithoutWeightCost: { editable: false, type: "string" },
                                                     WeightCostDec: { editable: true, type: "string" },
+                                                    UnitPriceBase: { editable: false, type: "string" },
                                                     UnitWeightCost: { editable: true, type: "string" },
                                                     ItemWeight: { editable: true, type: "string" },
                                                     SubTotalInclTax: { editable: false, type: "string" },
                                                     IsOrderCheckout: { editable: true, type: "boolean" },
+                                                    OutOfStock: { editable: false, type: "boolean" },
                                                     ShelfId: { editable: false, type: "string" },
                                                     Deposit: { editable: true, type: "string" }
                                                 }
@@ -635,6 +637,10 @@
                                                 '<p>#=AttributeInfo#</p>' +
                                                 '<p>Sku: #=Sku#</p>',
                                             width: 250
+                                        }, {
+                                            field: "UnitPriceBase",
+                                            title: "@T("Admin.Orders.Products.UnitPriceBase")",
+                                            width: 100
                                         }, {
                                             field: "TotalWithoutWeightCost",
                                             title: "@T("Admin.Orders.Products.TotalWithoutWeightCost")",
@@ -703,6 +709,10 @@
                                                 "#} else {#" +
                                                 "<p></p>" +
                                                 "# } #"
+                                        }, {
+                                            field: "OutOfStock",
+                                            title: "@T("Admin.Orders.Products.OutOfStock")",
+                                            hidden: true
                                         },
                                         {
                                             field: "IsOrderCheckout",

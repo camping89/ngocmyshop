@@ -217,6 +217,10 @@ namespace Nop.Services.Common
         /// <returns>PDF cell</returns>
         protected virtual PdfPCell GetPdfCell(object text, Font font)
         {
+            if (text == null)
+            {
+                text = string.Empty;
+            }
             return new PdfPCell(new Phrase(text.ToString(), font));
         }
 
@@ -1911,13 +1915,15 @@ namespace Nop.Services.Common
             doc.Close();
         }
 
-        public void PrintPackagingSlipsItemsToPdf(Stream stream, IList<Shipment> shipments, int languageId = 0)
+        public void PrintPackagingSlipsItemsToPdf(Stream stream, IList<ShipmentManual> shipments, int languageId = 0)
         {
             if (stream == null)
                 throw new ArgumentNullException(nameof(stream));
 
             if (shipments == null)
                 throw new ArgumentNullException(nameof(shipments));
+
+            shipments = shipments.OrderBy(_ => _.Customer.GetFullName()).ToList();
 
             var pageSize = PageSize.A2;
 
@@ -1933,20 +1939,23 @@ namespace Nop.Services.Common
             var attributesFont = GetFont();
             attributesFont.SetStyle(Font.ITALIC);
 
-            var shipmentCount = shipments.Count;
-            var shipmentNum = 0;
-
             var lang = _workContext.WorkingLanguage;
 
 
-            var productsTable = new PdfPTable(8) { WidthPercentage = 100f };
+            var productsTable = new PdfPTable(10) { WidthPercentage = 100f };
 
-            productsTable.SetWidths(new[] { 10, 10, 10, 15, 20, 15, 10, 10 });
+            productsTable.SetWidths(new[] { 10, 10, 10, 10, 10, 10, 10, 10, 10, 10 });
 
-            var cell = GetPdfCell("PDFPackagingSlip.BagId", lang, font);
+            //var cell = GetPdfCell("PDFPackagingSlip.BagId", lang, font);
+            //cell.BackgroundColor = BaseColor.LIGHT_GRAY;
+            //cell.HorizontalAlignment = Element.ALIGN_CENTER;
+            //productsTable.AddCell(cell);
+
+            var cell = GetPdfCell("PDFPackagingSlip.CustomerName", lang, font);
             cell.BackgroundColor = BaseColor.LIGHT_GRAY;
             cell.HorizontalAlignment = Element.ALIGN_CENTER;
             productsTable.AddCell(cell);
+
 
             cell = GetPdfCell("PDFPackagingSlip.ShipmentId", lang, font);
             cell.BackgroundColor = BaseColor.LIGHT_GRAY;
@@ -1958,15 +1967,22 @@ namespace Nop.Services.Common
             //cell.HorizontalAlignment = Element.ALIGN_CENTER;
             //productsTable.AddCell(cell);
 
-            cell = GetPdfCell("PDFPackagingSlip.TrackingNumber", lang, font);
-            cell.BackgroundColor = BaseColor.LIGHT_GRAY;
-            cell.HorizontalAlignment = Element.ALIGN_CENTER;
-            productsTable.AddCell(cell);
+            //cell = GetPdfCell("PDFPackagingSlip.TrackingNumber", lang, font);
+            //cell.BackgroundColor = BaseColor.LIGHT_GRAY;
+            //cell.HorizontalAlignment = Element.ALIGN_CENTER;
+            //productsTable.AddCell(cell);
 
             cell = GetPdfCell("PDFPackagingSlip.ShipperInfo", lang, font);
             cell.BackgroundColor = BaseColor.LIGHT_GRAY;
             cell.HorizontalAlignment = Element.ALIGN_CENTER;
             productsTable.AddCell(cell);
+
+
+            cell = GetPdfCell("PDFPackagingSlip.DeliveryDate", lang, font);
+            cell.BackgroundColor = BaseColor.LIGHT_GRAY;
+            cell.HorizontalAlignment = Element.ALIGN_CENTER;
+            productsTable.AddCell(cell);
+
 
             //cell = GetPdfCell("PDFPackagingSlip.ProductInfo", lang, font);
             //cell.BackgroundColor = BaseColor.LIGHT_GRAY;
@@ -1978,20 +1994,22 @@ namespace Nop.Services.Common
             //cell.HorizontalAlignment = Element.ALIGN_CENTER;
             //productsTable.AddCell(cell);
 
-            cell = GetPdfCell("PDFPackagingSlip.CustomerName", lang, font);
+            cell = GetPdfCell("PDFPackagingSlip.Address", lang, font);
             cell.BackgroundColor = BaseColor.LIGHT_GRAY;
             cell.HorizontalAlignment = Element.ALIGN_CENTER;
             productsTable.AddCell(cell);
 
-            cell = GetPdfCell("PDFPackagingSlip.CustomerPhone", lang, font);
+
+            cell = GetPdfCell("PDFPackagingSlip.District", lang, font);
             cell.BackgroundColor = BaseColor.LIGHT_GRAY;
             cell.HorizontalAlignment = Element.ALIGN_CENTER;
             productsTable.AddCell(cell);
 
-            //cell = GetPdfCell("PDFPackagingSlip.DeliveryDate", lang, font);
-            //cell.BackgroundColor = BaseColor.LIGHT_GRAY;
-            //cell.HorizontalAlignment = Element.ALIGN_CENTER;
-            //productsTable.AddCell(cell);
+
+            cell = GetPdfCell("PDFPackagingSlip.StateProvince", lang, font);
+            cell.BackgroundColor = BaseColor.LIGHT_GRAY;
+            cell.HorizontalAlignment = Element.ALIGN_CENTER;
+            productsTable.AddCell(cell);
 
             //cell = GetPdfCell("PDFPackagingSlip.ShippedDate", lang, font);
             //cell.BackgroundColor = BaseColor.LIGHT_GRAY;
@@ -1999,10 +2017,10 @@ namespace Nop.Services.Common
             //productsTable.AddCell(cell);
 
 
-            //cell = GetPdfCell("PDFPackagingSlip.Deposit", lang, font);
-            //cell.BackgroundColor = BaseColor.LIGHT_GRAY;
-            //cell.HorizontalAlignment = Element.ALIGN_CENTER;
-            //productsTable.AddCell(cell);
+            cell = GetPdfCell("PDFPackagingSlip.Deposit", lang, font);
+            cell.BackgroundColor = BaseColor.LIGHT_GRAY;
+            cell.HorizontalAlignment = Element.ALIGN_CENTER;
+            productsTable.AddCell(cell);
 
             cell = GetPdfCell("PDFPackagingSlip.TotalShippingFee", lang, font);
             cell.BackgroundColor = BaseColor.LIGHT_GRAY;
@@ -2017,7 +2035,7 @@ namespace Nop.Services.Common
             foreach (var shipment in shipments)
             {
 
-                var customerOrder = _customerService.GetCustomerById(shipment.Order.CustomerId);
+                var customerOrder = _customerService.GetCustomerById(shipment.CustomerId);
 
                 var shipper = _customerService.GetCustomerById(shipment.CustomerId);
                 var shipperInfo = string.Empty;
@@ -2029,19 +2047,21 @@ namespace Nop.Services.Common
                 {
                     ShipmentId = shipment.Id.ToString(),
                     BagId = shipment.BagId != null ? shipment.BagId : string.Empty,
-                    OrderId = shipment.OrderId.ToString(),
                     //OrderItemId = $"{shipment.OrderId}.{shipmentItem.OrderItemId}",
                     TrackingNumber = shipment.TrackingNumber != null ? shipment.TrackingNumber : string.Empty,
                     //CustomerInfo = customerInfo,
-                    ShipperInfo = shipperInfo != null ? shipperInfo : string.Empty,
+                    ShipperInfo = shipperInfo,
                     DeliveryDate = shipment.DeliveryDateUtc != null ? shipment.DeliveryDateUtc?.ToString("dd/MM/yyyy") : string.Empty,
                     ShippedDate = shipment.ShippedDateUtc != null ? shipment.ShippedDateUtc?.ToString("dd/MM/yyyy") : string.Empty,
                     Note = shipment.ShipmentNote != null ? shipment.ShipmentNote : string.Empty,
-                    Deposit = shipment.Deposit,
-                    TotalShippingFee = shipment.ShipmentItems.Sum(s => s.ShippingFee),
+                    Deposit = shipment.ShipmentManualItems.Sum(_ => _.OrderItem.Deposit),
+                    TotalShippingFee = shipment.ShipmentManualItems.Sum(s => s.ShippingFee),
                     CustomerPhone = string.Empty,
                     CustomerFacebookUrl = string.Empty,
-                    CustomerName = string.Empty
+                    CustomerName = string.Empty,
+                    CustomerAddress = shipment.Address,
+                    CustomerStateProvince = shipment.Province,
+                    CustomerDistrict = shipment.District
                 };
 
                 if (customerOrder != null)
@@ -2063,7 +2083,7 @@ namespace Nop.Services.Common
                     }
                 }
 
-                foreach (var shipmentItem in shipment.ShipmentItems)
+                foreach (var shipmentItem in shipment.ShipmentManualItems)
                 {
                     var orderItem = _orderService.GetOrderItemById(shipmentItem.OrderItemId);
                     if (orderItem != null)
@@ -2077,7 +2097,11 @@ namespace Nop.Services.Common
                     }
                 }
 
-                cell = GetPdfCell(exportShipmentModel.BagId, font);
+                //cell = GetPdfCell(exportShipmentModel.BagId, font);
+                //cell.HorizontalAlignment = Element.ALIGN_CENTER;
+                //productsTable.AddCell(cell);
+
+                cell = GetPdfCell(exportShipmentModel.CustomerName + "\n" + exportShipmentModel.CustomerPhone, font);
                 cell.HorizontalAlignment = Element.ALIGN_CENTER;
                 productsTable.AddCell(cell);
 
@@ -2089,11 +2113,15 @@ namespace Nop.Services.Common
                 //cell.HorizontalAlignment = Element.ALIGN_CENTER;
                 //productsTable.AddCell(cell);
 
-                cell = GetPdfCell(exportShipmentModel.TrackingNumber, font);
+                //cell = GetPdfCell(exportShipmentModel.TrackingNumber, font);
+                //cell.HorizontalAlignment = Element.ALIGN_CENTER;
+                //productsTable.AddCell(cell);
+
+                cell = GetPdfCell(exportShipmentModel.ShipperInfo, font);
                 cell.HorizontalAlignment = Element.ALIGN_CENTER;
                 productsTable.AddCell(cell);
 
-                cell = GetPdfCell(exportShipmentModel.ShipperInfo, font);
+                cell = GetPdfCell(exportShipmentModel.DeliveryDate, font);
                 cell.HorizontalAlignment = Element.ALIGN_CENTER;
                 productsTable.AddCell(cell);
 
@@ -2105,25 +2133,25 @@ namespace Nop.Services.Common
                 //cell.HorizontalAlignment = Element.ALIGN_CENTER;
                 //productsTable.AddCell(cell);
 
-                cell = GetPdfCell(exportShipmentModel.CustomerName, font);
+                cell = GetPdfCell(exportShipmentModel.CustomerAddress, font);
                 cell.HorizontalAlignment = Element.ALIGN_CENTER;
                 productsTable.AddCell(cell);
 
-                cell = GetPdfCell(exportShipmentModel.CustomerPhone, font);
+                cell = GetPdfCell(exportShipmentModel.CustomerDistrict, font);
                 cell.HorizontalAlignment = Element.ALIGN_CENTER;
                 productsTable.AddCell(cell);
 
-                //cell = GetPdfCell(exportShipmentModel.DeliveryDate, font);
-                //cell.HorizontalAlignment = Element.ALIGN_CENTER;
-                //productsTable.AddCell(cell);
+                cell = GetPdfCell(exportShipmentModel.CustomerStateProvince, font);
+                cell.HorizontalAlignment = Element.ALIGN_CENTER;
+                productsTable.AddCell(cell);
 
                 //cell = GetPdfCell(exportShipmentModel.ShippedDate, font);
                 //cell.HorizontalAlignment = Element.ALIGN_CENTER;
                 //productsTable.AddCell(cell);
 
-                //cell = GetPdfCell(_priceFormatter.FormatPrice(exportShipmentModel.Deposit, true, _workContext.WorkingCurrency), font);
-                //cell.HorizontalAlignment = Element.ALIGN_CENTER;
-                //productsTable.AddCell(cell);
+                cell = GetPdfCell(_priceFormatter.FormatPrice(exportShipmentModel.Deposit, true, _workContext.WorkingCurrency), font);
+                cell.HorizontalAlignment = Element.ALIGN_CENTER;
+                productsTable.AddCell(cell);
 
                 cell = GetPdfCell(_priceFormatter.FormatPrice(exportShipmentModel.TotalShippingFee - exportShipmentModel.Deposit, true, _workContext.WorkingCurrency), font);
                 cell.HorizontalAlignment = Element.ALIGN_CENTER;

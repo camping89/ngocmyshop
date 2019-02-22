@@ -19,41 +19,41 @@
             @T("Admin.Orders.Shipments.List")
         </h1>
         <div class="pull-right">
-            @*<div class="btn-group">
-                    <button type="button" class="btn bg-purple">
-                        <i class="fa fa-file-pdf-o"></i>
-                        @T("Admin.Orders.Shipments.PrintPackagingSlips")
-                    </button>
-                    <button type="button" class="btn bg-purple dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
-                        <span class="caret"></span>
-                        <span class="sr-only">&nbsp;</span>
-                    </button>
-                    <ul class="dropdown-menu" role="menu">
-                        <li>
-                            <button type="button" id="exportpackagingslips-selected">
-                                @T("Admin.Orders.Shipments.PrintPackagingSlips.Selected")
-                            </button>
-                        </li>
-                        <li>
-                            <button type="submit" name="exportpackagingslips-all">
-                                @T("Admin.Orders.Shipments.PrintPackagingSlips.All")
-                            </button>
-                        </li>
-                    </ul>
-                </div>*@
+            <div class="btn-group">
+                <button type="button" class="btn bg-purple">
+                    <i class="fa fa-file-pdf-o"></i>
+                    @T("Admin.Orders.Shipments.PrintPackagingSlips")
+                </button>
+                <button type="button" class="btn bg-purple dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+                    <span class="caret"></span>
+                    <span class="sr-only">&nbsp;</span>
+                </button>
+                <ul class="dropdown-menu" role="menu">
+                    <li>
+                        <button type="button" id="exportpackagingslips-selected">
+                            @T("Admin.Orders.Shipments.PrintPackagingSlips.Selected")
+                        </button>
+                    </li>
+                    <li>
+                        <button type="button" id="exportpackagingslips-all">
+                            @T("Admin.Orders.Shipments.PrintPackagingSlips.All")
+                        </button>
+                    </li>
+                </ul>
+            </div>
 
             <button type="button" id="assign-shipper-selected" class="btn bg-aqua" data-toggle="modal" data-target="#assign-shipment-new-customer-window">
                 @T("Admin.Orders.Shipments.AssignToShipperSelected")
             </button>
 
-            <button type="button" id="apply-bagid-selected" class="btn bg-orange" data-toggle="modal" data-target="#apply-bagid-window">
-                @T("Admin.Orders.Shipments.ApplyBagId")
-            </button>
+            @*<button type="button" id="apply-bagid-selected" class="btn bg-orange" data-toggle="modal" data-target="#apply-bagid-window">
+                    @T("Admin.Orders.Shipments.ApplyBagId")
+                </button>*@
 
-            <button type="button" id="ship-selected" class="btn bg-teal">
-                <i class="fa fa-truck"></i>
-                @T("Admin.Orders.Shipments.ShipSelected")
-            </button>
+            @*<button type="button" id="ship-selected" class="btn bg-teal">
+                    <i class="fa fa-truck"></i>
+                    @T("Admin.Orders.Shipments.ShipSelected")
+                </button>*@
             <button type="button" id="deliver-selected" class="btn bg-green">
                 <i class="fa fa-check-square-o"></i>
                 @T("Admin.Orders.Shipments.DeliverySelected")
@@ -155,6 +155,9 @@
                                     </div>
                                 </div>
 
+                            </div>
+                            <div class="col-md-7">
+
                                 <div class="form-group">
                                     <div class="col-md-4">
                                         <nop-label asp-for="LoadNotShipped" />
@@ -163,9 +166,6 @@
                                         <nop-editor asp-for="LoadNotShipped" />
                                     </div>
                                 </div>
-
-                            </div>
-                            <div class="col-md-7">
 
                                 <div class="form-group">
                                     <div class="col-md-4">
@@ -186,14 +186,14 @@
                                     </div>
                                 </div>
 
-                                <div class="form-group">
-                                    <div class="col-md-4">
-                                        <nop-label asp-for="OrderId" />
-                                    </div>
-                                    <div class="col-md-8">
-                                        <nop-editor asp-for="OrderId" />
-                                    </div>
-                                </div>
+                                @*<div class="form-group">
+                                        <div class="col-md-4">
+                                            <nop-label asp-for="OrderId" />
+                                        </div>
+                                        <div class="col-md-8">
+                                            <nop-editor asp-for="OrderId" />
+                                        </div>
+                                    </div>*@
                             </div>
                             <div class="row">
                                 <div class="col-md-7 col-md-offset-4">
@@ -270,6 +270,8 @@
                                                 if (response) {
                                                     //store extra data
                                                     reportAggregates = e.response["ExtraData"];
+
+                                                    totalIds = response.TotalIds;
                                                 }
                                             } else {
                                                 var grid = $("#shipments-grid").data('kendoGrid');
@@ -362,6 +364,7 @@
                                             title: "@T("Admin.Orders.Shipments.ShippedDate")",
                                             editor: dateTimeEditorCustom,
                                             width: 80,
+                                            hidden: true,
                                             template: "# if (ShippedDate != null) { #" +
                                                 "<p>#= kendo.toString(kendo.parseDate(ShippedDate, 'yyyy-MM-dd'), 'MM/dd/yyyy') #</p>" +
                                                 "#} else {#" +
@@ -646,6 +649,7 @@
 
                 <script type="text/javascript">
                     var selectedIds = [];
+                    var totalIds = [];
                     var reportAggregates = "";
                     $(document).ready(function() {
                         $('#@Html.IdFor(model => model.City)').val('');
@@ -753,9 +757,17 @@
                         //"ship selected" button
                         $('#ship-selected').click(function(e) {
                             e.preventDefault();
+                            var ids = selectedIds;
+                            if (selectedIds.length === 0) {
+                                ids = totalIds;
+                            }
 
+                            var r = confirm("Bạn có chắc muốn xử lý " + ids.length + " dòng này không!");
+                            if (r === false) {
+                                return false;
+                            }
                             var postData = {
-                                selectedIds: selectedIds
+                                selectedIds: ids
                             };
                             addAntiForgeryToken(postData);
 
@@ -780,9 +792,12 @@
                         //"deliver selected" button
                         $('#deliver-selected').click(function(e) {
                             e.preventDefault();
-
+                            var ids = selectedIds;
+                            if (selectedIds.length === 0) {
+                                ids = totalIds;
+                            }
                             var postData = {
-                                selectedIds: selectedIds
+                                selectedIds: ids
                             };
                             addAntiForgeryToken(postData);
 
@@ -901,6 +916,22 @@
     });
 </script>
 
+<form asp-controller="Order" asp-action="PdfPackagingSlipSelected" method="post" id="pdf-packaging-slip-all-form">
+    <input type="hidden" class="selectedIds" name="selectedIds" value="" />
+</form>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('#exportpackagingslips-all').click(function (e) {
+            e.preventDefault();
+            var ids = totalIds.join(",");
+            $('#pdf-packaging-slip-all-form .selectedIds').val(ids);
+            $('#pdf-packaging-slip-all-form').submit();
+            return false;
+        });
+    });
+</script>
+
 <form asp-controller="Order" asp-action="ExcelPackagingSlipSelected" method="post" id="excel-packaging-slip-selected-form">
     <input type="hidden" class="selectedIds" name="selectedIds" value="" />
 </form>
@@ -909,8 +940,17 @@
     $(document).ready(function () {
         $('#exportexcel-shipment-selected').click(function (e) {
             e.preventDefault();
-            var ids = selectedIds.join(",");
-            $('#excel-packaging-slip-selected-form .selectedIds').val(ids);
+            var ids = selectedIds;
+            if (selectedIds.length === 0) {
+                ids = totalIds;
+            }
+
+            var r = confirm("Bạn có chắc muốn xử lý " + ids.length + " dòng này không!");
+            if (r === false) {
+                return false;
+            }
+
+            $('#excel-packaging-slip-selected-form .selectedIds').val(ids.join(','));
             $('#excel-packaging-slip-selected-form').submit();
             return false;
         });
@@ -953,8 +993,17 @@
     $(document).ready(function () {
         $('#btn-apply-tracking-number').click(function (e) {
             e.preventDefault();
+            var ids = selectedIds;
+            if (selectedIds.length === 0) {
+                ids = totalIds;
+            }
+
+            var r = confirm("Bạn có chắc muốn xử lý " + ids.length + " dòng này không!");
+            if (r === false) {
+                return false;
+            }
             var trackingNumberNew = $('#TrackingNumberNew').val();
-            var postData = { selectedIds: selectedIds, trackingNumberNew: trackingNumberNew };
+            var postData = { selectedIds: ids, trackingNumberNew: trackingNumberNew };
             addAntiForgeryToken(postData);
             $.ajax({
                 cache: false,
@@ -1020,8 +1069,16 @@
     $(document).ready(function () {
         $('#btn-apply-bagid').click(function (e) {
             e.preventDefault();
+            var ids = selectedIds;
+            if (selectedIds.length === 0) {
+                ids = totalIds;
+            }
+            var r = confirm("Bạn có chắc muốn xử lý " + ids.length + " dòng này không!");
+            if (r === false) {
+                return false;
+            }
             var bagIdNew = $('#BagIdNew').val();
-            var postData = { selectedIds: selectedIds, bagIdNew: bagIdNew };
+            var postData = { selectedIds: ids, bagIdNew: bagIdNew };
             addAntiForgeryToken(postData);
             $.ajax({
                 cache: false,
@@ -1086,8 +1143,16 @@
     $(document).ready(function () {
         $('#btn-assign-to-new-customer').click(function (e) {
             e.preventDefault();
+            var ids = selectedIds;
+            if (selectedIds.length === 0) {
+                ids = totalIds;
+            }
+            var r = confirm("Bạn có chắc muốn xử lý " + ids.length + " dòng này không!");
+            if (r === false) {
+                return false;
+            }
             var customerId = $('#CustomerNewId').val();
-            var postData = { selectedIds: selectedIds, customerNewId: customerId };
+            var postData = { selectedIds: ids, customerNewId: customerId };
             addAntiForgeryToken(postData);
             $.ajax({
                 cache: false,
