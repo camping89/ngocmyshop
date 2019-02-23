@@ -112,7 +112,10 @@ namespace Nop.Web.Areas.Admin.Controllers
 
                         m.CustomerFullName = customer.GetFullName();
                         m.CustomerLinkFacebook = linkFacebook;
-                        m.CustomerLinkShortFacebook = linkFacebook.Split('/').ToList().LastOrDefault();
+                        if (Core.Extensions.StringExtensions.IsNotNullOrEmpty(linkFacebook))
+                        {
+                            m.CustomerLinkShortFacebook = linkFacebook.Split('/').ToList().LastOrDefault();
+                        }
                     }
                     return m;
                 }),
