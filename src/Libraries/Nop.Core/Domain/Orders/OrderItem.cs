@@ -135,6 +135,8 @@ namespace Nop.Core.Domain.Orders
         public bool OutOfStock { get; set; }
 
         public decimal Deposit { get; set; }
+
+        public int OrderItemStatusId { get; set; }
         /// <summary>
         /// Gets the order
         /// </summary>
@@ -144,6 +146,18 @@ namespace Nop.Core.Domain.Orders
         /// Gets the product
         /// </summary>
         public virtual Product Product { get; set; }
+
+        public OrderItemStatus OrderItemStatus
+        {
+            get
+            {
+                return (OrderItemStatus)OrderItemStatusId;
+            }
+            set
+            {
+                OrderItemStatusId = (int)value;
+            }
+        }
 
         /// <summary>
         /// Gets or sets the associated gift card

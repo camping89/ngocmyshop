@@ -336,6 +336,8 @@ namespace Nop.Web.Areas.Admin.Models.Orders
             public string PrimaryStoreCurrencyCode { get; set; }
             public bool OutOfStock { get; set; }
             public decimal Deposit { get; set; }
+            public string OrderItemStatus { get; set; }
+            public int OrderItemStatusId { get; set; }
 
         }
         public partial class OrderItemModel : BaseNopEntityModel
@@ -413,6 +415,11 @@ namespace Nop.Web.Areas.Admin.Models.Orders
             public DateTime? DeliveryDateUtc { get; set; }
 
             public decimal Deposit { get; set; }
+
+            [NopResourceDisplayName("Admin.OrderItem.OrderItemStatus")]
+            public string OrderItemStatus { get; set; }
+            [NopResourceDisplayName("Admin.OrderItem.OrderStatus")]
+            public int OrderItemStatusId { get; set; }
 
             #region Nested Classes
 

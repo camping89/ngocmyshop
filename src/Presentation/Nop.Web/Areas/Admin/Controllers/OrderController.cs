@@ -694,7 +694,9 @@ namespace Nop.Web.Areas.Admin.Controllers
                 WeightCost = _priceFormatter.FormatPrice(orderItem.WeightCost, true,
                     primaryStoreCurrency, _workContext.WorkingLanguage, true, true),
                 PrimaryStoreCurrencyCode = primaryStoreCurrency.CurrencyCode,
-                Deposit = orderItem.Deposit
+                Deposit = orderItem.Deposit,
+                OrderItemStatus = orderItem.OrderItemStatus.GetLocalizedEnum(_localizationService, _workContext),
+                OrderItemStatusId = orderItem.OrderItemStatusId
 
             };
             //picture
@@ -4115,6 +4117,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             orderItem.UnitWeightCost = orderItemModel.UnitWeightCost;
             orderItem.IsOrderCheckout = orderItemModel.IsOrderCheckout;
             orderItem.Deposit = orderItemModel.Deposit;
+            orderItem.OrderItemStatusId = orderItemModel.OrderItemStatusId;
             _orderService.UpdateOrderItem(orderItem);
 
             order.WeightCost = order.OrderItems.Sum(_ => _.WeightCost);
