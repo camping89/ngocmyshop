@@ -10,6 +10,10 @@ namespace Nop.Core.Domain.Orders
     /// </summary>
     public partial class OrderItem : BaseEntity
     {
+        public OrderItem()
+        {
+            OrderItemStatus = OrderItemStatus.Available;
+        }
         private ICollection<GiftCard> _associatedGiftCards;
 
         /// <summary>
@@ -132,10 +136,10 @@ namespace Nop.Core.Domain.Orders
 
         public bool IncludeWeightCost { get; set; }
         public bool IsOrderCheckout { get; set; }
-        public bool OutOfStock { get; set; }
 
         public decimal Deposit { get; set; }
 
+        public string Note { get; set; }
         public int OrderItemStatusId { get; set; }
         /// <summary>
         /// Gets the order

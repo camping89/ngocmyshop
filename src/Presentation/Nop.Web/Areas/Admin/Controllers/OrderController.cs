@@ -583,14 +583,15 @@ namespace Nop.Web.Areas.Admin.Controllers
                 EstimatedTimeArrival = orderItem.EstimatedTimeArrival,
                 PackageItemProcessedDatetime = orderItem.PackageItemProcessedDatetime,
                 IsOrderCheckout = orderItem.IsOrderCheckout,
-                OutOfStock = orderItem.OutOfStock,
                 AssignedByCustomerId = orderItem.AssignedByCustomerId,
                 IncludeWeightCost = orderItem.IncludeWeightCost,
                 UnitWeightCost = orderItem.UnitWeightCost ?? (currencyProduct != null ? currencyProduct.UnitWeightCost : 0),
                 ItemWeight = orderItem.ItemWeight ?? 0,
                 DeliveryDateUtc = orderItem.DeliveryDateUtc,
                 PrimaryStoreCurrencyCode = primaryStoreCurrency.CurrencyCode,
-                Deposit = orderItem.Deposit
+                Deposit = orderItem.Deposit,
+                OrderItemStatus = orderItem.OrderItemStatus.GetLocalizedEnum(_localizationService, _workContext),
+                OrderItemStatusId = orderItem.OrderItemStatusId
 
             };
             //picture
@@ -676,6 +677,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 Id = orderItem.Id,
                 OrderId = orderItem.OrderId,
                 ProductId = orderItem.ProductId,
+                Quantity = orderItem.Quantity,
                 ProductName = orderItem.Product.Name,
                 Sku = orderItem.Product.FormatSku(orderItem.AttributesXml, _productAttributeParser),
                 TotalWithoutWeightCost = _priceFormatter.FormatPrice((orderItem.PriceInclTax - orderItem.WeightCost), true,
@@ -696,7 +698,8 @@ namespace Nop.Web.Areas.Admin.Controllers
                 PrimaryStoreCurrencyCode = primaryStoreCurrency.CurrencyCode,
                 Deposit = orderItem.Deposit,
                 OrderItemStatus = orderItem.OrderItemStatus.GetLocalizedEnum(_localizationService, _workContext),
-                OrderItemStatusId = orderItem.OrderItemStatusId
+                OrderItemStatusId = orderItem.OrderItemStatusId,
+                Note = orderItem.Note
 
             };
             //picture
@@ -911,7 +914,10 @@ namespace Nop.Web.Areas.Admin.Controllers
                     EstimatedTimeArrival = orderItem.EstimatedTimeArrival,
                     IncludeWeightCost = orderItem.IncludeWeightCost,
                     IsOrderCheckout = orderItem.IsOrderCheckout,
-                    OutOfStock = orderItem.OutOfStock
+                    Deposit = orderItem.Deposit,
+                    OrderItemStatus = orderItem.OrderItemStatus.GetLocalizedEnum(_localizationService, _workContext),
+                    OrderItemStatusId = orderItem.OrderItemStatusId,
+                    Note = orderItem.Note
 
                 };
                 //picture
@@ -4113,11 +4119,11 @@ namespace Nop.Web.Areas.Admin.Controllers
             orderItem.PriceExclTax = orderItem.PriceExclTax - orderItem.WeightCost + orderItemModel.WeightCostDec;
             orderItem.WeightCost = orderItemModel.WeightCostDec;
             orderItem.ItemWeight = orderItemModel.ItemWeight;
-            orderItem.OutOfStock = orderItemModel.OutOfStock;
             orderItem.UnitWeightCost = orderItemModel.UnitWeightCost;
             orderItem.IsOrderCheckout = orderItemModel.IsOrderCheckout;
             orderItem.Deposit = orderItemModel.Deposit;
             orderItem.OrderItemStatusId = orderItemModel.OrderItemStatusId;
+            orderItem.Note = orderItemModel.Note;
             _orderService.UpdateOrderItem(orderItem);
 
             order.WeightCost = order.OrderItems.Sum(_ => _.WeightCost);
@@ -5095,6 +5101,34 @@ namespace Nop.Web.Areas.Admin.Controllers
                 try
                 {
                     orderItem.PackageItemProcessedDatetime = datetimeNew;
+                    _orderService.UpdateOrderItem(orderItem);
+                }
+                catch
+                {
+                    //ignore any exception
+                }
+            }
+
+            return Json(new { Result = true });
+        }
+
+        [HttpPost]
+        public virtual IActionResult ApplyEstimatedTimeArrivalSelected(ICollection<int> selectedIds, DateTime? datetimeNew)
+        {
+            if (!_permissionService.Authorize(StandardPermissionProvider.ManageOrders))
+                return AccessDeniedView();
+
+            var orderItems = new List<OrderItem>();
+            if (selectedIds != null)
+            {
+                orderItems.AddRange(_orderService.GetOrderItemsByIds(selectedIds.ToArray()));
+            }
+
+            foreach (var orderItem in orderItems)
+            {
+                try
+                {
+                    orderItem.EstimatedTimeArrival = datetimeNew;
                     _orderService.UpdateOrderItem(orderItem);
                 }
                 catch
@@ -6245,6 +6279,11 @@ namespace Nop.Web.Areas.Admin.Controllers
             }
             model.VendorItems.Insert(0, new SelectListItem { Text = _localizationService.GetResource("Admin.Common.All"), Value = "0" });
 
+            //Order item status
+            model.OrderItemStatusId = -1;
+            model.AvailableOrderStatus = OrderItemStatus.Available.ToSelectList(false).ToList();
+            model.AvailableOrderStatus.Insert(0, new SelectListItem { Text = _localizationService.GetResource("Admin.Common.All"), Value = "-1", Selected = true });
+
             return View(model);
         }
 
@@ -6258,7 +6297,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 isOrderCheckout: model.IsOrderCheckout, isPackageItemProcessed: model.IsPackageItemProcessed, todayFilter: model.TodayFilter,
                 customerPhone: model.CustomerPhone, packageOrderCode: model.PackageOrderCode,
                 vendorId: model.VendorId, isSetPackageOrderId: model.IsSetPackageOrderId,
-                isSetShelfId: model.IsShelfAssigned);
+                isSetShelfId: model.IsShelfAssigned, orderItemStatusId: model.OrderItemStatusId);
 
             var gridModel = new DataSourceResult
             {
@@ -6303,7 +6342,6 @@ namespace Nop.Web.Areas.Admin.Controllers
                         IncludeWeightCost = orderItem.IncludeWeightCost,
                         UnitWeightCost = orderItem.UnitWeightCost ?? (currencyProduct != null ? currencyProduct.UnitWeightCost : 0),
                         IsOrderCheckout = orderItem.IsOrderCheckout,
-                        OutOfStock = orderItem.OutOfStock,
                         ItemWeight = orderItem.ItemWeight ?? 0,
                         CustomerInfo = customerInfo,
                         CustomerLinkFacebook = customerFacebook,
@@ -6312,7 +6350,10 @@ namespace Nop.Web.Areas.Admin.Controllers
                         PrimaryStoreCurrencyCode = primaryStoreCurrency != null ? primaryStoreCurrency.CurrencyCode : string.Empty,
                         AssignedByCustomerId = orderItem.AssignedByCustomerId,
                         DeliveryDateUtc = orderItem.DeliveryDateUtc,
-                        Deposit = orderItem.Deposit
+                        Deposit = orderItem.Deposit,
+                        OrderItemStatus = orderItem.OrderItemStatus.GetLocalizedEnum(_localizationService, _workContext),
+                        OrderItemStatusId = orderItem.OrderItemStatusId,
+                        Note = orderItem.Note
                     };
                     if (orderItemModel.PackageOrderId > 0)
                     {
@@ -6470,7 +6511,10 @@ namespace Nop.Web.Areas.Admin.Controllers
                 foreach (var orderItem in orderItems)
                 {
                     orderItem.IsOrderCheckout = true;
-
+                    if (orderItem.EstimatedTimeArrival == null)
+                    {
+                        orderItem.EstimatedTimeArrival = DateTime.Now.AddDays(21);
+                    }
                     _orderService.UpdateOrderItem(orderItem);
                 }
             }

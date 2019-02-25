@@ -571,6 +571,7 @@
                                                 id: "Id",
                                                 fields: {
                                                     OrderId: { editable: false, type: "number" },
+                                                    Quantity: { editable: false, type: "number" },
                                                     PackageId: { editable: true, type: "string" },
                                                     PackageOrderId: { editable: true, type: "string" },
                                                     PackageOrderCode: { editable: false, type: "string" },
@@ -584,8 +585,9 @@
                                                     ItemWeight: { editable: true, type: "string" },
                                                     SubTotalInclTax: { editable: false, type: "string" },
                                                     IsOrderCheckout: { editable: true, type: "boolean" },
-                                                    OutOfStock: { editable: false, type: "boolean" },
+                                                    OrderItemStatusId: { editable: false, type: "int" },
                                                     ShelfId: { editable: false, type: "string" },
+                                                    Note: { editable: true, type: "string" },
                                                     Deposit: { editable: true, type: "string" }
                                                 }
                                             }
@@ -642,6 +644,10 @@
                                             title: "@T("Admin.Orders.Products.UnitPriceBase")",
                                             width: 100
                                         }, {
+                                            field: "Quantity",
+                                            title: "@T("Admin.Orders.Products.Quantity")",
+                                            width: 100
+                                        }, {
                                             field: "TotalWithoutWeightCost",
                                             title: "@T("Admin.Orders.Products.TotalWithoutWeightCost")",
                                             width: 100
@@ -663,6 +669,10 @@
                                         }, {
                                             field: "ItemWeight",
                                             title: "@T("Admin.Orders.Products.ItemWeight")",
+                                            hidden: true
+                                        }, {
+                                            field: "Note",
+                                            title: "@T("Admin.OrderItem.Note")",
                                             hidden: true
                                         }, {
                                             field: "Deposit",
@@ -710,8 +720,8 @@
                                                 "<p></p>" +
                                                 "# } #"
                                         }, {
-                                            field: "OutOfStock",
-                                            title: "@T("Admin.Orders.Products.OutOfStock")",
+                                            field: "OrderItemStatusId",
+                                            title: "@T("Admin.Orders.Products.OrderItemStatus")",
                                             hidden: true
                                         },
                                         {

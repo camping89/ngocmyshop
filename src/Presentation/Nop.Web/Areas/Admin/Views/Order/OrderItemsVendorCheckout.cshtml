@@ -2,6 +2,8 @@
 @inject AdminAreaSettings adminAreaSettings
 @inject IStoreService storeService
 
+@using Nop.Core.Domain.Orders
+@using Nop.Services
 @using Nop.Services.Stores
 
 @{
@@ -33,6 +35,10 @@
             <button type="button" id="apply-processed-datetime-selected" class="btn bg-aqua" data-toggle="modal" data-target="#apply-processed-datetime-window">
                 <i class="fa fa-calendar"></i>
                 @T("Admin.Orders.Shipments.ApplyProcessedDatetime")
+            </button>
+            <button type="button" id="apply-eta-selected" class="btn bg-fuchsia" data-toggle="modal" data-target="#apply-eta-window">
+                <i class="fa fa-calendar"></i>
+                @T("Admin.Orders.Shipments.ApplyEstimatedTimeArrival")
             </button>
 
             <button type="button" id="assign-by-selected" class="btn bg-orange" data-toggle="modal" data-target="#assign-by-new-customer-window">
@@ -155,6 +161,14 @@
                             <div class="col-md-6">
 
 
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <nop-label asp-for="OrderItemStatusId" />
+                                    </div>
+                                    <div class="col-md-8">
+                                        <nop-select asp-for="OrderItemStatusId" asp-items="@Model.AvailableOrderStatus" />
+                                    </div>
+                                </div>
 
                                 <div class="form-group">
                                     <div class="col-md-4">
@@ -238,6 +252,7 @@
                                                         id: "Id",
                                                         fields: {
                                                             OrderId: { editable: false, type: "number" },
+                                                            Quantity: { editable: false, type: "number" },
                                                             PackageId: { editable: false, type: "string" },
                                                             ShelfOrderItemId: { editable: false, type: "string" },
                                                             CustomerAssignShelfInfo: { editable: true, type: "string" },
@@ -263,8 +278,9 @@
                                                             ItemWeight: { editable: true, type: "string" },
                                                             SubTotalInclTax: { editable: false, type: "string" },
                                                             IsOrderCheckout: { editable: true, type: "boolean" },
-                                                            OutOfStock: { editable: true, type: "boolean" },
+                                                            OrderItemStatusId: { editable: true, type: "int" },
                                                             ShelfId: { editable: true, type: "string" },
+                                                            Note: { editable: true, type: "string" },
                                                             Deposit: { editable: true, type: "string" }
                                                         }
                                                     }
@@ -397,6 +413,10 @@
                                                     title: "@T("Admin.Orders.Products.UnitPriceBase")",
                                                     width: 100
                                                 }, {
+                                                    field: "Quantity",
+                                                    title: "@T("Admin.Orders.Products.Quantity")",
+                                                    width: 100
+                                                }, {
                                                     field: "TotalWithoutWeightCost",
                                                     title: "@T("Admin.Orders.Products.TotalWithoutWeightCost")",
                                                     width: 100
@@ -479,24 +499,31 @@
                                                         "# } #"
                                                 },
                                                 {
-                                                    field: "OutOfStock",
-                                                    title: "@T("Admin.Orders.Products.OutOfStock")",
-                                                    width: 70,
+                                                    field: "Note",
+                                                    title: "@T("Admin.OrderItem.Note")",
+                                                    width: 150
+                                                },
+                                                {
+                                                    field: "OrderItemStatusId",
+                                                    title: "@T("Admin.Orders.Products.OrderItemStatus")",
+                                                    width: 100,
+                                                    editor: editOrderItemStatusId,
                                                     template: '<span class="grid-report-item ' +
-                                                        '# if(!OutOfStock) {# gray #} #' +
-                                                        '# if(OutOfStock) {# yellow #} #' +
+                                                        '# if(OrderItemStatusId == 0) {# red #} #' +
+                                                        '# if(OrderItemStatusId == 1) {# green #} #' +
+                                                        '# if(OrderItemStatusId == 2) {# yellow #} #' +
+                                                        '# if(OrderItemStatusId == 3) {# blue #} #' +
                                                         '">' +
-                                                        "# if (OutOfStock) { #" +
-                                                        "@T("Admin.Orders.Products.OutOfStock.True")" +
-                                                        "#} else {#" +
-                                                        "@T("Admin.Orders.Products.OutOfStock.False")" +
-                                                        "# } #" +
+                                                        '# if(OrderItemStatusId == 0) {# @T("Admin.Orders.OrderItem.OutOfStock") #} #' +
+                                                        '# if(OrderItemStatusId == 1) {# @T("Admin.Orders.OrderItem.Available") #} #' +
+                                                        '# if(OrderItemStatusId == 2) {# @T("Admin.Orders.OrderItem.PriceChanged") #} #' +
+                                                        '# if(OrderItemStatusId == 3) {# @T("Admin.Orders.OrderItem.OtherReason") #} #' +
                                                         '</span>'
                                                 },
                                                 {
                                                     field: "IsOrderCheckout",
                                                     title: "@T("Admin.Orders.Products.IsOrderCheckout")",
-                                                    width: 70,
+                                                    width: 100,
                                                     template: '<span class="grid-report-item ' +
                                                         '# if(!IsOrderCheckout) {# red #} #' +
                                                         '# if(IsOrderCheckout) {# green #} #' +
@@ -644,6 +671,23 @@
 
                                         }
 
+                                        function editOrderItemStatusId(container, options) {
+                                            var jsonCustomers =
+                                                jQuery.parseJSON(
+                                                    '@Json.Serialize(OrderItemStatus.OutOfStock.ToSelectList().Select(_ => new { OrderItemStatusId = _.Value, OrderItemStatus = _.Text}))');
+                                            $('<input data-text-field="OrderItemStatus" data-value-field="' +
+                                                    options.field +
+                                                    '" data-bind="value:' +
+                                                    options.field +
+                                                    '" />')
+                                                .appendTo(container)
+                                                .kendoDropDownList({
+                                                    autoBind: true,
+                                                    dataTextField: "OrderItemStatus",
+                                                    dataValueField: "OrderItemStatusId",
+                                                    dataSource: jsonCustomers
+                                                });
+                                        }
 
                                         @*function editPackageOrderId(container, options) {
                                             $('<input data-text-field="PackageOrderName" data-value-field="' +
@@ -789,6 +833,7 @@
                                             $('#@Html.IdFor(model => model.IsOrderCheckout)').val(0);
                                             $('#@Html.IdFor(model => model.IsSetPackageOrderIdStatus)').val(0);
                                             $('#@Html.IdFor(model => model.IsSetShelfIdStatus)').val(0);
+                                            $('#@Html.IdFor(model => model.OrderItemStatusId)').val(-1);
 
                                             $("#search-orders").click();
                                         });
@@ -849,6 +894,7 @@
                                             TodayFilter: $('#@Html.IdFor(model => model.TodayFilter)').is(":checked"),
                                             CustomerPhone: $('#@Html.IdFor(model => model.CustomerPhone)').val(),
                                             PackageOrderCode: $('#@Html.IdFor(model => model.PackageOrderCode)').val(),
+                                            OrderItemStatusId: $('#@Html.IdFor(model => model.OrderItemStatusId)').val(),
                                             VendorId: $('#@Html.IdFor(model => model.VendorId)').val()
                                         };
                                         addAntiForgeryToken(data);
@@ -1135,6 +1181,75 @@
                     var grid = $('#order-items-grid').data('kendoGrid');
                     grid.dataSource.read();
                     $('#PackageItemProcessedDatetimeNew').val('');
+                },
+                error: function(xhr, ajaxOptions, thrownError) {
+                    alert(thrownError);
+                },
+                traditional: true
+            });
+            return false;
+        });
+    });
+</script>
+
+
+
+<div id="apply-eta-window" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="apply-eta-title">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="apply-eta-window-title">@T("Admin.Common.AddEstimatedTimeArrivalTitle")</h4>
+            </div>
+            <form asp-controller="Order" asp-action="ApplyEstimatedTimeArrivalSelected" method="post" id="apply-eta-selected-form">
+                <div class="form-horizontal">
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <div class="col-md-4">
+                                <nop-label asp-for="EstimatedTimeArrivalNew" />
+                            </div>
+                            <div class="col-md-8">
+                                <nop-editor asp-for="EstimatedTimeArrivalNew" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" id="btn-eta" class="btn btn-primary">
+                            @T("Admin.Common.Save")
+                        </button>
+                    </div>
+                </div>
+
+            </form>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+        $('#btn-eta').click(function (e) {
+            e.preventDefault();
+            var datetimeNew = $('#EstimatedTimeArrivalNew').val();
+            var postData = { selectedIds: selectedIds, datetimeNew: datetimeNew };
+            addAntiForgeryToken(postData);
+            $.ajax({
+                cache: false,
+                type: "POST",
+                url: "@(Url.Action("ApplyEstimatedTimeArrivalSelected", "Order"))",
+                data: postData,
+                complete: function(data) {
+                    var jsonData = data.responseJSON;
+                    if (jsonData.Result === false) {
+                        alert(jsonData.Message);
+                        return;
+                    }
+                    selectedIds = [];
+                    $('#apply-eta-window').modal('toggle');
+                    //reload grid
+                    var grid = $('#order-items-grid').data('kendoGrid');
+                    grid.dataSource.read();
+                    $('#EstimatedTimeArrivalNew').val('');
                 },
                 error: function(xhr, ajaxOptions, thrownError) {
                     alert(thrownError);

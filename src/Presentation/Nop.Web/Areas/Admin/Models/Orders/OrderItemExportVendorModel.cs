@@ -33,6 +33,7 @@ namespace Nop.Web.Areas.Admin.Models.Orders
 
             VendorItems = new List<SelectListItem>();
             AvailableCustomers = new List<SelectListItem>();
+            AvailableOrderStatus = new List<SelectListItem>();
         }
         [NopResourceDisplayName("Admin.OrderItem.ExportVendor.Fields.VendorProductUrl")]
         public string VendorProductUrl { get; set; }
@@ -77,6 +78,12 @@ namespace Nop.Web.Areas.Admin.Models.Orders
         [UIHint("DateNullable")]
         public DateTime? PackageItemProcessedDatetimeNew { get; set; }
 
+
+
+        [NopResourceDisplayName("Admin.Orders.List.EstimatedTimeArrivalNew")]
+        [UIHint("DateNullable")]
+        public DateTime? EstimatedTimeArrivalNew { get; set; }
+
         [NopResourceDisplayName("Admin.Orders.List.VendorId")]
         public int VendorId { get; set; }
 
@@ -86,6 +93,11 @@ namespace Nop.Web.Areas.Admin.Models.Orders
         public int AssignedByNewCustomerId { get; set; }
 
         public List<SelectListItem> AvailableCustomers { get; set; }
+
+        [NopResourceDisplayName("Admin.Orders.List.OrderItemStatus")]
+        public int OrderItemStatusId { get; set; }
+
+        public List<SelectListItem> AvailableOrderStatus { get; set; }
 
 
     }

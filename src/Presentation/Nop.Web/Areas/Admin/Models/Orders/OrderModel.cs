@@ -301,6 +301,7 @@ namespace Nop.Web.Areas.Admin.Models.Orders
             public int OrderId { get; set; }
             public int Id { get; set; }
             public int ProductId { get; set; }
+            public int Quantity { get; set; }
             public string Sku { get; set; }
             public string UnitPriceBase { get; set; }
             public string ProductName { get; set; }
@@ -334,10 +335,10 @@ namespace Nop.Web.Areas.Admin.Models.Orders
             public DateTime? DeliveryDateUtc { get; set; }
 
             public string PrimaryStoreCurrencyCode { get; set; }
-            public bool OutOfStock { get; set; }
             public decimal Deposit { get; set; }
             public string OrderItemStatus { get; set; }
             public int OrderItemStatusId { get; set; }
+            public string Note { get; set; }
 
         }
         public partial class OrderItemModel : BaseNopEntityModel
@@ -403,7 +404,6 @@ namespace Nop.Web.Areas.Admin.Models.Orders
 
             public bool IncludeWeightCost { get; set; }
             public bool IsOrderCheckout { get; set; }
-            public bool OutOfStock { get; set; }
             public string PrimaryStoreCurrencyCode { get; set; }
 
             public string ShelfCode { get; set; }
@@ -416,10 +416,13 @@ namespace Nop.Web.Areas.Admin.Models.Orders
 
             public decimal Deposit { get; set; }
 
-            [NopResourceDisplayName("Admin.OrderItem.OrderItemStatus")]
+            [NopResourceDisplayName("Admin.OrderItem.Status")]
             public string OrderItemStatus { get; set; }
-            [NopResourceDisplayName("Admin.OrderItem.OrderStatus")]
+            [NopResourceDisplayName("Admin.OrderItem.Status")]
             public int OrderItemStatusId { get; set; }
+
+            [NopResourceDisplayName("Admin.OrderItem.Note")]
+            public string Note { get; set; }
 
             #region Nested Classes
 
