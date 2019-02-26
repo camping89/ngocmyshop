@@ -5,6 +5,7 @@ using Nop.Core.Domain.Customers;
 using Nop.Core.Domain.Orders;
 using Nop.Core.Domain.Shipping;
 using Nop.Services;
+using Nop.Services.Catalog;
 using Nop.Services.Common;
 using Nop.Services.Customers;
 using Nop.Services.Localization;
@@ -32,8 +33,9 @@ namespace Nop.Web.Areas.Admin.Controllers
         private readonly IPermissionService _permissionService;
         private readonly ILocalizationService _localizationService;
         private readonly IShipmentManualService _shipmentManualService;
+        private readonly IPriceFormatter _priceFormatter;
         private readonly IWorkContext _workContext;
-        public ShelfController(ICustomerService customerService, IShelfService shelfService, IOrderService orderService, IPermissionService permissionService, ILocalizationService localizationService, IShipmentManualService shipmentManualService, IWorkContext workContext)
+        public ShelfController(ICustomerService customerService, IShelfService shelfService, IOrderService orderService, IPermissionService permissionService, ILocalizationService localizationService, IShipmentManualService shipmentManualService, IWorkContext workContext, IPriceFormatter priceFormatter)
         {
             _customerService = customerService;
             _shelfService = shelfService;
@@ -42,6 +44,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             _localizationService = localizationService;
             _shipmentManualService = shipmentManualService;
             _workContext = workContext;
+            _priceFormatter = priceFormatter;
         }
 
         public IActionResult Index()
@@ -129,6 +132,13 @@ namespace Nop.Web.Areas.Admin.Controllers
                             m.CustomerLinkShortFacebook = linkFacebook.Split('/').ToList().LastOrDefault();
                         }
                     }
+
+                    var orderItems = _shelfService.GetAllShelfOrderItem(x.Id, shelfOrderItemIsActive: true).Select(_ => _.OrderItem).ToList();
+                    foreach (var orderItem in orderItems)
+                    {
+                        orderItem.PriceInclTax = Math.Ceiling(orderItem.PriceInclTax / 1000) * 1000;
+                    }
+                    m.Total = _priceFormatter.FormatPrice(orderItems.Sum(_ => _.PriceInclTax), true, false);
                     return m;
                 }),
                 Total = shelfs.TotalCount

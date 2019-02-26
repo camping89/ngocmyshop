@@ -44,6 +44,8 @@ namespace Nop.Web.Areas.Admin.Models.Orders
         public string ShelfNoteStatus { get; set; }
 
         public List<SelectListItem> Customers { get; set; }
+
+        public string Total { get; set; }
     }
 
     public class ShelfOrderItemModel : BaseNopEntityModel

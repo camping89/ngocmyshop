@@ -223,7 +223,8 @@
                                                 CustomerPhone: { editable: false, type: "string" },
                                                 IsCustomerNotified: { editable: true, type: "boolean" },
                                                 ShelfNoteId: { editable: true, type: "number" },
-                                                ShelfNoteStatus: { editable: false, type: "string" }
+                                                ShelfNoteStatus: { editable: false, type: "string" },
+                                                Total: { editable: false, type: "string" }
                                             }
                                         },
                                         data: "Data",
@@ -320,6 +321,10 @@
                                             '# if(ShelfNoteId == 10) {# green #} #' +
                                             '# if(ShelfNoteId == 15) {# red #} #' +
                                             '">#=ShelfNoteStatus#</span>'
+                                    },{
+                                        field: "Total",
+                                        title: "@T("Admin.Shelf.Fields.Total")",
+                                        width: 100
                                     },
                                     {
                                         field: "UpdatedNoteDate",
