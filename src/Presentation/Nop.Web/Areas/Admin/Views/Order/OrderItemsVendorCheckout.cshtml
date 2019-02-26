@@ -343,8 +343,8 @@
                                                     title: "@T("admin.orders.products.packagecode")",
                                                     width: 100,
                                                     editor: editPackageOrderId,
-                                                    template: "# if (PackageOrder != null) { #" +
-                                                        "<p>#=PackageOrder.PackageCode#</p>" +
+                                                   template: "# if (PackageOrderCode != null) { #" +
+                                                        "<p>#=PackageOrderCode#</p>" +
                                                         "#} else {#" +
                                                         "<p></p>" +
                                                         "# } #"
@@ -756,38 +756,74 @@
 
                                         function editShelfOrderId(container, options) {
                                             var orderItemId = options.model.Id;
-                                            var dataModel = { orderItemId: orderItemId }
-                                            var $dropDown = $('<input class="k-input k-textbox" data-text-field="ShelfCode" data-value-field="' +
-                                                    options.field +
-                                                    '" data-bind="value:ShelfCode" />')
-                                                .appendTo(container)
-                                                .kendoAutoComplete({
-                                                    filtering: function (e) {
-                                                        var filter = e.filter;
+                                            var dataModel = { orderItemId: orderItemId };
+                                            var existShelf = false;
+                                            var postData = { orderItemId: orderItemId };
+                                            addAntiForgeryToken(postData);
+                                            $.ajax({
+                                                cache: false,
+                                                type: "POST",
+                                                url: "@(Url.Action("GetCustShelf", "Shelf"))",
+                                                data: postData,
+                                                complete: function(data) {
+                                                    var jsonData = data.responseJSON;
+                                                    existShelf = jsonData.Exist;
+                                                    console.log(existShelf);
+                                                    if (existShelf === true) {
+                                                        $('<input data-text-field="ShelfCode" data-value-field="' +
+                                                                options.field +
+                                                                '" data-bind="value:' +
+                                                                options.field +
+                                                                '" />')
+                                                            .appendTo(container)
+                                                            .kendoDropDownList({
+                                                                autoBind: true,
+                                                                dataTextField: "ShelfCode",
+                                                                dataValueField: "ShelfId",
+                                                                dataSource: data.responseJSON.Shelfs
+                                                            });
+                                                        }
+                                                    else {
+                                                            var $dropDown = $('<input class="k-input k-textbox" data-text-field="ShelfCode" data-value-field="' +
+                                                                options.field +
+                                                                '" data-bind="value:ShelfCode" />')
+                                                            .appendTo(container)
+                                                            .kendoAutoComplete({
+                                                                filtering: function (e) {
+                                                                    var filter = e.filter;
 
-                                                        if (!filter.value) {
-                                                            //prevent filtering if the filter does not value
-                                                            e.preventDefault();
+                                                                    if (!filter.value) {
+                                                                        //prevent filtering if the filter does not value
+                                                                        e.preventDefault();
+                                                                    }
+                                                                },
+                                                                dataTextField: "ShelfCode",
+                                                                dataValueField: "ShelfId",
+                                                                dataSource: {
+                                                                    type: "json",
+                                                                    serverFiltering: true,
+                                                                    transport: {
+                                                                        read: {
+                                                                            url:
+                                                                                "@Html.Raw(Url.Action("GetShelfAvailable", "Shelf"))",
+                                                                            type: "GET",
+                                                                            dataType: "json",
+                                                                            data: dataModel
+                                                                        }
+                                                                    }
+                                                                },
+                                                                minLength: 3,
+                                                                filter: "contains"
+                                                            });
                                                         }
-                                                    },
-                                                    dataTextField: "ShelfCode",
-                                                    dataValueField: "ShelfId",
-                                                    dataSource: {
-                                                        type: "json",
-                                                        serverFiltering: true,
-                                                        transport: {
-                                                            read: {
-                                                                url:
-                                                                    "@Html.Raw(Url.Action("GetShelfAvailable", "Shelf"))",
-                                                                type: "GET",
-                                                                dataType: "json",
-                                                                data: dataModel
-                                                            }
-                                                        }
-                                                    },
-                                                    minLength: 3,
-                                                    filter: "contains"
-                                                });
+                                                },
+                                                error: function(xhr, ajaxOptions, thrownError) {
+                                                    alert(thrownError);
+                                                },
+                                                traditional: true
+                                            });
+
+
                                         }
                                     });
 

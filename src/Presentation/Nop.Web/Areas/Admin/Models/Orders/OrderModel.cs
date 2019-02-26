@@ -356,7 +356,6 @@ namespace Nop.Web.Areas.Admin.Models.Orders
             public string VendorName { get; set; }
             public string Sku { get; set; }
 
-            public string UnitPriceBase { get; set; }
             public string PictureThumbnailUrl { get; set; }
 
             public string UnitPriceInclTax { get; set; }

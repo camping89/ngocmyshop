@@ -82,6 +82,16 @@
                                     <nop-select asp-for="ShelfNoteId" asp-items="Model.ShelfNoteStatus" />
                                 </div>
                             </div>
+
+                            <div class="form-group">
+                                <div class="col-md-4">
+                                    <nop-label asp-for="IsShelfEmpty" />
+                                </div>
+                                <div class="col-md-8">
+                                    <nop-editor asp-for="IsShelfEmpty" />
+                                </div>
+                            </div>
+
                         </div>
                         <div class="col-md-6">
                             <div class="form-group">
@@ -139,15 +149,6 @@
                                 </div>
                                 <div class="col-md-8">
                                     <nop-editor asp-for="ShipTodayFilter" />
-                                </div>
-                            </div>
-
-                            <div class="form-group">
-                                <div class="col-md-4">
-                                    <nop-label asp-for="IsShelfEmpty" />
-                                </div>
-                                <div class="col-md-8">
-                                    <nop-editor asp-for="IsShelfEmpty" />
                                 </div>
                             </div>
 

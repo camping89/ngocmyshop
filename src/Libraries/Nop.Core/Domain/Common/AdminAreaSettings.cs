@@ -21,6 +21,7 @@ namespace Nop.Core.Domain.Common
         /// A comma-separated list of available grid page sizes
         /// </summary>
         public string GridPageSizes { get; set; }
+        public string ShipmentGridPageSizes { get; set; }
 
         /// <summary>
         /// Additional settings for rich editor

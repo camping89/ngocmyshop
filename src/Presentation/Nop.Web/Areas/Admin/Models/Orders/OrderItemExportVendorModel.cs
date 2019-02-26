@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc.Rendering;
 using Nop.Web.Framework.Mvc.ModelBinding;
+using Nop.Web.Framework.Mvc.Models;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -102,13 +103,55 @@ namespace Nop.Web.Areas.Admin.Models.Orders
 
     }
 
-    public class OrderItemExportVendorModelBasic : OrderModel.OrderItemModel
+    public class OrderItemExportVendorModelBasic : BaseNopEntityModel// : OrderModel.OrderItemModel
     {
+        public int OrderId { get; set; }
+        public int ProductId { get; set; }
+        public string ProductName { get; set; }
+        public string VendorName { get; set; }
+        public string Sku { get; set; }
+        public int Quantity { get; set; }
+        public string PictureThumbnailUrl { get; set; }
+        public string AttributeInfo { get; set; }
+        public string UnitPriceBase { get; set; }
+        public string UnitPriceInclTax { get; set; }
+        public decimal UnitPriceInclTaxValue { get; set; }
+        public string SubTotalInclTax { get; set; }
+        public decimal SubTotalInclTaxValue { get; set; }
+        public string WeightCost { get; set; }
+        public decimal WeightCostDec { get; set; }
+        public int PackageOrderId { get; set; }
+        public string PackageOrderCode { get; set; }
+        public DateTime? EstimatedTimeArrival { get; set; }
+        public DateTime? PackageItemProcessedDatetime { get; set; }
+        public bool IncludeWeightCost { get; set; }
+        public bool IsOrderCheckout { get; set; }
+        public string PrimaryStoreCurrencyCode { get; set; }
+
+        public string ShelfCode { get; set; }
+
+        public int ShelfId { get; set; }
+        public int ShelfOrderItemId { get; set; }
+        public decimal ItemWeight { get; set; }
+        public string TotalWithoutWeightCost { get; set; }
+        public decimal UnitWeightCost { get; set; }
+        //public PackageOrderModel PackageOrder { get; set; }
         public string CustomerInfo { get; set; }
         public string CustomerLinkFacebook { get; set; }
         public string CustomerLinkShortFacebook { get; set; }
-
+        public int? AssignedByCustomerId { get; set; }
+        public string CustomerAssignShelfInfo { get; set; }
+        public DateTime? DeliveryDateUtc { get; set; }
         public DateTime CreatedDate { get; set; }
+        public decimal Deposit { get; set; }
+
+        [NopResourceDisplayName("Admin.OrderItem.Status")]
+        public string OrderItemStatus { get; set; }
+        [NopResourceDisplayName("Admin.OrderItem.Status")]
+        public int OrderItemStatusId { get; set; }
+
+        [NopResourceDisplayName("Admin.OrderItem.Note")]
+        public string Note { get; set; }
 
     }
 }

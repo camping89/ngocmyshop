@@ -113,6 +113,8 @@ namespace Nop.Services.Directory
             _currencyRepository.Delete(currency);
 
             _cacheManager.RemoveByPattern(CURRENCIES_PATTERN_KEY);
+            _cacheManager.RemoveByPattern(CURRENCIES_ALL_KEY);
+            _cacheManager.RemoveByPattern(CURRENCIES_BY_ID_KEY);
 
             //event notification
             _eventPublisher.EntityDeleted(currency);
@@ -126,28 +128,28 @@ namespace Nop.Services.Directory
         /// <returns>Currency</returns>
         public virtual Currency GetCurrencyById(int currencyId, bool loadCacheableCopy = true)
         {
-            //if (currencyId == 0)
-            //    return null;
+            if (currencyId == 0)
+                return null;
 
-            //Func<Currency> loadCurrencyFunc = () =>
-            //{
-            //    return _currencyRepository.GetById(currencyId);
-            //};
+            Func<Currency> loadCurrencyFunc = () =>
+            {
+                return _currencyRepository.GetById(currencyId);
+            };
 
-            //if (loadCacheableCopy)
-            //{
-            //    //cacheable copy
-            //    var key = string.Format(CURRENCIES_BY_ID_KEY, currencyId);
-            //    return _cacheManager.Get(key, () =>
-            //    {
-            //        var currency = loadCurrencyFunc();
-            //        if (currency == null)
-            //            return null;
-            //        return new CurrencyForCaching(currency);
-            //    });
-            //}
-            //return loadCurrencyFunc();
-            return _currencyRepository.GetById(currencyId);
+            if (loadCacheableCopy)
+            {
+                //cacheable copy
+                var key = string.Format(CURRENCIES_BY_ID_KEY, currencyId);
+                return _cacheManager.Get(key, () =>
+                {
+                    var currency = loadCurrencyFunc();
+                    if (currency == null)
+                        return null;
+                    return new CurrencyForCaching(currency);
+                });
+            }
+            return loadCurrencyFunc();
+            //return _currencyRepository.GetById(currencyId);
         }
 
         /// <summary>
@@ -225,7 +227,8 @@ namespace Nop.Services.Directory
             _currencyRepository.Insert(currency);
 
             _cacheManager.RemoveByPattern(CURRENCIES_PATTERN_KEY);
-
+            _cacheManager.RemoveByPattern(CURRENCIES_ALL_KEY);
+            _cacheManager.RemoveByPattern(CURRENCIES_BY_ID_KEY);
             //event notification
             _eventPublisher.EntityInserted(currency);
         }
@@ -245,6 +248,8 @@ namespace Nop.Services.Directory
             _currencyRepository.Update(currency);
 
             _cacheManager.RemoveByPattern(CURRENCIES_PATTERN_KEY);
+            _cacheManager.RemoveByPattern(CURRENCIES_ALL_KEY);
+            _cacheManager.RemoveByPattern(CURRENCIES_BY_ID_KEY);
 
             //event notification
             _eventPublisher.EntityUpdated(currency);

@@ -3,7 +3,7 @@
 
 @{
     var defaultGridPageSize = adminAreaSettings.DefaultGridPageSize;
-    var gridPageSizes = adminAreaSettings.GridPageSizes;
+    var gridPageSizes = adminAreaSettings.ShipmentGridPageSizes;
 
     //page title
     ViewBag.Title = T("Admin.Orders.Shipments.List").Text;
@@ -652,8 +652,31 @@
                     var totalIds = [];
                     var reportAggregates = "";
                     $(document).ready(function() {
-                        $('#@Html.IdFor(model => model.City)').val('');
-                        $('#@Html.IdFor(model => model.City)').trigger("chosen:updated");
+                        @*$('#@Html.IdFor(model => model.City)').val('');
+                        $('#@Html.IdFor(model => model.City)').trigger("chosen:updated");*@
+
+                        var selectedItem = $('#@Html.IdFor(model => model.City)').val();
+                        var ddlDistrict = $("#@Html.IdFor(model => model.District)");
+                        ddlDistrict.empty();
+                        ddlDistrict.chosen('destroy');
+                        $.ajax({
+                            cache: false,
+                            type: "GET",
+                            url: "@(Url.Action("GetDistrictByStateProvinceName", "Country"))",
+                            data: { "stateProvinceName": selectedItem},
+                            success: function(data) {
+                                ddlDistrict.html('');
+                                $.each(data, function(id, option) {
+                                    ddlDistrict.append($('<option></option>').val(option.Value).html(option.Text));
+                                });
+                                ddlDistrict.chosen({ search_contains: true });
+                            },
+                            error: function(xhr, ajaxOptions, thrownError) {
+                                alert('Failed to retrieve states.');
+                            }
+                        });
+
+
                         var grid = $('#shipments-grid').data('kendoGrid');
                         grid.dataSource.read();
 

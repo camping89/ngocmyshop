@@ -20,6 +20,7 @@ using Nop.Web.Framework.Mvc.Filters;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Dynamic;
 
 namespace Nop.Web.Areas.Admin.Controllers
 {
@@ -341,6 +342,20 @@ namespace Nop.Web.Areas.Admin.Controllers
             return new NullJsonResult();
         }
 
+        [HttpPost]
+        public IActionResult GetCustShelf(int orderItemId)
+        {
+            var orderItem = _orderService.GetOrderItemById(orderItemId);
+            var shelfsList = _shelfService.GetAllShelf(orderItem.Order.CustomerId).Select(_ => new { ShelfCode = _.ShelfCode, ShelfId = _.Id }).ToList();
+            if (shelfsList.Count > 0)
+            {
+                return Json(new { Exist = true, Shelfs = shelfsList });
+            }
+            else
+            {
+                return Json(new { Exist = false });
+            }
+        }
 
         #region Shipment
 

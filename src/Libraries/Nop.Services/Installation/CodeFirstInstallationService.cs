@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using Microsoft.AspNetCore.Hosting;
 using Nop.Core;
 using Nop.Core.Data;
@@ -39,6 +35,10 @@ using Nop.Services.Helpers;
 using Nop.Services.Localization;
 using Nop.Services.Media;
 using Nop.Services.Seo;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 
 namespace Nop.Services.Installation
 {
@@ -5974,6 +5974,7 @@ namespace Nop.Services.Installation
                 DefaultGridPageSize = 15,
                 PopupGridPageSize = 10,
                 GridPageSizes = "10, 15, 20, 50, 100",
+                ShipmentGridPageSizes = "10, 15, 20, 30, 40, 50, 100",
                 RichEditorAdditionalSettings = null,
                 RichEditorAllowJavaScript = false,
                 UseRichEditorInMessageTemplates = false,
@@ -5986,7 +5987,7 @@ namespace Nop.Services.Installation
                 Weight = true,
                 Dimensions = true,
                 ProductAttributes = true,
-                SpecificationAttributes =true
+                SpecificationAttributes = true
             });
 
             settingService.SaveSetting(new CatalogSettings
@@ -9814,7 +9815,7 @@ namespace Nop.Services.Installation
             #endregion
 
             #region Jewelry
-            
+
             var productElegantGemstoneNecklace = new Product
             {
                 ProductType = ProductType.SimpleProduct,
