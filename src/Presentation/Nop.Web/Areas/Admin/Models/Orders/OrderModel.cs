@@ -340,6 +340,8 @@ namespace Nop.Web.Areas.Admin.Models.Orders
             public int OrderItemStatusId { get; set; }
             public string Note { get; set; }
 
+            public DateTime? AssignedShelfDate { get; set; }
+
         }
         public partial class OrderItemModel : BaseNopEntityModel
         {

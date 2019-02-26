@@ -672,6 +672,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             var currencyProduct = _currencyService.GetCurrencyById(orderItem.Product.CurrencyId, false);
             var packageOrder = packageOrderModels?.FirstOrDefault(_ => _.Id == orderItem.PackageOrderId);
 
+
             var orderItemModel = new OrderModel.OrderItemModelBasic
             {
                 Id = orderItem.Id,
@@ -700,8 +701,9 @@ namespace Nop.Web.Areas.Admin.Controllers
                 OrderItemStatus = orderItem.OrderItemStatus.GetLocalizedEnum(_localizationService, _workContext),
                 OrderItemStatusId = orderItem.OrderItemStatusId,
                 Note = orderItem.Note
-
             };
+
+
             //picture
             var orderItemPicture =
                 orderItem.Product.GetProductPicture(orderItem.AttributesXml, _pictureService, _productAttributeParser);
@@ -716,6 +718,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 orderItemModel.ShelfId = shelfOrderItem.Shelf.Id;
                 orderItemModel.ShelfOrderItemId = shelfOrderItem.Id;
                 orderItemModel.ShelfOrderItemIsActive = shelfOrderItem.IsActived;
+                orderItemModel.AssignedShelfDate = shelfOrderItem.AssignedDate;
             }
 
             //subtotal
@@ -4169,15 +4172,18 @@ namespace Nop.Web.Areas.Admin.Controllers
                     var listOrderItems = GetOrderItemsUnAssignShelfByCustomer(customerId);
                     foreach (var orderItemUnAssign in listOrderItems)
                     {
-                        _shelfService.InsertShelfOrderItem(new ShelfOrderItem
+                        if (orderItemUnAssign.PackageItemProcessedDatetime != null)
                         {
-                            OrderItemId = orderItemUnAssign.Id,
-                            ShelfId = shelf.Id,
-                            CustomerId = customerId,
-                            AssignedDate = DateTime.UtcNow,
-                            IsActived = true
-                        });
+                            _shelfService.InsertShelfOrderItem(new ShelfOrderItem
+                            {
+                                OrderItemId = orderItemUnAssign.Id,
+                                ShelfId = shelf.Id,
+                                CustomerId = customerId,
+                                AssignedDate = DateTime.UtcNow,
+                                IsActived = true
+                            });
 
+                        }
                     }
                 }
             }

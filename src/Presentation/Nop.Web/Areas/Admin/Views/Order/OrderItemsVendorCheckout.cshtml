@@ -458,7 +458,7 @@
                                                 }, {
                                                     field: "ShelfId",
                                                     title: "@T("Admin.Orders.Shelf.ShelfCode")",
-                                                    width: 80,
+                                                    width: 150,
                                                     editor: editShelfOrderId,
                                                     template: "# if (ShelfCode != null) { #" +
                                                         "<p>#=ShelfCode# </p>" +
@@ -469,7 +469,7 @@
                                                 {
                                                     field: "EstimatedTimeArrival",
                                                     title: "@T("Admin.Orders.Products.EstimatedTimeArrival")",
-                                                    width: 100,
+                                                    width: 150,
                                                     editor: dateTimeEditorCustom,
                                                     template: "# if (EstimatedTimeArrival != null) { #" +
                                                         "<p>#= kendo.toString(kendo.parseDate(EstimatedTimeArrival, 'yyyy-MM-dd'), 'MM/dd/yyyy') #</p>" +
@@ -480,7 +480,7 @@
                                                 {
                                                     field: "PackageItemProcessedDatetime",
                                                     title: "@T("Admin.Orders.Products.PackageItemProcessedDatetime")",
-                                                    width: 100,
+                                                    width: 150,
                                                     editor: dateTimeEditorCustom,
                                                     template: "# if (PackageItemProcessedDatetime != null) { #" +
                                                         "<p>#= kendo.toString(kendo.parseDate(PackageItemProcessedDatetime, 'yyyy-MM-dd'), 'MM/dd/yyyy') #</p>" +
@@ -492,6 +492,7 @@
                                                     field: "DeliveryDateUtc",
                                                     title: "@T("Admin.Orders.Products.DeliveryDateUtc")",
                                                     width: 150,
+                                                    editor: dateTimeEditorCustom,
                                                     template: "# if (DeliveryDateUtc != null) { #" +
                                                         "<p>#= kendo.toString(kendo.parseDate(DeliveryDateUtc, 'yyyy-MM-dd'), 'MM/dd/yyyy') #</p>" +
                                                         "#} else {#" +
@@ -756,7 +757,7 @@
                                         function editShelfOrderId(container, options) {
                                             var orderItemId = options.model.Id;
                                             var dataModel = { orderItemId: orderItemId }
-                                            var $dropDown = $('<input data-text-field="ShelfCode" data-value-field="' +
+                                            var $dropDown = $('<input class="k-input k-textbox" data-text-field="ShelfCode" data-value-field="' +
                                                     options.field +
                                                     '" data-bind="value:ShelfCode" />')
                                                 .appendTo(container)

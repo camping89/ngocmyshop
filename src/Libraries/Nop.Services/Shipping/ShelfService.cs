@@ -27,7 +27,10 @@ namespace Nop.Services.Shipping
             }
         }
 
-        public IPagedList<Shelf> GetAllShelf(int customerId = 0, DateTime? assignedFromUtc = null, DateTime? assignedToUtc = null, DateTime? shippedFromUtc = null, DateTime? shippedToUtc = null,
+        public IPagedList<Shelf> GetAllShelf(int customerId = 0,
+            DateTime? assignedFromUtc = null, DateTime? assignedToUtc = null,
+            DateTime? assignedOrderItemFromUtc = null, DateTime? assignedOrderItemToUtc = null,
+            DateTime? shippedFromUtc = null, DateTime? shippedToUtc = null,
             int pageIndex = 0, int pageSize = int.MaxValue, bool isShelfEmpty = false, bool? isCustomerNotified = null, string shelfCode = null, int? shelfNoteId = null)
         {
             var query = _shelfRepository.Table;
@@ -51,6 +54,14 @@ namespace Nop.Services.Shipping
             if (assignedToUtc != null)
             {
                 query = query.Where(_ => _.AssignedDate != null && _.AssignedDate <= assignedToUtc);
+            }
+
+
+            if (assignedOrderItemFromUtc != null && assignedOrderItemToUtc != null)
+            {
+                var subQuery = _shelfOrderItemRepository.Table;
+                var shelfIds = subQuery.Where(_ => _.AssignedDate >= assignedOrderItemFromUtc && _.AssignedDate <= assignedOrderItemToUtc).Select(s => s.ShelfId).Distinct().ToList();
+                query = query.Where(_ => shelfIds.Contains(_.Id));
             }
 
             if (shippedFromUtc != null)

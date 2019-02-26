@@ -9,7 +9,10 @@ namespace Nop.Services.Shipping
     {
         void DeleteShelf(int shelfId);
 
-        IPagedList<Shelf> GetAllShelf(int customerId = 0, DateTime? assignedFromUtc = null, DateTime? assignedToUtc = null, DateTime? shippedFromUtc = null, DateTime? shippedToUtc = null,
+        IPagedList<Shelf> GetAllShelf(int customerId = 0,
+            DateTime? assignedFromUtc = null, DateTime? assignedToUtc = null,
+            DateTime? assignedOrderItemFromUtc = null, DateTime? assignedOrderItemToUtc = null,
+            DateTime? shippedFromUtc = null, DateTime? shippedToUtc = null,
             int pageIndex = 0, int pageSize = int.MaxValue, bool isShelfEmpty = false, bool? isCustomerNotified = null, string shelfCode = null, int? shelfNoteId = null);
 
         List<Shelf> GetAllShelfAvailable(int customerId = 0, string shelfCode = null);

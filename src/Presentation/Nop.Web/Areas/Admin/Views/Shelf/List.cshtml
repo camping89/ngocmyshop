@@ -102,6 +102,22 @@
                             </div>
                             <div class="form-group">
                                 <div class="col-md-4">
+                                    <nop-label asp-for="AssignedOrderItemFromDate" />
+                                </div>
+                                <div class="col-md-8">
+                                    <nop-editor asp-for="AssignedOrderItemFromDate" />
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="col-md-4">
+                                    <nop-label asp-for="AssignedOrderItemToDate" />
+                                </div>
+                                <div class="col-md-8">
+                                    <nop-editor asp-for="AssignedOrderItemToDate" />
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="col-md-4">
                                     <nop-label asp-for="ShippedFromDate" />
                                 </div>
                                 <div class="col-md-8">
@@ -658,6 +674,10 @@
                                                 '<div><strong>@T("Admin.Orders.Report.Summary")</strong></div>' +
                                                 '<div>@T("Admin.Orders.Report.Total") <span id=\"aggregator-total-block' + e.data.Id +'\"></span></div>'*@
                                         }, {
+                                            field: "Note",
+                                            title: "@T("Admin.OrderItem.Note")",
+                                            width: 100
+                                        }, {
                                             field: "PackageOrderId",
                                             title: "@T("Admin.Orders.Products.PackageOrderId")",
                                             width: 100,
@@ -667,6 +687,15 @@
                                                 "<p></p>" +
                                                 "# } #"
 
+                                        },{
+                                            field: "AssignedShelfDate",
+                                        title: "@T("Admin.ShelfOrderItem.Fields.AssignedShelfDate")",
+                                        width: 100,
+                                            template: "# if (AssignedShelfDate != null) { #" +
+                                            "<p>#= kendo.toString(kendo.parseDate(AssignedShelfDate, 'yyyy-MM-dd'), 'MM/dd/yyyy') #</p>" +
+                                            "#} else {#" +
+                                            "<p></p>" +
+                                            "# } #"
                                         }, {
                                             field: "ShelfOrderItem.IsActive",
                                             title: "@T("Admin.ShelfOrderItem.IsActive")",
@@ -776,6 +805,8 @@
                                 $('#@Html.IdFor(model => model.CustomerId)').trigger("chosen:updated");
                                 $('#@Html.IdFor(model => model.AssignedFromDate)').val('');
                                 $('#@Html.IdFor(model => model.AssignedToDate)').val('');
+                                $('#@Html.IdFor(model => model.AssignedOrderItemFromDate)').val('');
+                                $('#@Html.IdFor(model => model.AssignedOrderItemToDate)').val('');
                                 $('#@Html.IdFor(model => model.ShippedFromDate)').val('');
                                 $('#@Html.IdFor(model => model.ShippedToDate)').val('');
                                 $('#@Html.IdFor(model => model.ShelfCode)').val('');
@@ -797,6 +828,8 @@
                                 CustomerId: $('#@Html.IdFor(model => model.CustomerId)').val(),
                                 AssignedFromDate: $('#@Html.IdFor(model => model.AssignedFromDate)').val(),
                                 AssignedToDate: $('#@Html.IdFor(model => model.AssignedToDate)').val(),
+                                AssignedOrderItemFromDate: $('#@Html.IdFor(model => model.AssignedOrderItemFromDate)').val(),
+                                AssignedOrderItemToDate: $('#@Html.IdFor(model => model.AssignedOrderItemToDate)').val(),
                                 ShippedFromDate: $('#@Html.IdFor(model => model.ShippedFromDate)').val(),
                                 ShippedToDate: $('#@Html.IdFor(model => model.ShippedToDate)').val(),
                                 ShelfCode: $('#@Html.IdFor(model => model.ShelfCode)').val(),

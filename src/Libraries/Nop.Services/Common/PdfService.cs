@@ -1452,13 +1452,13 @@ namespace Nop.Services.Common
             doc.Add(productsHeader);
             doc.Add(new Paragraph(" "));
 
-            var productsTable = new PdfPTable(11)
+            var productsTable = new PdfPTable(12)
             {
                 RunDirection = GetDirection(lang),
                 WidthPercentage = 100f
             };
 
-            productsTable.SetWidths(new[] { 5, 5, 5, 5, 25, 10, 10, 10, 10, 10, 5 });
+            productsTable.SetWidths(new[] { 5, 5, 5, 5, 25, 10, 10, 10, 5, 5, 10, 5 });
 
             //OrderDate
             var cellProductItem = GetPdfCell("PDFOrderVendorCheckout.OrderDate", lang, font);
@@ -1497,6 +1497,11 @@ namespace Nop.Services.Common
             productsTable.AddCell(cellProductItem);
 
             cellProductItem = GetPdfCell("PDFOrderVendorCheckout.Sku", lang, font);
+            cellProductItem.BackgroundColor = BaseColor.LIGHT_GRAY;
+            cellProductItem.HorizontalAlignment = Element.ALIGN_CENTER;
+            productsTable.AddCell(cellProductItem);
+
+            cellProductItem = GetPdfCell("PDFOrderVendorCheckout.Quantity", lang, font);
             cellProductItem.BackgroundColor = BaseColor.LIGHT_GRAY;
             cellProductItem.HorizontalAlignment = Element.ALIGN_CENTER;
             productsTable.AddCell(cellProductItem);
@@ -1596,6 +1601,10 @@ namespace Nop.Services.Common
 
 
                     cellProductItem = GetPdfCell(orderItem.Product.Sku, font);
+                    cellProductItem.HorizontalAlignment = Element.ALIGN_LEFT;
+                    productsTable.AddCell(cellProductItem);
+
+                    cellProductItem = GetPdfCell(orderItem.Quantity, font);
                     cellProductItem.HorizontalAlignment = Element.ALIGN_LEFT;
                     productsTable.AddCell(cellProductItem);
 

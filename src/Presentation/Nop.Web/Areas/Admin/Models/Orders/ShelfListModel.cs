@@ -25,6 +25,13 @@ namespace Nop.Web.Areas.Admin.Models.Orders
         [UIHint("DateNullable")]
         [NopResourceDisplayName("Admin.Orders.Shelf.Fields.AssignedToDate")]
         public DateTime? AssignedToDate { get; set; }
+        [UIHint("DateNullable")]
+        [NopResourceDisplayName("Admin.Orders.Shelf.Fields.AssignedOrderItemFromDate")]
+        public DateTime? AssignedOrderItemFromDate { get; set; }
+
+        [UIHint("DateNullable")]
+        [NopResourceDisplayName("Admin.Orders.Shelf.Fields.AssignedOrderItemToDate")]
+        public DateTime? AssignedOrderItemToDate { get; set; }
 
         [UIHint("DateNullable")]
         [NopResourceDisplayName("Admin.Orders.Shelf.Fields.ShippedFromDate")]
