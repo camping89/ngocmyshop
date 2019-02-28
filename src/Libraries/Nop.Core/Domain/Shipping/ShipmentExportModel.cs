@@ -15,6 +15,8 @@
         public string BagId { get; set; }
         public string TrackingNumber { get; set; }
         public string ProductInfo { get; set; }
+
+        public string CustomerInfo { get; set; }
         public string CustomerName { get; set; }
         public string CustomerPhone { get; set; }
         public string CustomerFacebookUrl { get; set; }

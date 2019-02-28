@@ -593,6 +593,8 @@ namespace Nop.Web.Areas.Admin.Controllers
                 DeliveryDateUtc = orderItem.DeliveryDateUtc,
                 PrimaryStoreCurrencyCode = primaryStoreCurrency.CurrencyCode,
                 Deposit = orderItem.Deposit,
+                DepositStr = _priceFormatter.FormatPrice(orderItem.Deposit, true,
+                    primaryStoreCurrency, _workContext.WorkingLanguage, true, true),
                 OrderItemStatus = orderItem.OrderItemStatus.GetLocalizedEnum(_localizationService, _workContext),
                 OrderItemStatusId = orderItem.OrderItemStatusId
 
@@ -922,6 +924,8 @@ namespace Nop.Web.Areas.Admin.Controllers
                     IncludeWeightCost = orderItem.IncludeWeightCost,
                     IsOrderCheckout = orderItem.IsOrderCheckout,
                     Deposit = orderItem.Deposit,
+                    DepositStr = _priceFormatter.FormatPrice(orderItem.Deposit, true,
+                        primaryStoreCurrency, _workContext.WorkingLanguage, true, true),
                     OrderItemStatus = orderItem.OrderItemStatus.GetLocalizedEnum(_localizationService, _workContext),
                     OrderItemStatusId = orderItem.OrderItemStatusId,
                     Note = orderItem.Note
@@ -4143,6 +4147,82 @@ namespace Nop.Web.Areas.Admin.Controllers
             order.OrderTotal = order.OrderItems.Sum(_ => _.PriceExclTax);
             _orderService.UpdateOrder(order);
 
+            //UpdateShelfOrderItem(orderItem, orderItemModel.ShelfCode, order.CustomerId);
+
+            return new NullJsonResult();
+        }
+
+        [HttpPost]
+        public virtual IActionResult UpdateOrderItemChekcout(OrderModel.OrderItemModelBasic orderItemModel)
+        {
+            if (!_permissionService.Authorize(StandardPermissionProvider.ManageOrders))
+                return AccessDeniedView();
+
+            var order = _orderService.GetOrderById(orderItemModel.OrderId);
+            if (order == null)
+                //No order found with the specified id
+                return RedirectToAction("List");
+            var orderItem = _orderService.GetOrderItemById(orderItemModel.Id);
+            if (orderItem == null)
+                throw new ArgumentException("No order item found with the specified id");
+            if (orderItemModel.PackageOrderId > 0)
+            {
+                orderItem.PackageOrderId = orderItemModel.PackageOrderId;
+                var packageOrder = _packageOrderService.GetById(orderItemModel.PackageOrderId);
+                if (packageOrder != null)
+                {
+                    packageOrder.PackageCode = orderItemModel.PackageOrderCode;
+                    _packageOrderService.Update(packageOrder);
+                }
+            }
+            else
+            {
+                if (string.IsNullOrEmpty(orderItemModel.PackageOrderCode) == false)
+                {
+                    var packageOrderNew = new PackageOrder
+                    {
+                        PackageCode = orderItemModel.PackageOrderCode,
+                        PackageName = orderItemModel.PackageOrderCode
+                    };
+                    _packageOrderService.Create(packageOrderNew);
+                    if (packageOrderNew.Id > 0)
+                    {
+                        orderItem.PackageOrderId = packageOrderNew.Id;
+                        //orderItem.PackageItemProcessedDatetime = DateTime.UtcNow;
+                    }
+                }
+            }
+
+            if (string.IsNullOrEmpty(orderItemModel.PackageItemProcessedDatetime) == false)
+            {
+                orderItem.PackageItemProcessedDatetime = StringExtensions.StringToDateTime(orderItemModel.PackageItemProcessedDatetime);
+            }
+
+            if (string.IsNullOrEmpty(orderItemModel.EstimatedTimeArrival) == false)
+            {
+                orderItem.EstimatedTimeArrival = StringExtensions.StringToDateTime(orderItemModel.EstimatedTimeArrival);
+            }
+
+            orderItem.IncludeWeightCost = orderItemModel.IncludeWeightCost;
+
+            orderItem.UnitPriceInclTax = orderItem.UnitPriceInclTax - orderItem.WeightCost + orderItemModel.WeightCostDec;
+            orderItem.UnitPriceExclTax = orderItem.UnitPriceExclTax - orderItem.WeightCost + orderItemModel.WeightCostDec;
+            orderItem.PriceInclTax = orderItem.PriceInclTax - orderItem.WeightCost + orderItemModel.WeightCostDec;
+            orderItem.PriceExclTax = orderItem.PriceExclTax - orderItem.WeightCost + orderItemModel.WeightCostDec;
+            orderItem.WeightCost = orderItemModel.WeightCostDec;
+            orderItem.ItemWeight = orderItemModel.ItemWeight;
+            orderItem.UnitWeightCost = orderItemModel.UnitWeightCost;
+            orderItem.IsOrderCheckout = orderItemModel.IsOrderCheckout;
+            orderItem.Deposit = orderItemModel.Deposit;
+            orderItem.OrderItemStatusId = orderItemModel.OrderItemStatusId;
+            orderItem.Note = orderItemModel.Note;
+            _orderService.UpdateOrderItem(orderItem);
+
+            order.WeightCost = order.OrderItems.Sum(_ => _.WeightCost);
+
+            order.OrderTotal = order.OrderItems.Sum(_ => _.PriceExclTax);
+            _orderService.UpdateOrder(order);
+
             UpdateShelfOrderItem(orderItem, orderItemModel.ShelfCode, order.CustomerId);
 
             return new NullJsonResult();
@@ -4155,6 +4235,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 shelfCode = shelfCode.Trim();
             }
             var shelf = _shelfService.GetShelfByCode(shelfCode);
+
             if (shelf != null)
             {
                 shelf.AssignedDate = DateTime.UtcNow;
@@ -4183,15 +4264,17 @@ namespace Nop.Web.Areas.Admin.Controllers
                     {
                         if (orderItemUnAssign.PackageItemProcessedDatetime != null)
                         {
-                            _shelfService.InsertShelfOrderItem(new ShelfOrderItem
+                            if (_shelfService.GetShelfOrderItemByOrderItemId(orderItemUnAssign.Id) == null)
                             {
-                                OrderItemId = orderItemUnAssign.Id,
-                                ShelfId = shelf.Id,
-                                CustomerId = customerId,
-                                AssignedDate = DateTime.UtcNow,
-                                IsActived = true
-                            });
-
+                                _shelfService.InsertShelfOrderItem(new ShelfOrderItem
+                                {
+                                    OrderItemId = orderItemUnAssign.Id,
+                                    ShelfId = shelf.Id,
+                                    CustomerId = customerId,
+                                    AssignedDate = DateTime.UtcNow,
+                                    IsActived = true
+                                });
+                            }
                         }
                     }
                 }
@@ -6375,6 +6458,8 @@ namespace Nop.Web.Areas.Admin.Controllers
                         AssignedByCustomerId = orderItem.AssignedByCustomerId,
                         DeliveryDateUtc = orderItem.DeliveryDateUtc,
                         Deposit = orderItem.Deposit,
+                        DepositStr = _priceFormatter.FormatPrice(orderItem.Deposit, true,
+                            primaryStoreCurrency, _workContext.WorkingLanguage, true, true),
                         OrderItemStatus = orderItem.OrderItemStatus.GetLocalizedEnum(_localizationService, _workContext),
                         OrderItemStatusId = orderItem.OrderItemStatusId,
                         Note = orderItem.Note

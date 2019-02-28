@@ -39,6 +39,19 @@
                             @T("Admin.Orders.Shipments.PrintPackagingSlips.All")
                         </button>
                     </li>
+                    <li class="divider"></li>
+                    <li>
+                        <button type="button" name="exportexcel-all">
+                            <i class="fa fa-file-excel-o"></i>
+                            @T("Admin.Common.ExportToExcel.All")
+                        </button>
+                    </li>
+                    <li>
+                        <button type="button" id="exportexcel-selected">
+                            <i class="fa fa-file-excel-o"></i>
+                            @T("Admin.Common.ExportToExcel.Selected")
+                        </button>
+                    </li>
                 </ul>
             </div>
 
@@ -364,7 +377,6 @@
                                             title: "@T("Admin.Orders.Shipments.ShippedDate")",
                                             editor: dateTimeEditorCustom,
                                             width: 80,
-                                            hidden: true,
                                             template: "# if (ShippedDate != null) { #" +
                                                 "<p>#= kendo.toString(kendo.parseDate(ShippedDate, 'yyyy-MM-dd'), 'MM/dd/yyyy') #</p>" +
                                                 "#} else {#" +
@@ -955,24 +967,32 @@
     });
 </script>
 
+<form asp-controller="Order" asp-action="ExcelPackagingSlipSelected" method="post" id="excel-packaging-slip-all-form">
+    <input type="hidden" class="selectedIds" name="selectedIds" value="" />
+</form>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('#exportexcel-all').click(function (e) {
+            e.preventDefault();
+            var ids = totalIds.join(",");
+            $('#excel-packaging-slip-all-form .selectedIds').val(ids.join(','));
+            $('#excel-packaging-slip-all-form').submit();
+            return false;
+        });
+    });
+</script>
+
+
 <form asp-controller="Order" asp-action="ExcelPackagingSlipSelected" method="post" id="excel-packaging-slip-selected-form">
     <input type="hidden" class="selectedIds" name="selectedIds" value="" />
 </form>
 
 <script type="text/javascript">
     $(document).ready(function () {
-        $('#exportexcel-shipment-selected').click(function (e) {
+        $('#exportexcel-selected').click(function (e) {
             e.preventDefault();
-            var ids = selectedIds;
-            if (selectedIds.length === 0) {
-                ids = totalIds;
-            }
-
-            var r = confirm("Bạn có chắc muốn xử lý " + ids.length + " dòng này không!");
-            if (r === false) {
-                return false;
-            }
-
+            var ids = totalIds.join(",");
             $('#excel-packaging-slip-selected-form .selectedIds').val(ids.join(','));
             $('#excel-packaging-slip-selected-form').submit();
             return false;

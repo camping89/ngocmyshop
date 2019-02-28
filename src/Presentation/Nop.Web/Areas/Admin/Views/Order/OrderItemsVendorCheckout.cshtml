@@ -73,19 +73,19 @@
                             @T("Admin.Common.ExportToPdf.OrderItems.All")
                         </button>
                     </li>
-                    @*<li class="divider"></li>
-                        <li>
-                            <button class="disabled" disabled="disabled" type="button" id="exportexcel-invoice-vendor-selected">
-                                <i class="fa fa-file-excel-o"></i>
-                                @T("Admin.Common.ExportToExcel.OrderItems.Selected")
-                            </button>
-                        </li>
-                        <li>
-                            <button type="submit" name="exportexcel-orderbasic-all">
-                                <i class="fa fa-file-excel-o"></i>
-                                @T("Admin.Common.ExportToExcel.OrderItems.All")
-                            </button>
-                        </li>*@
+                    <li class="divider"></li>
+                    <li>
+                        <button type="button" id="exportexcel-invoice-vendor-selected">
+                            <i class="fa fa-file-excel-o"></i>
+                            @T("Admin.Common.ExportToExcel.OrderItems.Selected")
+                        </button>
+                    </li>
+                    <li>
+                        <button type="submit" name="exportexcel-orderbasic-all">
+                            <i class="fa fa-file-excel-o"></i>
+                            @T("Admin.Common.ExportToExcel.OrderItems.All")
+                        </button>
+                    </li>
                 </ul>
             </div>
 
@@ -238,7 +238,7 @@
                                                         data: additionalData
                                                     },
                                                     update: {
-                                                        url: "@Html.Raw(Url.Action("UpdateOrderItem", "Order"))",
+                                                        url: "@Html.Raw(Url.Action("UpdateOrderItemChekcout", "Order"))",
                                                         type: "POST",
                                                         dataType: "json",
                                                         data: addAntiForgeryToken
@@ -279,7 +279,8 @@
                                                             SubTotalInclTax: { editable: false, type: "string" },
                                                             IsOrderCheckout: { editable: true, type: "boolean" },
                                                             OrderItemStatusId: { editable: true, type: "int" },
-                                                            ShelfId: { editable: true, type: "string" },
+                                                            ShelfId: { editable: true, type: "number" },
+                                                            ShelfCode: { editable: true, type: "string" },
                                                             Note: { editable: true, type: "string" },
                                                             Deposit: { editable: true, type: "string" }
                                                         }
@@ -445,7 +446,7 @@
                                                     field: "Deposit",
                                                     title: "@T("Admin.Orders.Products.Deposit")",
                                                     width: 70,
-                                                    template: '#= kendo.toString(Deposit, "n0") #'
+                                                    template: '#= DepositStr #'
                                                 }, {
                                                     field: "SubTotalInclTax",
                                                     title: "@T("Admin.Orders.Products.Total")",
@@ -456,7 +457,7 @@
                                                     hidden: true,
                                                     editor: hideOnEditor
                                                 }, {
-                                                    field: "ShelfId",
+                                                    field: "ShelfCode",
                                                     title: "@T("Admin.Orders.Shelf.ShelfCode")",
                                                     width: 150,
                                                     editor: editShelfOrderId,
@@ -756,9 +757,17 @@
 
                                         function editShelfOrderId(container, options) {
                                             var orderItemId = options.model.Id;
+                                            if (options.model.ShelfId === 0) {
+                                                options.model.ShelfCode = 'Chọn ngăn';
+                                            }
                                             var dataModel = { orderItemId: orderItemId };
                                             var existShelf = false;
                                             var postData = { orderItemId: orderItemId };
+                                            var $dropDown = $(
+                                                    '<input data-text-field="ShelfCode" data-value-field="' +
+                                                    options.field +
+                                                    '" data-bind="value:ShelfCode" />')
+                                                .appendTo(container);
                                             addAntiForgeryToken(postData);
                                             $.ajax({
                                                 cache: false,
@@ -770,25 +779,16 @@
                                                     existShelf = jsonData.Exist;
                                                     console.log(existShelf);
                                                     if (existShelf === true) {
-                                                        $('<input data-text-field="ShelfCode" data-value-field="' +
-                                                                options.field +
-                                                                '" data-bind="value:' +
-                                                                options.field +
-                                                                '" />')
-                                                            .appendTo(container)
+                                                        $dropDown.appendTo(container)
                                                             .kendoDropDownList({
-                                                                autoBind: true,
                                                                 dataTextField: "ShelfCode",
-                                                                dataValueField: "ShelfId",
+                                                                dataValueField: "ShelfCode",
                                                                 dataSource: data.responseJSON.Shelfs
                                                             });
                                                         }
                                                     else {
-                                                            var $dropDown = $('<input class="k-input k-textbox" data-text-field="ShelfCode" data-value-field="' +
-                                                                options.field +
-                                                                '" data-bind="value:ShelfCode" />')
-                                                            .appendTo(container)
-                                                            .kendoAutoComplete({
+
+                                                        $dropDown.kendoAutoComplete({
                                                                 filtering: function (e) {
                                                                     var filter = e.filter;
 
@@ -798,7 +798,7 @@
                                                                     }
                                                                 },
                                                                 dataTextField: "ShelfCode",
-                                                                dataValueField: "ShelfId",
+                                                            dataValueField: "ShelfCode",
                                                                 dataSource: {
                                                                     type: "json",
                                                                     serverFiltering: true,
@@ -819,10 +819,8 @@
                                                 },
                                                 error: function(xhr, ajaxOptions, thrownError) {
                                                     alert(thrownError);
-                                                },
-                                                traditional: true
+                                                }
                                             });
-
 
                                         }
                                     });

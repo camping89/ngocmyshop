@@ -1036,6 +1036,7 @@ namespace Nop.Services.Common
                 string subTotal;
                 if (order.CustomerTaxDisplayType == TaxDisplayType.IncludingTax)
                 {
+                    orderItem.PriceInclTax = Math.Ceiling(orderItem.PriceInclTax / 1000) * 1000;
                     //including tax
                     var priceInclTaxInCustomerCurrency =
                         _currencyService.ConvertCurrency(orderItem.PriceInclTax, order.CurrencyRate);
@@ -1044,6 +1045,7 @@ namespace Nop.Services.Common
                 }
                 else
                 {
+                    orderItem.PriceExclTax = Math.Ceiling(orderItem.PriceExclTax / 1000) * 1000;
                     //excluding tax
                     var priceExclTaxInCustomerCurrency =
                         _currencyService.ConvertCurrency(orderItem.PriceExclTax, order.CurrencyRate);
@@ -1608,7 +1610,7 @@ namespace Nop.Services.Common
                     cellProductItem.HorizontalAlignment = Element.ALIGN_LEFT;
                     productsTable.AddCell(cellProductItem);
 
-                    cellProductItem = GetPdfCell(orderItem.UnitPriceUsd, font);
+                    cellProductItem = GetPdfCell(orderItem.UnitPriceUsd.ToString("F", CultureInfo.InvariantCulture), font);
                     cellProductItem.HorizontalAlignment = Element.ALIGN_LEFT;
                     productsTable.AddCell(cellProductItem);
 
@@ -2051,6 +2053,11 @@ namespace Nop.Services.Common
                 if (shipper != null)
                 {
                     shipperInfo = $"{shipper.GetFullName()} - {shipper.GetAttribute<string>(SystemCustomerAttributeNames.Phone)}";
+                }
+
+                foreach (var shipmentManualItem in shipment.ShipmentManualItems)
+                {
+                    shipmentManualItem.ShippingFee = Math.Ceiling(shipmentManualItem.ShippingFee / 1000) * 1000;
                 }
                 var exportShipmentModel = new ShipmentExportModel()
                 {

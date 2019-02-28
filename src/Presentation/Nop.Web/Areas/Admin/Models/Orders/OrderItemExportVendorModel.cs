@@ -144,6 +144,7 @@ namespace Nop.Web.Areas.Admin.Models.Orders
         public DateTime? DeliveryDateUtc { get; set; }
         public DateTime CreatedDate { get; set; }
         public decimal Deposit { get; set; }
+        public string DepositStr { get; set; }
 
         [NopResourceDisplayName("Admin.OrderItem.Status")]
         public string OrderItemStatus { get; set; }

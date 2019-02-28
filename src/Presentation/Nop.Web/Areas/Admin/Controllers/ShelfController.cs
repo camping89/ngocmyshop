@@ -92,7 +92,10 @@ namespace Nop.Web.Areas.Admin.Controllers
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageNews))
                 return AccessDeniedKendoGridJson();
-
+            if (model.AssignedOrderItemToDate != null)
+            {
+                model.AssignedOrderItemToDate = model.AssignedOrderItemToDate.Value.AddDays(1).AddMinutes(-1);
+            }
             var shelfs = _shelfService.GetAllShelf(model.CustomerId,
                 model.AssignedFromDate,
                 model.AssignedToDate,
@@ -357,8 +360,10 @@ namespace Nop.Web.Areas.Admin.Controllers
         {
             var orderItem = _orderService.GetOrderItemById(orderItemId);
             var shelfsList = _shelfService.GetAllShelf(orderItem.Order.CustomerId).Select(_ => new { ShelfCode = _.ShelfCode, ShelfId = _.Id }).ToList();
+
             if (shelfsList.Count > 0)
             {
+                shelfsList.Add(new { ShelfCode = "Chọn ngăn", ShelfId = 0, });
                 return Json(new { Exist = true, Shelfs = shelfsList });
             }
             else
