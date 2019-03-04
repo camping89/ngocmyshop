@@ -67,6 +67,7 @@ namespace Nop.Services.ExportImport
         byte[] ExportOrdersToXlsxBasic(IList<Order> orders);
         byte[] ExportOrderItemsToXlsxBasic(IList<OrderItem> orderItems);
         byte[] ExportShipmentToXlsxBasic(IList<Shipment> shipments);
+        byte[] ExportShipmentManualToXlsxBasic(IList<ShipmentManual> shipments);
         /// <summary>
         /// Export customer list to XLSX
         /// </summary>

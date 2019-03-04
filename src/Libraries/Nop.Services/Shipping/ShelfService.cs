@@ -79,7 +79,7 @@ namespace Nop.Services.Shipping
                 query = query.Where(_ => _.IsCustomerNotified == isCustomerNotified);
             }
 
-            if (shelfNoteId != null && shelfNoteId != 0)
+            if (shelfNoteId != null)
             {
                 query = query.Where(_ => _.ShelfNoteId == shelfNoteId);
             }

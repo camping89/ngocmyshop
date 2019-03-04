@@ -83,6 +83,7 @@ namespace Nop.Services.Shipping
             string shippingDistrict = null,
             string trackingNumber = null,
             bool loadNotShipped = false,
+            bool exceptCity = false,
             DateTime? createdFromUtc = null, DateTime? createdToUtc = null,
             int pageIndex = 0, int pageSize = int.MaxValue, int orderItemId = 0, string phoneShipperNumber = null)
         {
@@ -109,7 +110,7 @@ namespace Nop.Services.Shipping
             if (shippingStateId > 0)
                 query = query.Where(s => s.Customer.ShippingAddress.StateProvinceId == shippingStateId);
             if (!string.IsNullOrWhiteSpace(shippingCity))
-                query = query.Where(s => s.Province.Contains(shippingCity));
+                query = query.Where(s => s.Province.Contains(shippingCity) == !exceptCity);
 
             if (!string.IsNullOrWhiteSpace(shippingDistrict))
                 query = query.Where(s => s.District.Contains(shippingDistrict));

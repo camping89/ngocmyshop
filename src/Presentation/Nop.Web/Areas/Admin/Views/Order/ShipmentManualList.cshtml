@@ -41,7 +41,7 @@
                     </li>
                     <li class="divider"></li>
                     <li>
-                        <button type="button" name="exportexcel-all">
+                        <button type="button" id="exportexcel-all">
                             <i class="fa fa-file-excel-o"></i>
                             @T("Admin.Common.ExportToExcel.All")
                         </button>
@@ -179,7 +179,14 @@
                                         <nop-editor asp-for="LoadNotShipped" />
                                     </div>
                                 </div>
-
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <nop-label asp-for="ExceptCity" />
+                                    </div>
+                                    <div class="col-md-8">
+                                        <nop-editor asp-for="ExceptCity" />
+                                    </div>
+                                </div>
                                 <div class="form-group">
                                     <div class="col-md-4">
                                         <nop-label asp-for="City" />
@@ -727,6 +734,7 @@
                             $('#@Html.IdFor(model => model.District)').val('');
                             $('#@Html.IdFor(model => model.District)').trigger("chosen:updated");
                             $('#@Html.IdFor(model => model.LoadNotShipped)').prop('checked', false);
+                            $('#@Html.IdFor(model => model.ExceptCity)').prop('checked', false);
                             $('#@Html.IdFor(model => model.OrderId)').val('');
 
                             $("#search-shipments").click();
@@ -895,6 +903,7 @@
                             District: $('#@Html.IdFor(model => model.District)').val(),
                             WarehouseId: $('#@Html.IdFor(model => model.WarehouseId)').val(),
                             LoadNotShipped: $('#@Html.IdFor(model => model.LoadNotShipped)').is(':checked'),
+                            ExceptCity: $('#@Html.IdFor(model => model.ExceptCity)').is(':checked'),
                             OrderId: $('#@Html.IdFor(model => model.OrderId)').val()
                         };
                         addAntiForgeryToken(data);
@@ -967,7 +976,7 @@
     });
 </script>
 
-<form asp-controller="Order" asp-action="ExcelPackagingSlipSelected" method="post" id="excel-packaging-slip-all-form">
+<form asp-controller="Order" asp-action="ExcelPackagingSlipManualSelected" method="post" id="excel-packaging-slip-all-form">
     <input type="hidden" class="selectedIds" name="selectedIds" value="" />
 </form>
 
@@ -976,7 +985,7 @@
         $('#exportexcel-all').click(function (e) {
             e.preventDefault();
             var ids = totalIds.join(",");
-            $('#excel-packaging-slip-all-form .selectedIds').val(ids.join(','));
+            $('#excel-packaging-slip-all-form .selectedIds').val(ids);
             $('#excel-packaging-slip-all-form').submit();
             return false;
         });
@@ -984,7 +993,7 @@
 </script>
 
 
-<form asp-controller="Order" asp-action="ExcelPackagingSlipSelected" method="post" id="excel-packaging-slip-selected-form">
+<form asp-controller="Order" asp-action="ExcelPackagingSlipManualSelected" method="post" id="excel-packaging-slip-selected-form">
     <input type="hidden" class="selectedIds" name="selectedIds" value="" />
 </form>
 
@@ -993,7 +1002,7 @@
         $('#exportexcel-selected').click(function (e) {
             e.preventDefault();
             var ids = totalIds.join(",");
-            $('#excel-packaging-slip-selected-form .selectedIds').val(ids.join(','));
+            $('#excel-packaging-slip-selected-form .selectedIds').val(ids);
             $('#excel-packaging-slip-selected-form').submit();
             return false;
         });

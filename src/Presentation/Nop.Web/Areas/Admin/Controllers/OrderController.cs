@@ -704,6 +704,8 @@ namespace Nop.Web.Areas.Admin.Controllers
                     primaryStoreCurrency, _workContext.WorkingLanguage, true, true),
                 PrimaryStoreCurrencyCode = primaryStoreCurrency.CurrencyCode,
                 Deposit = orderItem.Deposit,
+                DepositStr = _priceFormatter.FormatPrice(orderItem.Deposit, true,
+                    currencyProduct, _workContext.WorkingLanguage, true, true),
                 OrderItemStatus = orderItem.OrderItemStatus.GetLocalizedEnum(_localizationService, _workContext),
                 OrderItemStatusId = orderItem.OrderItemStatusId,
                 Note = orderItem.Note
@@ -5469,6 +5471,42 @@ namespace Nop.Web.Areas.Admin.Controllers
 
 
         [HttpPost]
+        public virtual IActionResult ExcelPackagingSlipManualSelected(string selectedIds)
+        {
+            if (!_permissionService.Authorize(StandardPermissionProvider.ManageOrders))
+                return AccessDeniedView();
+
+            var shipments = new List<ShipmentManual>();
+            if (selectedIds != null)
+            {
+                var ids = selectedIds
+                    .Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
+                    .Select(x => Convert.ToInt32(x))
+                    .ToArray();
+                shipments.AddRange(_shipmentManualService.GetShipmentsManualByIds(ids));
+            }
+
+            //ensure that we at least one shipment selected
+            if (!shipments.Any())
+            {
+                ErrorNotification(_localizationService.GetResource("Admin.Orders.Shipments.NoShipmentsSelected"));
+                return RedirectToAction("ShipmentList");
+            }
+
+            try
+            {
+                var bytes = _exportManager.ExportShipmentManualToXlsxBasic(shipments.OrderBy(s => s.Id).ToList());
+                return File(bytes, MimeTypes.TextCsv, $"shipments-selected-{DateTime.Now:ddMMyyyyHHmmss}.csv");
+            }
+            catch (Exception exc)
+            {
+                ErrorNotification(exc);
+                return RedirectToAction("ShipmentList");
+            }
+        }
+
+
+        [HttpPost]
         public virtual IActionResult SetAsShippedSelected(ICollection<int> selectedIds)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageOrders))
@@ -5641,6 +5679,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 shippingDistrict: model.District,
                 trackingNumber: model.TrackingNumber,
                 loadNotShipped: model.LoadNotShipped,
+                exceptCity: model.ExceptCity,
                 createdFromUtc: startDateValue,
                 createdToUtc: endDateValue,
                 pageIndex: command.Page - 1,

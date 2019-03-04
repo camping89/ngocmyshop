@@ -336,6 +336,7 @@ namespace Nop.Web.Areas.Admin.Models.Orders
 
             public string PrimaryStoreCurrencyCode { get; set; }
             public decimal Deposit { get; set; }
+            public string DepositStr { get; set; }
             public string OrderItemStatus { get; set; }
             public int OrderItemStatusId { get; set; }
             public string Note { get; set; }

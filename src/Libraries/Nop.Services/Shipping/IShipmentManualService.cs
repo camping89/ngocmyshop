@@ -20,6 +20,7 @@ namespace Nop.Services.Shipping
             string shippingDistrict = null,
             string trackingNumber = null,
             bool loadNotShipped = false,
+            bool exceptCity = false,
             DateTime? createdFromUtc = null, DateTime? createdToUtc = null,
             int pageIndex = 0, int pageSize = int.MaxValue, int orderItemId = 0, string phoneShipperNumber = null);
 

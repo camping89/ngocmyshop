@@ -28,6 +28,8 @@
         public string ShippedDate { get; set; }
         public string Note { get; set; }
         public decimal Deposit { get; set; }
+        public string DepositStr { get; set; }
         public decimal TotalShippingFee { get; set; }
+        public string TotalShippingFeeStr { get; set; }
     }
 }
