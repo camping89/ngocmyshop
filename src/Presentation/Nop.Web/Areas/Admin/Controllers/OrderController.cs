@@ -1616,10 +1616,10 @@ namespace Nop.Web.Areas.Admin.Controllers
                 Id = shipment.Id,
                 TrackingNumber = shipment.TrackingNumber,
                 TotalWeight = shipment.TotalWeight.HasValue ? $"{shipment.TotalWeight:F2} [{baseWeightIn}]" : "",
-                ShippedDate = shipment.ShippedDateUtc.HasValue ? _dateTimeHelper.ConvertToUserTime(shipment.ShippedDateUtc.Value, DateTimeKind.Utc).ToString(CultureInfo.InvariantCulture) : _localizationService.GetResource("Admin.Orders.Shipments.ShippedDate.NotYet"),
+                ShippedDate = shipment.ShippedDateUtc?.ToString("MM/dd/yyyy"),
                 ShippedDateUtc = shipment.ShippedDateUtc,
                 CanShip = !shipment.ShippedDateUtc.HasValue,
-                DeliveryDate = shipment.DeliveryDateUtc.HasValue ? _dateTimeHelper.ConvertToUserTime(shipment.DeliveryDateUtc.Value, DateTimeKind.Utc).ToString(CultureInfo.InvariantCulture) : _localizationService.GetResource("Admin.Orders.Shipments.DeliveryDate.NotYet"),
+                DeliveryDate = shipment.DeliveryDateUtc?.ToString("MM/dd/yyyy"),
                 DeliveryDateUtc = shipment.DeliveryDateUtc,
                 CanDeliver = shipment.ShippedDateUtc.HasValue && !shipment.DeliveryDateUtc.HasValue,
                 AdminComment = shipment.AdminComment,
@@ -5348,38 +5348,6 @@ namespace Nop.Web.Areas.Admin.Controllers
             return File(bytes, MimeTypes.ApplicationPdf, $"shipments-all-{DateTime.Now:ddMMyyyyHHmmss}.pdf");
         }
 
-        [HttpPost]
-        public virtual IActionResult PdfPackagingSlipSelected(string selectedIds)
-        {
-            if (!_permissionService.Authorize(StandardPermissionProvider.ManageOrders))
-                return AccessDeniedView();
-
-            var shipments = new List<ShipmentManual>();
-            if (selectedIds != null)
-            {
-                var ids = selectedIds
-                    .Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
-                    .Select(x => Convert.ToInt32(x))
-                    .ToArray();
-                shipments.AddRange(_shipmentManualService.GetShipmentsManualByIds(ids));
-            }
-
-            //ensure that we at least one shipment selected
-            if (!shipments.Any())
-            {
-                ErrorNotification(_localizationService.GetResource("Admin.Orders.Shipments.NoShipmentsSelected"));
-                return RedirectToAction("ShipmentList");
-            }
-
-            byte[] bytes;
-            using (var stream = new MemoryStream())
-            {
-                _pdfService.PrintPackagingSlipsItemsToPdf(stream, shipments.OrderBy(s => s.Id).ToList(), _orderSettings.GeneratePdfInvoiceInCustomerLanguage ? 0 : _workContext.WorkingLanguage.Id);
-                bytes = stream.ToArray();
-            }
-            return File(bytes, MimeTypes.ApplicationPdf, $"shipments-selected-{DateTime.Now:ddMMyyyyHHmmss}.pdf");
-        }
-
 
         [HttpPost, ActionName("ShipmentList")]
         [FormValueRequired("exportexcel-shipment-all")]
@@ -5470,6 +5438,72 @@ namespace Nop.Web.Areas.Admin.Controllers
         }
 
 
+
+        [HttpPost]
+        public virtual IActionResult PdfShipmentManualDetailsSelected(string selectedIds)
+        {
+            if (!_permissionService.Authorize(StandardPermissionProvider.ManageOrders))
+                return AccessDeniedView();
+
+            var shipments = new List<ShipmentManual>();
+            if (selectedIds != null)
+            {
+                var ids = selectedIds
+                    .Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
+                    .Select(x => Convert.ToInt32(x))
+                    .ToArray();
+                shipments.AddRange(_shipmentManualService.GetShipmentsManualByIds(ids));
+            }
+
+            //ensure that we at least one shipment selected
+            if (!shipments.Any())
+            {
+                ErrorNotification(_localizationService.GetResource("Admin.Orders.Shipments.NoShipmentsSelected"));
+                return RedirectToAction("ShipmentManualList");
+            }
+
+            byte[] bytes;
+            using (var stream = new MemoryStream())
+            {
+                _pdfService.PrintShipmentDetailsToPdf(stream, shipments.FirstOrDefault(), _orderSettings.GeneratePdfInvoiceInCustomerLanguage ? 0 : _workContext.WorkingLanguage.Id);
+                bytes = stream.ToArray();
+            }
+            return File(bytes, MimeTypes.ApplicationPdf, $"shipments_{selectedIds}.pdf");
+        }
+
+
+        [HttpPost]
+        public virtual IActionResult PdfPackagingSlipManualSelected(string selectedIds)
+        {
+            if (!_permissionService.Authorize(StandardPermissionProvider.ManageOrders))
+                return AccessDeniedView();
+
+            var shipments = new List<ShipmentManual>();
+            if (selectedIds != null)
+            {
+                var ids = selectedIds
+                    .Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
+                    .Select(x => Convert.ToInt32(x))
+                    .ToArray();
+                shipments.AddRange(_shipmentManualService.GetShipmentsManualByIds(ids));
+            }
+
+            //ensure that we at least one shipment selected
+            if (!shipments.Any())
+            {
+                ErrorNotification(_localizationService.GetResource("Admin.Orders.Shipments.NoShipmentsSelected"));
+                return RedirectToAction("ShipmentManualList");
+            }
+
+            byte[] bytes;
+            using (var stream = new MemoryStream())
+            {
+                _pdfService.PrintPackagingSlipsItemsToPdf(stream, shipments.OrderBy(s => s.Id).ToList(), _orderSettings.GeneratePdfInvoiceInCustomerLanguage ? 0 : _workContext.WorkingLanguage.Id);
+                bytes = stream.ToArray();
+            }
+            return File(bytes, MimeTypes.ApplicationPdf, $"shipments-selected-{DateTime.Now:ddMMyyyyHHmmss}.pdf");
+        }
+
         [HttpPost]
         public virtual IActionResult ExcelPackagingSlipManualSelected(string selectedIds)
         {
@@ -5490,7 +5524,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             if (!shipments.Any())
             {
                 ErrorNotification(_localizationService.GetResource("Admin.Orders.Shipments.NoShipmentsSelected"));
-                return RedirectToAction("ShipmentList");
+                return RedirectToAction("ShipmentManualList");
             }
 
             try
@@ -5501,7 +5535,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             catch (Exception exc)
             {
                 ErrorNotification(exc);
-                return RedirectToAction("ShipmentList");
+                return RedirectToAction("ShipmentManualList");
             }
         }
 

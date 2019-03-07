@@ -1926,6 +1926,227 @@ namespace Nop.Services.Common
             doc.Close();
         }
 
+        public virtual void PrintShipmentDetailsToPdf(Stream stream, ShipmentManual shipmentDetails, int languageId = 0)
+        {
+            if (stream == null)
+                throw new ArgumentNullException(nameof(stream));
+
+            if (shipmentDetails == null)
+                throw new ArgumentNullException(nameof(shipmentDetails));
+
+            var pageSize = PageSize.A4;
+
+            if (_pdfSettings.LetterPageSizeEnabled)
+            {
+                pageSize = PageSize.LETTER;
+            }
+
+            var doc = new Document(pageSize);
+            PdfWriter.GetInstance(doc, stream);
+            doc.Open();
+
+            //fonts
+            var titleFont = GetFont();
+            titleFont.SetStyle(Font.BOLD);
+            titleFont.Color = BaseColor.BLACK;
+            var font = GetFont();
+            font.Size = 9;
+            var attributesFont = GetFont();
+            attributesFont.SetStyle(Font.ITALIC);
+
+            var lang = _languageService.GetLanguageById(languageId == 0 ? _workContext.WorkingLanguage.Id : languageId);
+            if (lang == null || !lang.Published)
+                lang = _workContext.WorkingLanguage;
+
+
+            //header
+            var headerTable = new PdfPTable(1);
+            headerTable.DefaultCell.Border = Rectangle.NO_BORDER;
+            headerTable.WidthPercentage = 100f;
+
+            headerTable.AddCell(GetParagraph("ExportPdf.StoreUrl", lang, titleFont, shipmentDetails.Id));
+            var cellHeader = GetPdfCell(" ", titleFont);
+            cellHeader.Phrase.Add(new Phrase(Environment.NewLine));
+            cellHeader.Phrase.Add(new Phrase(Environment.NewLine));
+            cellHeader.Phrase.Add(new Phrase(Environment.NewLine));
+            cellHeader.HorizontalAlignment = Element.ALIGN_LEFT;
+            cellHeader.Border = Rectangle.NO_BORDER;
+
+            headerTable.AddCell(cellHeader);
+            doc.Add(headerTable);
+
+            var addressTable = new PdfPTable(1);
+            if (lang.Rtl)
+                addressTable.RunDirection = PdfWriter.RUN_DIRECTION_RTL;
+            addressTable.DefaultCell.Border = Rectangle.NO_BORDER;
+            addressTable.WidthPercentage = 100f;
+
+            addressTable.AddCell(GetParagraph("PDFPackagingSlip.Shipment", lang, titleFont, shipmentDetails.Id));
+
+            addressTable.AddCell(GetParagraph("PDFPackagingSlip.Name", lang, font, shipmentDetails.Customer.GetFullName()));
+            addressTable.AddCell(GetParagraph("PDFPackagingSlip.Phone", lang, font, shipmentDetails.Customer.GetAttribute<string>(SystemCustomerAttributeNames.Phone)));
+
+            addressTable.AddCell(GetParagraph("PDFPackagingSlip.Address", lang, font, shipmentDetails.Address));
+
+            if (_addressSettings.CityEnabled || _addressSettings.StateProvinceEnabled || _addressSettings.ZipPostalCodeEnabled)
+                addressTable.AddCell(new Paragraph($"{shipmentDetails.ShippingAddress.City}, {(shipmentDetails.ShippingAddress.StateProvince != null ? shipmentDetails.ShippingAddress.StateProvince.GetLocalized(x => x.Name, lang.Id) : "")} {shipmentDetails.ShippingAddress.ZipPostalCode}", font));
+
+            if (_addressSettings.CountryEnabled && shipmentDetails.ShippingAddress.Country != null)
+                addressTable.AddCell(new Paragraph(shipmentDetails.ShippingAddress.Country.GetLocalized(x => x.Name, lang.Id), font));
+
+            //custom attributes
+            var customShippingAddressAttributes = _addressAttributeFormatter.FormatAttributes(shipmentDetails.ShippingAddress.CustomAttributes);
+            if (!string.IsNullOrEmpty(customShippingAddressAttributes))
+            {
+                addressTable.AddCell(new Paragraph(HtmlHelper.ConvertHtmlToPlainText(customShippingAddressAttributes, true, true), font));
+            }
+
+            addressTable.AddCell(new Paragraph(" "));
+
+            doc.Add(addressTable);
+
+            var productsTable = new PdfPTable(7) { WidthPercentage = 100f };
+            productsTable.SetWidths(new[] { 10, 30, 8, 12, 12, 12, 16 });
+
+            //order number
+            var cell = GetPdfCell("PDFPackagingSlip.OrderItemId", lang, font);
+            cell.BackgroundColor = BaseColor.LIGHT_GRAY;
+            cell.HorizontalAlignment = Element.ALIGN_CENTER;
+            productsTable.AddCell(cell);
+
+            //product name
+            cell = GetPdfCell("PDFPackagingSlip.ProductName", lang, font);
+            cell.BackgroundColor = BaseColor.LIGHT_GRAY;
+            cell.HorizontalAlignment = Element.ALIGN_CENTER;
+            productsTable.AddCell(cell);
+
+            //qty
+            cell = GetPdfCell("PDFPackagingSlip.QTY", lang, font);
+            cell.BackgroundColor = BaseColor.LIGHT_GRAY;
+            cell.HorizontalAlignment = Element.ALIGN_CENTER;
+            productsTable.AddCell(cell);
+
+            //TotalWithoutDeposit
+            cell = GetPdfCell("PDFPackagingSlip.TotalWithoutDeposit", lang, font);
+            cell.BackgroundColor = BaseColor.LIGHT_GRAY;
+            cell.HorizontalAlignment = Element.ALIGN_CENTER;
+            productsTable.AddCell(cell);
+
+            //Deposit
+            cell = GetPdfCell("PDFPackagingSlip.Deposit", lang, font);
+            cell.BackgroundColor = BaseColor.LIGHT_GRAY;
+            cell.HorizontalAlignment = Element.ALIGN_CENTER;
+            productsTable.AddCell(cell);
+
+            //TotalOrderItem
+            cell = GetPdfCell("PDFPackagingSlip.TotalOrderItem", lang, font);
+            cell.BackgroundColor = BaseColor.LIGHT_GRAY;
+            cell.HorizontalAlignment = Element.ALIGN_CENTER;
+            productsTable.AddCell(cell);
+
+            //Note
+            cell = GetPdfCell("PDFPackagingSlip.Note", lang, font);
+            cell.BackgroundColor = BaseColor.LIGHT_GRAY;
+            cell.HorizontalAlignment = Element.ALIGN_CENTER;
+            productsTable.AddCell(cell);
+
+
+            decimal totalShipment = 0;
+            foreach (var si in shipmentDetails.ShipmentManualItems)
+            {
+                var orderItem = _orderService.GetOrderItemById(si.OrderItemId);
+                if (orderItem == null)
+                    continue;
+
+                cell = GetPdfCell($"{orderItem.OrderId}.{orderItem.Id}", font);
+                cell.HorizontalAlignment = Element.ALIGN_CENTER;
+                productsTable.AddCell(cell);
+
+                var productAttribTable = new PdfPTable(2);
+                productAttribTable.SetWidths(new[] { 35, 65 });
+                if (lang.Rtl)
+                    productAttribTable.RunDirection = PdfWriter.RUN_DIRECTION_RTL;
+                productAttribTable.DefaultCell.Border = Rectangle.NO_BORDER;
+
+                //product info
+                var picture = _pictureService.GetPicturesByProductId(orderItem.ProductId).ToList().FirstOrDefault();
+                if (picture != null)
+                {
+                    var picBinary = _pictureService.LoadPictureBinary(picture);
+                    if (picBinary == null || picBinary.Length <= 0)
+                        continue;
+
+                    var pictureLocalPath = _pictureService.GetThumbLocalPath(picture, 80, false);
+                    var cellPic = new PdfPCell(Image.GetInstance(pictureLocalPath))
+                    {
+                        HorizontalAlignment = Element.ALIGN_LEFT,
+                        Border = Rectangle.NO_BORDER
+                    };
+                    productAttribTable.AddCell(cellPic);
+                }
+
+                var p = orderItem.Product;
+                var productInfo = p.GetLocalized(x => x.Name, lang.Id);
+                productInfo += "\n " + HtmlHelper.ConvertHtmlToPlainText(orderItem.AttributeDescription, true, true);
+                productInfo += "\n SKU: " + p.Sku;
+
+                productAttribTable.AddCell(new Paragraph(productInfo, font));
+
+                productsTable.AddCell(productAttribTable);
+
+                //qty
+                cell = GetPdfCell(si.Quantity, font);
+                cell.HorizontalAlignment = Element.ALIGN_CENTER;
+                productsTable.AddCell(cell);
+
+                //total without deposit
+                var subtotal = si.OrderItem.UnitPriceInclTax * si.Quantity;
+
+
+                cell = GetPdfCell(_priceFormatter.FormatPrice(subtotal), font);
+                cell.HorizontalAlignment = Element.ALIGN_CENTER;
+                productsTable.AddCell(cell);
+
+                //deposit
+                cell = GetPdfCell(_priceFormatter.FormatPrice(orderItem.Deposit), font);
+                cell.HorizontalAlignment = Element.ALIGN_CENTER;
+                productsTable.AddCell(cell);
+
+                //total
+                var totalIncludeDeposit = subtotal - orderItem.Deposit;
+                totalShipment += totalIncludeDeposit;
+
+                cell = GetPdfCell(_priceFormatter.FormatPrice(totalIncludeDeposit), font);
+                cell.HorizontalAlignment = Element.ALIGN_CENTER;
+                productsTable.AddCell(cell);
+
+                //note
+                cell = GetPdfCell(orderItem.Note, font);
+                cell.HorizontalAlignment = Element.ALIGN_CENTER;
+                productsTable.AddCell(cell);
+
+            }
+            doc.Add(productsTable);
+
+            var totalsTable = new PdfPTable(1)
+            {
+                RunDirection = GetDirection(lang),
+                WidthPercentage = 100f
+            };
+            totalsTable.DefaultCell.Border = Rectangle.NO_BORDER;
+
+            var orderSubtotalInclTaxStr = _priceFormatter.FormatPrice(totalShipment);
+
+            var subCell = GetPdfCell($"{_localizationService.GetResource("PDFPackagingSlip.TotalShipment", lang.Id)} {orderSubtotalInclTaxStr}", font);
+            subCell.HorizontalAlignment = Element.ALIGN_RIGHT;
+            subCell.Border = Rectangle.NO_BORDER;
+            totalsTable.AddCell(subCell);
+
+            doc.Add(totalsTable);
+
+            doc.Close();
+        }
+
         public void PrintPackagingSlipsItemsToPdf(Stream stream, IList<ShipmentManual> shipments, int languageId = 0)
         {
             if (stream == null)

@@ -418,7 +418,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                         ShippingAddressId = customerAddress?.Id,
                         TotalShippingFee = 0,
                         TotalWeight = totalWeight,
-                        ShippedDateUtc = shelf.ShippedDate ?? DateTime.Now.AddDays(1),
+                        ShippedDateUtc = shelf.ShippedDate,
                         Address = customerAddress?.Address1,
                         Province = customerAddress?.City,
                         District = customerAddress?.District
@@ -471,6 +471,10 @@ namespace Nop.Web.Areas.Admin.Controllers
                 if (string.IsNullOrEmpty(model.ShippedDate) == false)
                 {
                     shipmentManual.ShippedDateUtc = StringExtensions.StringToDateTime(model.ShippedDate);
+                }
+                if (string.IsNullOrEmpty(model.DeliveryDate) == false)
+                {
+                    shipmentManual.DeliveryDateUtc = StringExtensions.StringToDateTime(model.DeliveryDate);
                 }
                 shipmentManual.BagId = model.BagId;
                 shipmentManual.ShipperId = model.ShipperId;

@@ -274,7 +274,7 @@
                                                     ShipmentDistrictId: { editable: true, type: "string" },
                                                     ShipmentDistrict: { editable: true, type: "string" },
                                                     ShippedDate: { editable: true, type: "date", nullable: true },
-                                                    DeliveryDate: { editable: false, type: "date", nullable: true },
+                                                    DeliveryDate: { editable: true, type: "date", nullable: true },
                                                     ShipmentNote: { editable: true, type: "string" },
                                                     Deposit: { editable: false, type: "number" },
                                                     TotalOrderFee: { editable: false, type: "string" }
@@ -433,6 +433,22 @@
                                                 name: "destroy",
                                                 text: "@T("Admin.Common.Delete")",
                                                 template: '<a class="btn btn-danger k-button-icontext k-grid-delete" href="" >@T("Admin.Common.Delete")</a>'
+                                            },
+                                            {
+                                                name: "shipall",
+                                                text: "@T("Admin.ShelfOrderItem.ShipAll")",
+                                                template: '<a role="button" href="javascript:void(0);" class="btn btn-success k-button-icontext k-grid-shipall">@T("Admin.ShipmentDetails.ExportPdf")</a>',
+                                                click: function(e) {
+
+                                                    e.preventDefault();
+
+                                                    var tr = $(e.target).closest("tr");
+                                                    var data = this.dataItem(tr);
+                                                    console.log("Details for: " + data.Id);
+                                                    $('#pdf-shipment-details-form .selectedIds').val(data.Id);
+                                                    $('#pdf-shipment-details-form').submit();
+                                                    return false;
+                                                }
                                             }
                                         ],
                                         title: "@T("Admin.Common.Function")",
@@ -943,8 +959,13 @@
     </div>
 </form>
 
+
+<form asp-controller="Order" asp-action="PdfShipmentManualDetailsSelected" method="post" id="pdf-shipment-details-form">
+    <input type="hidden" class="selectedIds" name="selectedIds" value="" />
+</form>
+
 @*export selected (Excel). We don't use GET approach because it's limited to 2K-4K chars and won't work for large number of entities*@
-<form asp-controller="Order" asp-action="PdfPackagingSlipSelected" method="post" id="pdf-packaging-slip-selected-form">
+<form asp-controller="Order" asp-action="PdfPackagingSlipManualSelected" method="post" id="pdf-packaging-slip-selected-form">
     <input type="hidden" class="selectedIds" name="selectedIds" value="" />
 </form>
 
@@ -960,7 +981,7 @@
     });
 </script>
 
-<form asp-controller="Order" asp-action="PdfPackagingSlipSelected" method="post" id="pdf-packaging-slip-all-form">
+<form asp-controller="Order" asp-action="PdfPackagingSlipManualSelected" method="post" id="pdf-packaging-slip-all-form">
     <input type="hidden" class="selectedIds" name="selectedIds" value="" />
 </form>
 

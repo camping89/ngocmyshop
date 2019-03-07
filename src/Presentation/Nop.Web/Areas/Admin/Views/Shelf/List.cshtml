@@ -220,6 +220,7 @@
                                                 UpdatedNoteDate: { editable: true, type: "date", nullable: true },
                                                 CustomerFullName: { editable: false, type: "string" },
                                                 CustomerLinkFacebook: { editable: false, type: "string" },
+                                                CustomerLinkShortFacebook: { editable: false, type: "string" },
                                                 CustomerPhone: { editable: false, type: "string" },
                                                 IsCustomerNotified: { editable: true, type: "boolean" },
                                                 ShelfNoteId: { editable: true, type: "number" },
@@ -247,12 +248,12 @@
                                     serverFiltering: true,
                                     serverSorting: true
                                 },
-                                @*toolbar: [
+                                toolbar: [
                                     {
                                         name: "create",
                                         text: "@T("Admin.Common.AddNew")"
                                     }
-                                ],*@
+                                ],
                                 pageable: {
                                     refresh: true,
                                     pageSizes: [@(gridPageSizes)],
