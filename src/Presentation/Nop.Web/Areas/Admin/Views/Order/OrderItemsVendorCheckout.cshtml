@@ -416,7 +416,7 @@
                                                 }, {
                                                     field: "Quantity",
                                                     title: "@T("Admin.Orders.Products.Quantity")",
-                                                    width: 100
+                                                    width: 70
                                                 }, {
                                                     field: "TotalWithoutWeightCost",
                                                     title: "@T("Admin.Orders.Products.TotalWithoutWeightCost")",
@@ -459,7 +459,7 @@
                                                 }, {
                                                     field: "ShelfCode",
                                                     title: "@T("Admin.Orders.Shelf.ShelfCode")",
-                                                    width: 150,
+                                                    width: 100,
                                                     editor: editShelfOrderId,
                                                     template: "# if (ShelfCode != null) { #" +
                                                         "<p>#=ShelfCode# </p>" +
@@ -467,7 +467,7 @@
                                                         "<p></p>" +
                                                         "# } #"
                                                 },
-                                                {
+                                                @*{
                                                     field: "EstimatedTimeArrival",
                                                     title: "@T("Admin.Orders.Products.EstimatedTimeArrival")",
                                                     width: 150,
@@ -477,7 +477,7 @@
                                                         "#} else {#" +
                                                         "<p></p>" +
                                                         "# } #"
-                                                },
+                                                },*@
                                                 {
                                                     field: "PackageItemProcessedDatetime",
                                                     title: "@T("Admin.Orders.Products.PackageItemProcessedDatetime")",
@@ -500,11 +500,11 @@
                                                         "<p></p>" +
                                                         "# } #"
                                                 },
-                                                {
+                                                @*{
                                                     field: "Note",
                                                     title: "@T("Admin.OrderItem.Note")",
                                                     width: 150
-                                                },
+                                                },*@
                                                 {
                                                     field: "OrderItemStatusId",
                                                     title: "@T("Admin.Orders.Products.OrderItemStatus")",

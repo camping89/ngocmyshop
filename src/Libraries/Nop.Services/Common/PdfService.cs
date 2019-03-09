@@ -2386,11 +2386,11 @@ namespace Nop.Services.Common
                 //cell.HorizontalAlignment = Element.ALIGN_CENTER;
                 //productsTable.AddCell(cell);
 
-                cell = GetPdfCell(_priceFormatter.FormatPrice(exportShipmentModel.Deposit, true, _workContext.WorkingCurrency), font);
+                cell = GetPdfCell(_priceFormatter.FormatPrice(exportShipmentModel.Deposit), font);
                 cell.HorizontalAlignment = Element.ALIGN_CENTER;
                 productsTable.AddCell(cell);
 
-                cell = GetPdfCell(_priceFormatter.FormatPrice(exportShipmentModel.TotalShippingFee - exportShipmentModel.Deposit, true, _workContext.WorkingCurrency), font);
+                cell = GetPdfCell(_priceFormatter.FormatPrice(exportShipmentModel.TotalShippingFee - exportShipmentModel.Deposit), font);
                 cell.HorizontalAlignment = Element.ALIGN_CENTER;
                 productsTable.AddCell(cell);
 

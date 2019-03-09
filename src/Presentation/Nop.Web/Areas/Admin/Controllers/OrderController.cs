@@ -673,7 +673,7 @@ namespace Nop.Web.Areas.Admin.Controllers
         }
         protected virtual OrderModel.OrderItemModelBasic PrepareOrderItemModelBasic(OrderItem orderItem, List<PackageOrderModel> packageOrderModels)
         {
-            var primaryStoreCurrency = _currencyService.GetCurrencyById(_currencySettings.PrimaryStoreCurrencyId);
+            var primaryStoreCurrency = _workContext.WorkingCurrency;
             var currencyProduct = _currencyService.GetCurrencyById(orderItem.Product.CurrencyId, false);
             var packageOrder = packageOrderModels?.FirstOrDefault(_ => _.Id == orderItem.PackageOrderId);
 
@@ -705,7 +705,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 PrimaryStoreCurrencyCode = primaryStoreCurrency.CurrencyCode,
                 Deposit = orderItem.Deposit,
                 DepositStr = _priceFormatter.FormatPrice(orderItem.Deposit, true,
-                    currencyProduct, _workContext.WorkingLanguage, true, true),
+                    primaryStoreCurrency, _workContext.WorkingLanguage, true, true),
                 OrderItemStatus = orderItem.OrderItemStatus.GetLocalizedEnum(_localizationService, _workContext),
                 OrderItemStatusId = orderItem.OrderItemStatusId,
                 Note = orderItem.Note
@@ -1574,6 +1574,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                     QuantityToAdd = maxQtyToAdd,
                     ShippingFee = shipmentItem.ShippingFee,
                     Deposit = shipmentItem.OrderItem.Deposit,
+                    DepositStr = _priceFormatter.FormatPrice(shipmentItem.OrderItem.Deposit),
                     DeliveryDateUtc = shipmentItem.DeliveryDateUtc,
                     ShippingFeeStr = _priceFormatter.FormatPrice(shipmentItem.ShippingFee, true, primaryStoreCurrency,
                         _workContext.WorkingLanguage, true, false),
@@ -1625,6 +1626,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 AdminComment = shipment.AdminComment,
                 ShipmentNote = shipment.ShipmentNote,
                 Deposit = shipment.ShipmentManualItems.Sum(_ => _.OrderItem.Deposit),
+                DepositStr = _priceFormatter.FormatPrice(shipment.ShipmentManualItems.Sum(_ => _.OrderItem.Deposit)),
                 //CustomOrderNumber = shipment.OrderItem.Order.CustomOrderNumber,
                 TotalShippingFee = _priceFormatter.FormatPrice(shipment.TotalShippingFee, true, primaryStoreCurrency,
                     _workContext.WorkingLanguage, true, false),
@@ -1903,11 +1905,18 @@ namespace Nop.Web.Areas.Admin.Controllers
             {
                 Data = orders.Select(x =>
                 {
+                    var shortLink = string.Empty;
                     var store = _storeService.GetStoreById(x.StoreId);
                     var linkFacebook = x.Customer.GetAttribute<string>(SystemCustomerAttributeNames.LinkFacebook1);
                     if (string.IsNullOrEmpty(linkFacebook))
                     {
                         linkFacebook = x.Customer.GetAttribute<string>(SystemCustomerAttributeNames.LinkFacebook2);
+                    }
+
+                    shortLink = string.IsNullOrEmpty(linkFacebook) ? string.Empty : linkFacebook.Split('/').LastOrDefault();
+                    if (string.IsNullOrEmpty(shortLink) == false)
+                    {
+                        shortLink = shortLink.Split('?').FirstOrDefault();
                     }
                     var orderModel = new OrderModelBasic
                     {
@@ -1922,8 +1931,10 @@ namespace Nop.Web.Areas.Admin.Controllers
                         //ShippingStatusId = x.ShippingStatusId,
                         //CustomerEmail = x.BillingAddress.Email,
                         CustomerFullName = $"{x.BillingAddress.FirstName} {x.BillingAddress.LastName}",
+                        CustomerAddress = x.BillingAddress.Address1,
                         CustomerPhone = x.Customer.GetAttribute<string>(SystemCustomerAttributeNames.Phone),
                         CustomerLinkFacebook = linkFacebook,
+                        CustomerShortLinkFacebook = shortLink,
                         CreatedOn = _dateTimeHelper.ConvertToUserTime(x.CreatedOnUtc, DateTimeKind.Utc),
                         CustomOrderNumber = x.CustomOrderNumber,
                         WeightCost = _priceFormatter.FormatPrice(x.WeightCost, true, false),
@@ -4169,12 +4180,19 @@ namespace Nop.Web.Areas.Admin.Controllers
                 throw new ArgumentException("No order item found with the specified id");
             if (orderItemModel.PackageOrderId > 0)
             {
-                orderItem.PackageOrderId = orderItemModel.PackageOrderId;
-                var packageOrder = _packageOrderService.GetById(orderItemModel.PackageOrderId);
-                if (packageOrder != null)
+                if (string.IsNullOrEmpty(orderItemModel.PackageOrderCode) == false)
                 {
-                    packageOrder.PackageCode = orderItemModel.PackageOrderCode;
-                    _packageOrderService.Update(packageOrder);
+                    orderItem.PackageOrderId = orderItemModel.PackageOrderId;
+                    var packageOrder = _packageOrderService.GetById(orderItemModel.PackageOrderId);
+                    if (packageOrder != null)
+                    {
+                        packageOrder.PackageCode = orderItemModel.PackageOrderCode;
+                        _packageOrderService.Update(packageOrder);
+                    }
+                }
+                else
+                {
+                    orderItem.PackageOrderId = 0;
                 }
             }
             else
@@ -4192,6 +4210,10 @@ namespace Nop.Web.Areas.Admin.Controllers
                         orderItem.PackageOrderId = packageOrderNew.Id;
                         //orderItem.PackageItemProcessedDatetime = DateTime.UtcNow;
                     }
+                }
+                else
+                {
+                    orderItem.PackageOrderId = 0;
                 }
             }
 
@@ -6491,6 +6513,10 @@ namespace Nop.Web.Areas.Admin.Controllers
                         if (Core.Extensions.StringExtensions.IsNotNullOrEmpty(customerFacebook) && customerFacebook.Split('/').ToList().Count > 0)
                         {
                             customerShortFacebook = customerFacebook.Split('/').ToList().Last();
+                            if (string.IsNullOrEmpty(customerShortFacebook) == false)
+                            {
+                                customerShortFacebook = customerFacebook.Split('?').FirstOrDefault();
+                            }
                         }
                         customerInfo = customerOrder.GetFullName()
                                                  + $"\n {customerOrder.GetAttribute<string>(SystemCustomerAttributeNames.Phone)}";

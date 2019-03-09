@@ -2253,7 +2253,7 @@ namespace Nop.Services.ExportImport
         /// <param name="insertSpaces">Whether to insert a space after each separator</param>
         /// <returns>A delimited string</returns>
         /// <remarks>This was implemented pre-linq</remarks>
-        public static string ToDelimitedString(this List<string> list, string delimiter = ":", bool insertSpaces = false, string qualifier = "", bool duplicateTicksForSQL = false)
+        public static string ToDelimitedString(this List<string> list, string delimiter = ";", bool insertSpaces = false, string qualifier = "", bool duplicateTicksForSQL = false)
         {
             var result = new StringBuilder();
             for (int i = 0; i < list.Count; i++)

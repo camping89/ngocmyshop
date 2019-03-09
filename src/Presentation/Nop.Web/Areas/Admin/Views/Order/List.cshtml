@@ -439,7 +439,7 @@
                                         {
                                             field: "PaymentStatus",
                                             title: "@T("Admin.Orders.Fields.PaymentStatus")",
-                                            width: 150,
+                                            width: 100,
                                             sortable: false
                                         },
                                         @if (!Model.IsLoggedInAsVendor)
@@ -448,24 +448,35 @@
                                         <text>{
                                             field: "ShippingStatus",
                                             title: "@T("Admin.Orders.Fields.ShippingStatus")",
-                                            width: 150,
+                                            width: 100,
                                             sortable: false
                                         },</text>
                         }
                                         {
                                             field: "CustomerFullName",
                                             title: "@T("Admin.Orders.Fields.Customer")",
-                                            width: 150,
+                                            width: 200,
                                             template: '<p>#=CustomerFullName#</p>' +
-                                                '<p>#=CustomerPhone#</p>',
+                                                '<p>#=CustomerPhone#</p>'+
+                                                '<p>Địa chỉ: #=CustomerAddress# </p>'+
+
+                                                '# if( CustomerLinkFacebook != null) { # ' +
+                                                'Facebook: <a target="_blank" href="#=CustomerLinkFacebook#">#=CustomerShortLinkFacebook#</a>' +
+                                                '# }else { #' +
+                                                '<p></p>' +
+                                                '# } #',
                                             sortable: false
                                         },
-                                        {
+                                        @*{
                                             field: "CustomerLinkFacebook",
                                             title: "@T("admin.customers.customers.fields.facebook")",
                                             width: 200,
-                                            template: '<a target="_blank" href="#=CustomerLinkFacebook#">#=CustomerLinkFacebook#</a>'
-                                        },
+                                            template: '# if( CustomerLinkFacebook != null) { # '+
+                                                '<a target="_blank" href="#=CustomerLinkFacebook#">#=CustomerShortLinkFacebook#</a>'+
+                                                '# }else { #' +
+                                                '<p></p>' +
+                                                '# } #'
+                                        },*@
                                         {
                                             field: "StoreName",
                                             hidden: @(stores.Count > 1 ? "false" : "true"),
@@ -642,7 +653,7 @@
                                         }, {
                                             field: "UnitPriceBase",
                                             title: "@T("Admin.Orders.Products.UnitPriceBase")",
-                                            width: 100
+                                            width: 70
                                         }, {
                                             field: "Quantity",
                                             title: "@T("Admin.Orders.Products.Quantity")",
@@ -691,7 +702,7 @@
                                         }, {
                                             field: "PackageOrderCode",
                                             title: "@T("admin.orders.products.packagecode")",
-                                            width: 150,
+                                            width: 100,
                                             editor: hideOnEditor,
                                             template: "# if (PackageOrder != null) { #" +
                                                 "<p>#=PackageOrder.PackageCode#</p>" +

@@ -277,6 +277,7 @@
                                                     DeliveryDate: { editable: true, type: "date", nullable: true },
                                                     ShipmentNote: { editable: true, type: "string" },
                                                     Deposit: { editable: false, type: "number" },
+                                                    DepositStr: { editable: false, type: "string" },
                                                     TotalOrderFee: { editable: false, type: "string" }
                                                 }
                                             },
@@ -407,7 +408,7 @@
                                             field: "Deposit",
                                             title: "@T("Admin.Orders.Shipments.Deposit")",
                                             width: 70,
-                                            template: '#= kendo.toString(Deposit, "n0") #'
+                                            template: '#= DepositStr #'
                                         }, {
                                             field: "TotalOrderFee",
                                             title: "@T("Admin.Orders.Shipments.TotalOrderFee")",
@@ -633,7 +634,7 @@
                                             field: "Deposit",
                                             title: "@T("Admin.Orders.Shipments.Deposit")",
                                             width: 70,
-                                            template: '#= kendo.toString(Deposit, "n0") #'
+                                            template: '#= DepositStr #'
                                         },
                                         {
                                                     field: "DeliveryDateUtc",

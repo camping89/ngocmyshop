@@ -40,8 +40,11 @@ namespace Nop.Web.Areas.Admin.Models.Orders
         public string CustomerFullName { get; set; }
         [NopResourceDisplayName("Admin.Orders.Fields.CustomerPhone")]
         public string CustomerPhone { get; set; }
+        [NopResourceDisplayName("Admin.Orders.Fields.CustomerAddress")]
+        public string CustomerAddress { get; set; }
         [NopResourceDisplayName("Admin.Orders.Fields.CustomerLinkFacebook")]
         public string CustomerLinkFacebook { get; set; }
+        public string CustomerShortLinkFacebook { get; set; }
 
         [NopResourceDisplayName("Admin.Orders.Fields.CreatedOn")]
         public DateTime CreatedOn { get; set; }
