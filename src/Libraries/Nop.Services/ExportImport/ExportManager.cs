@@ -367,7 +367,7 @@ namespace Nop.Services.ExportImport
         /// <remarks>Avoiding writing final empty line so bulk import processes can work.</remarks>
         private static void WriteRecordToFile(List<string> record, StreamWriter sw, int rowNumber, int totalRowCount)
         {
-            var commaDelimitedRecord = record.ToDelimitedString(",");
+            var commaDelimitedRecord = record.ToDelimitedString(";");
 
             if (rowNumber == totalRowCount)
             {
