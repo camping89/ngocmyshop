@@ -113,8 +113,6 @@ namespace Nop.Services.Directory
             _currencyRepository.Delete(currency);
 
             _cacheManager.RemoveByPattern(CURRENCIES_PATTERN_KEY);
-            _cacheManager.RemoveByPattern(CURRENCIES_ALL_KEY);
-            _cacheManager.RemoveByPattern(CURRENCIES_BY_ID_KEY);
 
             //event notification
             _eventPublisher.EntityDeleted(currency);
@@ -126,30 +124,30 @@ namespace Nop.Services.Directory
         /// <param name="currencyId">Currency identifier</param>
         /// <param name="loadCacheableCopy">A value indicating whether to load a copy that could be cached (workaround until Entity Framework supports 2-level caching)</param>
         /// <returns>Currency</returns>
-        public virtual Currency GetCurrencyById(int currencyId, bool loadCacheableCopy = true)
+        public virtual Currency GetCurrencyById(int currencyId, bool loadCacheableCopy = false)
         {
-            if (currencyId == 0)
-                return null;
+            //if (currencyId == 0)
+            //    return null;
 
-            Func<Currency> loadCurrencyFunc = () =>
-            {
-                return _currencyRepository.GetById(currencyId);
-            };
+            //Func<Currency> loadCurrencyFunc = () =>
+            //{
+            //    return _currencyRepository.GetById(currencyId);
+            //};
 
-            if (loadCacheableCopy)
-            {
-                //cacheable copy
-                var key = string.Format(CURRENCIES_BY_ID_KEY, currencyId);
-                return _cacheManager.Get(key, () =>
-                {
-                    var currency = loadCurrencyFunc();
-                    if (currency == null)
-                        return null;
-                    return new CurrencyForCaching(currency);
-                });
-            }
-            return loadCurrencyFunc();
-            //return _currencyRepository.GetById(currencyId);
+            //if (loadCacheableCopy)
+            //{
+            //    //cacheable copy
+            //    var key = string.Format(CURRENCIES_BY_ID_KEY, currencyId);
+            //    return _cacheManager.Get(key, () =>
+            //    {
+            //        var currency = loadCurrencyFunc();
+            //        if (currency == null)
+            //            return null;
+            //        return new CurrencyForCaching(currency);
+            //    });
+            //}
+            //return loadCurrencyFunc();
+            return _currencyRepository.GetById(currencyId);
         }
 
         /// <summary>
@@ -158,7 +156,7 @@ namespace Nop.Services.Directory
         /// <param name="currencyCode">Currency code</param>
         /// <param name="loadCacheableCopy">A value indicating whether to load a copy that could be cached (workaround until Entity Framework supports 2-level caching)</param>
         /// <returns>Currency</returns>
-        public virtual Currency GetCurrencyByCode(string currencyCode, bool loadCacheableCopy = true)
+        public virtual Currency GetCurrencyByCode(string currencyCode, bool loadCacheableCopy = false)
         {
             if (string.IsNullOrEmpty(currencyCode))
                 return null;
@@ -227,8 +225,7 @@ namespace Nop.Services.Directory
             _currencyRepository.Insert(currency);
 
             _cacheManager.RemoveByPattern(CURRENCIES_PATTERN_KEY);
-            _cacheManager.RemoveByPattern(CURRENCIES_ALL_KEY);
-            _cacheManager.RemoveByPattern(CURRENCIES_BY_ID_KEY);
+
             //event notification
             _eventPublisher.EntityInserted(currency);
         }
@@ -248,8 +245,6 @@ namespace Nop.Services.Directory
             _currencyRepository.Update(currency);
 
             _cacheManager.RemoveByPattern(CURRENCIES_PATTERN_KEY);
-            _cacheManager.RemoveByPattern(CURRENCIES_ALL_KEY);
-            _cacheManager.RemoveByPattern(CURRENCIES_BY_ID_KEY);
 
             //event notification
             _eventPublisher.EntityUpdated(currency);

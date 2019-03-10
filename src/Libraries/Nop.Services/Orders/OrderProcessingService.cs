@@ -864,6 +864,7 @@ namespace Nop.Services.Orders
                 CustomValuesXml = processPaymentRequest.SerializeCustomValues(),
                 VatNumber = details.VatNumber,
                 CreatedOnUtc = DateTime.UtcNow,
+                EstimatedTimeArrival = DateTime.UtcNow.AddDays(21),
                 CustomOrderNumber = string.Empty
             };
 

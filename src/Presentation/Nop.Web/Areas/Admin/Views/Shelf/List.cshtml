@@ -222,6 +222,7 @@
                                                 CustomerLinkFacebook: { editable: false, type: "string" },
                                                 CustomerLinkShortFacebook: { editable: false, type: "string" },
                                                 CustomerPhone: { editable: false, type: "string" },
+                                                CustomerAddress: { editable: false, type: "string" },
                                                 IsCustomerNotified: { editable: true, type: "boolean" },
                                                 ShelfNoteId: { editable: true, type: "number" },
                                                 ShelfNoteStatus: { editable: false, type: "string" },
@@ -278,6 +279,10 @@
                                         editor: editCustomerId,
                                         template:
                                             '# if(CustomerFullName != null && CustomerPhone != null ) {# <p>#=CustomerFullName#</p><p>#=CustomerPhone#</p> <p><a href="#=CustomerLinkFacebook#" target="_blank" >#=CustomerLinkShortFacebook#</a></p> #}  #'
+                                    }, {
+                                        field: "CustomerAddress",
+                                        title: "@T("Admin.Shelf.Fields.CustomerAddress")",
+                                        width: 100
                                     },
                                     {
                                         field: "AssignedDate",

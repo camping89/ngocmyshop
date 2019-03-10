@@ -699,6 +699,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 UnitWeightCost = orderItem.UnitWeightCost ?? (currencyProduct != null ? currencyProduct.UnitWeightCost : 0),
                 ItemWeight = orderItem.ItemWeight ?? 0,
                 DeliveryDateUtc = orderItem.DeliveryDateUtc,
+                EstimatedTimeArrival = orderItem.EstimatedTimeArrival?.ToString("MM/dd/yyyy"),
                 WeightCostDec = orderItem.WeightCost,
                 WeightCost = _priceFormatter.FormatPrice(orderItem.WeightCost, true,
                     primaryStoreCurrency, _workContext.WorkingLanguage, true, true),
@@ -1649,6 +1650,10 @@ namespace Nop.Web.Areas.Admin.Controllers
                 if (Core.Extensions.StringExtensions.IsNotNullOrEmpty(linkFacebook))
                 {
                     model.CustomerLinkFacebookShort = linkFacebook.Split('/').LastOrDefault();
+                    if (string.IsNullOrEmpty(model.CustomerLinkFacebookShort) == false)
+                    {
+                        model.CustomerLinkFacebookShort = model.CustomerLinkFacebookShort.Split('?').FirstOrDefault();
+                    }
                 }
             }
 
@@ -1936,6 +1941,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                         CustomerLinkFacebook = linkFacebook,
                         CustomerShortLinkFacebook = shortLink,
                         CreatedOn = _dateTimeHelper.ConvertToUserTime(x.CreatedOnUtc, DateTimeKind.Utc),
+                        EstimatedTimeArrival = x.EstimatedTimeArrival,
                         CustomOrderNumber = x.CustomOrderNumber,
                         WeightCost = _priceFormatter.FormatPrice(x.WeightCost, true, false),
                         AdminNote = x.AdminNote ?? string.Empty,

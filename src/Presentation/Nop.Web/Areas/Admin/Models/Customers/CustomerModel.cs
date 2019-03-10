@@ -1,13 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using FluentValidation.Attributes;
+﻿using FluentValidation.Attributes;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Nop.Web.Areas.Admin.Validators.Customers;
 using Nop.Core.Domain.Catalog;
+using Nop.Web.Areas.Admin.Validators.Customers;
 using Nop.Web.Framework.Mvc.ModelBinding;
 using Nop.Web.Framework.Mvc.Models;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace Nop.Web.Areas.Admin.Models.Customers
 {
@@ -26,7 +26,7 @@ namespace Nop.Web.Areas.Admin.Models.Customers
             this.SendEmail = new SendEmailModel() { SendImmediately = true };
             this.SendPm = new SendPmModel();
 
-            this.SelectedCustomerRoleIds= new List<int>();
+            this.SelectedCustomerRoleIds = new List<int>();
             this.AvailableCustomerRoles = new List<SelectListItem>();
 
             this.AssociatedExternalAuthRecords = new List<AssociatedExternalAuthModel>();
@@ -128,7 +128,7 @@ namespace Nop.Web.Areas.Admin.Models.Customers
 
         [NopResourceDisplayName("Admin.Customers.Customers.Fields.AdminComment")]
         public string AdminComment { get; set; }
-        
+
         [NopResourceDisplayName("Admin.Customers.Customers.Fields.IsTaxExempt")]
         public bool IsTaxExempt { get; set; }
 
@@ -292,6 +292,9 @@ namespace Nop.Web.Areas.Admin.Models.Customers
 
             [NopResourceDisplayName("Admin.Customers.Customers.Orders.CreatedOn")]
             public DateTime CreatedOn { get; set; }
+
+            [NopResourceDisplayName("Admin.Customers.Customers.Orders.EstimatedTimeArrival")]
+            public DateTime? EstimatedTimeArrival { get; set; }
         }
 
         public partial class ActivityLogModel : BaseNopEntityModel

@@ -48,6 +48,9 @@ namespace Nop.Web.Areas.Admin.Models.Orders
 
         [NopResourceDisplayName("Admin.Orders.Fields.CreatedOn")]
         public DateTime CreatedOn { get; set; }
+
+        [NopResourceDisplayName("Admin.Orders.Fields.EstimatedTimeArrival")]
+        public DateTime? EstimatedTimeArrival { get; set; }
         [NopResourceDisplayName("Admin.Orders.Fields.WeightCost")]
         public string WeightCost { get; set; }
         [NopResourceDisplayName("Admin.Orders.Fields.AdminNote")]

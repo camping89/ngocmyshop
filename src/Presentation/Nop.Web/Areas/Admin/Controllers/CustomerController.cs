@@ -2012,6 +2012,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                             OrderTotal = _priceFormatter.FormatPrice(order.OrderTotal, true, false),
                             StoreName = store != null ? store.Name : "Unknown",
                             CreatedOn = _dateTimeHelper.ConvertToUserTime(order.CreatedOnUtc, DateTimeKind.Utc),
+                            EstimatedTimeArrival = order.EstimatedTimeArrival,
                             CustomOrderNumber = order.CustomOrderNumber
                         };
                         return orderModel;

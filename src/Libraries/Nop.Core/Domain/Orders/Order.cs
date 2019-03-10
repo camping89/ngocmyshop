@@ -339,6 +339,7 @@ namespace Nop.Core.Domain.Orders
         /// Gets or sets the date and time of order creation
         /// </summary>
         public DateTime CreatedOnUtc { get; set; }
+        public DateTime? EstimatedTimeArrival { get; set; }
 
         /// <summary>
         /// Gets or sets the custom order number without prefix

@@ -128,9 +128,19 @@ namespace Nop.Web.Areas.Admin.Controllers
                             linkFacebook = customer.GetAttribute<string>(SystemCustomerAttributeNames.LinkFacebook2);
                         }
 
+                        if (customer.Addresses != null && customer.Addresses.Count > 0)
+                        {
+
+                            var customerAddress = customer.Addresses.OrderBy(_ => _.CreatedOnUtc).FirstOrDefault();
+                            if (customerAddress != null)
+                            {
+                                m.CustomerAddress = $"{customerAddress.Address1}, {customerAddress.District}, {customerAddress.StateProvince?.Name}";
+                            }
+                        }
+
                         m.CustomerFullName = customer.GetFullName();
                         m.CustomerLinkFacebook = linkFacebook;
-                        if (Core.Extensions.StringExtensions.IsNotNullOrEmpty(linkFacebook))
+                        if (string.IsNullOrEmpty(linkFacebook) == false)
                         {
                             linkFacebook = linkFacebook.Split('/').ToList().LastOrDefault();
                             if (string.IsNullOrEmpty(linkFacebook) == false)
@@ -412,7 +422,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 var customer = _customerService.GetCustomerById(customerId);
                 if (customer != null)
                 {
-                    var customerAddress = customer.Addresses.OrderByDescending(_ => _.CreatedOnUtc).FirstOrDefault();
+                    var customerAddress = customer.Addresses.OrderBy(_ => _.CreatedOnUtc).FirstOrDefault();
                     var shipmentEntity = new ShipmentManual
                     {
                         CustomerId = customerId,

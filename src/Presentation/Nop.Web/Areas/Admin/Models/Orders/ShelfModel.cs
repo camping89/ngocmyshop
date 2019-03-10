@@ -38,6 +38,9 @@ namespace Nop.Web.Areas.Admin.Models.Orders
 
         public string CustomerLinkShortFacebook { get; set; }
 
+        [NopResourceDisplayName("Admin.Shipment.Shelf.CustomerAddress")]
+        public string CustomerAddress { get; set; }
+
         public int ShelfNoteId { get; set; }
 
         [NopResourceDisplayName("Admin.Shipment.Shelf.ShelfNoteStatus")]
