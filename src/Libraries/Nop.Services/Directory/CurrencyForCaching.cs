@@ -32,6 +32,7 @@ namespace Nop.Services.Directory
             Name = c.Name;
             CurrencyCode = c.CurrencyCode;
             Rate = c.Rate;
+            VndRate = c.VndRate;
             DisplayLocale = c.DisplayLocale;
             CustomFormatting = c.CustomFormatting;
             LimitedToStores = c.LimitedToStores;

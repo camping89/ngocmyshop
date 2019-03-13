@@ -1,8 +1,8 @@
-﻿using System.Globalization;
-using FluentValidation;
-using Nop.Web.Areas.Admin.Models.Directory;
+﻿using FluentValidation;
 using Nop.Services.Localization;
+using Nop.Web.Areas.Admin.Models.Directory;
 using Nop.Web.Framework.Validators;
+using System.Globalization;
 
 namespace Nop.Web.Areas.Admin.Validators.Directory
 {
@@ -18,6 +18,8 @@ namespace Nop.Web.Areas.Admin.Validators.Directory
                 .Length(1, 5).WithMessage(localizationService.GetResource("Admin.Configuration.Currencies.Fields.CurrencyCode.Range"));
             RuleFor(x => x.Rate)
                 .GreaterThan(0).WithMessage(localizationService.GetResource("Admin.Configuration.Currencies.Fields.Rate.Range"));
+            RuleFor(x => x.VndRate)
+               .GreaterThan(0).WithMessage(localizationService.GetResource("Admin.Configuration.Currencies.Fields.VndRate.Range"));
             RuleFor(x => x.CustomFormatting)
                 .Length(0, 50).WithMessage(localizationService.GetResource("Admin.Configuration.Currencies.Fields.CustomFormatting.Validation"));
             RuleFor(x => x.DisplayLocale)

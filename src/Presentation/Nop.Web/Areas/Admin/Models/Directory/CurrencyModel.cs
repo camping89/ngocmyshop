@@ -31,6 +31,8 @@ namespace Nop.Web.Areas.Admin.Models.Directory
 
         [NopResourceDisplayName("Admin.Configuration.Currencies.Fields.Rate")]
         public decimal Rate { get; set; }
+        [NopResourceDisplayName("Admin.Configuration.Currencies.Fields.VndRate")]
+        public decimal VndRate { get; set; }
 
         [NopResourceDisplayName("Admin.Configuration.Currencies.Fields.CustomFormatting")]
         public string CustomFormatting { get; set; }

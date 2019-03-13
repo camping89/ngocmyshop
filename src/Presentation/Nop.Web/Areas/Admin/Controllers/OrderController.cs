@@ -6499,11 +6499,13 @@ namespace Nop.Web.Areas.Admin.Controllers
 
 
             var primaryStoreCurrency = _currencyService.GetCurrencyById(_currencySettings.PrimaryStoreCurrencyId);
+
             var orderItems = _orderService.GetOrderItemsVendorCheckout(model.VendorProductUrl, model.OrderId, model.OrderItemId, command.Page - 1, command.PageSize,
                 isOrderCheckout: model.IsOrderCheckout, isPackageItemProcessed: model.IsPackageItemProcessed, todayFilter: model.TodayFilter,
                 customerPhone: model.CustomerPhone, packageOrderCode: model.PackageOrderCode,
                 vendorId: model.VendorId, isSetPackageOrderId: model.IsSetPackageOrderId,
                 isSetShelfId: model.IsShelfAssigned, orderItemStatusId: model.OrderItemStatusId);
+
             var vendors = _vendorService.GetAllVendors();
             var gridModel = new DataSourceResult
             {

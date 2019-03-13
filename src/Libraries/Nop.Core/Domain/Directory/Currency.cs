@@ -23,6 +23,10 @@ namespace Nop.Core.Domain.Directory
         /// Gets or sets the rate
         /// </summary>
         public decimal Rate { get; set; }
+        /// <summary>
+        /// Gets or sets the rate
+        /// </summary>
+        public decimal VndRate { get; set; }
 
         /// <summary>
         /// Gets or sets the display locale

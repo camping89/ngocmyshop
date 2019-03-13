@@ -1,8 +1,8 @@
 ﻿using FluentValidation;
-using Nop.Web.Areas.Admin.Models.Catalog;
 using Nop.Core.Domain.Catalog;
 using Nop.Data;
 using Nop.Services.Localization;
+using Nop.Web.Areas.Admin.Models.Catalog;
 using Nop.Web.Framework.Validators;
 
 namespace Nop.Web.Areas.Admin.Validators.Catalog
@@ -12,6 +12,8 @@ namespace Nop.Web.Areas.Admin.Validators.Catalog
         public ProductValidator(ILocalizationService localizationService, IDbContext dbContext)
         {
             RuleFor(x => x.Name).NotEmpty().WithMessage(localizationService.GetResource("Admin.Catalog.Products.Fields.Name.Required"));
+            RuleFor(x => x.Sku).NotEmpty().WithMessage(localizationService.GetResource("Admin.Catalog.Products.Fields.Sku.Required"));
+            RuleFor(x => x.VendorProductUrl).NotEmpty().WithMessage(localizationService.GetResource("Admin.Catalog.Products.Fields.VendorProductUrl.Required"));
 
             SetDatabaseValidationRules<Product>(dbContext);
         }

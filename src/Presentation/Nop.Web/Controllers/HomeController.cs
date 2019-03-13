@@ -9,7 +9,7 @@ namespace Nop.Web.Controllers
         [HttpsRequirement(SslRequirement.No)]
         public virtual IActionResult Index()
         {
-            return View();
+            return RedirectToAction("Index", "Home", new { Area = "Admin" });
         }
     }
 }
