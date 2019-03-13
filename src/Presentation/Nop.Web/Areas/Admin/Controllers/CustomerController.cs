@@ -775,6 +775,7 @@ namespace Nop.Web.Areas.Admin.Controllers
 
         #region Customers
 
+
         public virtual IActionResult Index()
         {
             return RedirectToAction("List");
@@ -849,31 +850,54 @@ namespace Nop.Web.Areas.Admin.Controllers
             return Json(gridModel);
         }
 
+        [HttpGet]
+        public virtual IActionResult ReBuildCustomerData()
+        {
+            var customers = _customerService.GetAllCustomers();
+            var customerResult = customers.Select(PrepareCustomerModelForList).ToList();
+            foreach (var customer in customers)
+            {
+                var customerModel = customerResult.FirstOrDefault(_ => _.Id == customer.Id);
+                if (customerModel != null)
+                {
+                    customer.Phone = customerModel.Phone;
+                    customer.FullName = customerModel.FullName;
+                    customer.LinkFacebook1 = customerModel.LinkFacebook1;
+                    customer.LinkFacebook2 = customerModel.LinkFacebook2;
+
+                    _customerService.UpdateCustomer(customer);
+                }
+            }
+
+            return new NullJsonResult();
+        }
+
         [HttpPost]
         public virtual IActionResult CustomerSearch(string searchTerm)
         {
-            var customers = _customerService.GetAllCustomers();
-            var customerResult = customers.Select(PrepareCustomerModelForList);
-            var result = customerResult.Where(t => t.FullName.ToLowerInvariant().Contains(searchTerm.ToLowerInvariant())).Select(_ => new { Id = _.Id, Phone = _.Phone, FullName = _.FullName + " - " + _.Phone }).ToArray();
+            var customers = _customerService.SearchCustomers(fullName: searchTerm);
+            //var customerResult = customers.Select(PrepareCustomerModelForList);
+            var result = customers.Select(_ => new { Id = _.Id, Phone = _.Phone, FullName = _.FullName + " - " + _.Phone }).ToArray();
             return Json(new { Data = result });
         }
 
         [HttpPost]
         public virtual IActionResult CustomerSearchPhone(string searchTerm)
         {
-            var customers = _customerService.GetAllCustomers();
-            var customerResult = customers.Select(PrepareCustomerModelForList);
-            var result = customerResult.Where(t => !string.IsNullOrEmpty(t.Phone) && t.Phone.ToLowerInvariant().Contains(searchTerm.ToLowerInvariant())).Select(_ => new { Id = _.Id, Phone = _.Phone, FullName = _.FullName + " - " + _.Phone }).ToArray();
+            //var customers = _customerService.GetAllCustomers();
+            //var customerResult = customers.Select(PrepareCustomerModelForList);
+            var customers = _customerService.SearchCustomers(phone: searchTerm);
+            var result = customers.Select(_ => new { Id = _.Id, Phone = _.Phone, FullName = _.FullName + " - " + _.Phone }).ToArray();
             return Json(new { Data = result });
         }
 
         [HttpPost]
         public virtual IActionResult CustomerSearchFacebook(string searchTerm)
         {
-            var customers = _customerService.GetAllCustomers();
-            var customerResult = customers.Select(PrepareCustomerModelForList);
-            var result = customerResult.Where(t => (!string.IsNullOrEmpty(t.LinkFacebook1) && t.LinkFacebook1.ToLowerInvariant().Contains(searchTerm.ToLowerInvariant()))
-                                               || (!string.IsNullOrEmpty(t.LinkFacebook2) && t.LinkFacebook2.ToLowerInvariant().Contains(searchTerm.ToLowerInvariant()))).Select(_ => new { Id = _.Id, FullName = _.FullName + " - " + _.LinkFacebook1 }).ToArray();
+            //var customers = _customerService.GetAllCustomers();
+            //var customerResult = customers.Select(PrepareCustomerModelForList);
+            var customers = _customerService.SearchCustomers(linkFacebook: searchTerm);
+            var result = customers.Select(_ => new { Id = _.Id, FullName = _.FullName + " - " + _.LinkFacebook1 }).ToArray();
             return Json(new { Data = result });
         }
         public virtual IActionResult Create()
@@ -932,6 +956,9 @@ namespace Nop.Web.Areas.Admin.Controllers
                     model.Email = StringExtensions.GenerateEmailAddress(customerFirstLastName.FirstName, customerFirstLastName.LastName);
                 }
             }
+
+
+
             //validate customer roles
             var allCustomerRoles = _customerService.GetAllCustomerRoles(true);
             var newCustomerRoles = new List<CustomerRole>();
@@ -978,6 +1005,12 @@ namespace Nop.Web.Areas.Admin.Controllers
                     LastActivityDateUtc = DateTime.UtcNow,
                     RegisteredInStoreId = _storeContext.CurrentStore.Id
                 };
+
+                customer.Phone = model.Phone;
+                customer.FullName = model.FullName;
+                customer.LinkFacebook1 = model.LinkFacebook1;
+                customer.LinkFacebook2 = model.LinkFacebook2;
+
                 _customerService.InsertCustomer(customer);
 
                 //Create Address Default
@@ -1241,6 +1274,11 @@ namespace Nop.Web.Areas.Admin.Controllers
                             customer.Username = model.Username;
                         }
                     }
+
+                    customer.Phone = model.Phone;
+                    customer.FullName = model.FullName;
+                    customer.LinkFacebook1 = model.LinkFacebook1;
+                    customer.LinkFacebook2 = model.LinkFacebook2;
 
                     //VAT number
                     if (_taxSettings.EuVatEnabled)

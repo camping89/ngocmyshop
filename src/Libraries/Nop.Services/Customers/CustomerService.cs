@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Globalization;
-using System.Linq;
 using Nop.Core;
 using Nop.Core.Caching;
 using Nop.Core.Data;
@@ -19,6 +14,11 @@ using Nop.Core.Extensions;
 using Nop.Data;
 using Nop.Services.Common;
 using Nop.Services.Events;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
+using System.Linq;
 
 namespace Nop.Services.Customers
 {
@@ -114,7 +114,7 @@ namespace Nop.Services.Customers
             IGenericAttributeService genericAttributeService,
             IDataProvider dataProvider,
             IDbContext dbContext,
-            IEventPublisher eventPublisher, 
+            IEventPublisher eventPublisher,
             CustomerSettings customerSettings,
             CommonSettings commonSettings)
         {
@@ -365,7 +365,7 @@ namespace Nop.Services.Customers
                 var dateOfBirthStr = monthOfBirth.ToString("00", CultureInfo.InvariantCulture) + "-" + dayOfBirth.ToString("00", CultureInfo.InvariantCulture);
                 //EndsWith is not supported by SQL Server Compact
                 //so let's use the following workaround http://social.msdn.microsoft.com/Forums/is/sqlce/thread/0f810be1-2132-4c59-b9ae-8f7013c0cc00
-                
+
                 //we also cannot use Length function in SQL Server Compact (not supported in this context)
                 //z.Attribute.Value.Length - dateOfBirthStr.Length = 5
                 //dateOfBirthStr.Length = 5
@@ -382,7 +382,7 @@ namespace Nop.Services.Customers
                 var dateOfBirthStr = dayOfBirth.ToString("00", CultureInfo.InvariantCulture);
                 //EndsWith is not supported by SQL Server Compact
                 //so let's use the following workaround http://social.msdn.microsoft.com/Forums/is/sqlce/thread/0f810be1-2132-4c59-b9ae-8f7013c0cc00
-                
+
                 //we also cannot use Length function in SQL Server Compact (not supported in this context)
                 //z.Attribute.Value.Length - dateOfBirthStr.Length = 8
                 //dateOfBirthStr.Length = 2
@@ -438,7 +438,7 @@ namespace Nop.Services.Customers
             //search by IpAddress
             if (!string.IsNullOrWhiteSpace(ipAddress) && CommonHelper.IsValidIpAddress(ipAddress))
             {
-                    query = query.Where(w => w.LastIpAddress == ipAddress);
+                query = query.Where(w => w.LastIpAddress == ipAddress);
             }
 
             if (loadOnlyWithShoppingCart)
@@ -451,11 +451,44 @@ namespace Nop.Services.Customers
                     query.Where(c => c.ShoppingCartItems.Any(x => x.ShoppingCartTypeId == sctId)) :
                     query.Where(c => c.ShoppingCartItems.Any());
             }
-            
+
             query = query.OrderByDescending(c => c.CreatedOnUtc);
 
             var customers = new PagedList<Customer>(query, pageIndex, pageSize);
             return customers;
+        }
+
+        public List<Customer> SearchCustomers(string phone = null, string email = null, string linkFacebook = null, string username = null,
+            string fullName = null)
+        {
+            var query = _customerRepository.Table.Where(_ => _.Username != null || _.Username != string.Empty).AsEnumerable();
+            if (!string.IsNullOrEmpty(email))
+            {
+                query = query.Where(_ => _.Email != null && _.Email.ToUpperInvariant().Contains(email.ToUpperInvariant()));
+            }
+
+            if (!string.IsNullOrEmpty(phone))
+            {
+                query = query.Where(_ => _.Phone != null && _.Phone.ToUpperInvariant().Contains(phone.ToUpperInvariant()));
+            }
+
+            if (!string.IsNullOrEmpty(username))
+            {
+                query = query.Where(_ => _.Username != null && _.Username.ToUpperInvariant().Contains(username.ToUpperInvariant()));
+            }
+
+            if (!string.IsNullOrEmpty(fullName))
+            {
+                query = query.Where(_ => _.FullName != null && _.FullName.ToUpperInvariant().Contains(fullName.ToUpperInvariant()));
+            }
+
+            if (!string.IsNullOrEmpty(linkFacebook))
+            {
+                query = query.Where(_ => _.LinkFacebook1 != null && _.LinkFacebook1.ToUpperInvariant().Contains(linkFacebook.ToUpperInvariant())
+                                         || _.LinkFacebook2 != null && _.LinkFacebook2.ToUpperInvariant().Contains(linkFacebook.ToUpperInvariant()));
+            }
+
+            return query.OrderBy(_ => _.FullName).ToList();
         }
 
         /// <summary>
@@ -474,7 +507,7 @@ namespace Nop.Services.Customers
             query = query.Where(c => !c.Deleted);
             if (customerRoleIds != null && customerRoleIds.Length > 0)
                 query = query.Where(c => c.CustomerRoles.Select(cr => cr.Id).Intersect(customerRoleIds).Any());
-            
+
             query = query.OrderByDescending(c => c.LastActivityDateUtc);
             var customers = new PagedList<Customer>(query, pageIndex, pageSize);
             return customers;
@@ -517,7 +550,7 @@ namespace Nop.Services.Customers
         {
             if (customerId == 0)
                 return null;
-            
+
             return _customerRepository.GetById(customerId);
         }
 
@@ -545,7 +578,7 @@ namespace Nop.Services.Customers
             }
             return sortedCustomers;
         }
-        
+
         /// <summary>
         /// Gets a customer by GUID
         /// </summary>
@@ -617,7 +650,7 @@ namespace Nop.Services.Customers
             var customer = query.FirstOrDefault();
             return customer;
         }
-        
+
         /// <summary>
         /// Insert a guest customer
         /// </summary>
@@ -642,7 +675,7 @@ namespace Nop.Services.Customers
 
             return customer;
         }
-        
+
         /// <summary>
         /// Insert a customer
         /// </summary>
@@ -657,7 +690,7 @@ namespace Nop.Services.Customers
             //event notification
             _eventPublisher.EntityInserted(customer);
         }
-        
+
         /// <summary>
         /// Updates the customer
         /// </summary>
@@ -690,7 +723,7 @@ namespace Nop.Services.Customers
         {
             if (customer == null)
                 throw new ArgumentNullException();
-            
+
             //clear entered coupon codes
             if (clearCouponCodes)
             {
@@ -723,7 +756,7 @@ namespace Nop.Services.Customers
             {
                 _genericAttributeService.SaveAttribute<string>(customer, SystemCustomerAttributeNames.SelectedPaymentMethod, null, storeId);
             }
-            
+
             UpdateCustomer(customer);
         }
 
@@ -748,7 +781,7 @@ namespace Nop.Services.Customers
         }
 
         #endregion
-        
+
         #region Customer roles
 
         /// <summary>
@@ -824,7 +857,7 @@ namespace Nop.Services.Customers
                 return customerRoles;
             });
         }
-        
+
         /// <summary>
         /// Inserts a customer role
         /// </summary>
@@ -870,7 +903,7 @@ namespace Nop.Services.Customers
         /// <param name="passwordFormat">Password format; pass null to load all records</param>
         /// <param name="passwordsToReturn">Number of returning passwords; pass null to load all records</param>
         /// <returns>List of customer passwords</returns>
-        public virtual IList<CustomerPassword> GetCustomerPasswords(int? customerId = null, 
+        public virtual IList<CustomerPassword> GetCustomerPasswords(int? customerId = null,
             PasswordFormat? passwordFormat = null, int? passwordsToReturn = null)
         {
             var query = _customerPasswordRepository.Table;

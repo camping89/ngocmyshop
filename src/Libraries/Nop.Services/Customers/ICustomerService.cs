@@ -1,8 +1,8 @@
-using System;
-using System.Collections.Generic;
 using Nop.Core;
 using Nop.Core.Domain.Customers;
 using Nop.Core.Domain.Orders;
+using System;
+using System.Collections.Generic;
 
 namespace Nop.Services.Customers
 {
@@ -57,6 +57,9 @@ namespace Nop.Services.Customers
         IPagedList<Customer> GetOnlineCustomers(DateTime lastActivityFromUtc,
             int[] customerRoleIds, int pageIndex = 0, int pageSize = int.MaxValue);
 
+
+        List<Customer> SearchCustomers(string phone = null, string email = null, string linkFacebook = null, string username = null,
+            string fullName = null);
         /// <summary>
         /// Delete a customer
         /// </summary>
@@ -76,7 +79,7 @@ namespace Nop.Services.Customers
         /// <param name="customerIds">Customer identifiers</param>
         /// <returns>Customers</returns>
         IList<Customer> GetCustomersByIds(int[] customerIds);
-        
+
         /// <summary>
         /// Gets a customer by GUID
         /// </summary>
@@ -90,7 +93,7 @@ namespace Nop.Services.Customers
         /// <param name="email">Email</param>
         /// <returns>Customer</returns>
         Customer GetCustomerByEmail(string email);
-        
+
         /// <summary>
         /// Get customer by system role
         /// </summary>
@@ -122,7 +125,7 @@ namespace Nop.Services.Customers
         /// </summary>
         /// <param name="customer">Customer</param>
         void UpdateCustomer(Customer customer);
-        
+
         /// <summary>
         /// Reset data required for checkout
         /// </summary>

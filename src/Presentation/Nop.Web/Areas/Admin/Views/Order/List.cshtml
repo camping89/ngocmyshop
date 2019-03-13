@@ -420,6 +420,21 @@
                                             sortable: false
                                         },
 
+                                        {
+                                            field: "CustomerFullName",
+                                            title: "@T("Admin.Orders.Fields.Customer")",
+                                            width: 200,
+                                            template: '<p>#=CustomerFullName#</p>' +
+                                                '<p>#=CustomerPhone#</p>'+
+                                                '<p>Địa chỉ: #=CustomerAddress# </p>'+
+
+                                                '# if( CustomerLinkFacebook != null) { # ' +
+                                                'Facebook: <a target="_blank" href="#=CustomerLinkFacebook#">#=CustomerShortLinkFacebook#</a>' +
+                                                '# }else { #' +
+                                                '<p></p>' +
+                                                '# } #',
+                                            sortable: false
+                                        },
                                         @*{
                                             field: "CustomerLinkFacebook",
                                             title: "@T("admin.customers.customers.fields.facebook")",
@@ -524,21 +539,6 @@
                                             sortable: false
                                         },</text>
                         }
-                                        {
-                                            field: "CustomerFullName",
-                                            title: "@T("Admin.Orders.Fields.Customer")",
-                                            width: 200,
-                                            template: '<p>#=CustomerFullName#</p>' +
-                                                '<p>#=CustomerPhone#</p>'+
-                                                '<p>Địa chỉ: #=CustomerAddress# </p>'+
-
-                                                '# if( CustomerLinkFacebook != null) { # ' +
-                                                'Facebook: <a target="_blank" href="#=CustomerLinkFacebook#">#=CustomerShortLinkFacebook#</a>' +
-                                                '# }else { #' +
-                                                '<p></p>' +
-                                                '# } #',
-                                            sortable: false
-                                        },
                                         {
                                             field: "Id",
                                             title: "@T("Admin.Common.View")",
