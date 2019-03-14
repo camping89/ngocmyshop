@@ -1334,6 +1334,20 @@ namespace Nop.Web.Areas.Admin.Controllers
             return List();
         }
 
+
+        public virtual IActionResult GetOrderingFee()
+        {
+            return Json(new
+            {
+                Data = new[]
+                {
+                    new {Value = 30000, Label = 30000},
+                    new {Value = 40000, Label = 40000},
+                    new {Value = 50000, Label = 50000},
+                    new {Value = 60000, Label = 60000},
+            }
+            });
+        }
         //create product
         public virtual IActionResult Create()
         {
