@@ -312,7 +312,7 @@ namespace Nop.Services.Customers
             string ipAddress = null, bool loadOnlyWithShoppingCart = false, ShoppingCartType? sct = null,
             int pageIndex = 0, int pageSize = int.MaxValue)
         {
-            var query = _customerRepository.Table;
+            var query = _customerRepository.Table.Where(_ => _.Username != null && _.Email != null);
             if (createdFromUtc.HasValue)
                 query = query.Where(c => createdFromUtc.Value <= c.CreatedOnUtc);
             if (createdToUtc.HasValue)
@@ -778,6 +778,19 @@ namespace Nop.Services.Customers
 
             //stored procedures aren't supported. Use LINQ
             return DeleteGuestCustomersUseLinq(createdFromUtc, createdToUtc, onlyWithoutShoppingCart);
+        }
+
+        public virtual int DeleteEmptyCustomers()
+        {
+            var query = _customerRepository.Table.Where(_ => _.Username == null && _.Email == null);
+            var count = 0;
+            foreach (var customer in query.ToList())
+            {
+                _customerRepository.Delete(customer);
+                count++;
+            }
+
+            return count;
         }
 
         #endregion

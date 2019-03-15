@@ -709,6 +709,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                     primaryStoreCurrency, _workContext.WorkingLanguage, true, true),
                 OrderItemStatus = orderItem.OrderItemStatus.GetLocalizedEnum(_localizationService, _workContext),
                 OrderItemStatusId = orderItem.OrderItemStatusId,
+                PackageItemProcessedDatetime = orderItem.PackageItemProcessedDatetime?.ToString("MM/dd/yyyy"),
                 Note = orderItem.Note
             };
 
@@ -6516,7 +6517,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             var primaryStoreCurrency = _currencyService.GetCurrencyById(_currencySettings.PrimaryStoreCurrencyId);
 
             var orderItems = _orderService.GetOrderItemsVendorCheckout(model.VendorProductUrl, model.OrderId, model.OrderItemId, command.Page - 1, command.PageSize,
-                isOrderCheckout: model.IsOrderCheckout, isPackageItemProcessed: model.IsPackageItemProcessed, todayFilter: model.TodayFilter,
+                isPackageItemProcessed: model.IsPackageItemProcessed, todayFilter: model.TodayFilter,
                 customerPhone: model.CustomerPhone, packageOrderCode: model.PackageOrderCode,
                 vendorId: model.VendorId, isSetPackageOrderId: model.IsSetPackageOrderId,
                 isSetShelfId: model.IsShelfAssigned, orderItemStatusId: model.OrderItemStatusId);
@@ -6654,7 +6655,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageOrders))
                 return AccessDeniedView();
 
-            var orderItems = _orderService.GetOrderItemsVendorCheckout(model.VendorProductUrl, model.OrderItemId, isOrderCheckout: model.IsOrderCheckout);
+            var orderItems = _orderService.GetOrderItemsVendorCheckout(model.VendorProductUrl, model.OrderItemId);
             try
             {
                 var bytes = _exportManager.ExportOrderItemsToXlsxBasic(orderItems);
@@ -6675,7 +6676,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageOrders))
                 return AccessDeniedView();
 
-            var orderItems = _orderService.GetOrderItemsVendorCheckout(model.VendorProductUrl, model.OrderItemId, isOrderCheckout: model.IsOrderCheckout);
+            var orderItems = _orderService.GetOrderItemsVendorCheckout(model.VendorProductUrl, model.OrderItemId);
             try
             {
                 byte[] bytes;

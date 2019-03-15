@@ -14,6 +14,7 @@ namespace Nop.Web.Areas.Admin.Models.Orders
             ShelfOrderItemsStatus = new List<SelectListItem>();
             CustomerNotifiedStatus = new List<SelectListItem>();
             ShelfNoteStatus = new List<SelectListItem>();
+            PackageItemProcessedDatetimeStatus = new List<SelectListItem>();
         }
         [NopResourceDisplayName("Admin.Orders.Shelf.Fields.CustomerId")]
         public int CustomerId { get; set; }
@@ -60,8 +61,12 @@ namespace Nop.Web.Areas.Admin.Models.Orders
         public bool ShipTodayFilter { get; set; }
 
         [NopResourceDisplayName("Admin.ShelfOrderItem.ShelfNoteId")]
-        public int ShelfNoteId { get; set; }
+        public int? ShelfNoteId { get; set; }
 
+        [NopResourceDisplayName("Admin.ShelfOrderItem.IsPackageItemProcessedDatetime")]
+        public bool? IsPackageItemProcessedDatetime { get; set; }
+
+        public List<SelectListItem> PackageItemProcessedDatetimeStatus { get; set; }
         public List<SelectListItem> ShelfOrderItemsStatus { get; set; }
         public List<SelectListItem> CustomerNotifiedStatus { get; set; }
         public List<SelectListItem> ShelfNoteStatus { get; set; }

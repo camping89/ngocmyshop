@@ -68,6 +68,13 @@ namespace Nop.Web.Areas.Admin.Controllers
                 new SelectListItem() {Value = "False",Text = _localizationService.GetResource("Admin.ShelfOrderItem.IsCustomerNotified.False")},
             });
 
+            shelfListModel.PackageItemProcessedDatetimeStatus.AddRange(new List<SelectListItem>()
+            {
+                new SelectListItem { Value = "", Text = _localizationService.GetResource("Admin.Common.All"), Selected = true},
+                new SelectListItem() {Value = "True",Text = _localizationService.GetResource("Admin.ShelfOrderItem.IsPackageItemProcessedDatetimeStatus.True")},
+                new SelectListItem() {Value = "False",Text = _localizationService.GetResource("Admin.ShelfOrderItem.IsPackageItemProcessedDatetimeStatus.False")},
+            });
+
             var customers = _customerService.GetAllCustomers().Where(_ => string.IsNullOrEmpty(_.GetFullName()) == false);
             shelfListModel.Customers = customers.Select(x =>
             {
@@ -81,8 +88,8 @@ namespace Nop.Web.Areas.Admin.Controllers
 
             shelfListModel.Customers.Insert(0, new SelectListItem { Value = "0", Text = _localizationService.GetResource("Admin.Common.All") });
 
-            shelfListModel.ShelfNoteStatus = ShelfNoteStatus.NoReply.ToSelectList(true).ToList();
-            //shelfListModel.ShelfNoteStatus.Insert(0, new SelectListItem { Value = "0", Text = _localizationService.GetResource("Admin.Common.All") });
+            shelfListModel.ShelfNoteStatus = ShelfNoteStatus.NoReply.ToSelectList(false).ToList();
+            shelfListModel.ShelfNoteStatus.Insert(0, new SelectListItem { Value = "", Text = _localizationService.GetResource("Admin.Common.All"), Selected = true });
 
             return View(shelfListModel);
         }
@@ -107,7 +114,8 @@ namespace Nop.Web.Areas.Admin.Controllers
                 model.IsShelfEmpty,
                 shelfCode: model.ShelfCode,
                 isCustomerNotified: model.IsCustomerNotified,
-                shelfNoteId: model.ShelfNoteId);
+                shelfNoteId: model.ShelfNoteId,
+                isPackageItemProcessedDatetime: model.IsPackageItemProcessedDatetime);
             var gridModel = new DataSourceResult
             {
                 Data = shelfs.Select(x =>

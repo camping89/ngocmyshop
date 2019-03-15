@@ -31,7 +31,8 @@ namespace Nop.Services.Shipping
             DateTime? assignedFromUtc = null, DateTime? assignedToUtc = null,
             DateTime? assignedOrderItemFromUtc = null, DateTime? assignedOrderItemToUtc = null,
             DateTime? shippedFromUtc = null, DateTime? shippedToUtc = null,
-            int pageIndex = 0, int pageSize = int.MaxValue, bool isShelfEmpty = false, bool? isCustomerNotified = null, string shelfCode = null, int? shelfNoteId = null)
+            int pageIndex = 0, int pageSize = int.MaxValue, bool isShelfEmpty = false,
+            bool? isCustomerNotified = null, string shelfCode = null, int? shelfNoteId = null, bool? isPackageItemProcessedDatetime = null)
         {
             var query = _shelfRepository.Table;
 
@@ -82,6 +83,20 @@ namespace Nop.Services.Shipping
             if (shelfNoteId != null)
             {
                 query = query.Where(_ => _.ShelfNoteId == shelfNoteId);
+            }
+
+            if (isPackageItemProcessedDatetime != null)
+            {
+                if (isPackageItemProcessedDatetime.Value)
+                {
+                    var shelfOrderItems = _shelfOrderItemRepository.Table.Where(s => s.OrderItem.PackageItemProcessedDatetime != null).Select(_ => _.ShelfId).Distinct().ToList();
+                    query = query.Where(_ => shelfOrderItems.Contains(_.Id));
+                }
+                else
+                {
+                    var shelfOrderItems = _shelfOrderItemRepository.Table.Where(s => s.OrderItem.PackageItemProcessedDatetime == null).Select(_ => _.ShelfId).Distinct().ToList();
+                    query = query.Where(_ => shelfOrderItems.Contains(_.Id));
+                }
             }
 
             if (isShelfEmpty)

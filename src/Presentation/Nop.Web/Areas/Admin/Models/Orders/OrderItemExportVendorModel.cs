@@ -45,8 +45,8 @@ namespace Nop.Web.Areas.Admin.Models.Orders
         [NopResourceDisplayName("Admin.OrderItem.ExportVendor.Fields.OrderId")]
         public string OrderId { get; set; }
 
-        [NopResourceDisplayName("Admin.OrderItem.ExportVendor.Fields.IsOrderCheckout")]
-        public bool? IsOrderCheckout { get; set; }
+        //[NopResourceDisplayName("Admin.OrderItem.ExportVendor.Fields.IsOrderCheckout")]
+        //public bool? IsOrderCheckout { get; set; }
 
         [NopResourceDisplayName("Admin.OrderItem.ExportVendor.Fields.IsOrderCheckoutStatusItems")]
         public List<SelectListItem> IsOrderCheckoutStatusItems { get; set; }

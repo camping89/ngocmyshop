@@ -148,6 +148,9 @@
                                         <nop-select asp-for="IsSetPackageOrderId" asp-items="Model.IsSetPackageOrderIdStatus" />
                                     </div>
                                 </div>
+
+                            </div>
+                            <div class="col-md-6">
                                 <div class="form-group">
                                     <div class="col-md-4">
                                         <nop-label asp-for="IsShelfAssigned" />
@@ -156,9 +159,6 @@
                                         <nop-select asp-for="IsShelfAssigned" asp-items="Model.IsSetShelfIdStatus" />
                                     </div>
                                 </div>
-
-                            </div>
-                            <div class="col-md-6">
 
 
                                 <div class="form-group">
@@ -187,14 +187,14 @@
                                     </div>
                                 </div>
 
-                                <div class="form-group">
-                                    <div class="col-md-4">
-                                        <nop-label asp-for="IsOrderCheckout" />
-                                    </div>
-                                    <div class="col-md-8">
-                                        <nop-select asp-for="IsOrderCheckout" asp-items="@Model.IsOrderCheckoutStatusItems" />
-                                    </div>
-                                </div>
+                                @*<div class="form-group">
+                                        <div class="col-md-4">
+                                            <nop-label asp-for="IsOrderCheckout" />
+                                        </div>
+                                        <div class="col-md-8">
+                                            <nop-select asp-for="IsOrderCheckout" asp-items="@Model.IsOrderCheckoutStatusItems" />
+                                        </div>
+                                    </div>*@
                             </div>
                         </div>
                         <div class="row">
@@ -412,7 +412,7 @@
                                                 }, {
                                                     field: "UnitPriceBase",
                                                     title: "@T("Admin.Orders.Products.UnitPriceBase")",
-                                                    width: 100
+                                                    width: 70
                                                 }, {
                                                     field: "Quantity",
                                                     title: "@T("Admin.Orders.Products.Quantity")",
@@ -866,7 +866,7 @@
                                             $('#@Html.IdFor(model => model.CustomerPhone)').val('');
 
                                             $('#@Html.IdFor(model => model.TodayFilter)').prop('checked', false);
-                                            $('#@Html.IdFor(model => model.IsOrderCheckout)').val(0);
+                                            @*$('#@Html.IdFor(model => model.IsOrderCheckout)').val(0);*@
                                             $('#@Html.IdFor(model => model.IsSetPackageOrderIdStatus)').val(0);
                                             $('#@Html.IdFor(model => model.IsSetShelfIdStatus)').val(0);
                                             $('#@Html.IdFor(model => model.OrderItemStatusId)').val(-1);
@@ -921,7 +921,7 @@
                                             VendorProductUrl: $('#@Html.IdFor(model => model.VendorProductUrl)').val(),
                                             OrderId: $('#@Html.IdFor(model => model.OrderId)').val(),
                                             OrderItemId: $('#@Html.IdFor(model => model.OrderItemId)').val(),
-                                            IsOrderCheckout: $('#@Html.IdFor(model => model.IsOrderCheckout)').val(),
+                                            @*IsOrderCheckout: $('#@Html.IdFor(model => model.IsOrderCheckout)').val(),*@
                                             IsSetPackageOrderId: $('#@Html.IdFor(model => model.IsSetPackageOrderId)')
                                                 .val(),
                                             IsSetSetShelfId: $('#@Html.IdFor(model => model.IsShelfAssigned)').val(),

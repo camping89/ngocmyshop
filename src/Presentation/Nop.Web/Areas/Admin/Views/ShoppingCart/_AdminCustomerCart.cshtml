@@ -390,7 +390,7 @@
             data: postData,
             dataType: 'json',
             success: function(data) {
-                var currencyRate = (parseInt("@(Model.CurrencyCurrent.Rate)")/data.data.Rate).toFixed(4);
+                var currencyRate = data.data.VndRate.toFixed(4);
                 if (data.data.Id === currencyId) {
                     currencyRate = exchangeRate;
                 }

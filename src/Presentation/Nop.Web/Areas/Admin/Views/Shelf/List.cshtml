@@ -94,6 +94,17 @@
 
                         </div>
                         <div class="col-md-6">
+
+
+                            <div class="form-group">
+                                <div class="col-md-4">
+                                    <nop-label asp-for="IsPackageItemProcessedDatetime" />
+                                </div>
+                                <div class="col-md-8">
+                                    <nop-select asp-for="IsPackageItemProcessedDatetime" asp-items="Model.PackageItemProcessedDatetimeStatus" />
+                                </div>
+                            </div>
+
                             <div class="form-group">
                                 <div class="col-md-4">
                                     <nop-label asp-for="AssignedFromDate" />
@@ -477,7 +488,15 @@
                                 ]
                             });
 
+                            $("#shelf-grid").on("change", "input[name=IsCustomerNotified]", function(e) {
+                                var shelfgrid = $("#shelf-grid").data("kendoGrid"),
+                                    dataItem = shelfgrid.dataItem($(e.target).closest("tr"));
+                                console.log($(this).is(":checked"));
+                                if ($(this).is(":checked")) {
+                                    dataItem.set("ShelfNoteId", 0);
+                                }
 
+                            });
 
                             // handle grid row clicks for detail row expansion
                             grid.on("click","td.k-hierarchy-cell",function(e) {
@@ -709,6 +728,10 @@
                                             "<p></p>" +
                                             "# } #"
                                         }, {
+                                            field: "PackageItemProcessedDatetime",
+                                            title: "@T("Admin.OrderItem.PackageItemProcessedDatetime")",
+                                            width: 100
+                                        }, {
                                             field: "ShelfOrderItem.IsActive",
                                             title: "@T("Admin.ShelfOrderItem.IsActive")",
                                             template: "# if (ShelfOrderItemIsActive) { #" +
@@ -828,6 +851,7 @@
                                 $('#@Html.IdFor(model => model.ShipTodayFilter)').prop('checked', false);
                                 $('#@Html.IdFor(model => model.IsCustomerNotified)').val(0);
                                 $('#@Html.IdFor(model => model.ShelfNoteId)').val(0);
+                                $('#@Html.IdFor(model => model.IsPackageItemProcessedDatetime)').val(0);
                                 $("#search-shelf").click();
                             });
 
@@ -848,7 +872,8 @@
                                 ShelfOrderItemIsActive: $('#@Html.IdFor(model => model.ShelfOrderItemIsActive)').val(),
                                 IsShelfEmpty: $('#@Html.IdFor(model => model.IsShelfEmpty)').is(":checked"),
                                 IsCustomerNotified: $('#@Html.IdFor(model => model.IsCustomerNotified)').val(),
-                                ShelfNoteId: $('#@Html.IdFor(model => model.ShelfNoteId)').val()
+                                ShelfNoteId: $('#@Html.IdFor(model => model.ShelfNoteId)').val(),
+                                IsPackageItemProcessedDatetime: $('#@Html.IdFor(model => model.IsPackageItemProcessedDatetime)').val()
                             };
                             addAntiForgeryToken(data);
                             return data;
