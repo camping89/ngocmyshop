@@ -1878,10 +1878,10 @@ namespace Nop.Web.Areas.Admin.Controllers
                 procIds = _productService.GetProductsByVendorProductUrl(model.LinkSourceProduct).Select(_ => _.Id).ToList();
             }
 
-            stopwatch.Stop();
-            var secondRun = stopwatch.ElapsedMilliseconds;
+            //stopwatch.Stop();
+            //var secondRun = stopwatch.ElapsedMilliseconds;
 
-            stopwatch = Stopwatch.StartNew();
+            //stopwatch = Stopwatch.StartNew();
             //load orders
             var orders = _orderService.SearchOrders(storeId: model.StoreId,
                 vendorId: model.VendorId,
@@ -1905,7 +1905,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 orderBy: sortingEnum,
                 orderId: model.OrderId);
 
-            secondRun = stopwatch.ElapsedMilliseconds;
+            //secondRun = stopwatch.ElapsedMilliseconds;
             var gridModel = new DataSourceResult
             {
                 Data = orders.Select(x =>
@@ -1923,6 +1923,8 @@ namespace Nop.Web.Areas.Admin.Controllers
                     {
                         shortLink = shortLink.Split('?').FirstOrDefault();
                     }
+
+                    var customerAddress = x.Customer.Addresses.FirstOrDefault();
                     var orderModel = new OrderModelBasic
                     {
                         Id = x.Id,
@@ -1937,7 +1939,9 @@ namespace Nop.Web.Areas.Admin.Controllers
                         //CustomerEmail = x.BillingAddress.Email,
                         CustomerFullName = $"{x.BillingAddress.FirstName} {x.BillingAddress.LastName}",
                         CustomerAddress = x.BillingAddress.Address1,
-                        CustomerPhone = x.Customer.GetAttribute<string>(SystemCustomerAttributeNames.Phone),
+                        CustomerPhone = x.Customer.Phone,
+                        CustomerDistrict = customerAddress != null ? customerAddress.District : x.BillingAddress.District,
+                        CustomerCity = customerAddress != null ? customerAddress.City : x.BillingAddress.City,
                         CustomerLinkFacebook = linkFacebook,
                         CustomerShortLinkFacebook = shortLink,
                         CreatedOn = _dateTimeHelper.ConvertToUserTime(x.CreatedOnUtc, DateTimeKind.Utc),
@@ -1947,6 +1951,17 @@ namespace Nop.Web.Areas.Admin.Controllers
                         AdminNote = x.AdminNote ?? string.Empty,
                         OrderTotalWithoutWeightCost = _priceFormatter.FormatPrice(x.OrderTotal - x.WeightCost, true, false)
                     };
+
+                    if (string.IsNullOrEmpty(orderModel.CustomerDistrict))
+                    {
+                        orderModel.CustomerDistrict = "Chưa xác định";
+                    }
+
+                    if (string.IsNullOrEmpty(orderModel.CustomerCity))
+                    {
+                        orderModel.CustomerCity = "Chưa xác định";
+                    }
+
                     //PrepareOrderDetailsModel(orderModel, x);
                     //if (orderModel.Items.Count > 0)
                     //{
@@ -6518,7 +6533,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                     if (customerOrder != null)
                     {
                         customerFacebook = customerOrder.GetAttribute<string>(SystemCustomerAttributeNames.LinkFacebook1);
-                        if (Core.Extensions.StringExtensions.IsNotNullOrEmpty(customerFacebook) && customerFacebook.Split('/').ToList().Count > 0)
+                        if (string.IsNullOrEmpty(customerFacebook) == false)
                         {
                             customerShortFacebook = customerFacebook.Split('/').ToList().Last();
                             if (string.IsNullOrEmpty(customerShortFacebook) == false)

@@ -42,6 +42,10 @@ namespace Nop.Web.Areas.Admin.Models.Orders
         public string CustomerPhone { get; set; }
         [NopResourceDisplayName("Admin.Orders.Fields.CustomerAddress")]
         public string CustomerAddress { get; set; }
+        [NopResourceDisplayName("Admin.Orders.Fields.CustomerDistrict")]
+        public string CustomerDistrict { get; set; }
+        [NopResourceDisplayName("Admin.Orders.Fields.CustomerCity")]
+        public string CustomerCity { get; set; }
         [NopResourceDisplayName("Admin.Orders.Fields.CustomerLinkFacebook")]
         public string CustomerLinkFacebook { get; set; }
         public string CustomerShortLinkFacebook { get; set; }

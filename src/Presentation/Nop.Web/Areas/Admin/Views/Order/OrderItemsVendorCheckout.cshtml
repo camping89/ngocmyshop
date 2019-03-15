@@ -281,7 +281,7 @@
                                                             OrderItemStatusId: { editable: true, type: "int" },
                                                             ShelfId: { editable: true, type: "number" },
                                                             ShelfCode: { editable: true, type: "string" },
-                                                            Note: { editable: true, type: "string" },
+                                                            Note: { editable: false, type: "string" },
                                                             Deposit: { editable: true, type: "string" }
                                                         }
                                                     }
@@ -441,6 +441,7 @@
                                                     field: "ItemWeight",
                                                     title: "@T("Admin.Orders.Products.ItemWeight")",
                                                     width: 70,
+                                                    template: "#= ItemWeight #"+" g"
                                                     //hidden: true
                                                 }, {
                                                     field: "Deposit",
@@ -500,11 +501,11 @@
                                                         "<p></p>" +
                                                         "# } #"
                                                 },
-                                                @*{
+                                                {
                                                     field: "Note",
                                                     title: "@T("Admin.OrderItem.Note")",
-                                                    width: 150
-                                                },*@
+                                                    width: 100
+                                                },
                                                 {
                                                     field: "OrderItemStatusId",
                                                     title: "@T("Admin.Orders.Products.OrderItemStatus")",
