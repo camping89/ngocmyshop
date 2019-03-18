@@ -25,6 +25,7 @@ using Nop.Services.Media;
 using Nop.Services.Messages;
 using Nop.Services.Orders;
 using Nop.Services.Seo;
+using Nop.Services.Shipping;
 using Nop.Services.Shipping.Date;
 using Nop.Services.Stores;
 using Nop.Services.Tax;
@@ -112,6 +113,7 @@ namespace Nop.Services.Tests.ExportImport
             var nopEngine = MockRepository.GenerateMock<NopEngine>();
             var serviceProvider = MockRepository.GenerateMock<IServiceProvider>();
             var urlRecordService = MockRepository.GenerateMock<IUrlRecordService>();
+            var shelfService = MockRepository.GenerateMock<IShelfService>();
             var picture = new Picture
             {
                 Id = 1,
@@ -158,7 +160,7 @@ namespace Nop.Services.Tests.ExportImport
                 , _pictureService
                 , _newsLetterSubscriptionService
                 , _storeService, _workContext, _productEditorSettings, _vendorService, _productTemplateService, _dateRangeService, _taxCategoryService, _measureService, _catalogSettings, _genericAttributeService, _customerAttributeFormatter, _orderSettings, _specificationAttributeService, _priceFormatter, _languageService, _currencyService, _currencySettings, _productAttributeParser, _dateTimeHelper, _packageOrderService
-                , _localizationService, _orderService);
+                , _localizationService, _orderService, shelfService);
         }
 
         #region Utilities

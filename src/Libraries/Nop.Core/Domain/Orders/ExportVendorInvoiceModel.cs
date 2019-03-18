@@ -32,6 +32,8 @@ namespace Nop.Core.Domain.Orders
     public class ExportVendorInvoiceItemModel
     {
         public string OrderId { get; set; }
+        public string OrderItemId { get; set; }
+        public string AssignedByUser { get; set; }
         public string CustomerInfo { get; set; }
         public string OrderDate { get; set; }
         public string VendorProductUrl { get; set; }
@@ -44,17 +46,24 @@ namespace Nop.Core.Domain.Orders
         public decimal TotalWithoutWeightCost { get; set; }
         public decimal WeightCost { get; set; }
         public decimal TotalCost { get; set; }
+        public string UnitWeightCost { get; set; }
+        public string Weight { get; set; }
 
-        public decimal BaseUnitPrice { get; set; }
+        public string BaseUnitPrice { get; set; }
+        public string Deposit { get; set; }
+        public string ShelfCode { get; set; }
+        public string DeliveryDateUtc { get; set; }
+        public string OrderItemStatus { get; set; }
+        public string IsOrderCheckout { get; set; }
         public decimal ExchangeRate { get; set; }
         public decimal OrderingFee { get; set; }
         public double SaleOff { get; set; }
         public string ETA { get; set; }
         public string Note { get; set; }
-        //public string PackageOrderCode { get; set; }
+        public string PackageOrderCode { get; set; }
         //public string PackageOrderItemCode { get; set; }
 
-        //public string PackageItemProcessedDatetime { get; set; }
+        public string PackageItemProcessedDatetime { get; set; }
 
         //public string IsVendorCheckout { get; set; }
 

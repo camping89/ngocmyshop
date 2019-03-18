@@ -1375,7 +1375,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             model.CurrencySelectorModel = _commonModelFactory.PrepareCurrencySelectorModel();
             try
             {
-
+                model.CurrencyId = _settingService.GetSettingByKey("Product.DefaultCurrencyId", 3);
                 model.CurrencyCurrent = _currencyService.GetCurrencyById(_currencySettings.PrimaryStoreCurrencyId, false);
                 var primaryStoreCurrency = _currencyService.GetCurrencyById(_currencySettings.PrimaryStoreCurrencyId, false);
                 model.PrimaryExchangeCurrency = primaryStoreCurrency ?? throw new NopException("Primary store currency is not set");
