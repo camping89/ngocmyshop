@@ -342,7 +342,7 @@ namespace Nop.Web.Areas.Admin.Models.Orders
 
             public string AttributeInfo { get; set; }
             public string PictureThumbnailUrl { get; set; }
-            public DateTime? DeliveryDateUtc { get; set; }
+            public string DeliveryDateUtc { get; set; }
 
             public string PrimaryStoreCurrencyCode { get; set; }
             public decimal Deposit { get; set; }

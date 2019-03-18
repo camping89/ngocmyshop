@@ -1833,10 +1833,10 @@ namespace Nop.Services.ExportImport
                 new PropertyByName<ExportVendorInvoiceItemModel>("TotalWithoutWeightCost", oi => oi.TotalWithoutWeightCost),
                 new PropertyByName<ExportVendorInvoiceItemModel>("Quantity", oi => oi.Quantity),
                 new PropertyByName<ExportVendorInvoiceItemModel>("WeightCost", oi => oi.WeightCost),
+                new PropertyByName<ExportVendorInvoiceItemModel>("ShelfCode", oi => oi.ShelfCode),
                 new PropertyByName<ExportVendorInvoiceItemModel>("TotalCost", oi => oi.TotalCost),
                 new PropertyByName<ExportVendorInvoiceItemModel>("UnitWeightCost", oi => oi.UnitWeightCost),
                 new PropertyByName<ExportVendorInvoiceItemModel>("Weight", oi => oi.Weight),
-                new PropertyByName<ExportVendorInvoiceItemModel>("ShelfCode", oi => oi.ShelfCode),
                 new PropertyByName<ExportVendorInvoiceItemModel>("PackageItemProcessedDatetime", oi => oi.PackageItemProcessedDatetime),
                 new PropertyByName<ExportVendorInvoiceItemModel>("DeliveryDateUtc", oi => oi.DeliveryDateUtc),
                 new PropertyByName<ExportVendorInvoiceItemModel>("Note", oi => oi.Note),
@@ -1894,7 +1894,7 @@ namespace Nop.Services.ExportImport
                     orderItemStatus = _localizationService.GetResource("Admin.Orders.OrderItem.PriceChanged");
                 }
 
-
+                var currencyProduct = _currencyService.GetCurrencyById(orderItem.Product.CurrencyId);
                 var shelfOrderItem = _shelfService.GetShelfOrderItemByOrderItemId(orderItem.Id);
                 var exportVendorInvoiceModel = new ExportVendorInvoiceItemModel()
                 {
@@ -1909,22 +1909,23 @@ namespace Nop.Services.ExportImport
                     VendorProductUrl = orderItem.Product.VendorProductUrl,
                     Sku = orderItem.Product.Sku,
                     Quantity = orderItem.Quantity,
-                    TotalWithoutWeightCost = orderItem.PriceExclTax - orderItem.WeightCost,
+                    TotalWithoutWeightCost = (orderItem.PriceExclTax - orderItem.WeightCost) * orderItem.Quantity,
                     WeightCost = orderItem.WeightCost,
-                    Weight = orderItem.Product.Weight.ToString(),
+                    Weight = orderItem.Product.Weight + " g",
                     UnitWeightCost = orderItem.UnitWeightCost.ToString(),
-                    TotalCost = orderItem.PriceExclTax,
+                    TotalCost = orderItem.PriceExclTax * orderItem.Quantity,
                     ShelfCode = shelfOrderItem?.Shelf?.ShelfCode,
                     PackageOrderCode = orderItem.PackageOrder != null ? $"{orderItem.PackageOrder.PackageCode} - {orderItem.PackageOrder.PackageName}" : string.Empty,
                     PackageItemProcessedDatetime = orderItem.PackageItemProcessedDatetime?.ToString("g"),
                     IsOrderCheckout = orderItem.IsOrderCheckout ? "Đã xuất" : "Chưa xuất",
                     OrderItemStatus = orderItemStatus,
-                    BaseUnitPrice = orderItem.UnitPriceUsd.ToString("#,###"),
+                    BaseUnitPrice = _priceFormatter.FormatPrice((orderItem.Product.UnitPriceUsd), true,
+                        currencyProduct, _workContext.WorkingLanguage, true, true),
                     OrderingFee = orderItem.OrderingFee,
                     ExchangeRate = orderItem.ExchangeRate,
                     SaleOff = orderItem.SaleOffPercent,
                     ETA = orderItem.EstimatedTimeArrival?.ToString("dd/MM/yyyy"),
-                    Note = orderItem.Order.AdminNote
+                    Note = orderItem.Note
                 };
                 //exportVendorInvoiceModel.ProductInfo += "\n " + HtmlHelper.ConvertHtmlToPlainText(orderItem.AttributeDescription, true, true);
                 exportVendorInvoiceModel.Sku = orderItem.Product.FormatSku(orderItem.AttributesXml, _productAttributeParser);

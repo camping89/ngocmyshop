@@ -18,6 +18,9 @@ namespace Nop.Web.Areas.Admin.Models.Orders
         [NopResourceDisplayName("Admin.Catalog.Orders.CreateOrder.CustomerFacebook")]
         public string CustomerFacebook { get; set; }
         public string CustomerFullName { get; set; }
+        public string CustomerAddress { get; set; }
+        public string CustomerDistrict { get; set; }
+        public string CustomerCity { get; set; }
         public ProductListModel ProductListModel { get; set; }
 
         public Web.Models.ShoppingCart.ShoppingCartModel ShoppingCartModel { get; set; }

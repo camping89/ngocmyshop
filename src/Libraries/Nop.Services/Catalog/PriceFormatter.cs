@@ -233,7 +233,6 @@ namespace Nop.Services.Catalog
         {
             //we should round it no matter of "ShoppingCartSettings.RoundPricesDuringCalculation" setting
             price = RoundingHelper.RoundPrice(price);
-            showCurrency = false;
             var currencyString = GetCurrencyString(price, showCurrency, targetCurrency);
             //if (showTax)
             //{

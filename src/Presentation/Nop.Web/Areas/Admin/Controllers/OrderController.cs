@@ -698,7 +698,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 IncludeWeightCost = orderItem.IncludeWeightCost,
                 UnitWeightCost = orderItem.UnitWeightCost ?? (currencyProduct != null ? currencyProduct.UnitWeightCost : 0),
                 ItemWeight = orderItem.ItemWeight ?? 0,
-                DeliveryDateUtc = orderItem.DeliveryDateUtc,
+                DeliveryDateUtc = orderItem.DeliveryDateUtc?.ToString("MM/dd/yyyy"),
                 EstimatedTimeArrival = orderItem.EstimatedTimeArrival?.ToString("MM/dd/yyyy"),
                 WeightCostDec = orderItem.WeightCost,
                 WeightCost = _priceFormatter.FormatPrice(orderItem.WeightCost, true,
@@ -4248,6 +4248,10 @@ namespace Nop.Web.Areas.Admin.Controllers
             {
                 orderItem.EstimatedTimeArrival = StringExtensions.StringToDateTime(orderItemModel.EstimatedTimeArrival);
             }
+            if (string.IsNullOrEmpty(orderItemModel.DeliveryDateUtc) == false)
+            {
+                orderItem.DeliveryDateUtc = StringExtensions.StringToDateTime(orderItemModel.DeliveryDateUtc);
+            }
 
             orderItem.IncludeWeightCost = orderItemModel.IncludeWeightCost;
 
@@ -6561,7 +6565,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                         WeightCostDec = orderItem.WeightCost,
                         WeightCost = _priceFormatter.FormatPrice(orderItem.WeightCost, true,
                         primaryStoreCurrency, _workContext.WorkingLanguage, true, true),
-                        TotalWithoutWeightCost = _priceFormatter.FormatPrice((orderItem.PriceInclTax - orderItem.WeightCost), true,
+                        TotalWithoutWeightCost = _priceFormatter.FormatPrice((orderItem.PriceInclTax - orderItem.WeightCost) * orderItem.Quantity, true,
                         primaryStoreCurrency, _workContext.WorkingLanguage, true, true),
                         UnitPriceBase = _priceFormatter.FormatPrice((orderItem.Product.UnitPriceUsd), true,
                             currencyProduct, _workContext.WorkingLanguage, true, true),
@@ -6627,8 +6631,8 @@ namespace Nop.Web.Areas.Admin.Controllers
                         primaryStoreCurrency, _workContext.WorkingLanguage, true, true);
 
                     //subtotal
-                    orderItemModel.SubTotalInclTaxValue = orderItem.PriceInclTax;
-                    orderItemModel.SubTotalInclTax = _priceFormatter.FormatPrice(orderItem.PriceInclTax, true, primaryStoreCurrency,
+                    orderItemModel.SubTotalInclTaxValue = orderItem.PriceInclTax * orderItem.Quantity;
+                    orderItemModel.SubTotalInclTax = _priceFormatter.FormatPrice(orderItem.PriceInclTax * orderItem.Quantity, true, primaryStoreCurrency,
                         _workContext.WorkingLanguage, true, true);
 
                     orderItemModel.AttributeInfo = orderItem.AttributeDescription ?? string.Empty;
@@ -6659,7 +6663,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             try
             {
                 var bytes = _exportManager.ExportOrderItemsToXlsxBasic(orderItems);
-                return File(bytes, MimeTypes.TextCsv, $"order export-{DateTime.Now.Year}-{DateTime.Now.Month}-{DateTime.Now.Day}-{DateTime.Now.Hour}{DateTime.Now.Minute}.csv");
+                return File(bytes, MimeTypes.TextXlsx, $"order export-{DateTime.Now.Year}-{DateTime.Now.Month}-{DateTime.Now.Day}-{DateTime.Now.Hour}{DateTime.Now.Minute}.xlsx");
             }
             catch (Exception exc)
             {
