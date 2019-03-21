@@ -467,7 +467,12 @@ namespace Nop.Services.Orders
             return orderItems;
         }
 
-        public virtual IPagedList<OrderItem> GetOrderItemsVendorCheckout(string vendorProductUrl, string orderId = null, string orderItemId = null, int pageIndex = 0, int pageSize = int.MaxValue, OrderSortingEnum orderBy = OrderSortingEnum.CreatedOnDesc, bool isPackageItemProcessed = false, bool todayFilter = false, string customerPhone = null, string packageOrderCode = null, int vendorId = 0, bool? isSetPackageOrderId = null, bool? isSetShelfId = null, int orderItemStatusId = -1)
+        public virtual IPagedList<OrderItem> GetOrderItemsVendorCheckout(string vendorProductUrl, string orderId = null,
+            string orderItemId = null, int pageIndex = 0,
+            int pageSize = int.MaxValue, OrderSortingEnum orderBy = OrderSortingEnum.CreatedOnDesc, bool todayFilter = false,
+            string customerPhone = null, string packageOrderCode = null,
+            int vendorId = 0, bool? isSetPackageOrderId = null,
+            bool? isSetShelfId = null, int orderItemStatusId = -1, bool? isPackageItemProcessedDatetime = null)
         {
             var query = _orderItemRepository.Table;
             if (string.IsNullOrEmpty(vendorProductUrl) == false)
@@ -521,6 +526,11 @@ namespace Nop.Services.Orders
                 }
             }
 
+            if (isPackageItemProcessedDatetime.HasValue)
+            {
+                query = query.Where(_ => _.PackageItemProcessedDatetime != null == isPackageItemProcessedDatetime);
+            }
+
             if (vendorId > 0)
             {
                 query = query.Where(_ => _.Product.VendorId == vendorId);
@@ -531,10 +541,10 @@ namespace Nop.Services.Orders
             //    query = query.Where(_ => _.IsOrderCheckout == isOrderCheckout);
             //}
 
-            if (isPackageItemProcessed)
-            {
-                query = query.Where(_ => _.PackageItemProcessedDatetime != null);
-            }
+            //if (isPackageItemProcessed)
+            //{
+            //    query = query.Where(_ => _.PackageItemProcessedDatetime != null);
+            //}
 
             if (orderItemStatusId != -1)
             {

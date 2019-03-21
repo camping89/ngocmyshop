@@ -338,6 +338,10 @@
                                     <i class="fa fa-search"></i>
                                     @T("Admin.Common.Search")
                                 </button>
+                                <button type="button" id="clear-filter" class="btn btn-danger btn-search">
+                                    <i class="fa fa-recycle"></i>
+                                    @T("Admin.Common.ClearFilter")
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -459,7 +463,7 @@
                                             type: "date",
                                             //format: "{0:G}",
                                             sortable: true,
-                                            template: "<p>#= kendo.toString(CreatedOn, 'MM/dd/yyyy') #</p>" + 
+                                            template: "<p>#= kendo.toString(CreatedOn, 'MM/dd/yyyy') #</p>" +
                                                 "<p>#= kendo.toString(CreatedOn, 'hh:mm tt') #</p>"
                                         },
                                         {
@@ -502,13 +506,13 @@
                                                     '<div>@T("Admin.Orders.Report.Total") <span id=\"aggregator-total-block\"></span></div>'
                                         },</text>
                         }
-                                        {
+                                        @*{
                                             field: "AdminNote",
                                             title: "@T("Admin.Orders.Fields.AdminNote")",
                                             width: 150,
                                             template: '#=AdminNote#',
                                             sortable: false
-                                        },
+                                        },*@
                                         @if (!Model.IsLoggedInAsVendor)
                             {
                                 //a vendor does not have access to this functionality
@@ -601,7 +605,9 @@
                                                     PackageId: { editable: true, type: "string" },
                                                     PackageOrderId: { editable: true, type: "string" },
                                                     PackageOrderCode: { editable: false, type: "string" },
-                                                    PackageItemProcessedDatetime: { editable: true, type: "date" },
+                                                    PackageItemProcessedDatetime: { editable: false, type: "date" },
+                                                    EstimatedTimeArrival: { editable: false, type: "date" },
+                                                    DeliveryDateUtc: { editable: true, type: "date" },
                                                     PictureThumbnailUrl: { editable: false, type: "string" },
                                                     ProductName: { editable: false, type: "string" },
                                                     TotalWithoutWeightCost: { editable: false, type: "string" },
@@ -933,6 +939,31 @@
                                     selectedIds = [];
                                     return false;
                                 });
+
+
+                                $("#clear-filter").click(function() {
+                                    $('#@Html.IdFor(model => model.OrderId)').val('');
+                                    $('#@Html.IdFor(model => model.StartDate)').val('');
+                                    $('#@Html.IdFor(model => model.EndDate)').val('');
+                                    $('#@Html.IdFor(model => model.OrderStatusIds)').val(0);
+                                    $('#@Html.IdFor(model => model.PaymentStatusIds)').val(0);
+                                    $('#@Html.IdFor(model => model.ShippingStatusIds)').val(0);
+                                    $('#@Html.IdFor(model => model.StoreId)').val(0);
+                                    $('#@Html.IdFor(model => model.VendorId)').val(0);
+                                    $('#@Html.IdFor(model => model.WarehouseId)').val(0);
+                                    $('#@Html.IdFor(model => model.LinkSourceProduct)').val('');
+                                    $('#@Html.IdFor(model => model.BillingEmail)').val('');
+                                    $('#@Html.IdFor(model => model.BillingPhone)').val('');
+                                    $('#@Html.IdFor(model => model.LinkFacebook)').val('');
+                                    $('#@Html.IdFor(model => model.BillingFullName)').val('');
+                                    $('#@Html.IdFor(model => model.ProductId)').val('0');
+                                    $('#@Html.IdFor(model => model.OrderNotes)').val('');
+                                    $('#@Html.IdFor(model => model.GoDirectlyToCustomOrderNumber)').val('');
+                                    $('#search-product-name').val('');
+                                    $("#search-orders").click();
+                                });
+
+
 
                                 $("".concat("#@Html.IdFor(model => model.BillingEmail),",
                                     "#@Html.IdFor(model => model.BillingFullName),",

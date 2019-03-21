@@ -21,6 +21,9 @@
     <h1 class="pull-left">
         @T("Admin.ShelfItems")
     </h1>
+    <div class="pull-left">
+        @await Component.InvokeAsync("SettingMode", new { modeName = "order-advanced-mode" })
+    </div>
     <div class="pull-right">
         @*<a asp-action="Create" class="btn bg-blue">
                 <i class="fa fa-plus-square"></i>
@@ -55,7 +58,7 @@
                                     <nop-select asp-for="ShelfOrderItemIsActive" asp-items="Model.ShelfOrderItemsStatus" />
                                 </div>
                             </div>
-                            <div class="form-group">
+                            <div class="form-group advanced-setting">
                                 <div class="col-md-4">
                                     <nop-label asp-for="ShelfCode" />
                                 </div>
@@ -96,16 +99,16 @@
                         <div class="col-md-6">
 
 
-                            <div class="form-group">
-                                <div class="col-md-4">
-                                    <nop-label asp-for="IsPackageItemProcessedDatetime" />
-                                </div>
-                                <div class="col-md-8">
-                                    <nop-select asp-for="IsPackageItemProcessedDatetime" asp-items="Model.PackageItemProcessedDatetimeStatus" />
-                                </div>
-                            </div>
+                            @*<div class="form-group">
+                                    <div class="col-md-4">
+                                        <nop-label asp-for="IsPackageItemProcessedDatetime" />
+                                    </div>
+                                    <div class="col-md-8">
+                                        <nop-select asp-for="IsPackageItemProcessedDatetime" asp-items="Model.PackageItemProcessedDatetimeStatus" />
+                                    </div>
+                                </div>*@
 
-                            <div class="form-group">
+                            <div class="form-group advanced-setting">
                                 <div class="col-md-4">
                                     <nop-label asp-for="AssignedFromDate" />
                                 </div>
@@ -113,7 +116,7 @@
                                     <nop-editor asp-for="AssignedFromDate" />
                                 </div>
                             </div>
-                            <div class="form-group">
+                            <div class="form-group advanced-setting">
                                 <div class="col-md-4">
                                     <nop-label asp-for="AssignedToDate" />
                                 </div>
@@ -137,7 +140,7 @@
                                     <nop-editor asp-for="AssignedOrderItemToDate" />
                                 </div>
                             </div>
-                            <div class="form-group">
+                            <div class="form-group advanced-setting">
                                 <div class="col-md-4">
                                     <nop-label asp-for="ShippedFromDate" />
                                 </div>
@@ -145,7 +148,7 @@
                                     <nop-editor asp-for="ShippedFromDate" />
                                 </div>
                             </div>
-                            <div class="form-group">
+                            <div class="form-group advanced-setting">
                                 <div class="col-md-4">
                                     <nop-label asp-for="ShippedToDate" />
                                 </div>
@@ -154,7 +157,7 @@
                                 </div>
                             </div>
 
-                            <div class="form-group">
+                            <div class="form-group advanced-setting">
                                 <div class="col-md-4">
                                     <nop-label asp-for="ShipTodayFilter" />
                                 </div>
@@ -851,7 +854,7 @@
                                 $('#@Html.IdFor(model => model.ShipTodayFilter)').prop('checked', false);
                                 $('#@Html.IdFor(model => model.IsCustomerNotified)').val(0);
                                 $('#@Html.IdFor(model => model.ShelfNoteId)').val(0);
-                                $('#@Html.IdFor(model => model.IsPackageItemProcessedDatetime)').val(0);
+                                //$('#@Html.IdFor(model => model.IsPackageItemProcessedDatetime)').val(0);
                                 $("#search-shelf").click();
                             });
 
@@ -873,7 +876,7 @@
                                 IsShelfEmpty: $('#@Html.IdFor(model => model.IsShelfEmpty)').is(":checked"),
                                 IsCustomerNotified: $('#@Html.IdFor(model => model.IsCustomerNotified)').val(),
                                 ShelfNoteId: $('#@Html.IdFor(model => model.ShelfNoteId)').val(),
-                                IsPackageItemProcessedDatetime: $('#@Html.IdFor(model => model.IsPackageItemProcessedDatetime)').val()
+                                //IsPackageItemProcessedDatetime: $('#@Html.IdFor(model => model.IsPackageItemProcessedDatetime)').val()
                             };
                             addAntiForgeryToken(data);
                             return data;

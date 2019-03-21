@@ -268,7 +268,7 @@ namespace Nop.Web.Areas.Admin.Controllers
 
         protected virtual CustomerModel PrepareCustomerModelForList(Customer customer)
         {
-            return new CustomerModel
+            var result = new CustomerModel
             {
                 Id = customer.Id,
                 Email = customer.IsRegistered() ? customer.Email : _localizationService.GetResource("Admin.Customers.Guest"),
@@ -284,6 +284,11 @@ namespace Nop.Web.Areas.Admin.Controllers
                 LinkFacebook1 = customer.GetAttribute<string>(SystemCustomerAttributeNames.LinkFacebook1),
                 LinkFacebook2 = customer.GetAttribute<string>(SystemCustomerAttributeNames.LinkFacebook2),
             };
+            if (string.IsNullOrEmpty(result.LinkFacebook1) == false)
+            {
+                result.LinkFacebook1 = result.LinkFacebook1.Split('/').LastOrDefault()?.Split('?').FirstOrDefault();
+            }
+            return result;
         }
 
         protected virtual string ValidateCustomerRoles(IList<CustomerRole> customerRoles)

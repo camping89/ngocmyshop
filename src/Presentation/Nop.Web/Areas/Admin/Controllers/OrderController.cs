@@ -3000,7 +3000,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 _pdfService.PrintOrdersToPdf(stream, orders, _orderSettings.GeneratePdfInvoiceInCustomerLanguage ? 0 : _workContext.WorkingLanguage.Id, vendorId);
                 bytes = stream.ToArray();
             }
-            return File(bytes, MimeTypes.ApplicationPdf, "orders.pdf");
+            return File(bytes, MimeTypes.ApplicationPdf, $"orders_{DateTime.Now.ToLongDateString()}_export.pdf");
         }
 
 
@@ -4160,6 +4160,11 @@ namespace Nop.Web.Areas.Admin.Controllers
             if (string.IsNullOrEmpty(orderItemModel.EstimatedTimeArrival) == false)
             {
                 orderItem.EstimatedTimeArrival = StringExtensions.StringToDateTime(orderItemModel.EstimatedTimeArrival);
+            }
+
+            if (string.IsNullOrEmpty(orderItemModel.DeliveryDateUtc) == false)
+            {
+                orderItem.DeliveryDateUtc = StringExtensions.StringToDateTime(orderItemModel.DeliveryDateUtc);
             }
 
             orderItem.IncludeWeightCost = orderItemModel.IncludeWeightCost;
@@ -6498,6 +6503,13 @@ namespace Nop.Web.Areas.Admin.Controllers
             }
             model.VendorItems.Insert(0, new SelectListItem { Text = _localizationService.GetResource("Admin.Common.All"), Value = "0" });
 
+            model.PackageItemProcessedDatetimeStatus.AddRange(new List<SelectListItem>()
+            {
+                new SelectListItem { Value = "", Text = _localizationService.GetResource("Admin.Common.All"), Selected = true},
+                new SelectListItem() {Value = "True",Text = _localizationService.GetResource("Admin.ShelfOrderItem.IsPackageItemProcessedDatetimeStatus.True")},
+                new SelectListItem() {Value = "False",Text = _localizationService.GetResource("Admin.ShelfOrderItem.IsPackageItemProcessedDatetimeStatus.False")},
+            });
+
             //Order item status
             model.OrderItemStatusId = -1;
             model.AvailableOrderStatus = OrderItemStatus.Available.ToSelectList(false).ToList();
@@ -6521,10 +6533,11 @@ namespace Nop.Web.Areas.Admin.Controllers
             var primaryStoreCurrency = _currencyService.GetCurrencyById(_currencySettings.PrimaryStoreCurrencyId);
 
             var orderItems = _orderService.GetOrderItemsVendorCheckout(model.VendorProductUrl, model.OrderId, model.OrderItemId, command.Page - 1, command.PageSize,
-                isPackageItemProcessed: model.IsPackageItemProcessed, todayFilter: model.TodayFilter,
+                todayFilter: model.TodayFilter,
                 customerPhone: model.CustomerPhone, packageOrderCode: model.PackageOrderCode,
                 vendorId: model.VendorId, isSetPackageOrderId: model.IsSetPackageOrderId,
-                isSetShelfId: model.IsShelfAssigned, orderItemStatusId: model.OrderItemStatusId);
+                isSetShelfId: model.IsShelfAssigned, orderItemStatusId: model.OrderItemStatusId,
+                isPackageItemProcessedDatetime: model.IsPackageItemProcessedDatetime);
 
             var vendors = _vendorService.GetAllVendors();
             var gridModel = new DataSourceResult

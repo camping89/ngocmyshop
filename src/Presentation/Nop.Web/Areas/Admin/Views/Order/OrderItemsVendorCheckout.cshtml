@@ -25,9 +25,11 @@
 
 <form asp-controller="Order" asp-action="OrderItemsVendorCheckout" method="post">
     <div class="content-header clearfix">
+
         <h1 class="pull-left">
             @T("Admin.Orders.Exports")
         </h1>
+
         <div class="pull-right">
             <button type="button" id="apply-packageorderid-selected" class="btn bg-olive" data-toggle="modal" data-target="#apply-packageorderid-window">
                 @T("Admin.Orders.Shipments.ApplyPackageOrderId")
@@ -45,10 +47,10 @@
                 @T("Admin.Orders.Shipments.AssignByCustomerSelected")
             </button>
 
-            <button type="button" class="btn btn-primary" id="btn-set-isordercheckout-selected">
-                <i class="fa fa-save"></i>
-                @T("Admin.Common.SetIsOrderCheckoutSelected")
-            </button>
+            @*<button type="button" class="btn btn-primary" id="btn-set-isordercheckout-selected">
+                    <i class="fa fa-save"></i>
+                    @T("Admin.Common.SetIsOrderCheckoutSelected")
+                </button>*@
             <div class="btn-group">
 
                 <button type="button" class="btn btn-success">
@@ -186,15 +188,15 @@
                                         <nop-editor asp-for="TodayFilter" />
                                     </div>
                                 </div>
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <nop-label asp-for="IsPackageItemProcessedDatetime" />
+                                    </div>
+                                    <div class="col-md-8">
+                                        <nop-select asp-for="IsPackageItemProcessedDatetime" asp-items="Model.PackageItemProcessedDatetimeStatus" />
+                                    </div>
+                                </div>
 
-                                @*<div class="form-group">
-                                        <div class="col-md-4">
-                                            <nop-label asp-for="IsOrderCheckout" />
-                                        </div>
-                                        <div class="col-md-8">
-                                            <nop-select asp-for="IsOrderCheckout" asp-items="@Model.IsOrderCheckoutStatusItems" />
-                                        </div>
-                                    </div>*@
                             </div>
                         </div>
                         <div class="row">
@@ -281,7 +283,7 @@
                                                             UnitPriceBase: { editable: false, type: "string" },
                                                             ItemWeight: { editable: true, type: "string" },
                                                             SubTotalInclTax: { editable: false, type: "string" },
-                                                            IsOrderCheckout: { editable: true, type: "boolean" },
+                                                            //IsOrderCheckout: { editable: true, type: "boolean" },
                                                             OrderItemStatusId: { editable: true, type: "int" },
                                                             ShelfId: { editable: true, type: "number" },
                                                             ShelfCode: { editable: true, type: "string" },
@@ -527,7 +529,7 @@
                                                         '# if(OrderItemStatusId == 3) {# @T("Admin.Orders.OrderItem.OtherReason") #} #' +
                                                         '</span>'
                                                 },
-                                                {
+                                                @*{
                                                     field: "IsOrderCheckout",
                                                     title: "@T("Admin.Orders.Products.IsOrderCheckout")",
                                                     width: 100,
@@ -541,7 +543,8 @@
                                                         "@T("Admin.Orders.Products.IsOrderCheckout.False")" +
                                                         "# } #" +
                                                         '</span>'
-                                                }, {
+                                                },*@
+                                                {
                                                     command: [
                                                         {
                                                             name: "edit",
@@ -873,6 +876,7 @@
                                             @*$('#@Html.IdFor(model => model.IsOrderCheckout)').val(0);*@
                                             $('#@Html.IdFor(model => model.IsSetPackageOrderIdStatus)').val(0);
                                             $('#@Html.IdFor(model => model.IsSetShelfIdStatus)').val(0);
+                                            $('#@Html.IdFor(model => model.IsPackageItemProcessedDatetime)').val(0);
                                             $('#@Html.IdFor(model => model.OrderItemStatusId)').val(-1);
 
                                             $("#search-orders").click();
@@ -929,12 +933,11 @@
                                             IsSetPackageOrderId: $('#@Html.IdFor(model => model.IsSetPackageOrderId)')
                                                 .val(),
                                             IsSetSetShelfId: $('#@Html.IdFor(model => model.IsShelfAssigned)').val(),
-                                            IsPackageItemProcessed: $(
-                                                '#@Html.IdFor(model => model.IsPackageItemProcessed)').is(":checked"),
                                             TodayFilter: $('#@Html.IdFor(model => model.TodayFilter)').is(":checked"),
                                             CustomerPhone: $('#@Html.IdFor(model => model.CustomerPhone)').val(),
                                             PackageOrderCode: $('#@Html.IdFor(model => model.PackageOrderCode)').val(),
                                             OrderItemStatusId: $('#@Html.IdFor(model => model.OrderItemStatusId)').val(),
+                                            IsPackageItemProcessedDatetime: $('#@Html.IdFor(model => model.IsPackageItemProcessedDatetime)').val(),
                                             VendorId: $('#@Html.IdFor(model => model.VendorId)').val()
                                         };
                                         addAntiForgeryToken(data);

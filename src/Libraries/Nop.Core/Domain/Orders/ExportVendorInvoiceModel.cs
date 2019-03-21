@@ -39,6 +39,8 @@ namespace Nop.Core.Domain.Orders
         public string VendorProductUrl { get; set; }
         public string Sku { get; set; }
         public string ProductInfo { get; set; }
+        public string ProductSize { get; set; }
+        public string ProductColor { get; set; }
         public string ProductAttributeInfo { get; set; }
         public string VendorName { get; set; }
         public string ProductImage { get; set; }

@@ -224,7 +224,7 @@ String.prototype.toInt = function() {
 }
 
 String.prototype.toFloat = function() {
-    if (this != null || this != "") {
+    if (this != null || this != "" || this != 0) {
         var c = this.replace(/,/g, "");
         var parseValue = parseFloat(c);
         if ($.isNumeric(parseValue) == false) {

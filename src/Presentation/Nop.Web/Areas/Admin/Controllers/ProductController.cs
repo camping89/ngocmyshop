@@ -654,11 +654,11 @@ namespace Nop.Web.Areas.Admin.Controllers
 
             //vendors
             model.IsLoggedInAsVendor = _workContext.CurrentVendor != null;
-            //model.AvailableVendors.Add(new SelectListItem
-            //{
-            //    Text = _localizationService.GetResource("Admin.Catalog.Products.Fields.Vendor.None"),
-            //    Value = "0"
-            //});
+            model.AvailableVendors.Add(new SelectListItem
+            {
+                Text = _localizationService.GetResource("Admin.Catalog.Products.Fields.Vendor.None"),
+                Value = "0"
+            });
             var vendors = SelectListHelper.GetVendorList(_vendorService, _cacheManager, true);
             foreach (var v in vendors)
                 model.AvailableVendors.Add(v);

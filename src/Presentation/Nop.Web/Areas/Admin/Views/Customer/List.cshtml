@@ -221,6 +221,10 @@
                                     <i class="fa fa-search"></i>
                                     @T("Admin.Common.Search")
                                 </button>
+                                <button type="button" id="clear-filter" class="btn btn-danger btn-search">
+                                    <i class="fa fa-recycle"></i>
+                                    @T("Admin.Common.ClearFilter")
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -377,6 +381,15 @@
             selectedIds = [];
             return false;
         });
+
+        $("#clear-filter").click(function() {
+            $('#@Html.IdFor(model => model.SearchLinkFacebookUser)').val('');
+            //$('#@Html.IdFor(model => model.SearchCustomerRoleIds)').val(0);
+            $('#@Html.IdFor(model => model.SearchUsername)').val('');
+            $("#search-customers").click();
+        });
+
+
 
         $("".concat("#@Html.IdFor(model => model.SearchEmail),",
             "#@Html.IdFor(model => model.SearchUsername),",

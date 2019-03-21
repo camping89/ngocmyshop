@@ -185,6 +185,10 @@
                                     <i class="fa fa-search"></i>
                                     @T("Admin.Common.Search")
                                 </button>
+                                <button type="button" id="clear-filter" class="btn btn-danger btn-search">
+                                    <i class="fa fa-recycle"></i>
+                                    @T("Admin.Common.ClearFilter")
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -354,6 +358,15 @@
                 selectedIds = [];
                 return false;
             });
+
+
+            $("#clear-filter").click(function() {
+                $('#@Html.IdFor(model => model.SearchProductName)').val('');
+                $('#@Html.IdFor(model => model.GoDirectlyToSku)').val('');
+                $("#search-products").click();
+            });
+
+
 
             $("#@Html.IdFor(model => model.SearchProductName)").keydown(function (event) {
                 if (event.keyCode === 13) {

@@ -8,6 +8,7 @@ using Nop.Core.Domain.Payments;
 using Nop.Core.Domain.Shipping;
 using Nop.Core.Domain.Tax;
 using Nop.Core.Domain.Vendors;
+using Nop.Core.Extensions;
 using Nop.Core.Html;
 using Nop.Services.Catalog;
 using Nop.Services.Common;
@@ -27,6 +28,7 @@ using Nop.Services.Tax;
 using Nop.Services.Vendors;
 using OfficeOpenXml;
 using OfficeOpenXml.Style;
+using PAValue;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -34,7 +36,35 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Xml;
+using System.Xml.Serialization;
 
+
+namespace PAValue
+{
+    [XmlRoot(ElementName = "ProductAttributeValue")]
+    public class ProductAttributeValueXml
+    {
+        [XmlElement(ElementName = "Value")]
+        public string Value { get; set; }
+    }
+
+    [XmlRoot(ElementName = "ProductAttribute")]
+    public class ProductAttributeXml
+    {
+        [XmlElement(ElementName = "ProductAttributeValue")]
+        public ProductAttributeValueXml ProductAttributeValue { get; set; }
+        [XmlAttribute(AttributeName = "ID")]
+        public string ID { get; set; }
+    }
+
+    [XmlRoot(ElementName = "Attributes")]
+    public class AttributesXml
+    {
+        [XmlElement(ElementName = "ProductAttribute")]
+        public List<ProductAttributeXml> ProductAttribute { get; set; }
+    }
+
+}
 namespace Nop.Services.ExportImport
 {
     /// <summary>
@@ -209,6 +239,36 @@ namespace Nop.Services.ExportImport
             return _pictureService.GetThumbLocalPath(picture);
         }
 
+        public AttributesXml XmlToObject(string xml, Type objectType)
+        {
+            StringReader strReader = null;
+            XmlSerializer serializer = null;
+            XmlTextReader xmlReader = null;
+            AttributesXml obj = null;
+            try
+            {
+                strReader = new StringReader(xml);
+                serializer = new XmlSerializer(objectType);
+                xmlReader = new XmlTextReader(strReader);
+                obj = (AttributesXml)serializer.Deserialize(xmlReader);
+            }
+            catch (Exception exp)
+            {
+                //Handle Exception Code
+            }
+            finally
+            {
+                if (xmlReader != null)
+                {
+                    xmlReader.Close();
+                }
+                if (strReader != null)
+                {
+                    strReader.Close();
+                }
+            }
+            return obj;
+        }
         /// <summary>
         /// Returns the list of categories for a product separated by a ";"
         /// </summary>
@@ -1827,7 +1887,9 @@ namespace Nop.Services.ExportImport
                 //    IsImage = true
                 //},
                 new PropertyByName<ExportVendorInvoiceItemModel>("ProductInfo", oi => oi.ProductInfo),
-                new PropertyByName<ExportVendorInvoiceItemModel>("ProductAttributeInfo", oi => oi.ProductAttributeInfo),
+                new PropertyByName<ExportVendorInvoiceItemModel>("ProductSize", oi => oi.ProductSize),
+                new PropertyByName<ExportVendorInvoiceItemModel>("ProductColor", oi => oi.ProductColor),
+                //new PropertyByName<ExportVendorInvoiceItemModel>("ProductAttributeInfo", oi => oi.ProductAttributeInfo),
                 new PropertyByName<ExportVendorInvoiceItemModel>("BaseUnitPrice", oi => oi.BaseUnitPrice),
                 //new PropertyByName<ExportVendorInvoiceItemModel>("VendorProductUrl", oi => oi.VendorProductUrl),
                 new PropertyByName<ExportVendorInvoiceItemModel>("TotalWithoutWeightCost", oi => oi.TotalWithoutWeightCost),
@@ -1902,7 +1964,7 @@ namespace Nop.Services.ExportImport
                     CustomerInfo = customerInfo,
                     AssignedByUser = assignedByUser,
                     ProductInfo = orderItem.Product.GetLocalized(x => x.Name, _workContext.WorkingLanguage.Id),
-                    ProductAttributeInfo = HtmlHelper.ConvertHtmlToPlainTextOneLine(orderItem.AttributeDescription, true, true),
+                    //ProductAttributeInfo = HtmlHelper.ConvertHtmlToPlainTextOneLine(orderItem.AttributeDescription, true, true),
                     //ProductImage = GetPictures(orderItem.Product)[0],
                     OrderDate = orderItem.Order.CreatedOnUtc.ToString("g"),
                     VendorName = vendor != null ? vendor.Name : string.Empty,
@@ -1927,6 +1989,32 @@ namespace Nop.Services.ExportImport
                     ETA = orderItem.EstimatedTimeArrival?.ToString("dd/MM/yyyy"),
                     Note = orderItem.Note
                 };
+                AttributesXml productAttributeValues = XmlToObject(orderItem.AttributesXml, typeof(AttributesXml));
+                if (productAttributeValues != null)
+                {
+
+                    foreach (var orderItemAttributeXml in productAttributeValues.ProductAttribute)
+                    {
+                        //Color
+                        if (orderItemAttributeXml.ID.Equals("2597"))
+                        {
+                            var productAttributeVl = _productAttributeService.GetProductAttributeValueById(orderItemAttributeXml.ProductAttributeValue.Value.ToIntODefault());
+                            if (productAttributeVl != null)
+                            {
+                                exportVendorInvoiceModel.ProductColor = productAttributeVl.Name;
+                            }
+                        }
+                        //Size
+                        if (orderItemAttributeXml.ID.Equals("2598"))
+                        {
+                            var productAttributeVl = _productAttributeService.GetProductAttributeValueById(orderItemAttributeXml.ProductAttributeValue.Value.ToIntODefault());
+                            if (productAttributeVl != null)
+                            {
+                                exportVendorInvoiceModel.ProductSize = productAttributeVl.Name;
+                            }
+                        }
+                    }
+                }
                 //exportVendorInvoiceModel.ProductInfo += "\n " + HtmlHelper.ConvertHtmlToPlainText(orderItem.AttributeDescription, true, true);
                 exportVendorInvoiceModel.Sku = orderItem.Product.FormatSku(orderItem.AttributesXml, _productAttributeParser);
 

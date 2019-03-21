@@ -35,6 +35,7 @@ namespace Nop.Web.Areas.Admin.Models.Orders
             VendorItems = new List<SelectListItem>();
             AvailableCustomers = new List<SelectListItem>();
             AvailableOrderStatus = new List<SelectListItem>();
+            PackageItemProcessedDatetimeStatus = new List<SelectListItem>();
         }
         [NopResourceDisplayName("Admin.OrderItem.ExportVendor.Fields.VendorProductUrl")]
         public string VendorProductUrl { get; set; }
@@ -60,9 +61,6 @@ namespace Nop.Web.Areas.Admin.Models.Orders
         public bool? IsShelfAssigned { get; set; }
         public List<SelectListItem> IsSetShelfIdStatus { get; set; }
 
-        [NopResourceDisplayName("Admin.OrderItem.ExportVendor.Fields.IsPackageItemProcessed")]
-        public bool IsPackageItemProcessed { get; set; }
-
         [NopResourceDisplayName("Admin.Orders.List.TodayFilter")]
         public bool TodayFilter { get; set; }
 
@@ -79,7 +77,9 @@ namespace Nop.Web.Areas.Admin.Models.Orders
         [UIHint("DateNullable")]
         public DateTime? PackageItemProcessedDatetimeNew { get; set; }
 
-
+        [NopResourceDisplayName("Admin.Orders.List.IsPackageItemProcessedDatetime")]
+        public bool? IsPackageItemProcessedDatetime { get; set; }
+        public List<SelectListItem> PackageItemProcessedDatetimeStatus { get; set; }
 
         [NopResourceDisplayName("Admin.Orders.List.EstimatedTimeArrivalNew")]
         [UIHint("DateNullable")]
