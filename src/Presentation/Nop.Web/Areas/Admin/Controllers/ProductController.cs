@@ -2615,6 +2615,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                                 contentType = MimeTypes.ImageTiff;
                                 break;
                             default:
+                                contentType = MimeTypes.ImageJpeg;
                                 break;
                         }
                     }

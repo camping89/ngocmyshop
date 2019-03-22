@@ -21,30 +21,30 @@
         </div>
 
         <script type="text/javascript">
-            $(document).ready(function () {
-                $('#addOrderAdminNote').click(function () {
-                    var orderAdminNoteMessage = $("#@Html.IdFor(model => model.AdminNote)").val();
-                    var postData = {
-                        adminNote: orderAdminNoteMessage,
-                        orderId: @Model.Id
-                    };
-                    addAntiForgeryToken(postData);
+                $(document).ready(function () {
+                    $('#addOrderAdminNote').click(function () {
+                        var orderAdminNoteMessage = $("#@Html.IdFor(model => model.AdminNote)").val();
+                        var postData = {
+                            adminNote: orderAdminNoteMessage,
+                            orderId: @Model.Id
+                        };
+                        addAntiForgeryToken(postData);
 
-                    $.ajax({
-                        cache:false,
-                        type: "POST",
-                        url: "@(Url.Action("OrderAdminNoteAdd", "Order"))",
-                        data: postData,
-                        success: function (data) {
-                            @*alert('@T("Admin.OrderEdit.AdminNote.Successful")');*@
-                        },
-                        error:function (xhr, ajaxOptions, thrownError){
-                            alert('Failed to add order note.');
-                            $('#addOrderNote').attr('disabled', false);
-                        }
+                        $.ajax({
+                            cache:false,
+                            type: "POST",
+                            url: "@(Url.Action("OrderAdminNoteAdd", "Order"))",
+                            data: postData,
+                            success: function (data) {
+                                alert('@T("Admin.OrderEdit.AdminNote.Successful")');
+                            },
+                            error:function (xhr, ajaxOptions, thrownError){
+                                alert('Failed to add order note.');
+                                $('#addOrderNote').attr('disabled', false);
+                            }
+                        });
                     });
                 });
-            });
         </script>
     </div>
 

@@ -1949,8 +1949,9 @@ namespace Nop.Services.Common
             var titleFont = GetFont();
             titleFont.SetStyle(Font.BOLD);
             titleFont.Color = BaseColor.BLACK;
+            titleFont.Size = 12;
             var font = GetFont();
-            font.Size = 9;
+            font.Size = 12;
             var attributesFont = GetFont();
             attributesFont.SetStyle(Font.ITALIC);
 
@@ -2010,7 +2011,7 @@ namespace Nop.Services.Common
             doc.Add(addressTable);
 
             var productsTable = new PdfPTable(7) { WidthPercentage = 100f };
-            productsTable.SetWidths(new[] { 10, 30, 8, 12, 12, 12, 16 });
+            productsTable.SetWidths(new[] { 10, 34, 8, 12, 12, 12, 12 });
 
             //order number
             var cell = GetPdfCell("PDFPackagingSlip.OrderItemId", lang, font);
@@ -2082,7 +2083,7 @@ namespace Nop.Services.Common
                     if (picBinary == null || picBinary.Length <= 0)
                         continue;
 
-                    var pictureLocalPath = _pictureService.GetThumbLocalPath(picture, 80, false);
+                    var pictureLocalPath = _pictureService.GetThumbLocalPath(picture, 70, false);
                     var cellPic = new PdfPCell(Image.GetInstance(pictureLocalPath))
                     {
                         HorizontalAlignment = Element.ALIGN_LEFT,
@@ -2165,6 +2166,7 @@ namespace Nop.Services.Common
             var fontSub = GetFont();
             fontSub.SetStyle(Font.BOLD);
             fontSub.Color = BaseColor.RED;
+            fontSub.Size = 12;
             subCell = GetPdfCell($"{_localizationService.GetResource("PDFPackagingSlip.TotalShipment", lang.Id)} {orderSubtotalInclTaxStr}", fontSub);
             subCell.HorizontalAlignment = Element.ALIGN_RIGHT;
             subCell.Border = Rectangle.NO_BORDER;

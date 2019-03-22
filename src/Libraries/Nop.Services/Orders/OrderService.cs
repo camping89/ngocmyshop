@@ -474,7 +474,11 @@ namespace Nop.Services.Orders
             int vendorId = 0, bool? isSetPackageOrderId = null,
             bool? isSetShelfId = null, int orderItemStatusId = -1, bool? isPackageItemProcessedDatetime = null)
         {
-            var query = _orderItemRepository.Table;
+            var query = from orderItem in _orderItemRepository.Table
+                        join o in _orderRepository.Table on orderItem.OrderId equals o.Id
+                        where !o.Deleted
+                        select orderItem;
+
             if (string.IsNullOrEmpty(vendorProductUrl) == false)
             {
                 query = query.Where(_ => string.IsNullOrEmpty(_.Product.VendorProductUrl) == false
