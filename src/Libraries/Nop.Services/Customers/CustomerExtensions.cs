@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Xml;
 using Nop.Core;
 using Nop.Core.Caching;
 using Nop.Core.Domain.Customers;
@@ -10,6 +5,11 @@ using Nop.Core.Infrastructure;
 using Nop.Services.Common;
 using Nop.Services.Customers.Cache;
 using Nop.Services.Localization;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Xml;
 
 namespace Nop.Services.Customers
 {
@@ -41,7 +41,7 @@ namespace Nop.Services.Customers
                 if (!string.IsNullOrWhiteSpace(lastName))
                     fullName = lastName;
             }
-            return fullName;
+            return string.IsNullOrEmpty(fullName) == false ? fullName.Replace("\"", string.Empty).Replace("'", string.Empty) : fullName;
         }
 
         /// <summary>
@@ -387,7 +387,7 @@ namespace Nop.Services.Customers
 
             if (customerSettings.PasswordRecoveryLinkDaysValid == 0)
                 return false;
-            
+
             var geneatedDate = customer.GetAttribute<DateTime?>(SystemCustomerAttributeNames.PasswordRecoveryTokenDateGenerated);
             if (!geneatedDate.HasValue)
                 return false;
@@ -440,7 +440,7 @@ namespace Nop.Services.Customers
             var customerSettings = EngineContext.Current.Resolve<CustomerSettings>();
             if (customerSettings.PasswordLifetime == 0)
                 return false;
-            
+
             //cache result between HTTP requests 
             var cacheManager = EngineContext.Current.Resolve<IStaticCacheManager>();
             var cacheKey = string.Format(CustomerCacheEventConsumer.CUSTOMER_PASSWORD_LIFETIME, customer.Id);

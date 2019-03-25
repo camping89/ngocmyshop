@@ -43,6 +43,7 @@ namespace Nop.Core.Domain.Common
         /// </summary>
         public string City { get; set; }
         public string District { get; set; }
+        public string Ward { get; set; }
 
         /// <summary>
         /// Gets or sets the address 1

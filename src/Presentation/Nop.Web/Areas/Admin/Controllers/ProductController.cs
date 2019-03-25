@@ -1341,10 +1341,10 @@ namespace Nop.Web.Areas.Admin.Controllers
             {
                 Data = new[]
                 {
-                    new {Value = 30000, Label = 30000},
-                    new {Value = 40000, Label = 40000},
-                    new {Value = 50000, Label = 50000},
-                    new {Value = 60000, Label = 60000},
+                    new {Value = 30000, Label = "30,000"},
+                    new {Value = 40000, Label = "40,000"},
+                    new {Value = 50000, Label = "50,000"},
+                    new {Value = 60000, Label = "60,000"},
             }
             });
         }

@@ -19,6 +19,7 @@ namespace Nop.Web.Areas.Admin.Models.Orders
         public string CustomerFacebook { get; set; }
         public string CustomerFullName { get; set; }
         public string CustomerAddress { get; set; }
+        public string CustomerWard { get; set; }
         public string CustomerDistrict { get; set; }
         public string CustomerCity { get; set; }
         public ProductListModel ProductListModel { get; set; }

@@ -47,10 +47,10 @@
                 @T("Admin.Orders.Shipments.AssignByCustomerSelected")
             </button>
 
-            @*<button type="button" class="btn btn-primary" id="btn-set-isordercheckout-selected">
-                    <i class="fa fa-save"></i>
-                    @T("Admin.Common.SetIsOrderCheckoutSelected")
-                </button>*@
+            <button type="button" class="btn btn-primary" id="btn-set-isordercheckout-selected">
+                <i class="fa fa-save"></i>
+                @T("Admin.Common.SetIsOrderCheckoutSelected")
+            </button>
             <div class="btn-group">
 
                 <button type="button" class="btn btn-success">
@@ -163,14 +163,14 @@
                                 </div>
 
 
-                                <div class="form-group">
-                                    <div class="col-md-4">
-                                        <nop-label asp-for="OrderItemStatusId" />
-                                    </div>
-                                    <div class="col-md-8">
-                                        <nop-select asp-for="OrderItemStatusId" asp-items="@Model.AvailableOrderStatus" />
-                                    </div>
-                                </div>
+                                @*<div class="form-group">
+                                        <div class="col-md-4">
+                                            <nop-label asp-for="OrderItemStatusId" />
+                                        </div>
+                                        <div class="col-md-8">
+                                            <nop-select asp-for="OrderItemStatusId" asp-items="@Model.AvailableOrderStatus" />
+                                        </div>
+                                    </div>*@
 
                                 <div class="form-group">
                                     <div class="col-md-4">
@@ -196,7 +196,14 @@
                                         <nop-select asp-for="IsPackageItemProcessedDatetime" asp-items="Model.PackageItemProcessedDatetimeStatus" />
                                     </div>
                                 </div>
-
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <nop-label asp-for="IsOrderCheckout" />
+                                    </div>
+                                    <div class="col-md-8">
+                                        <nop-select asp-for="IsOrderCheckout" asp-items="Model.IsOrderCheckoutStatusItems" />
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         <div class="row">
@@ -283,7 +290,7 @@
                                                             UnitPriceBase: { editable: false, type: "string" },
                                                             ItemWeight: { editable: true, type: "string" },
                                                             SubTotalInclTax: { editable: false, type: "string" },
-                                                            //IsOrderCheckout: { editable: true, type: "boolean" },
+                                                            IsOrderCheckout: { editable: true, type: "boolean" },
                                                             OrderItemStatusId: { editable: true, type: "int" },
                                                             ShelfId: { editable: true, type: "number" },
                                                             ShelfCode: { editable: true, type: "string" },
@@ -345,12 +352,12 @@
                                                     sortable: false,
                                                     editor: hideOnEditor
                                                 },
-                                               {
+                                                {
                                                     field: "PackageOrderCode",
                                                     title: "@T("admin.orders.products.packagecode")",
                                                     width: 100,
                                                     editor: editPackageOrderId,
-                                                   template: "# if (PackageOrderCode != null) { #" +
+                                                    template: "# if (PackageOrderCode != null) { #" +
                                                         "<p>#=PackageOrderCode#</p>" +
                                                         "#} else {#" +
                                                         "<p></p>" +
@@ -447,7 +454,7 @@
                                                     field: "ItemWeight",
                                                     title: "@T("Admin.Orders.Products.ItemWeight")",
                                                     width: 70,
-                                                    template: "#= ItemWeight #"+" g"
+                                                    template: "#= ItemWeight #"
                                                     //hidden: true
                                                 }, {
                                                     field: "Deposit",
@@ -463,7 +470,26 @@
                                                     title: "@T("Admin.Orders.Products.PackageOrderId")",
                                                     hidden: true,
                                                     editor: hideOnEditor
-                                                }, {
+                                                },
+                                                {
+                                                    command: [
+                                                        {
+                                                            name: "edit",
+                                                            text: {
+                                                                edit: "@T("Admin.Common.Edit")",
+                                                                update: "@T("Admin.Common.Update")",
+                                                                cancel: "@T("Admin.Common.Cancel")"
+                                                            }
+                                                        }
+                                                        @*,
+                                                        {
+                                                            template: "<a class='k-grid-decreaseIndent btn btn-primary' onclick='showDetails($(this))' ><span class='fa fa-plus'> @T("Admin.Shipments.AddNewShipment")</span></a>"
+                                                        }*@
+                                                    ],
+                                                    title: "@T("Admin.Common.Function")",
+                                                    width: 80
+                                                }
+                                                , {
                                                     field: "ShelfCode",
                                                     title: "@T("Admin.Orders.Shelf.ShelfCode")",
                                                     width: 100,
@@ -512,7 +538,7 @@
                                                     title: "@T("Admin.OrderItem.Note")",
                                                     width: 100
                                                 },
-                                                {
+                                                @*{
                                                     field: "OrderItemStatusId",
                                                     title: "@T("Admin.Orders.Products.OrderItemStatus")",
                                                     width: 100,
@@ -528,8 +554,8 @@
                                                         '# if(OrderItemStatusId == 2) {# @T("Admin.Orders.OrderItem.PriceChanged") #} #' +
                                                         '# if(OrderItemStatusId == 3) {# @T("Admin.Orders.OrderItem.OtherReason") #} #' +
                                                         '</span>'
-                                                },
-                                                @*{
+                                                },*@
+                                                {
                                                     field: "IsOrderCheckout",
                                                     title: "@T("Admin.Orders.Products.IsOrderCheckout")",
                                                     width: 100,
@@ -543,24 +569,6 @@
                                                         "@T("Admin.Orders.Products.IsOrderCheckout.False")" +
                                                         "# } #" +
                                                         '</span>'
-                                                },*@
-                                                {
-                                                    command: [
-                                                        {
-                                                            name: "edit",
-                                                            text: {
-                                                                edit: "@T("Admin.Common.Edit")",
-                                                                update: "@T("Admin.Common.Update")",
-                                                                cancel: "@T("Admin.Common.Cancel")"
-                                                            }
-                                                        }
-                                                        @*,
-                                                        {
-                                                            template: "<a class='k-grid-decreaseIndent btn btn-primary' onclick='showDetails($(this))' ><span class='fa fa-plus'> @T("Admin.Shipments.AddNewShipment")</span></a>"
-                                                        }*@
-                                                    ],
-                                                    title: "@T("Admin.Common.Function")",
-                                                    width: 80
                                                 }
                                             ]
                                         });
@@ -647,6 +655,8 @@
                                                             'yyyy-MM-dd'),
                                                         'MM/dd/yyyy')
                                                 });
+
+
                                         }
 
 
@@ -667,7 +677,7 @@
                                                     type: "GET",
                                                     complete: function(data) {
                                                         var jsonData = data.responseJSON;
-                                                        options.model.set("PackageOrderCode", makeRandomPackageCode());
+                                                        //options.model.set("PackageOrderCode", makeRandomPackageCode());
                                                         //$('#PackageOrderCode').val(data);
                                                         //$('#PackageOrderCode').trigger("change");
                                                     },
@@ -798,6 +808,23 @@
 
                                                         $dropDown.kendoAutoComplete({
                                                                 filtering: function (e) {
+                                                                    //check model valid
+                                                                    @*if (
+                                                                        options.model.PackageItemProcessedDatetime == null
+                                                                        ||
+                                                                        options.model.PackageItemProcessedDatetime === ''
+                                                                        ||
+                                                                        options.model.WeightCostDec == null
+                                                                        ||
+                                                                        options.model.WeightCostDec === '0'
+                                                                        ) {
+
+                                                                        options.model.ShelfCode = 'Chọn ngăn';
+
+                                                                        alert('@T("Admin.OrderVendorCheckout.ValidateRow")');
+                                                                        e.preventDefault();
+                                                                    }*@
+
                                                                     var filter = e.filter;
 
                                                                     if (!filter.value) {
@@ -873,7 +900,7 @@
                                             $('#@Html.IdFor(model => model.CustomerPhone)').val('');
 
                                             $('#@Html.IdFor(model => model.TodayFilter)').prop('checked', false);
-                                            @*$('#@Html.IdFor(model => model.IsOrderCheckout)').val(0);*@
+                                            $('#@Html.IdFor(model => model.IsOrderCheckout)').val(0);
                                             $('#@Html.IdFor(model => model.IsSetPackageOrderIdStatus)').val(0);
                                             $('#@Html.IdFor(model => model.IsSetShelfIdStatus)').val(0);
                                             $('#@Html.IdFor(model => model.IsPackageItemProcessedDatetime)').val(0);
@@ -929,7 +956,7 @@
                                             VendorProductUrl: $('#@Html.IdFor(model => model.VendorProductUrl)').val(),
                                             OrderId: $('#@Html.IdFor(model => model.OrderId)').val(),
                                             OrderItemId: $('#@Html.IdFor(model => model.OrderItemId)').val(),
-                                            @*IsOrderCheckout: $('#@Html.IdFor(model => model.IsOrderCheckout)').val(),*@
+                                            IsOrderCheckout: $('#@Html.IdFor(model => model.IsOrderCheckout)').val(),
                                             IsSetPackageOrderId: $('#@Html.IdFor(model => model.IsSetPackageOrderId)')
                                                 .val(),
                                             IsSetSetShelfId: $('#@Html.IdFor(model => model.IsShelfAssigned)').val(),
@@ -974,9 +1001,9 @@
 </form>
 
 @*set is order checkout selectedids*@
-@*<form asp-controller="Order" asp-action="SetIsOrderCheckoutSelected" method="post" id="set-isordercheckout-selected-form">
-        <input type="hidden" id="selectedIds" name="selectedIds" value="" />
-    </form>*@
+<form asp-controller="Order" asp-action="SetIsOrderCheckoutSelected" method="post" id="set-isordercheckout-selected-form">
+    <input type="hidden" id="selectedIds" name="selectedIds" value="" />
+</form>
 
 <script type="text/javascript">
     $(document).ready(function () {
@@ -1311,17 +1338,17 @@
         <div class="modal-content">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                <h4 class="modal-title" id="assign-by-new-customer-window-title">@T("Admin.Common.AssignNewCustomer")</h4>
+                <h4 class="modal-title" id="assign-by-new-customer-window-title">@T("Admin.Common.AssignBy")</h4>
             </div>
-            <form asp-controller="Order" asp-action="AssignNewCustomerSelected" method="post" id="assign-shipper-selected-form">
+            <form asp-controller="Order" asp-action="AssignNewStaffSelected" method="post" id="assign-shipper-selected-form">
                 <div class="form-horizontal">
                     <div class="modal-body">
                         <div class="form-group">
                             <div class="col-md-4">
-                                <nop-label asp-for="AssignedByNewCustomerId" />
+                                <nop-label asp-for="AssignedByStaffId" />
                             </div>
                             <div class="col-md-8">
-                                <nop-select asp-for="AssignedByNewCustomerId" asp-items="Model.AvailableCustomers" />
+                                <nop-select asp-for="AssignedByStaffId" asp-items="Model.AvailableStaffs" />
                             </div>
                         </div>
                     </div>
@@ -1347,7 +1374,7 @@
             $.ajax({
                 cache: false,
                 type: "POST",
-                url: "@(Url.Action("AssignNewCustomerSelected", "Order"))",
+                url: "@(Url.Action("AssignNewStaffSelected", "Order"))",
                 data: postData,
                 complete: function(data) {
                     selectedIds = [];

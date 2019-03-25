@@ -1,13 +1,13 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using FluentValidation;
-using Nop.Web.Areas.Admin.Models.Customers;
+﻿using FluentValidation;
 using Nop.Core.Domain.Customers;
 using Nop.Data;
 using Nop.Services.Customers;
 using Nop.Services.Directory;
 using Nop.Services.Localization;
+using Nop.Web.Areas.Admin.Models.Customers;
 using Nop.Web.Framework.Validators;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Nop.Web.Areas.Admin.Validators.Customers
 {
@@ -27,6 +27,18 @@ namespace Nop.Web.Areas.Admin.Validators.Customers
                 .WithMessage(localizationService.GetResource("Admin.Common.WrongEmail"))
                 //only for registered users
                 .When(x => IsRegisteredCustomerRoleChecked(x, customerService));
+
+            RuleFor(x => x.Username)
+                .NotEmpty()
+                .WithMessage(localizationService.GetResource("Admin.Common.Username.Required"));
+
+            RuleFor(x => x.LinkFacebook1)
+                .NotEmpty()
+                .WithMessage(localizationService.GetResource("Admin.Common.LinkFacebook1.Required"));
+
+            RuleFor(x => x.FullName)
+                .NotEmpty()
+                .WithMessage(localizationService.GetResource("Admin.Common.FullName.Required"));
 
             //form fields
             if (customerSettings.CountryEnabled && customerSettings.CountryRequired)
@@ -95,14 +107,13 @@ namespace Nop.Web.Areas.Admin.Validators.Customers
                     //only for registered users
                     .When(x => IsRegisteredCustomerRoleChecked(x, customerService));
             }
-            if (customerSettings.PhoneRequired && customerSettings.PhoneEnabled)
-            {
-                RuleFor(x => x.Phone)
-                    .NotEmpty()
-                    .WithMessage(localizationService.GetResource("Admin.Customers.Customers.Fields.Phone.Required"))
-                    //only for registered users
-                    .When(x => IsRegisteredCustomerRoleChecked(x, customerService));
-            }
+
+            RuleFor(x => x.Phone)
+                .NotEmpty()
+                .WithMessage(localizationService.GetResource("Admin.Customers.Customers.Fields.Phone.Required"))
+                //only for registered users
+                .When(x => IsRegisteredCustomerRoleChecked(x, customerService));
+
             if (customerSettings.FaxRequired && customerSettings.FaxEnabled)
             {
                 RuleFor(x => x.Fax)

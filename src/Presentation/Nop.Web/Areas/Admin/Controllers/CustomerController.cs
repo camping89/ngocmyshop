@@ -1862,6 +1862,8 @@ namespace Nop.Web.Areas.Admin.Controllers
                         addressHtmlSb.AppendFormat("{0}<br />", WebUtility.HtmlEncode(model.Address1));
                     if (_addressSettings.StreetAddress2Enabled && !string.IsNullOrEmpty(model.Address2))
                         addressHtmlSb.AppendFormat("{0}<br />", WebUtility.HtmlEncode(model.Address2));
+                    if (_addressSettings.CityEnabled && !string.IsNullOrEmpty(model.Ward))
+                        addressHtmlSb.AppendFormat("{0},", WebUtility.HtmlEncode(model.Ward));
                     if (_addressSettings.CityEnabled && !string.IsNullOrEmpty(model.District))
                         addressHtmlSb.AppendFormat("{0},", WebUtility.HtmlEncode(model.District));
                     if (_addressSettings.CityEnabled && !string.IsNullOrEmpty(model.City))

@@ -271,6 +271,7 @@
                                                     ShipmentAddress: { editable: true, type: "string" },
                                                     ShipmentCityId: { editable: true, type: "string" },
                                                     ShipmentCity: { editable: true, type: "string" },
+                                                    ShipmentWard: { editable: true, type: "string" },
                                                     ShipmentDistrictId: { editable: true, type: "string" },
                                                     ShipmentDistrict: { editable: true, type: "string" },
                                                     ShippedDate: { editable: true, type: "date", nullable: true },
@@ -377,6 +378,15 @@
                                             width: 100,
                                             template: "# if (ShipmentDistrict != null) { #" +
                                                         "<p>#= ShipmentDistrict #</p>" +
+                                                        "#} else {#" +
+                                                        "<p></p>" +
+                                                        "# } #"
+                                        }, {
+                                            field: "ShipmentWard",
+                                            title: "@T("Admin.Orders.Shipments.Ward")",
+                                            width: 100,
+                                            template: "# if (ShipmentWard != null) { #" +
+                                                        "<p>#= ShipmentWard #</p>" +
                                                         "#} else {#" +
                                                         "<p></p>" +
                                                         "# } #"

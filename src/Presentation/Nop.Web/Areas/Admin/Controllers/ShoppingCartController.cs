@@ -729,6 +729,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 if (customerAddress != null)
                 {
                     modelResult.CustomerAddress = customerAddress.Address1;
+                    modelResult.CustomerWard = customerAddress.Ward;
                     modelResult.CustomerDistrict = customerAddress.District;
                     modelResult.CustomerCity = customerAddress.City;
                 }

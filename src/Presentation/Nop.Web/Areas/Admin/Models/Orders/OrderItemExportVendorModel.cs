@@ -33,6 +33,7 @@ namespace Nop.Web.Areas.Admin.Models.Orders
             };
 
             VendorItems = new List<SelectListItem>();
+            AvailableStaffs = new List<SelectListItem>();
             AvailableCustomers = new List<SelectListItem>();
             AvailableOrderStatus = new List<SelectListItem>();
             PackageItemProcessedDatetimeStatus = new List<SelectListItem>();
@@ -46,8 +47,8 @@ namespace Nop.Web.Areas.Admin.Models.Orders
         [NopResourceDisplayName("Admin.OrderItem.ExportVendor.Fields.OrderId")]
         public string OrderId { get; set; }
 
-        //[NopResourceDisplayName("Admin.OrderItem.ExportVendor.Fields.IsOrderCheckout")]
-        //public bool? IsOrderCheckout { get; set; }
+        [NopResourceDisplayName("Admin.OrderItem.ExportVendor.Fields.IsOrderCheckout")]
+        public bool? IsOrderCheckout { get; set; }
 
         [NopResourceDisplayName("Admin.OrderItem.ExportVendor.Fields.IsOrderCheckoutStatusItems")]
         public List<SelectListItem> IsOrderCheckoutStatusItems { get; set; }
@@ -90,8 +91,10 @@ namespace Nop.Web.Areas.Admin.Models.Orders
 
         public List<SelectListItem> VendorItems { get; set; }
 
-        [NopResourceDisplayName("Admin.Orders.List.AssignedByCustomerId")]
-        public int AssignedByNewCustomerId { get; set; }
+        [NopResourceDisplayName("Admin.Orders.List.AssignedByStaffId")]
+        public int AssignedByStaffId { get; set; }
+
+        public List<SelectListItem> AvailableStaffs { get; set; }
 
         public List<SelectListItem> AvailableCustomers { get; set; }
 

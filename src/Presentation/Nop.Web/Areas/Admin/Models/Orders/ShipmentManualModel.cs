@@ -41,6 +41,8 @@ namespace Nop.Web.Areas.Admin.Models.Orders
         public string ShipmentDistrict { get; set; }
         public string ShipmentDistrictId { get; set; }
 
+        [NopResourceDisplayName("Admin.Orders.Shipments.ShipmentWard")]
+        public string ShipmentWard { get; set; }
         [NopResourceDisplayName("Admin.Orders.Shipments.ShippedDate")]
         public string ShippedDate { get; set; }
 

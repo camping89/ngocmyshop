@@ -431,6 +431,7 @@
                                             template: '<p>#=CustomerFullName#</p>' +
                                                 '<p>#=CustomerPhone#</p>'+
                                                 '<p>Địa chỉ: #=CustomerAddress# </p>'+
+                                                '<p>Phường/Xã: #=CustomerWard# </p>'+
                                                 '<p>Quận/Huyện: #=CustomerDistrict# </p>'+
                                                 '<p>Tỉnh/Thành: #=CustomerCity# </p>'+
                                                 '# if( CustomerLinkFacebook != null) { # ' +
@@ -663,11 +664,12 @@
                                             field: "PictureThumbnailUrl",
                                             title: "@T("Admin.Orders.Products.Picture")",
                                             template: '<img src="#=PictureThumbnailUrl#" />',
-                                            width: 100
+                                            width: 150
                                         }, {
                                             field: "ProductName",
                                             title: "@T("Admin.Orders.Products.ProductName")",
                                             template: 'Product name: #=ProductName#' +
+                                                '<p>Nhà sản xuất: #=VendorName#</p>' +
                                                 '<p>#=AttributeInfo#</p>' +
                                                 '<p>Sku: #=Sku#</p>',
                                             width: 250

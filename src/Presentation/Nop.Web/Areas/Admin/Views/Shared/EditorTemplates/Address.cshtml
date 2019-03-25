@@ -146,6 +146,16 @@
 
 }
 
+<div class="form-group">
+    <div class="col-md-3">
+        <nop-label asp-for="Ward" />
+    </div>
+    <div class="col-md-9">
+        <nop-editor asp-for="Ward" />
+        <span asp-validation-for="Ward"></span>
+    </div>
+</div>
+
 @if (Model.StreetAddressEnabled)
 {
     <div class="form-group">

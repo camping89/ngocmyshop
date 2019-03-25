@@ -491,15 +491,15 @@
                                 ]
                             });
 
-                            $("#shelf-grid").on("change", "input[name=IsCustomerNotified]", function(e) {
-                                var shelfgrid = $("#shelf-grid").data("kendoGrid"),
-                                    dataItem = shelfgrid.dataItem($(e.target).closest("tr"));
-                                console.log($(this).is(":checked"));
-                                if ($(this).is(":checked")) {
-                                    dataItem.set("ShelfNoteId", 0);
-                                }
+                            //$("#shelf-grid").on("change", "input[name=IsCustomerNotified]", function(e) {
+                            //    var shelfgrid = $("#shelf-grid").data("kendoGrid"),
+                            //        dataItem = shelfgrid.dataItem($(e.target).closest("tr"));
+                            //    console.log($(this).is(":checked"));
+                            //    if ($(this).is(":checked")) {
+                            //        dataItem.set("ShelfNoteId", 0);
+                            //    }
 
-                            });
+                            //});
 
                             // handle grid row clicks for detail row expansion
                             grid.on("click","td.k-hierarchy-cell",function(e) {

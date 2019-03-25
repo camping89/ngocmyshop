@@ -142,7 +142,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                             var customerAddress = customer.Addresses.OrderBy(_ => _.CreatedOnUtc).FirstOrDefault();
                             if (customerAddress != null)
                             {
-                                m.CustomerAddress = $"{customerAddress.Address1}, {customerAddress.District}, {customerAddress.StateProvince?.Name}";
+                                m.CustomerAddress = $"{customerAddress.Address1}, {customerAddress.Ward}, {customerAddress.District}, {customerAddress.City}";
                             }
                         }
 
@@ -281,6 +281,10 @@ namespace Nop.Web.Areas.Admin.Controllers
             if (string.IsNullOrEmpty(model.ShippedDate) == false)
             {
                 entity.ShippedDate = StringExtensions.StringToDateTime(model.ShippedDate);
+            }
+            else
+            {
+                entity.ShippedDate = null;
             }
 
             if (string.IsNullOrEmpty(model.UpdatedNoteDate) == false)
@@ -443,7 +447,8 @@ namespace Nop.Web.Areas.Admin.Controllers
                         ShippedDateUtc = shelf.ShippedDate,
                         Address = customerAddress?.Address1,
                         Province = customerAddress?.City,
-                        District = customerAddress?.District
+                        District = customerAddress?.District,
+                        Ward = customerAddress?.Ward
                     };
 
                     _shipmentManualService.InsertShipmentManual(shipmentEntity);
@@ -503,6 +508,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 shipmentManual.Province = model.ShipmentCityId;
                 shipmentManual.District = model.ShipmentDistrictId;
                 shipmentManual.Address = model.ShipmentAddress;
+                shipmentManual.Ward = model.ShipmentWard;
                 shipmentManual.ShipmentNote = model.ShipmentNote;
 
                 _shipmentManualService.UpdateShipmentManual(shipmentManual);

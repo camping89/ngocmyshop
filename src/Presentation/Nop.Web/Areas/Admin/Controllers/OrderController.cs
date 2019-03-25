@@ -602,7 +602,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             //picture
             var orderItemPicture =
                 orderItem.Product.GetProductPicture(orderItem.AttributesXml, _pictureService, _productAttributeParser);
-            orderItemModel.PictureThumbnailUrl = _pictureService.GetPictureUrl(orderItemPicture, 100, true);
+            orderItemModel.PictureThumbnailUrl = _pictureService.GetPictureUrl(orderItemPicture, 150, true);
 
             ////license file
             //if (orderItem.LicenseDownloadId.HasValue)
@@ -1637,7 +1637,8 @@ namespace Nop.Web.Areas.Admin.Controllers
                 ShipmentCity = Core.Extensions.StringExtensions.IsNotNullOrEmpty(shipment.Province) ? shipment.Province : "Chưa xác định",
                 ShipmentCityId = Core.Extensions.StringExtensions.IsNotNullOrEmpty(shipment.Province) ? shipment.Province : "0",
                 ShipmentDistrict = Core.Extensions.StringExtensions.IsNotNullOrEmpty(shipment.District) ? shipment.District : "Chưa xác định",
-                ShipmentDistrictId = Core.Extensions.StringExtensions.IsNotNullOrEmpty(shipment.District) ? shipment.District : "0"
+                ShipmentDistrictId = Core.Extensions.StringExtensions.IsNotNullOrEmpty(shipment.District) ? shipment.District : "0",
+                ShipmentWard = string.IsNullOrEmpty(shipment.Ward) == false ? shipment.Ward : "Chưa xác định"
             };
 
             var customerOrder = shipment.Customer;
@@ -1943,6 +1944,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                         CustomerPhone = x.Customer.Phone,
                         CustomerDistrict = customerAddress != null ? customerAddress.District : x.BillingAddress.District,
                         CustomerCity = customerAddress != null ? customerAddress.City : x.BillingAddress.City,
+                        CustomerWard = customerAddress != null ? customerAddress.Ward : x.BillingAddress.Ward,
                         CustomerLinkFacebook = linkFacebook,
                         CustomerShortLinkFacebook = shortLink,
                         CreatedOn = _dateTimeHelper.ConvertToUserTime(x.CreatedOnUtc, DateTimeKind.Utc),
@@ -4295,6 +4297,8 @@ namespace Nop.Web.Areas.Admin.Controllers
             {
                 shelf.AssignedDate = DateTime.UtcNow;
                 shelf.CustomerId = customerId;
+                shelf.IsCustomerNotified = false;
+                shelf.ShelfNoteStatus = ShelfNoteStatus.NoReply;
                 _shelfService.UpdateShelf(shelf);
 
                 var shelfOrderItem = _shelfService.GetShelfOrderItemByOrderItemId(orderItem.Id);
@@ -4967,7 +4971,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             }
         }
         [HttpPost]
-        public virtual IActionResult AssignNewCustomerSelected(ICollection<int> selectedIds, int assignedByNewCustomerId)
+        public virtual IActionResult AssignNewStaffSelected(ICollection<int> selectedIds, int assignedByStaffId)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageOrders))
                 return AccessDeniedView();
@@ -4978,14 +4982,14 @@ namespace Nop.Web.Areas.Admin.Controllers
                 orderItems.AddRange(_orderService.GetOrderItemsByIds(selectedIds.ToArray()));
             }
 
-            var customer = _customerService.GetCustomerById(assignedByNewCustomerId);
+            var customer = _customerService.GetCustomerById(assignedByStaffId);
             if (customer != null)
             {
                 foreach (var orderItem in orderItems)
                 {
                     try
                     {
-                        orderItem.AssignedByCustomerId = assignedByNewCustomerId;
+                        orderItem.AssignedByCustomerId = assignedByStaffId;
                         _orderService.UpdateOrderItem(orderItem);
                     }
                     catch
@@ -6488,12 +6492,21 @@ namespace Nop.Web.Areas.Admin.Controllers
             //model.PackageOrderIds.Insert(0, new SelectListItem { Text = _localizationService.GetResource("Admin.Common.All"), Value = "0" });
 
             //customers
-            var customers = _customerService.GetAllCustomers();
+            var customers = _customerService.GetAllCustomers(customerRoleIds: new int[] { CustomerRoleEnum.Registered.ToInt(), CustomerRoleEnum.Customer.ToInt() });
             foreach (var customer in customers)
             {
                 model.AvailableCustomers.Add(new SelectListItem { Text = $"{customer.GetFullName()} - {customer.GetAttribute<string>(SystemCustomerAttributeNames.Phone)}", Value = customer.Id.ToString() });
             }
             model.AvailableCustomers.Insert(0, new SelectListItem { Text = _localizationService.GetResource("Admin.Common.All"), Value = "0" });
+
+
+            //staffs
+            var staffs = _customerService.GetAllCustomers(customerRoleIds: new int[] { CustomerRoleEnum.Employee.ToInt(), CustomerRoleEnum.Administrators.ToInt() });
+            foreach (var staff in staffs)
+            {
+                model.AvailableStaffs.Add(new SelectListItem { Text = $"{staff.GetFullName()} - {staff.GetAttribute<string>(SystemCustomerAttributeNames.Phone)}", Value = staff.Id.ToString() });
+            }
+            model.AvailableStaffs.Insert(0, new SelectListItem { Text = _localizationService.GetResource("Admin.Common.All"), Value = "0" });
 
             //vendors 
             var vendors = _vendorService.GetAllVendors();
@@ -6537,7 +6550,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 customerPhone: model.CustomerPhone, packageOrderCode: model.PackageOrderCode,
                 vendorId: model.VendorId, isSetPackageOrderId: model.IsSetPackageOrderId,
                 isSetShelfId: model.IsShelfAssigned, orderItemStatusId: model.OrderItemStatusId,
-                isPackageItemProcessedDatetime: model.IsPackageItemProcessedDatetime);
+                isPackageItemProcessedDatetime: model.IsPackageItemProcessedDatetime, isOrderCheckout: model.IsOrderCheckout);
 
             var vendors = _vendorService.GetAllVendors();
             var gridModel = new DataSourceResult
@@ -6560,7 +6573,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                             }
                         }
                         customerInfo = customerOrder.GetFullName()
-                                                 + $"\n {customerOrder.GetAttribute<string>(SystemCustomerAttributeNames.Phone)}";
+                                                 + $"<br/> {customerOrder.GetAttribute<string>(SystemCustomerAttributeNames.Phone)}";
                     }
 
                     var currencyProduct = _currencyService.GetCurrencyById(orderItem.Product.CurrencyId);

@@ -472,7 +472,7 @@ namespace Nop.Services.Orders
             int pageSize = int.MaxValue, OrderSortingEnum orderBy = OrderSortingEnum.CreatedOnDesc, bool todayFilter = false,
             string customerPhone = null, string packageOrderCode = null,
             int vendorId = 0, bool? isSetPackageOrderId = null,
-            bool? isSetShelfId = null, int orderItemStatusId = -1, bool? isPackageItemProcessedDatetime = null)
+            bool? isSetShelfId = null, int orderItemStatusId = -1, bool? isPackageItemProcessedDatetime = null, bool? isOrderCheckout = null)
         {
             var query = from orderItem in _orderItemRepository.Table
                         join o in _orderRepository.Table on orderItem.OrderId equals o.Id
@@ -540,20 +540,20 @@ namespace Nop.Services.Orders
                 query = query.Where(_ => _.Product.VendorId == vendorId);
             }
 
-            //if (isOrderCheckout.HasValue)
-            //{
-            //    query = query.Where(_ => _.IsOrderCheckout == isOrderCheckout);
-            //}
+            if (isOrderCheckout.HasValue)
+            {
+                query = query.Where(_ => _.IsOrderCheckout == isOrderCheckout);
+            }
 
             //if (isPackageItemProcessed)
             //{
             //    query = query.Where(_ => _.PackageItemProcessedDatetime != null);
             //}
 
-            if (orderItemStatusId != -1)
-            {
-                query = query.Where(_ => _.OrderItemStatusId == orderItemStatusId);
-            }
+            //if (orderItemStatusId != -1)
+            //{
+            //    query = query.Where(_ => _.OrderItemStatusId == orderItemStatusId);
+            //}
 
             if (todayFilter)
             {
