@@ -721,7 +721,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             //picture
             var orderItemPicture =
                 orderItem.Product.GetProductPicture(orderItem.AttributesXml, _pictureService, _productAttributeParser);
-            orderItemModel.PictureThumbnailUrl = _pictureService.GetPictureUrl(orderItemPicture, 75, true);
+            orderItemModel.PictureThumbnailUrl = _pictureService.GetPictureUrl(orderItemPicture, 150, true);
 
 
             //Shelf Info
@@ -1967,6 +1967,11 @@ namespace Nop.Web.Areas.Admin.Controllers
                     if (string.IsNullOrEmpty(orderModel.CustomerCity))
                     {
                         orderModel.CustomerCity = "Chưa xác định";
+                    }
+
+                    if (string.IsNullOrEmpty(orderModel.CustomerWard))
+                    {
+                        orderModel.CustomerWard = "Chưa xác định";
                     }
 
                     //PrepareOrderDetailsModel(orderModel, x);

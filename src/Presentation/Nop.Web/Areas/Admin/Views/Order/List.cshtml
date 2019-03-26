@@ -627,7 +627,7 @@
 
                                         },
                                         requestEnd: function(e) {
-                                            if (e.type == "update") {
+                                            if (e.type === "update") {
                                                 //this.read();
                                                 var grid = $('#orders-grid').data('kendoGrid');
                                                 grid.dataSource.read();
@@ -668,10 +668,10 @@
                                         }, {
                                             field: "ProductName",
                                             title: "@T("Admin.Orders.Products.ProductName")",
-                                            template: 'Product name: #=ProductName#' +
-                                                '<p>Nhà sản xuất: #=VendorName#</p>' +
+                                            template: '<p>@T("Admin.Common.Vendor") #=VendorName#</p>' +
                                                 '<p>#=AttributeInfo#</p>' +
-                                                '<p>Sku: #=Sku#</p>',
+                                                '@T("Admin.Products.ProductName") #=ProductName#' +
+                                                '<p>@T("Admin.Products.Sku") #=Sku#</p>',
                                             width: 250
                                         }, {
                                             field: "UnitPriceBase",
@@ -692,7 +692,7 @@
                                             template: "# if (WeightCostDec > 0) { #" +
                                                 "#=WeightCost#" +
                                                 "#} else {#" +
-                                                "<p>@(T("orderitem.includeweightcost.false"))</p>" +
+                                                "<p>@(T("OrderItem.IncludeWeightCost.False"))</p>" +
                                                 "# } #",
                                             editor: addExtendCustom
                                         }, {
