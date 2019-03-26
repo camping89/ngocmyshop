@@ -114,6 +114,9 @@
     <Content Update="Areas\Admin\Views\ShoppingCart\_Availability.cshtml">
       <Pack>$(IncludeRazorContentInPack)</Pack>
     </Content>
+    <Content Update="Areas\Admin\Views\ShoppingCart\_BackInStockSubscription.cshtml">
+      <Pack>$(IncludeRazorContentInPack)</Pack>
+    </Content>
 
     <None Update="Areas\Admin\sitemap.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
