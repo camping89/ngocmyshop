@@ -5742,7 +5742,7 @@ namespace Nop.Web.Areas.Admin.Controllers
 
             //customer info
             model.AvailableShippers.Add(new SelectListItem { Text = _localizationService.GetResource("Admin.Common.All"), Value = "0" });
-            var customers = _customerService.GetAllCustomers().Where(_ => string.IsNullOrEmpty(_.GetFullName()) == false);
+            var customers = _customerService.GetAllCustomers(customerRoleIds: new[] { CustomerRoleEnum.Shipper.ToInt() }).Where(_ => string.IsNullOrEmpty(_.GetFullName()) == false);
             foreach (var w in customers)
                 model.AvailableShippers.Add(new SelectListItem { Text = w.GetFullName(), Value = w.Id.ToString() });
 

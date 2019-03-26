@@ -75,7 +75,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 new SelectListItem() {Value = "False",Text = _localizationService.GetResource("Admin.ShelfOrderItem.IsPackageItemProcessedDatetimeStatus.False")},
             });
 
-            var customers = _customerService.GetAllCustomers().Where(_ => string.IsNullOrEmpty(_.GetFullName()) == false);
+            var customers = _customerService.GetAllCustomers(customerRoleIds: new[] { CustomerRoleEnum.Customer.ToInt(), CustomerRoleEnum.Registered.ToInt() }).Where(_ => string.IsNullOrEmpty(_.GetFullName()) == false);
             shelfListModel.Customers = customers.Select(x =>
             {
                 var model = new SelectListItem
