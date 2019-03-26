@@ -4199,7 +4199,12 @@ namespace Nop.Web.Areas.Admin.Controllers
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageOrders))
                 return AccessDeniedView();
-
+            if (Core.Extensions.StringExtensions.IsNotNullOrEmpty(orderItemModel.ShelfCode)
+                    && (orderItemModel.WeightCostDec == 0 || Core.Extensions.StringExtensions.IsNullOrEmpty(orderItemModel.PackageItemProcessedDatetime))
+                )
+            {
+                return Json(new { errors = _localizationService.GetResource("Admin.OrderVendorCheckout.ValidateAssignShelf") });
+            }
             var order = _orderService.GetOrderById(orderItemModel.OrderId);
             if (order == null)
                 //No order found with the specified id

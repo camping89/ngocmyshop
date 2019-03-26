@@ -301,12 +301,17 @@
 
                                                 },
                                                 requestEnd: function(e) {
+                                                    if (e.response.errors !== undefined) {
+
+                                                        alert(e.response.errors);
+                                                    }
                                                     if (e.type === "update") {
                                                         var grid = $("#order-items-grid").data('kendoGrid');
                                                         grid.dataSource.read();
                                                     }
                                                 },
                                                 error: function(e) {
+
                                                     display_kendoui_grid_error(e);
                                                     // Cancel the changes
                                                     this.cancelChanges();
@@ -487,7 +492,7 @@
                                                         }*@
                                                     ],
                                                     title: "@T("Admin.Common.Function")",
-                                                    width: 80
+                                                    width: 120
                                                 }
                                                 , {
                                                     field: "ShelfCode",
