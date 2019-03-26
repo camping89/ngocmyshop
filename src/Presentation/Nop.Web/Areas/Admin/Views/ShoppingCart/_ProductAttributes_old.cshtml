@@ -11,7 +11,6 @@
         <dl>
             @foreach (var attribute in Model)
             {
-                attribute.Values = attribute.Values.ToList();
                 var controlId = $"product_attribute_{attribute.Id}";
                 var textPrompt = !string.IsNullOrEmpty(attribute.TextPrompt) ? attribute.TextPrompt : attribute.Name;
                 <dt id="@($"product_attribute_label_{attribute.Id}")">
@@ -41,11 +40,11 @@
                                     }
                                     @foreach (var attributeValue in attribute.Values)
                                     {
-                                        var attributeName = string.IsNullOrEmpty(attributeValue.PriceAdjustment) ?
+                                        var attributeName = string.IsNullOrEmpty(attributeValue.BasePriceAdjustment) ?
                                             attributeValue.Name :
-                                            T("Products.ProductAttributes.PriceAdjustment", attributeValue.Name, attributeValue.PriceAdjustment,
+                                            T("Products.ProductAttributes.BasePriceAdjustment", attributeValue.Name, attributeValue.BasePriceAdjustment,
                                                 attributeValue.CustomerEntersQty ? T("Products.ProductAttributes.PriceAdjustment.PerItem").Text : string.Empty).Text;
-                                        <option selected="@attributeValue.IsPreSelected" value="@attributeValue.Id">@attributeValue.Name</option>
+                                        <option selected="@attributeValue.IsPreSelected" value="@attributeValue.Id">@attributeName</option>
                                     }
                                 </select>
                                 foreach (var attributeValue in attribute.Values.Where(value => value.CustomerEntersQty))
@@ -57,10 +56,7 @@
                                 }
                                 <script type="text/javascript" asp-location="Footer">
                                     $(document).ready(function() {
-
                                         showHideDropdownQuantity("@controlId");
-
-                                        $('#@controlId').trigger("change");
                                     });
                                 </script>
                             }
@@ -70,14 +66,14 @@
                                 <ul class="option-list">
                                     @foreach (var attributeValue in attribute.Values)
                                     {
-                                        var attributeName = string.IsNullOrEmpty(attributeValue.PriceAdjustment) ?
+                                        var attributeName = string.IsNullOrEmpty(attributeValue.BasePriceAdjustment) ?
                                             attributeValue.Name :
-                                            T("Products.ProductAttributes.PriceAdjustment", attributeValue.Name, attributeValue.PriceAdjustment,
-                                                attributeValue.CustomerEntersQty ? T("Products.ProductAttributes.PriceAdjustment.PerItem").Text : string.Empty).Text;
+                                            T("Products.ProductAttributes.BasePriceAdjustment", attributeValue.Name, attributeValue.BasePriceAdjustment,
+                                                attributeValue.CustomerEntersQty ? T("Products.ProductAttributes.BasePriceAdjustment.PerItem").Text : string.Empty).Text;
                                         <li>
                                             <input id="@(controlId)_@(attributeValue.Id)" type="radio" name="@(controlId)" value="@attributeValue.Id" checked="@attributeValue.IsPreSelected"
                                                    @(attribute.Values.Any(value => value.CustomerEntersQty) ? Html.Raw($"onclick=\"showHideRadioQuantity('{controlId}')\"") : null) />
-                                            <label for="@(controlId)_@(attributeValue.Id)">@attributeValue.Name</label>
+                                            <label for="@(controlId)_@(attributeValue.Id)">@attributeName</label>
 
                                             @if (attributeValue.CustomerEntersQty)
                                             {
@@ -265,7 +261,7 @@
                                             T("Products.ProductAttributes.PriceAdjustment", attributeValue.Name, attributeValue.PriceAdjustment, string.Empty).Text;
                                         <li @(attributeValue.IsPreSelected ? @Html.Raw(" class=\"selected-value\"") : null)>
                                             <label for="@(controlId)_@(attributeValue.Id)">
-                                                <span class="attribute-square-container" title="@attributeValue.Name">
+                                                <span class="attribute-square-container" title="@attributeName">
                                                     <span class="attribute-square" style="background-color:@(attributeValue.ColorSquaresRgb);">&nbsp;</span>
                                                 </span>
                                                 <input id="@(controlId)_@(attributeValue.Id)" type="radio" name="@(controlId)" value="@attributeValue.Id" checked="@attributeValue.IsPreSelected"
@@ -309,8 +305,8 @@
                                                        @(attribute.Values.Any(value => value.CustomerEntersQty) ? Html.Raw($"onclick=\"showHideRadioQuantity('{controlId}', true)\"") : null) />
                                             </label>
                                             <div class="tooltip-container">
-                                                <div class="tooltip-header">@attributeValue.Name</div>
-                                                <div class="tooltip-body"><img src="@(attributeValue.ImageSquaresPictureModel.FullSizeImageUrl)" alt="@attributeValue.Name" /></div>
+                                                <div class="tooltip-header">@attributeName</div>
+                                                <div class="tooltip-body"><img src="@(attributeValue.ImageSquaresPictureModel.FullSizeImageUrl)" alt="@attributeName" /></div>
                                             </div>
                                         </li>
                                     }
@@ -417,18 +413,13 @@
             function @(attributeChangeHandlerFuncName)() {
                 $.ajax({
                     cache: false,
-                    url: '@Html.Raw(Url.Action("productdetails_attributechange", "shoppingcart", new {productId = productId, validateAttributeConditions = attributesHaveConditions, loadPicture = attributesHaveAssociatedPictures }))',
+                    url: '@Html.Raw(Url.Action("productdetails_attributechange", "Order", new {productId = productId, validateAttributeConditions = attributesHaveConditions, loadPicture = attributesHaveAssociatedPictures }))',
                     data: $('#product-details-form').serialize(),
                     type: 'post',
                     success: function(data) {
-                        if (data.callforprice == true) {
-                            $('.price-value-@productId').text('@T("products.callforprice")');
-                        } else if (data.sellingPrice) {
-                            $('.price-value-@productId').text(data.sellingPrice);
-                            $('.price-no-discount-value-@productId').text(data.retailPrice);
-                            }
-
-
+                        if (data.price) {
+                            $('.price-value-@productId').text(data.price);
+                        }
                         if (data.sku) {
                             $('#sku-@productId').text(data.sku).parent(".sku").show();
                         } else {
@@ -445,14 +436,7 @@
                             $('#gtin-@productId').parent(".gtin").hide();
                         }
                         if (data.stockAvailability) {
-                            $('#stock-availability-value-@productId').html("<b style='color:green'>" + data.stockAvailability + "</b>");
-
-                            if (data.stockNumber <= 0) {
-                                $('#stock-availability-value-@productId').html("<b style='color:red'>" + data.stockAvailability+"</b>");
-                                //$('#qty-cart-@productId').hide();
-                            } else {
-                                //$('#qty-cart-@productId').show();
-                            }
+                            $('#stock-availability-value-@productId').text(data.stockAvailability);
                         }
                         if (data.enabledattributemappingids) {
                             for (var i = 0; i < data.enabledattributemappingids.length; i++) {
@@ -466,19 +450,12 @@
                                 $('#product_attribute_input_' + data.disabledattributemappingids[i]).hide();
                             }
                         }
-                        if (data.pictureId !== 0) {
-                            $("#pic_nav_id_" + data.pictureId + " > a").trigger("click");
+                        if (data.pictureDefaultSizeUrl) {
+                            $('#main-product-img-@productId').attr("src", data.pictureDefaultSizeUrl);
                         }
-                        @*if (data.pictureDefaultSizeUrl) {
-                            $('#main-ul-images-@productId').html('<li><img src="' + data.pictureDefaultSizeUrl +'"/></li>');
-                            $('#main-ul-nav-images-@productId').html('<li><img src="' + data.pictureDefaultSizeUrl +'"/></li>');
-                        }*@
-                        @*if (data.pictureFullSizeUrl) {
-                            $('#main-ul-images-@productId').html('<li><img src="' + data.pictureFullSizeUrl +'"/></li>');
-                            $('#main-ul-nav-images-@productId').html('<li class="active"><img src="' + data.pictureFullSizeUrl +'"/></li>');
-
-                            //$('#main-product-img-lightbox-anchor-@productId').attr("href", data.pictureFullSizeUrl);
-                        }*@
+                        if (data.pictureFullSizeUrl) {
+                            $('#main-product-img-lightbox-anchor-@productId').attr("href", data.pictureFullSizeUrl);
+                        }
                         if (data.message) {
                             alert(data.message);
                         }
@@ -487,7 +464,7 @@
                 });
             }
             $(document).ready(function() {
-                //@(attributeChangeHandlerFuncName)();
+                @(attributeChangeHandlerFuncName)();
                 @Html.Raw(attributeChangeScriptsBuilder.ToString())
             });
         </script>
