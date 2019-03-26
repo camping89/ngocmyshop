@@ -713,7 +713,11 @@ namespace Nop.Web.Areas.Admin.Controllers
                 Note = orderItem.Note
             };
 
-
+            var vendor = _vendorService.GetVendorById(orderItem.Product.VendorId);
+            if (vendor != null)
+            {
+                orderItemModel.VendorName = vendor.Name;
+            }
             //picture
             var orderItemPicture =
                 orderItem.Product.GetProductPicture(orderItem.AttributesXml, _pictureService, _productAttributeParser);

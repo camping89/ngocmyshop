@@ -1887,11 +1887,11 @@ namespace Nop.Services.ExportImport
                 //    IsImage = true
                 //},
                 new PropertyByName<ExportVendorInvoiceItemModel>("ProductInfo", oi => oi.ProductInfo),
+                new PropertyByName<ExportVendorInvoiceItemModel>("VendorProductUrl", oi => oi.VendorProductUrl),
                 new PropertyByName<ExportVendorInvoiceItemModel>("ProductSize", oi => oi.ProductSize),
                 new PropertyByName<ExportVendorInvoiceItemModel>("ProductColor", oi => oi.ProductColor),
                 //new PropertyByName<ExportVendorInvoiceItemModel>("ProductAttributeInfo", oi => oi.ProductAttributeInfo),
                 new PropertyByName<ExportVendorInvoiceItemModel>("BaseUnitPrice", oi => oi.BaseUnitPrice),
-                //new PropertyByName<ExportVendorInvoiceItemModel>("VendorProductUrl", oi => oi.VendorProductUrl),
                 new PropertyByName<ExportVendorInvoiceItemModel>("TotalWithoutWeightCost", oi => oi.TotalWithoutWeightCost),
                 new PropertyByName<ExportVendorInvoiceItemModel>("Quantity", oi => oi.Quantity),
                 new PropertyByName<ExportVendorInvoiceItemModel>("WeightCost", oi => oi.WeightCost),
@@ -1996,7 +1996,8 @@ namespace Nop.Services.ExportImport
                     foreach (var orderItemAttributeXml in productAttributeValues.ProductAttribute)
                     {
                         //Color
-                        if (orderItemAttributeXml.ID.Equals("2597"))
+                        var productAttributeMapping = _productAttributeService.GetProductAttributeMappingById(orderItemAttributeXml.ID.ToIntODefault());
+                        if (productAttributeMapping.ProductAttributeId.Equals(ProductAttributeEnum.Color.ToInt()))
                         {
                             var productAttributeVl = _productAttributeService.GetProductAttributeValueById(orderItemAttributeXml.ProductAttributeValue.Value.ToIntODefault());
                             if (productAttributeVl != null)
@@ -2005,7 +2006,7 @@ namespace Nop.Services.ExportImport
                             }
                         }
                         //Size
-                        if (orderItemAttributeXml.ID.Equals("2598"))
+                        if (productAttributeMapping.ProductAttributeId.Equals(ProductAttributeEnum.Size.ToInt()))
                         {
                             var productAttributeVl = _productAttributeService.GetProductAttributeValueById(orderItemAttributeXml.ProductAttributeValue.Value.ToIntODefault());
                             if (productAttributeVl != null)

@@ -352,6 +352,7 @@ namespace Nop.Web.Areas.Admin.Models.Orders
             public string OrderItemStatus { get; set; }
             public int OrderItemStatusId { get; set; }
             public string Note { get; set; }
+            public string VendorName { get; set; }
 
             public DateTime? AssignedShelfDate { get; set; }
 

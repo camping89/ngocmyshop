@@ -80,7 +80,7 @@ namespace Nop.Services.Catalog
             {
                 if (showCurrency)
                 {
-                    result = amount == 0 ? $"0 {targetCurrency.CurrencyCode}" : amount.ToString(targetCurrency.CustomFormatting);
+                    result = amount == 0 ? $"0" : amount.ToString(targetCurrency.CustomFormatting);
                 }
                 else
                 {
