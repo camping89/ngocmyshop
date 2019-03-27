@@ -649,12 +649,13 @@ namespace Nop.Web.Areas.Admin.Controllers
 
         protected virtual void SaveItem(ShoppingCartItem updatecartitem, List<string> addToCartWarnings, Product product,
            ShoppingCartType cartType, string attributes, decimal customerEnteredPriceConverted, DateTime? rentalStartDate,
-           DateTime? rentalEndDate, int quantity, Customer customer)
+           DateTime? rentalEndDate, int quantity, Customer customer, decimal adjustusdPrice = Decimal.Zero)
         {
             if (customer != null)
             {
                 if (updatecartitem == null)
                 {
+
                     //add to the cart
                     addToCartWarnings.AddRange(_shoppingCartService.AddToCart(customer,
                         product, cartType, _storeContext.CurrentStore.Id,
@@ -980,7 +981,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             var model = _productModelFactory.PrepareProductDetailsModel(product, updatecartitem, false);
             model.CustomerId = customerId;
             model.MetaTitle = $"Thêm vào giỏ hàng - {customer.GetFullName()} - Sku: {product.Sku}";
-
+            ViewData["CustomerId"] = customerId;
             var productTemplateViewPath = _productModelFactory.PrepareProductTemplateViewPath(product);
             return View(productTemplateViewPath, model);
         }
@@ -1024,6 +1025,21 @@ namespace Nop.Web.Areas.Admin.Controllers
                     }
                 }
             }
+            var adjustusdPrice = decimal.Zero;
+            if (product.CustomerEntersPrice)
+            {
+                foreach (var formKey in form.Keys)
+                {
+                    if (formKey.Equals($"addtocart_{productId}.adjustusd", StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        if (decimal.TryParse(form[formKey], out decimal adjustusd))
+                        {
+                            adjustusdPrice = adjustusd;
+                        }
+                        break;
+                    }
+                }
+            }
 
             //quantity
             var quantity = 1;
@@ -1052,7 +1068,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 updatecartitem.ShoppingCartType;
 
             //product.CurrencyId;
-            SaveItem(updatecartitem, addToCartWarnings, product, cartType, attributes, customerEnteredPriceConverted, rentalStartDate, rentalEndDate, quantity, customer);
+            SaveItem(updatecartitem, addToCartWarnings, product, cartType, attributes, customerEnteredPriceConverted, rentalStartDate, rentalEndDate, quantity, customer, adjustusdPrice);
             //activity log
             _customerActivityService.InsertActivity("PublicStore.AddToShoppingCart",
                 _localizationService.GetResource("ActivityLog.PublicStore.AddToShoppingCart"), product.Name);
@@ -1065,6 +1081,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             //model
             var model = _productModelFactory.PrepareProductDetailsModel(product, updatecartitem, false);
             model.CustomerId = customerId;
+            ViewData["CustomerId"] = customerId;
             //return View(productTemplateViewPath,model);
             //return result
             return View(productTemplateViewPath, model);
@@ -1170,7 +1187,7 @@ namespace Nop.Web.Areas.Admin.Controllers
 
             //price
             var price = "";
-            if (_permissionService.Authorize(StandardPermissionProvider.DisplayPrices) && !product.CustomerEntersPrice)
+            if (_permissionService.Authorize(StandardPermissionProvider.DisplayPrices))
             {
                 //we do not calculate price of "customer enters price" option is enabled
                 List<DiscountForCaching> scDiscounts;
@@ -1180,9 +1197,10 @@ namespace Nop.Web.Areas.Admin.Controllers
                     1, attributeXml, 0,
                     rentalStartDate, rentalEndDate,
                     true, out decimal _, out scDiscounts);
-                var finalPriceWithDiscountBase = _taxService.GetProductPrice(product, finalPrice, out decimal _);
-                var finalPriceWithDiscount = _currencyService.ConvertFromPrimaryStoreCurrency(finalPriceWithDiscountBase, _workContext.WorkingCurrency);
-                price = _priceFormatter.FormatPrice(finalPriceWithDiscount);
+                //var finalPriceWithDiscountBase = _taxService.GetProductPrice(product, finalPrice, out decimal _);
+                //var finalPriceWithDiscount = _currencyService.ConvertFromPrimaryStoreCurrency(finalPriceWithDiscountBase, _workContext.WorkingCurrency);
+                //price = _priceFormatter.FormatPrice(finalPriceWithDiscount);
+                price = _priceFormatter.FormatPrice(finalPrice);
             }
 
             //base price adjustment
@@ -1262,6 +1280,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                     .All(associatedProduct => associatedProduct == null || !associatedProduct.IsShipEnabled || associatedProduct.IsFreeShipping);
             }
 
+            var sellingPrice = product.UnitPriceUsd + adjustBasePrice;
             return Json(new
             {
                 gtin,
@@ -1269,6 +1288,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 sku,
                 price,
                 adjustBasePrice,
+                sellingPrice,
                 stockAvailability,
                 enabledattributemappingids = enabledAttributeMappingIds.ToArray(),
                 disabledattributemappingids = disabledAttributeMappingIds.ToArray(),

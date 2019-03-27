@@ -578,6 +578,11 @@ namespace Nop.Web.Factories
                 if (product.CustomerEntersPrice)
                 {
                     model.CustomerEntersPrice = true;
+                    model.Price = _priceFormatter.FormatPrice(product.Price);
+                    model.BasePrice = product.UnitPriceUsd;
+                    model.PriceValue = product.Price;
+                    var currency = _currencyService.GetCurrencyById(product.CurrencyId);
+                    model.CurrencyCode = currency?.CurrencyCode;
                 }
                 else
                 {

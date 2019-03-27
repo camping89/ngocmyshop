@@ -92,29 +92,8 @@
                                             @await Html.PartialAsync("_DownloadSample", Model)*@
 
                                         <div class="product-price">
-                                            @if (!string.IsNullOrEmpty(Model.ProductPrice.OldPrice))
-                                            {
-                                                <del><span class="title14 silver">@Model.ProductPrice.Price</span></del>
-                                            }
-
-                                            @if (Model.ProductPrice.CallForPrice)
-                                            {
-
-                                                <ins><span class="price-value-@Model.Id title14 color">@T("Products.CallForPrice")</span></ins>
-                                            }
-                                            else
-                                            {
-                                                if (!string.IsNullOrEmpty(Model.ProductPrice.PriceWithDiscount))
-                                                {
-                                                    <del><span class="price-no-discount-value-@Model.Id title14 silver">@Model.ProductPrice.Price</span></del>
-                                                    <ins><span class="price-value-@Model.Id title14 color">@Model.ProductPrice.PriceWithDiscount</span></ins>
-                                                }
-                                                else
-                                                {
-                                                    <ins><span class="price-value-@Model.Id title14 color">@Model.ProductPrice.Price</span></ins>
-                                                }
-
-                                            }
+                                            <ins><span class="price-value-@Model.Id title14 color">@(Model.ProductPrice.Price)</span><span>@Model.ProductPrice.CurrencyCode</span></ins>
+                                            <input type="hidden" value="0" class="addtocart-adjust-@(Model.Id)" name="addtocart_@(Model.Id).adjustusd" />
 
                                         </div>
                                         <!--attributes-->
@@ -139,9 +118,9 @@
                                         @{
                                             @*var dataDictPrice = new ViewDataDictionary(ViewData);
                                                 dataDictPrice.TemplateInfo.HtmlFieldPrefix = $"price_{Model.Id}";
-                                                @await Html.PartialAsync("_ProductPrice", Model.ProductPrice, dataDictPrice)*@
+                                                @await Html.PartialAsync("_ProductPrice", Model.ProductPrice, dataDictPrice)
 
-                                            @await Html.PartialAsync("_ProductTierPrices", Model.TierPrices)
+                                                @await Html.PartialAsync("_ProductTierPrices", Model.TierPrices)*@
 
                                             var dataDictAddToCart = new ViewDataDictionary(ViewData);
                                             dataDictAddToCart.TemplateInfo.HtmlFieldPrefix = $"addtocart_{Model.Id}";

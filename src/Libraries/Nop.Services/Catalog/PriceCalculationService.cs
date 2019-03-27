@@ -609,6 +609,7 @@ namespace Nop.Services.Catalog
                         product.IsRental ? rentalEndDate : null,
                         out discountAmount, out appliedDiscounts);
                 }
+
             }
 
             //rounding

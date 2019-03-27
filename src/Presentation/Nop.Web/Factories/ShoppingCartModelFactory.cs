@@ -425,8 +425,15 @@ namespace Nop.Web.Factories
             {
                 var shoppingCartUnitPriceWithDiscountBase = _taxService.GetProductPrice(sci.Product, _priceCalculationService.GetUnitPrice(sci), out decimal _);
                 var shoppingCartUnitPriceWithDiscount = _currencyService.ConvertFromPrimaryStoreCurrency(shoppingCartUnitPriceWithDiscountBase, _workContext.WorkingCurrency);
+
+                var currencyProduct = _currencyService.GetCurrencyById(sci.CurrencyId);
+                if (currencyProduct != null)
+                {
+                    shoppingCartUnitPriceWithDiscount = sci.UnitPriceUsd * currencyProduct.VndRate;
+                }
                 cartItemModel.UnitPriceDecimal = shoppingCartUnitPriceWithDiscount;
                 cartItemModel.UnitPrice = _priceFormatter.FormatPrice(shoppingCartUnitPriceWithDiscount);
+
             }
 
 
@@ -440,21 +447,22 @@ namespace Nop.Web.Factories
             else
             {
                 //sub total
-                var shoppingCartItemSubTotalWithDiscountBase = _taxService.GetProductPrice(sci.Product, _priceCalculationService.GetSubTotal(sci, true, out decimal shoppingCartItemDiscountBase, out List<DiscountForCaching> _, out int? maximumDiscountQty), out decimal taxRate);
-                var shoppingCartItemSubTotalWithDiscount = _currencyService.ConvertFromPrimaryStoreCurrency(shoppingCartItemSubTotalWithDiscountBase, _workContext.WorkingCurrency);
-                cartItemModel.SubTotal = _priceFormatter.FormatPrice(shoppingCartItemSubTotalWithDiscount);
-                cartItemModel.MaximumDiscountedQty = maximumDiscountQty;
+                //var shoppingCartItemSubTotalWithDiscountBase = _taxService.GetProductPrice(sci.Product, _priceCalculationService.GetSubTotal(sci, true, out decimal shoppingCartItemDiscountBase, out List<DiscountForCaching> _, out int? maximumDiscountQty), out decimal taxRate);
+                //var shoppingCartItemSubTotalWithDiscount = _currencyService.ConvertFromPrimaryStoreCurrency(shoppingCartItemSubTotalWithDiscountBase, _workContext.WorkingCurrency);
+                //cartItemModel.SubTotal = _priceFormatter.FormatPrice(shoppingCartItemSubTotalWithDiscount);
+                //cartItemModel.MaximumDiscountedQty = maximumDiscountQty;
 
-                //display an applied discount amount
-                if (shoppingCartItemDiscountBase > decimal.Zero)
-                {
-                    shoppingCartItemDiscountBase = _taxService.GetProductPrice(sci.Product, shoppingCartItemDiscountBase, out taxRate);
-                    if (shoppingCartItemDiscountBase > decimal.Zero)
-                    {
-                        var shoppingCartItemDiscount = _currencyService.ConvertFromPrimaryStoreCurrency(shoppingCartItemDiscountBase, _workContext.WorkingCurrency);
-                        cartItemModel.Discount = _priceFormatter.FormatPrice(shoppingCartItemDiscount);
-                    }
-                }
+                ////display an applied discount amount
+                //if (shoppingCartItemDiscountBase > decimal.Zero)
+                //{
+                //    shoppingCartItemDiscountBase = _taxService.GetProductPrice(sci.Product, shoppingCartItemDiscountBase, out taxRate);
+                //    if (shoppingCartItemDiscountBase > decimal.Zero)
+                //    {
+                //        var shoppingCartItemDiscount = _currencyService.ConvertFromPrimaryStoreCurrency(shoppingCartItemDiscountBase, _workContext.WorkingCurrency);
+                //        cartItemModel.Discount = _priceFormatter.FormatPrice(shoppingCartItemDiscount);
+                //    }
+                //}
+                cartItemModel.SubTotal = _priceFormatter.FormatPrice(cartItemModel.UnitPriceDecimal * sci.Quantity);
             }
 
             //picture
