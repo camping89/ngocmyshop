@@ -414,7 +414,7 @@
                                             headerAttributes: { style: "text-align:center" },
                                             attributes: { style: "text-align:center" },
                                             template:
-                                                "<div style='display:block;padding: 50% 30%;' onclick='setChecked(#=Id#);'><input onclick='setChecked(#=Id#);' id='ckb#=Id#' type='checkbox' value='#=Id#' class='checkboxGroups'/></div>",
+                                                "<div style='display:block;padding: 100% 30%;' onclick='setChecked(#=Id#);'><input onclick='setChecked(#=Id#);' id='ckb#=Id#' type='checkbox' value='#=Id#' class='checkboxGroups'/></div>",
                                             width: 50,
                                             sortable: false
                                         }, {
@@ -435,7 +435,8 @@
                                                 '<p>Quận/Huyện: #=CustomerDistrict# </p>'+
                                                 '<p>Tỉnh/Thành: #=CustomerCity# </p>'+
                                                 '# if( CustomerLinkFacebook != null) { # ' +
-                                                'Facebook: <a target="_blank" href="#=CustomerLinkFacebook#">#=CustomerShortLinkFacebook#</a>' +
+                                                //'Facebook: <a target="_blank" href="#=CustomerLinkFacebook#">#=CustomerShortLinkFacebook#</a>' +
+                                                'Facebook: <a target="_blank" href="#=CustomerLinkFacebook#">#=CustomerLinkFacebook#</a>' +
                                                 '# }else { #' +
                                                 '<p></p>' +
                                                 '# } #',

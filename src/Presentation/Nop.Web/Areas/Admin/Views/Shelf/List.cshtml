@@ -730,11 +730,13 @@
                                             "#} else {#" +
                                             "<p></p>" +
                                             "# } #"
-                                        }, {
+                                        },
+                                        @*{
                                             field: "PackageItemProcessedDatetime",
                                             title: "@T("Admin.OrderItem.PackageItemProcessedDatetime")",
                                             width: 100
-                                        }, {
+                                        },*@
+                                        {
                                             field: "ShelfOrderItem.IsActive",
                                             title: "@T("Admin.ShelfOrderItem.IsActive")",
                                             template: "# if (ShelfOrderItemIsActive) { #" +

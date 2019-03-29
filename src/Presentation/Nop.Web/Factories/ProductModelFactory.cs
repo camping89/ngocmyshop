@@ -624,8 +624,9 @@ namespace Nop.Web.Factories
                             _localizationService, _measureService, _currencyService, _workContext, _priceFormatter);
 
                         //currency code
-                        model.CurrencyCode = _workContext.WorkingCurrency.CurrencyCode;
-
+                        //model.CurrencyCode = _workContext.WorkingCurrency.CurrencyCode;
+                        var currency = _currencyService.GetCurrencyById(product.CurrencyId);
+                        model.CurrencyCode = currency?.CurrencyCode;
                         //rental
                         if (product.IsRental)
                         {

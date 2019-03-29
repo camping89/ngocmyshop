@@ -2531,43 +2531,50 @@ namespace Nop.Web.Areas.Admin.Controllers
           int productId)
         {
 
-            if (!_permissionService.Authorize(StandardPermissionProvider.ManageProducts))
-                return AccessDeniedView();
-            var listPicids = InsertMultipleImageUrls(pictureUrls);
-            listPicids.AddRange(pictureIds);
-            if (pictureIds.Length == 0)
-                throw new ArgumentException();
-
-            var product = _productService.GetProductById(productId);
-            if (product == null)
-                throw new ArgumentException("No product found with the specified id");
-
-            //a vendor should have access only to his products
-            if (_workContext.CurrentVendor != null && product.VendorId != _workContext.CurrentVendor.Id)
-                return RedirectToAction("List");
-
-            foreach (var pictureId in listPicids)
+            try
             {
-                var picture = _pictureService.GetPictureById(pictureId);
-                if (picture == null)
-                    continue;
+                if (!_permissionService.Authorize(StandardPermissionProvider.ManageProducts))
+                    return AccessDeniedView();
+                var listPicids = InsertMultipleImageUrls(pictureUrls);
+                listPicids.AddRange(pictureIds);
+                if (pictureIds.Length == 0)
+                    throw new ArgumentException();
 
-                _pictureService.UpdatePicture(picture.Id,
-                    _pictureService.LoadPictureBinary(picture),
-                    picture.MimeType,
-                    picture.SeoFilename,
-                    overrideAltAttribute,
-                    overrideTitleAttribute);
+                var product = _productService.GetProductById(productId);
+                if (product == null)
+                    throw new ArgumentException("No product found with the specified id");
 
-                _pictureService.SetSeoFilename(pictureId, _pictureService.GetPictureSeName(product.Name));
+                //a vendor should have access only to his products
+                if (_workContext.CurrentVendor != null && product.VendorId != _workContext.CurrentVendor.Id)
+                    return RedirectToAction("List");
 
-                _productService.InsertProductPicture(new ProductPicture
+                foreach (var pictureId in listPicids)
                 {
-                    PictureId = pictureId,
-                    ProductId = productId,
-                    DisplayOrder = displayOrder,
-                });
+                    var picture = _pictureService.GetPictureById(pictureId);
+                    if (picture == null)
+                        continue;
 
+                    _pictureService.UpdatePicture(picture.Id,
+                        _pictureService.LoadPictureBinary(picture),
+                        picture.MimeType,
+                        picture.SeoFilename,
+                        overrideAltAttribute,
+                        overrideTitleAttribute);
+
+                    _pictureService.SetSeoFilename(pictureId, _pictureService.GetPictureSeName(product.Name));
+
+                    _productService.InsertProductPicture(new ProductPicture
+                    {
+                        PictureId = pictureId,
+                        ProductId = productId,
+                        DisplayOrder = displayOrder,
+                    });
+
+                }
+            }
+            catch (Exception e)
+            {
+                //ignore
             }
             return Json(new { Result = true });
         }

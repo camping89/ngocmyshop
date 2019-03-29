@@ -92,7 +92,7 @@
                                             @await Html.PartialAsync("_DownloadSample", Model)*@
 
                                         <div class="product-price">
-                                            <ins><span class="price-value-@Model.Id title14 color">@(Model.ProductPrice.Price)</span><span>@Model.ProductPrice.CurrencyCode</span></ins>
+                                            <strong><span class="price-value-@Model.Id title14 color">@(Model.ProductPrice.Price)</span><span>@Model.ProductPrice.CurrencyCode</span></strong>
                                             <input type="hidden" value="0" class="addtocart-adjust-@(Model.Id)" name="addtocart_@(Model.Id).adjustusd" />
 
                                         </div>

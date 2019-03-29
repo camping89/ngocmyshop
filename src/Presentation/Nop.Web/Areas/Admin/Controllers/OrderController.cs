@@ -4208,6 +4208,10 @@ namespace Nop.Web.Areas.Admin.Controllers
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageOrders))
                 return AccessDeniedView();
+            if (orderItemModel.ShelfCode.ToLower().Equals("chọn ngăn"))
+            {
+                orderItemModel.ShelfCode = string.Empty;
+            }
             if (Core.Extensions.StringExtensions.IsNotNullOrEmpty(orderItemModel.ShelfCode)
                     && (orderItemModel.WeightCostDec == 0 || Core.Extensions.StringExtensions.IsNullOrEmpty(orderItemModel.PackageItemProcessedDatetime))
                 )
@@ -4274,6 +4278,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 orderItem.DeliveryDateUtc = StringExtensions.StringToDateTime(orderItemModel.DeliveryDateUtc);
             }
 
+            orderItem.AssignedByCustomerId = orderItemModel.AssignedByCustomerId;
             orderItem.IncludeWeightCost = orderItemModel.IncludeWeightCost;
 
             orderItem.UnitPriceInclTax = orderItem.UnitPriceInclTax - orderItem.WeightCost + orderItemModel.WeightCostDec;
@@ -4304,54 +4309,63 @@ namespace Nop.Web.Areas.Admin.Controllers
             if (Core.Extensions.StringExtensions.IsNotNullOrEmpty(shelfCode))
             {
                 shelfCode = shelfCode.Trim();
-            }
-            var shelf = _shelfService.GetShelfByCode(shelfCode);
+                var shelf = _shelfService.GetShelfByCode(shelfCode);
 
-            if (shelf != null)
-            {
-                shelf.AssignedDate = DateTime.UtcNow;
-                shelf.CustomerId = customerId;
-                shelf.IsCustomerNotified = false;
-                shelf.ShelfNoteStatus = ShelfNoteStatus.NoReply;
-                _shelfService.UpdateShelf(shelf);
-
-                var shelfOrderItem = _shelfService.GetShelfOrderItemByOrderItemId(orderItem.Id);
-                if (shelfOrderItem != null)
+                if (shelf != null)
                 {
-                    shelfOrderItem.ShelfId = shelf.Id;
-                    _shelfService.UpdateShelfOrderItem(shelfOrderItem);
-                }
-                else
-                {
-                    _shelfService.InsertShelfOrderItem(new ShelfOrderItem
-                    {
-                        OrderItemId = orderItem.Id,
-                        ShelfId = shelf.Id,
-                        CustomerId = customerId,
-                        AssignedDate = DateTime.UtcNow,
-                        IsActived = true
-                    });
+                    shelf.AssignedDate = DateTime.UtcNow;
+                    shelf.CustomerId = customerId;
+                    shelf.IsCustomerNotified = false;
+                    shelf.ShelfNoteStatus = ShelfNoteStatus.NoReply;
+                    _shelfService.UpdateShelf(shelf);
 
-                    var listOrderItems = GetOrderItemsUnAssignShelfByCustomer(customerId);
-                    foreach (var orderItemUnAssign in listOrderItems)
+                    var shelfOrderItem = _shelfService.GetShelfOrderItemByOrderItemId(orderItem.Id);
+                    if (shelfOrderItem != null)
                     {
-                        if (orderItemUnAssign.PackageItemProcessedDatetime != null)
+                        shelfOrderItem.ShelfId = shelf.Id;
+                        _shelfService.UpdateShelfOrderItem(shelfOrderItem);
+                    }
+                    else
+                    {
+                        _shelfService.InsertShelfOrderItem(new ShelfOrderItem
                         {
-                            if (_shelfService.GetShelfOrderItemByOrderItemId(orderItemUnAssign.Id) == null)
+                            OrderItemId = orderItem.Id,
+                            ShelfId = shelf.Id,
+                            CustomerId = customerId,
+                            AssignedDate = DateTime.UtcNow,
+                            IsActived = true
+                        });
+
+                        var listOrderItems = GetOrderItemsUnAssignShelfByCustomer(customerId);
+                        foreach (var orderItemUnAssign in listOrderItems)
+                        {
+                            if (orderItemUnAssign.PackageItemProcessedDatetime != null)
                             {
-                                _shelfService.InsertShelfOrderItem(new ShelfOrderItem
+                                if (_shelfService.GetShelfOrderItemByOrderItemId(orderItemUnAssign.Id) == null)
                                 {
-                                    OrderItemId = orderItemUnAssign.Id,
-                                    ShelfId = shelf.Id,
-                                    CustomerId = customerId,
-                                    AssignedDate = DateTime.UtcNow,
-                                    IsActived = true
-                                });
+                                    _shelfService.InsertShelfOrderItem(new ShelfOrderItem
+                                    {
+                                        OrderItemId = orderItemUnAssign.Id,
+                                        ShelfId = shelf.Id,
+                                        CustomerId = customerId,
+                                        AssignedDate = DateTime.UtcNow,
+                                        IsActived = true
+                                    });
+                                }
                             }
                         }
                     }
                 }
             }
+            else
+            {
+                var sheflOrderItem = _shelfService.GetShelfOrderItemByOrderItemId(orderItem.Id);
+                if (sheflOrderItem != null)
+                {
+                    _shelfService.DeleteShelfOrderItem(sheflOrderItem.Id);
+                }
+            }
+
         }
 
         private List<OrderItem> GetOrderItemsUnAssignShelfByCustomer(int customerId)

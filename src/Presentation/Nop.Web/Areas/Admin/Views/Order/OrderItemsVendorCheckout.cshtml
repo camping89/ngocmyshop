@@ -38,10 +38,10 @@
                 <i class="fa fa-calendar"></i>
                 @T("Admin.Orders.Shipments.ApplyProcessedDatetime")
             </button>
-            <button type="button" id="apply-eta-selected" class="btn bg-fuchsia" data-toggle="modal" data-target="#apply-eta-window">
-                <i class="fa fa-calendar"></i>
-                @T("Admin.Orders.Shipments.ApplyEstimatedTimeArrival")
-            </button>
+            @*<button type="button" id="apply-eta-selected" class="btn bg-fuchsia" data-toggle="modal" data-target="#apply-eta-window">
+                    <i class="fa fa-calendar"></i>
+                    @T("Admin.Orders.Shipments.ApplyEstimatedTimeArrival")
+                </button>*@
 
             <button type="button" id="assign-by-selected" class="btn bg-orange" data-toggle="modal" data-target="#assign-by-new-customer-window">
                 @T("Admin.Orders.Shipments.AssignByCustomerSelected")
@@ -264,7 +264,8 @@
                                                             Quantity: { editable: false, type: "number" },
                                                             PackageId: { editable: false, type: "string" },
                                                             ShelfOrderItemId: { editable: false, type: "string" },
-                                                            CustomerAssignShelfInfo: { editable: true, type: "string" },
+                                                            AssignedByCustomerId: { editable: true, type: "string" },
+                                                            CustomerAssignShelfInfo: { editable: false, type: "string" },
                                                             CustomerInfo: { editable: false, type: "string" },
                                                             CreatedDate: { editable: false, type: "string" },
                                                             VendorName: { editable: false, type: "string" },
@@ -301,7 +302,7 @@
 
                                                 },
                                                 requestEnd: function(e) {
-                                                    if (e.response.errors !== undefined) {
+                                                    if (e.response !== null && e.response !== undefined && e.response.errors !== undefined) {
 
                                                         alert(e.response.errors);
                                                     }
@@ -352,7 +353,7 @@
                                                     headerAttributes: { style: "text-align:center" },
                                                     attributes: { style: "text-align:center" },
                                                     template:
-                                                        "<div style='display:block;padding: 40%;' onclick='setChecked(#=Id#);'><input onclick='setChecked(#=Id#);' id='ckb#=Id#' type='checkbox' value='#=Id#' class='checkboxGroups'/></div>",
+                                                        "<div style='display:block;padding: 100% 40%;' onclick='setChecked(#=Id#);'><input onclick='setChecked(#=Id#);' id='ckb#=Id#' type='checkbox' value='#=Id#' class='checkboxGroups'/></div>",
                                                     width: 60,
                                                     sortable: false,
                                                     editor: hideOnEditor
@@ -373,11 +374,6 @@
                                                     title: "@T("Admin.Orders.ShelfOrderItemId")",
                                                     width: 70,
                                                     template: "#=OrderId#.#=Id#"
-                                                }, {
-                                                    field: "CustomerAssignShelfInfo",
-                                                    title: "@T("admin.orders.shelfassignerinfo")",
-                                                    width: 100,
-                                                    editor: hideOnEditor
                                                 }, {
                                                     field: "CreatedDate",
                                                     title: "@T("Admin.Orders.Fields.OrderCreatedDate")",
@@ -422,7 +418,7 @@
                                                 }, {
                                                     field: "ProductName",
                                                     title: "@T("Admin.Orders.Products.ProductName")",
-                                                    template: 'Product name: #=ProductName#' +
+                                                    template: '@T("Admin.Products.ProductName") #=ProductName#' +
                                                         '<p>Sku: #=Sku#</p>' +
                                                         '<p>#=AttributeInfo#</p>' +
                                                         '<p><strong>#=VendorName#</strong></p>',
@@ -494,7 +490,12 @@
                                                     title: "@T("Admin.Common.Function")",
                                                     width: 120
                                                 }
-                                                , {
+                                                ,
+                                                {
+                                                    field: "Note",
+                                                    title: "@T("Admin.OrderItem.Note")",
+                                                    width: 100
+                                                },{
                                                     field: "ShelfCode",
                                                     title: "@T("Admin.Orders.Shelf.ShelfCode")",
                                                     width: 100,
@@ -505,10 +506,15 @@
                                                         "<p></p>" +
                                                         "# } #"
                                                 }, {
-                                                    field: "CustomerAssignShelfInfo",
+                                                    field: "AssignedByCustomerId",
                                                     title: "@T("admin.orders.shelfassignerinfo")",
-                                                    width: 100,
-                                                    editor: hideOnEditor
+                                                    width: 120,
+                                                    editor: editAssignCustomerId,
+                                                    template: "# if (CustomerAssignShelfInfo != null) { #" +
+                                                    "<p>#=CustomerAssignShelfInfo#</p>" +
+                                                    "#} else {#" +
+                                                    "<p></p>" +
+                                                    "# } #"
                                                 },
 
 
@@ -545,11 +551,7 @@
                                                         "<p></p>" +
                                                         "# } #"
                                                 },
-                                                {
-                                                    field: "Note",
-                                                    title: "@T("Admin.OrderItem.Note")",
-                                                    width: 100
-                                                },
+
                                                 @*{
                                                     field: "OrderItemStatusId",
                                                     title: "@T("Admin.Orders.Products.OrderItemStatus")",
@@ -625,6 +627,25 @@
                                                     options.field +
                                                     '" />')
                                                 .prop("disabled", true).appendTo(container);
+                                        }
+
+                                        function editAssignCustomerId(container, options) {
+                                            var jsonCustomers =
+                                                jQuery.parseJSON(
+                                                    '@Json.Serialize(Model.AvailableCustomers.Select(_ => new { AssignedByCustomerId = _.Value, CustomerAssignShelfInfo = _.Text}))');
+                                            $('<input id="CustomerNameEditor" data-text-field="CustomerAssignShelfInfo" data-value-field="' +
+                                                    options.field +
+                                                    '" data-bind="value:' +
+                                                    options.field +
+                                                    '" />')
+                                                .appendTo(container)
+                                                .kendoDropDownList({
+                                                    autoBind: true,
+                                                    dataTextField: "CustomerAssignShelfInfo",
+                                                    dataValueField: "AssignedByCustomerId",
+                                                    dataSource: jsonCustomers,
+                                                    filter: "contains"
+                                                });
                                         }
 
                                         function addExtendCustom(container, options) {
@@ -1380,8 +1401,8 @@
     $(document).ready(function () {
         $('#btn-assign-to-new-customer').click(function (e) {
             e.preventDefault();
-            var customerId = $('#AssignedByNewCustomerId').val();
-            var postData = { selectedIds: selectedIds, AssignedByNewCustomerId: customerId };
+            var customerId = $('#AssignedByStaffId').val();
+            var postData = { selectedIds: selectedIds, AssignedByStaffId: customerId };
             addAntiForgeryToken(postData);
             $.ajax({
                 cache: false,
@@ -1394,10 +1415,10 @@
                     //reload grid
                     var grid = $('#order-items-grid').data('kendoGrid');
                     grid.dataSource.read();
-                    $('#AssignedByNewCustomerId').val(0);
+                    $('#AssignedByStaffId').val(0);
 
-                    $("#AssignedByNewCustomerId").chosen("destroy");
-                    $("#AssignedByNewCustomerId").chosen();
+                    $("#AssignedByStaffId").chosen("destroy");
+                    $("#AssignedByStaffId").chosen();
                 },
                 error: function(xhr, ajaxOptions, thrownError) {
                     alert(thrownError);
