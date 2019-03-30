@@ -7,7 +7,7 @@ using Nop.Web.Framework.Validators;
 
 namespace Nop.Web.Areas.Admin.Validators.Catalog
 {
-    public partial class ProductValidator : BaseNopValidator<ProductModel>
+    public sealed partial class ProductValidator : BaseNopValidator<ProductModel>
     {
         public ProductValidator(ILocalizationService localizationService, IDbContext dbContext)
         {
@@ -15,6 +15,8 @@ namespace Nop.Web.Areas.Admin.Validators.Catalog
             RuleFor(x => x.Sku).NotEmpty().WithMessage(localizationService.GetResource("Admin.Catalog.Products.Fields.Sku.Required"));
             RuleFor(x => x.VendorProductUrl).NotEmpty().WithMessage(localizationService.GetResource("Admin.Catalog.Products.Fields.VendorProductUrl.Required"));
             RuleFor(x => x.VendorId).GreaterThanOrEqualTo(1).WithMessage(localizationService.GetResource("Admin.Catalog.Products.Fields.VendorId.Required"));
+            RuleFor(x => x.UnitPriceUsd).GreaterThanOrEqualTo(1).WithMessage(localizationService.GetResource("Admin.Catalog.Products.Fields.BaseUnitPrice.Required"));
+            RuleFor(x => x.OrderingFee).GreaterThanOrEqualTo(1).WithMessage(localizationService.GetResource("Admin.Catalog.Products.Fields.OrderingFee.Required"));
 
             SetDatabaseValidationRules<Product>(dbContext);
         }

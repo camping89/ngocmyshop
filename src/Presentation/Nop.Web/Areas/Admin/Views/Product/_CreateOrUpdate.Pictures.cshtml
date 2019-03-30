@@ -144,7 +144,7 @@
                                     pictureIds.push(ids[i]);
                                 }
                             }
-                            $('#addProductPicture').attr('disabled', true);
+                            //$('#addProductPicture').attr('disabled', true);
 
                             var postData = {
                                 pictureIds: pictureIds,
@@ -183,7 +183,9 @@
                             $("#PictureUrl3").val("");
                             $("#imageFromUrl4").html("");
                             $("#PictureUrl4").val("");
-                            $("#@Html.IdFor(model => model.AddPictureModel.PictureId)").val("0");
+                            $("#@Html.IdFor(model => model.AddPictureModel.PictureId)").val();
+                            pictureIds = [];
+                            pictureUrls = [];
                         }
                         @*function downloadImage(control,number) {
                             if (control.val() != null && control.val() !== '') {
@@ -226,7 +228,7 @@
                         </div>
                     </div>
                     <div class="col-md-9">
-                        <nop-editor asp-for="AddPictureModel.PictureUrl" />
+                        <nop-editor asp-for="AddPictureModel.PictureUrl"/>
                         @*<button type="button" class="btn btn-success" id="btnDownloadImage">@T("Admin.Common.ButtonDownloadImageProduct")</button>*@
                         <div id="imageFromUrl0">
 
