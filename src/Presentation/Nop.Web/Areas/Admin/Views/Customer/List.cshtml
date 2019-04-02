@@ -73,6 +73,14 @@
                             <div class="col-md-5">
                                 <div class="form-group">
                                     <div class="col-md-4">
+                                        <nop-label asp-for="SearchFullName" />
+                                    </div>
+                                    <div class="col-md-8">
+                                        <nop-editor asp-for="SearchFullName" />
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-md-4">
                                         <nop-label asp-for="SearchLinkFacebookUser" />
                                     </div>
                                     <div class="col-md-8">
@@ -386,6 +394,7 @@
             $('#@Html.IdFor(model => model.SearchLinkFacebookUser)').val('');
             //$('#@Html.IdFor(model => model.SearchCustomerRoleIds)').val(0);
             $('#@Html.IdFor(model => model.SearchUsername)').val('');
+            $('#@Html.IdFor(model => model.SearchFullName)').val('');
             $("#search-customers").click();
         });
 
@@ -396,6 +405,7 @@
             "#@Html.IdFor(model => model.SearchLinkFacebookUser),",
             "#@Html.IdFor(model => model.SearchFirstName),",
             "#@Html.IdFor(model => model.SearchLastName),",
+            "#@Html.IdFor(model => model.SearchFullName),",
             "#@Html.IdFor(model => model.SearchCompany),",
             "#@Html.IdFor(model => model.SearchPhone),",
             "#@Html.IdFor(model => model.SearchZipPostalCode),",
@@ -457,6 +467,7 @@
             SearchLinkFacebookUser: $('#@Html.IdFor(model => model.SearchLinkFacebookUser)').val(),
             SearchFirstName: $('#@Html.IdFor(model => model.SearchFirstName)').val(),
             SearchLastName: $('#@Html.IdFor(model => model.SearchLastName)').val(),
+            SearchFullName: $('#@Html.IdFor(model => model.SearchFullName)').val(),
             SearchDayOfBirth: $('#@Html.IdFor(model => model.SearchDayOfBirth)').val(),
             SearchMonthOfBirth: $('#@Html.IdFor(model => model.SearchMonthOfBirth)').val(),
             SearchCompany: $('#@Html.IdFor(model => model.SearchCompany)').val(),

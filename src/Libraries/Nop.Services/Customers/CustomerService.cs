@@ -306,7 +306,7 @@ namespace Nop.Services.Customers
         public virtual IPagedList<Customer> GetAllCustomers(DateTime? createdFromUtc = null,
             DateTime? createdToUtc = null, int affiliateId = 0, int vendorId = 0,
             int[] customerRoleIds = null, string email = null, string linkFacebook = null, string username = null,
-            string firstName = null, string lastName = null,
+            string firstName = null, string lastName = null, string fullName = null,
             int dayOfBirth = 0, int monthOfBirth = 0,
             string company = null, string phone = null, string zipPostalCode = null,
             string ipAddress = null, bool loadOnlyWithShoppingCart = false, ShoppingCartType? sct = null,
@@ -355,6 +355,11 @@ namespace Nop.Services.Customers
                         z.Attribute.Key == SystemCustomerAttributeNames.LastName &&
                         z.Attribute.Value.Contains(lastName)))
                     .Select(z => z.Customer);
+            }
+
+            if (!string.IsNullOrEmpty(fullName))
+            {
+                query = query.Where(_ => _.FullName != null && _.FullName.Contains(fullName));
             }
             //date of birth is stored as a string into database.
             //we also know that date of birth is stored in the following format YYYY-MM-DD (for example, 1983-02-18).

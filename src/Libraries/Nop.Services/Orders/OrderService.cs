@@ -472,13 +472,16 @@ namespace Nop.Services.Orders
             int pageSize = int.MaxValue, OrderSortingEnum orderBy = OrderSortingEnum.CreatedOnDesc, bool todayFilter = false,
             string customerPhone = null, string packageOrderCode = null,
             int vendorId = 0, bool? isSetPackageOrderId = null,
-            bool? isSetShelfId = null, int orderItemStatusId = -1, bool? isPackageItemProcessedDatetime = null, bool? isOrderCheckout = null)
+            bool? isSetShelfId = null, int orderItemStatusId = -1, bool? isPackageItemProcessedDatetime = null, bool? isOrderCheckout = null, bool isWeightCostZero = false)
         {
             var query = from orderItem in _orderItemRepository.Table
                         join o in _orderRepository.Table on orderItem.OrderId equals o.Id
                         where !o.Deleted
                         select orderItem;
-
+            if (isWeightCostZero)
+            {
+                query = query.Where(_ => _.WeightCost == Decimal.Zero);
+            }
             if (string.IsNullOrEmpty(vendorProductUrl) == false)
             {
                 query = query.Where(_ => string.IsNullOrEmpty(_.Product.VendorProductUrl) == false

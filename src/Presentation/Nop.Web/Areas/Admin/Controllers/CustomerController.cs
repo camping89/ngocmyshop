@@ -836,6 +836,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 username: model.SearchUsername,
                 firstName: model.SearchFirstName,
                 lastName: model.SearchLastName,
+                fullName: model.SearchFullName,
                 linkFacebook: model.SearchLinkFacebookUser,
                 dayOfBirth: searchDayOfBirth,
                 monthOfBirth: searchMonthOfBirth,

@@ -151,6 +151,15 @@
                                     </div>
                                 </div>
 
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <nop-label asp-for="IsWeightCostZero" />
+                                    </div>
+                                    <div class="col-md-8">
+                                        <nop-editor asp-for="IsWeightCostZero" />
+                                    </div>
+                                </div>
+
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
@@ -933,6 +942,7 @@
                                             $('#@Html.IdFor(model => model.CustomerPhone)').val('');
 
                                             $('#@Html.IdFor(model => model.TodayFilter)').prop('checked', false);
+                                            $('#@Html.IdFor(model => model.IsWeightCostZero)').prop('checked', false);
                                             $('#@Html.IdFor(model => model.IsOrderCheckout)').val(0);
                                             $('#@Html.IdFor(model => model.IsSetPackageOrderIdStatus)').val(0);
                                             $('#@Html.IdFor(model => model.IsSetShelfIdStatus)').val(0);
@@ -990,8 +1000,8 @@
                                             OrderId: $('#@Html.IdFor(model => model.OrderId)').val(),
                                             OrderItemId: $('#@Html.IdFor(model => model.OrderItemId)').val(),
                                             IsOrderCheckout: $('#@Html.IdFor(model => model.IsOrderCheckout)').val(),
-                                            IsSetPackageOrderId: $('#@Html.IdFor(model => model.IsSetPackageOrderId)')
-                                                .val(),
+                                            IsSetPackageOrderId: $('#@Html.IdFor(model => model.IsSetPackageOrderId)').val(),
+                                            IsWeightCostZero: $('#@Html.IdFor(model => model.IsWeightCostZero)').val(),
                                             IsSetSetShelfId: $('#@Html.IdFor(model => model.IsShelfAssigned)').val(),
                                             TodayFilter: $('#@Html.IdFor(model => model.TodayFilter)').is(":checked"),
                                             CustomerPhone: $('#@Html.IdFor(model => model.CustomerPhone)').val(),

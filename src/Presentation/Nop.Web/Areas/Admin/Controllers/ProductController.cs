@@ -694,6 +694,10 @@ namespace Nop.Web.Areas.Admin.Controllers
                 });
             }
 
+            if (product == null)
+            {
+                model.ManageInventoryMethodId = ManageInventoryMethod.ManageStockByAttributes.ToInt();
+            }
             //warehouses
             var warehouses = _shippingService.GetAllWarehouses();
             model.AvailableWarehouses.Add(new SelectListItem

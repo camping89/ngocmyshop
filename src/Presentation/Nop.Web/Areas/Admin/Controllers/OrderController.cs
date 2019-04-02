@@ -4212,12 +4212,15 @@ namespace Nop.Web.Areas.Admin.Controllers
             {
                 orderItemModel.ShelfCode = string.Empty;
             }
-            if (Core.Extensions.StringExtensions.IsNotNullOrEmpty(orderItemModel.ShelfCode)
-                    && (orderItemModel.WeightCostDec == 0 || Core.Extensions.StringExtensions.IsNullOrEmpty(orderItemModel.PackageItemProcessedDatetime))
-                )
-            {
-                return Json(new { errors = _localizationService.GetResource("Admin.OrderVendorCheckout.ValidateAssignShelf") });
-            }
+
+            ////Validate set shelf code
+            //if (Core.Extensions.StringExtensions.IsNotNullOrEmpty(orderItemModel.ShelfCode)
+            //        && (orderItemModel.WeightCostDec == 0 || Core.Extensions.StringExtensions.IsNullOrEmpty(orderItemModel.PackageItemProcessedDatetime))
+            //    )
+            //{
+            //    return Json(new { errors = _localizationService.GetResource("Admin.OrderVendorCheckout.ValidateAssignShelf") });
+            //}
+
             var order = _orderService.GetOrderById(orderItemModel.OrderId);
             if (order == null)
                 //No order found with the specified id
@@ -4267,6 +4270,10 @@ namespace Nop.Web.Areas.Admin.Controllers
             if (string.IsNullOrEmpty(orderItemModel.PackageItemProcessedDatetime) == false)
             {
                 orderItem.PackageItemProcessedDatetime = StringExtensions.StringToDateTime(orderItemModel.PackageItemProcessedDatetime);
+            }
+            else
+            {
+                orderItem.PackageItemProcessedDatetime = null;
             }
 
             if (string.IsNullOrEmpty(orderItemModel.EstimatedTimeArrival) == false)
@@ -5769,6 +5776,9 @@ namespace Nop.Web.Areas.Admin.Controllers
             foreach (var w in customers)
                 model.AvailableShippers.Add(new SelectListItem { Text = w.GetFullName(), Value = w.Id.ToString() });
 
+            model.AvailableShippersForSearch = model.AvailableShippers;
+            model.AvailableShippersForSearch.Insert(1, new SelectListItem {Text = _localizationService.GetResource("Admin.Shipment.NotSetShipper"), Value = "-1"});
+
             model.AvailableCities = SelectListHelper.GetStateProvinceSelectListItems(_stateProvinceService, "Đà Nẵng");
             return View(model);
         }
@@ -5804,7 +5814,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 pageIndex: command.Page - 1,
                 pageSize: command.PageSize,
                 orderItemId: model.OrderItemId,
-                phoneShipperNumber: model.ShipperPhoneNumber);
+                phoneShipperNumber: model.ShipperPhoneNumber,shipperId: model.SearchShipperId);
 
             var gridModel = new DataSourceResult
             {
@@ -6578,7 +6588,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 customerPhone: model.CustomerPhone, packageOrderCode: model.PackageOrderCode,
                 vendorId: model.VendorId, isSetPackageOrderId: model.IsSetPackageOrderId,
                 isSetShelfId: model.IsShelfAssigned, orderItemStatusId: model.OrderItemStatusId,
-                isPackageItemProcessedDatetime: model.IsPackageItemProcessedDatetime, isOrderCheckout: model.IsOrderCheckout);
+                isPackageItemProcessedDatetime: model.IsPackageItemProcessedDatetime, isOrderCheckout: model.IsOrderCheckout, isWeightCostZero: model.IsWeightCostZero);
 
             var vendors = _vendorService.GetAllVendors();
             var gridModel = new DataSourceResult

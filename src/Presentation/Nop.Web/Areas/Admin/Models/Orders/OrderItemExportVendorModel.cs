@@ -103,6 +103,9 @@ namespace Nop.Web.Areas.Admin.Models.Orders
 
         public List<SelectListItem> AvailableOrderStatus { get; set; }
 
+        [NopResourceDisplayName("Admin.Orders.List.IsWeightCostZero")]
+        public bool IsWeightCostZero { get; set; }
+
 
     }
 

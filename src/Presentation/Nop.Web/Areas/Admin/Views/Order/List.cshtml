@@ -407,6 +407,10 @@
                                     detailInit: detailInit,
                                     scrollable: false,
                                     dataBound: onDataBound,
+                                    height: function () {
+                                        var gridHeight = $(document).height() - $('.panel-search').height();
+                                        return gridHeight;
+                                    },
                                     columns: [
                                         {
                                             field: "Id",
@@ -1042,6 +1046,31 @@
                             }
 
                             function onDataBound(e) {
+                                //Set scroll header
+                                //var wrapper = this.wrapper,
+                                //    header = wrapper.find(".k-grid-header");
+
+                                //function resizeFixed() {
+                                //    var paddingRight = parseInt(header.css("padding-right"));
+                                //    header.css("width", wrapper.width() - paddingRight);
+                                //}
+
+                                //function scrollFixed() {
+                                //    var offset = $(this).scrollTop(),
+                                //        tableOffsetTop = wrapper.offset().top,
+                                //        tableOffsetBottom = tableOffsetTop + wrapper.height() - header.height();
+                                //    if(offset < tableOffsetTop || offset > tableOffsetBottom) {
+                                //        header.removeClass("fixed-header");
+                                //    } else if(offset >= tableOffsetTop && offset <= tableOffsetBottom && !header.hasClass("fixed")) {
+                                //        header.addClass("fixed-header");
+                                //    }
+                                //}
+
+                                //resizeFixed();
+                                //$(window).resize(resizeFixed);
+                                //$(window).scroll(scrollFixed);
+                                //End - Set scroll header
+
                                 //this.expandRow(this.tbody.find("tr.k-master-row").first());
                                 $('#orders-grid input[type=checkbox][id!=mastercheckbox][class=checkboxGroups]').each(
                                     function() {

@@ -1217,7 +1217,7 @@ namespace Nop.Web.Areas.Admin.Controllers
 
             //stock
             var stockAvailability = product.FormatStockMessage(attributeXml, _localizationService, _productAttributeParser, _dateRangeService);
-
+            var stockNumber = product.GetStockNumber(attributeXml, _productAttributeParser);
             //conditional attributes
             var enabledAttributeMappingIds = new List<int>();
             var disabledAttributeMappingIds = new List<int>();
@@ -1290,6 +1290,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 adjustBasePrice,
                 sellingPrice,
                 stockAvailability,
+                stockNumber,
                 enabledattributemappingids = enabledAttributeMappingIds.ToArray(),
                 disabledattributemappingids = disabledAttributeMappingIds.ToArray(),
                 pictureFullSizeUrl,

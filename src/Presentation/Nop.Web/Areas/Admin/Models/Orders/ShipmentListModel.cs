@@ -15,6 +15,7 @@ namespace Nop.Web.Areas.Admin.Models.Orders
             AvailableStates = new List<SelectListItem>();
             AvailableWarehouses = new List<SelectListItem>();
             AvailableShippers = new List<SelectListItem>();
+            AvailableShippersForSearch = new List<SelectListItem>();
             AvailableCities = new List<SelectListItem>();
         }
         [NopResourceDisplayName("Admin.Orders.Shipments.List.ShipperPhoneNumber")]
@@ -70,7 +71,9 @@ namespace Nop.Web.Areas.Admin.Models.Orders
         [NopResourceDisplayName("Admin.Orders.Shipments.List.CustomerNew")]
         public int CustomerNewId { get; set; }
         public IList<SelectListItem> AvailableShippers { get; set; }
-
+        [NopResourceDisplayName("Admin.Orders.Shipments.List.SearchShipperId")]
+        public int SearchShipperId { get; set; }
+        public IList<SelectListItem> AvailableShippersForSearch { get; set; }
         [NopResourceDisplayName("Admin.Orders.Shipments.List.ExceptCity")]
         public bool ExceptCity { get; set; }
 

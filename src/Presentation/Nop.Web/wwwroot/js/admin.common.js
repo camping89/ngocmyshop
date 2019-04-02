@@ -207,6 +207,9 @@ Number.prototype.format = function(n, x) {
     var str = this.toFixed(2);
     if (this > 0) {
         return str.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    } else if (this == 0) {
+        str = this.toFixed(0);
+        return str;
     } else {
         return str;
     }

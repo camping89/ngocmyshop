@@ -417,7 +417,7 @@
 
         //render scripts
         //almost the same implementation is used in the \Views\Product\_RentalInfo.cshtml file
-        <script type="text/javascript" asp-location="Footer">
+    <script type="text/javascript" asp-location="Footer">
             function @(attributeChangeHandlerFuncName)() {
                 $.ajax({
                     cache: false,
@@ -432,7 +432,13 @@
                             $('.addtocart-adjust-@(productId)').val(data.adjustBasePrice);
                             //$('.price-no-discount-value-@productId').text(data.retailPrice);
                             }
-
+                        if (data.stockNumber === 0) {
+                            $("#addtocart_@(productId)_EnteredQuantity").hide();
+                            $(".add-to-cart-button").hide();
+                        } else {
+                            $("#addtocart_@(productId)_EnteredQuantity").show();
+                            $(".add-to-cart-button").show();
+                        }
 
                         if (data.sku) {
                             $('#sku-@productId').text(data.sku).parent(".sku").show();
@@ -496,6 +502,6 @@
                 //@(attributeChangeHandlerFuncName)();
                 @Html.Raw(attributeChangeScriptsBuilder.ToString())
             });
-        </script>
+    </script>
     }
 }
