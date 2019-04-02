@@ -18,6 +18,13 @@
     .k-hierarchy-cell:hover, .k-hierarchy-cell:focus {
         cursor: pointer;
     }
+
+    .fixed-header {
+        top: 0;
+        position: fixed;
+        width: auto;
+        z-index: 1;
+    }
 </style>
 
 
@@ -407,10 +414,10 @@
                                     detailInit: detailInit,
                                     scrollable: false,
                                     dataBound: onDataBound,
-                                    height: function () {
-                                        var gridHeight = $(document).height() - $('.panel-search').height();
-                                        return gridHeight;
-                                    },
+                                    //height: function () {
+                                    //    var gridHeight = $(document).height() - $('.panel-search').height();
+                                    //    return gridHeight;
+                                    //},
                                     columns: [
                                         {
                                             field: "Id",
@@ -576,6 +583,8 @@
                                         $link.click();
                                     }
                                 });
+
+
                             });
 
 
@@ -1046,7 +1055,6 @@
                             }
 
                             function onDataBound(e) {
-                                //Set scroll header
                                 //var wrapper = this.wrapper,
                                 //    header = wrapper.find(".k-grid-header");
 
@@ -1069,9 +1077,7 @@
                                 //resizeFixed();
                                 //$(window).resize(resizeFixed);
                                 //$(window).scroll(scrollFixed);
-                                //End - Set scroll header
 
-                                //this.expandRow(this.tbody.find("tr.k-master-row").first());
                                 $('#orders-grid input[type=checkbox][id!=mastercheckbox][class=checkboxGroups]').each(
                                     function() {
                                         var currentId = $(this).val();

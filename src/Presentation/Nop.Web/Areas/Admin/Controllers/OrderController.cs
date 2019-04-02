@@ -1638,6 +1638,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                     _workContext.WorkingLanguage, true, false),
                 BagId = shipment.BagId,
                 ShipmentAddress = shipment.Address,
+                IsShipmentFee = shipment.IsShipmentFee,
                 ShipmentCity = Core.Extensions.StringExtensions.IsNotNullOrEmpty(shipment.Province) ? shipment.Province : "Chưa xác định",
                 ShipmentCityId = Core.Extensions.StringExtensions.IsNotNullOrEmpty(shipment.Province) ? shipment.Province : "0",
                 ShipmentDistrict = Core.Extensions.StringExtensions.IsNotNullOrEmpty(shipment.District) ? shipment.District : "Chưa xác định",
@@ -5777,7 +5778,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 model.AvailableShippers.Add(new SelectListItem { Text = w.GetFullName(), Value = w.Id.ToString() });
 
             model.AvailableShippersForSearch = model.AvailableShippers;
-            model.AvailableShippersForSearch.Insert(1, new SelectListItem {Text = _localizationService.GetResource("Admin.Shipment.NotSetShipper"), Value = "-1"});
+            model.AvailableShippersForSearch.Insert(1, new SelectListItem { Text = _localizationService.GetResource("Admin.Shipment.NotSetShipper"), Value = "-1" });
 
             model.AvailableCities = SelectListHelper.GetStateProvinceSelectListItems(_stateProvinceService, "Đà Nẵng");
             return View(model);
@@ -5814,7 +5815,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 pageIndex: command.Page - 1,
                 pageSize: command.PageSize,
                 orderItemId: model.OrderItemId,
-                phoneShipperNumber: model.ShipperPhoneNumber,shipperId: model.SearchShipperId);
+                phoneShipperNumber: model.ShipperPhoneNumber, shipperId: model.SearchShipperId);
 
             var gridModel = new DataSourceResult
             {

@@ -63,6 +63,7 @@ namespace Nop.Core.Domain.Shipping
         public string Ward { get; set; }
 
         public int? ShippingAddressId { get; set; }
+        public bool IsShipmentFee { get; set; }
 
         public virtual Address ShippingAddress { get; set; }
 

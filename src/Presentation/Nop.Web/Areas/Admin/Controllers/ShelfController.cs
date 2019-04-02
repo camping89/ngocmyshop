@@ -510,7 +510,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 shipmentManual.Address = model.ShipmentAddress;
                 shipmentManual.Ward = model.ShipmentWard;
                 shipmentManual.ShipmentNote = model.ShipmentNote;
-
+                shipmentManual.IsShipmentFee = model.IsShipmentFee;
                 _shipmentManualService.UpdateShipmentManual(shipmentManual);
             }
             return Json(new { Success = true });

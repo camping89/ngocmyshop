@@ -90,6 +90,9 @@ namespace Nop.Web.Areas.Admin.Models.Orders
         [NopResourceDisplayName("Admin.Orders.Fields.ShippingAddress")]
         public AddressModel ShippingAddress { get; set; }
 
+        [NopResourceDisplayName("Admin.Orders.Fields.IsShipmentFee")]
+        public bool IsShipmentFee { get; set; }
+
         public List<ShipmentManualItemModel> Items { get; set; }
 
         public partial class ShipmentManualItemModel : BaseNopEntityModel
