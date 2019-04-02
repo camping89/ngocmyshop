@@ -7,6 +7,7 @@ using Nop.Core.Domain.Shipping;
 using Nop.Services;
 using Nop.Services.Catalog;
 using Nop.Services.Common;
+using Nop.Services.Configuration;
 using Nop.Services.Customers;
 using Nop.Services.Localization;
 using Nop.Services.Orders;
@@ -35,7 +36,8 @@ namespace Nop.Web.Areas.Admin.Controllers
         private readonly IShipmentManualService _shipmentManualService;
         private readonly IPriceFormatter _priceFormatter;
         private readonly IWorkContext _workContext;
-        public ShelfController(ICustomerService customerService, IShelfService shelfService, IOrderService orderService, IPermissionService permissionService, ILocalizationService localizationService, IShipmentManualService shipmentManualService, IWorkContext workContext, IPriceFormatter priceFormatter)
+        private readonly ISettingService _settingService;
+        public ShelfController(ICustomerService customerService, IShelfService shelfService, IOrderService orderService, IPermissionService permissionService, ILocalizationService localizationService, IShipmentManualService shipmentManualService, IWorkContext workContext, IPriceFormatter priceFormatter, ISettingService settingService)
         {
             _customerService = customerService;
             _shelfService = shelfService;
@@ -45,6 +47,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             _shipmentManualService = shipmentManualService;
             _workContext = workContext;
             _priceFormatter = priceFormatter;
+            _settingService = settingService;
         }
 
         public IActionResult Index()
@@ -432,9 +435,16 @@ namespace Nop.Web.Areas.Admin.Controllers
                 var orderItems = _orderService.GetOrderItemsByIds(orderItemIds.ToArray());
                 var totalWeight = orderItems.Sum(_ => _.ItemWeight);
                 var customer = _customerService.GetCustomerById(customerId);
+                var configShippingFee = 0.0m;
+
                 if (customer != null)
                 {
+
                     var customerAddress = customer.Addresses.OrderBy(_ => _.CreatedOnUtc).FirstOrDefault();
+                    if (customerAddress != null && customerAddress.City.ToLower().Equals("đà nẵng"))
+                    {
+                        configShippingFee = _settingService.GetSettingByKey("Admin.Shipment.DefaultShippingFee", 10000.0m);
+                    }
                     var shipmentEntity = new ShipmentManual
                     {
                         CustomerId = customerId,
@@ -442,7 +452,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                         BagId = StringExtensions.RandomString(6, false),
                         TrackingNumber = StringExtensions.RandomString(6, false),
                         ShippingAddressId = customerAddress?.Id,
-                        TotalShippingFee = 0,
+                        TotalShippingFee = configShippingFee,
                         TotalWeight = totalWeight,
                         ShippedDateUtc = shelf.ShippedDate,
                         Address = customerAddress?.Address1,
@@ -510,7 +520,6 @@ namespace Nop.Web.Areas.Admin.Controllers
                 shipmentManual.Address = model.ShipmentAddress;
                 shipmentManual.Ward = model.ShipmentWard;
                 shipmentManual.ShipmentNote = model.ShipmentNote;
-                shipmentManual.IsShipmentFee = model.IsShipmentFee;
                 _shipmentManualService.UpdateShipmentManual(shipmentManual);
             }
             return Json(new { Success = true });

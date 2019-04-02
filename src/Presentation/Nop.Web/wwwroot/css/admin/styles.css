@@ -855,7 +855,7 @@ td.k-state-focused.k-state-selected {
 .form-horizontal .k-colorpicker,
 .form-horizontal .k-timepicker, .form-horizontal .k-datetimepicker, 
 .form-horizontal .k-datepicker {
-    width: 300px !important;
+    width: 150px !important;
     max-width: 100%;
     border-radius: 0;
     border-color: #d2d6de;
@@ -871,7 +871,7 @@ td.k-state-focused.k-state-selected {
     background: none;
 }
 .k-grid .k-textbox{
-    width: 100% !important;
+    min-width: 100% !important;
     /*min-width: 150px !important;*/
 }
 .tag-editor {

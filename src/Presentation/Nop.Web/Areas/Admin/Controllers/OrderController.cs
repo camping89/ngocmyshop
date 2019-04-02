@@ -1638,7 +1638,6 @@ namespace Nop.Web.Areas.Admin.Controllers
                     _workContext.WorkingLanguage, true, false),
                 BagId = shipment.BagId,
                 ShipmentAddress = shipment.Address,
-                IsShipmentFee = shipment.IsShipmentFee,
                 ShipmentCity = Core.Extensions.StringExtensions.IsNotNullOrEmpty(shipment.Province) ? shipment.Province : "Chưa xác định",
                 ShipmentCityId = Core.Extensions.StringExtensions.IsNotNullOrEmpty(shipment.Province) ? shipment.Province : "0",
                 ShipmentDistrict = Core.Extensions.StringExtensions.IsNotNullOrEmpty(shipment.District) ? shipment.District : "Chưa xác định",

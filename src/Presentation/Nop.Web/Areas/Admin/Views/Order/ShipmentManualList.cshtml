@@ -289,8 +289,7 @@
                                                     Deposit: { editable: false, type: "number" },
                                                     TotalShippingFee: { editable: false, type: "string" },
                                                     DepositStr: { editable: false, type: "string" },
-                                                    TotalOrderFee: { editable: false, type: "string" },
-                                                    IsShipmentFee: { editable: true, type: "boolean" }
+                                                    TotalOrderFee: { editable: false, type: "string" }
                                                 }
                                             },
                                             data: "Data",
@@ -422,22 +421,9 @@
                                                 "<p></p>" +
                                                 "# } #"
                                         }, {
-                                            field: "TotalShippingFee",
-                                            title: "@T("Admin.Orders.Shipments.TotalShippingFee")",
-                                            width: 100
-                                        }, {
-                                            field: "IsShipmentFee",
-                                            title: "@T("Admin.Orders.Shipments.IsShipmentFee")",
-                                            width: 70,
-                                            template:"# if (IsShipmentFee) { #" +
-                                                "<p>@T("Admin.Orders.Shipments.ShippingFee")</p>" +
-                                                "#} else {#" +
-                                                "<p>@T("Admin.Orders.Shipments.NoShippingFee")</p>" +
-                                                "# } #"
-                                        }, {
                                             field: "ShipmentNote",
                                             title: "@T("Admin.Orders.Shipments.ShipmentNote")",
-                                            width: 200
+                                            width: "200px"
                                         },{
                                             field: "Deposit",
                                             title: "@T("Admin.Orders.Shipments.Deposit")",
