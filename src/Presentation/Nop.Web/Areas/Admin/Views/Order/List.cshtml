@@ -431,8 +431,10 @@
                                         }, {
                                             field: "CustomOrderNumber",
                                             title: "@T("Admin.Orders.Fields.CustomOrderNumber")",
-                                            width: 80,
-                                            sortable: false
+                                            width: 100,
+                                            sortable: false,
+                                            template:
+                                                "<div style='display:block;padding: 100% 0;' onclick='setFilterOrder(#=CustomOrderNumber#);'><span>#=CustomOrderNumber#</span></div>"
                                         },
 
                                         {
@@ -441,10 +443,10 @@
                                             width: 200,
                                             template: '<p>#=CustomerFullName#</p>' +
                                                 '<p>#=CustomerPhone#</p>'+
-                                                '<p>Địa chỉ: #=CustomerAddress# </p>'+
-                                                '<p>Phường/Xã: #=CustomerWard# </p>'+
-                                                '<p>Quận/Huyện: #=CustomerDistrict# </p>'+
-                                                '<p>Tỉnh/Thành: #=CustomerCity# </p>'+
+                                                '<p>Địa chỉ: #=CustomerAddress#. '+
+                                                'Phường/Xã: #=CustomerWard#. '+
+                                                'Quận/Huyện: #=CustomerDistrict#. '+
+                                                'Tỉnh/Thành: #=CustomerCity#. </p>'+
                                                 '# if( CustomerLinkFacebook != null) { # ' +
                                                 //'Facebook: <a target="_blank" href="#=CustomerLinkFacebook#">#=CustomerShortLinkFacebook#</a>' +
                                                 'Facebook: <a target="_blank" href="#=CustomerLinkFacebook#">#=CustomerLinkFacebook#</a>' +
@@ -920,6 +922,11 @@
                                     status = true;
                                 }
                                 $('#ckb' + ckbId).attr('checked', status).change();
+                            }
+
+                            function setFilterOrder(orderNumber) {
+                                $('#@Html.IdFor(model => model.OrderId)').val(orderNumber);
+                                $("#search-orders").click();
                             }
                         </script>
 
