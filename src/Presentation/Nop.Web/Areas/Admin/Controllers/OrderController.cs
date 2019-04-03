@@ -4208,7 +4208,7 @@ namespace Nop.Web.Areas.Admin.Controllers
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageOrders))
                 return AccessDeniedView();
-            if (orderItemModel.ShelfCode.ToLower().Equals("chọn ngăn"))
+            if (string.IsNullOrEmpty(orderItemModel.ShelfCode) == false && orderItemModel.ShelfCode.ToLower().Equals("chọn ngăn"))
             {
                 orderItemModel.ShelfCode = string.Empty;
             }
@@ -6637,7 +6637,6 @@ namespace Nop.Web.Areas.Admin.Controllers
                         //PackageOrder = orderItem.PackageOrder != null ? orderItem.PackageOrder.ToModel() : null,
                         EstimatedTimeArrival = orderItem.EstimatedTimeArrival,
                         PackageItemProcessedDatetime = orderItem.PackageItemProcessedDatetime,
-                        IncludeWeightCost = orderItem.IncludeWeightCost,
                         UnitWeightCost = orderItem.UnitWeightCost ?? (currencyProduct != null ? currencyProduct.UnitWeightCost : 0),
                         IsOrderCheckout = orderItem.IsOrderCheckout,
                         ItemWeight = orderItem.ItemWeight ?? 0,

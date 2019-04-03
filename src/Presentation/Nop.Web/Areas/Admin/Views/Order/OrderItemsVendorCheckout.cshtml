@@ -381,7 +381,7 @@
                                                 }, {
                                                     field: "OrderId",
                                                     title: "@T("Admin.Orders.ShelfOrderItemId")",
-                                                    width: 70,
+                                                    width: 80,
                                                     template: "#=OrderId#.#=Id#"
                                                 }, {
                                                     field: "CreatedDate",
@@ -1002,7 +1002,7 @@
                                             OrderItemId: $('#@Html.IdFor(model => model.OrderItemId)').val(),
                                             IsOrderCheckout: $('#@Html.IdFor(model => model.IsOrderCheckout)').val(),
                                             IsSetPackageOrderId: $('#@Html.IdFor(model => model.IsSetPackageOrderId)').val(),
-                                            IsWeightCostZero: $('#@Html.IdFor(model => model.IsWeightCostZero)').val(),
+                                            IsWeightCostZero: $('#@Html.IdFor(model => model.IsWeightCostZero)').is(":checked"),
                                             IsSetSetShelfId: $('#@Html.IdFor(model => model.IsShelfAssigned)').val(),
                                             TodayFilter: $('#@Html.IdFor(model => model.TodayFilter)').is(":checked"),
                                             CustomerPhone: $('#@Html.IdFor(model => model.CustomerPhone)').val(),

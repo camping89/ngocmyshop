@@ -95,6 +95,15 @@
                                 </div>
                             </div>
 
+                            <div class="form-group">
+                                <div class="col-md-4">
+                                    <nop-label asp-for="IsEmptyAssignedShelf" />
+                                </div>
+                                <div class="col-md-8">
+                                    <nop-editor asp-for="IsEmptyAssignedShelf" />
+                                </div>
+                            </div>
+
                         </div>
                         <div class="col-md-6">
 
@@ -853,6 +862,7 @@
                                 $('#@Html.IdFor(model => model.ShelfOrderItemIsActive)').val('True');
 
                                 $('#@Html.IdFor(model => model.IsShelfEmpty)').prop('checked', false);
+                                $('#@Html.IdFor(model => model.IsEmptyAssignedShelf)').prop('checked', false);
                                 $('#@Html.IdFor(model => model.ShipTodayFilter)').prop('checked', false);
                                 $('#@Html.IdFor(model => model.IsCustomerNotified)').val(0);
                                 $('#@Html.IdFor(model => model.ShelfNoteId)').val(0);
@@ -876,6 +886,7 @@
                                 ShelfCode: $('#@Html.IdFor(model => model.ShelfCode)').val(),
                                 ShelfOrderItemIsActive: $('#@Html.IdFor(model => model.ShelfOrderItemIsActive)').val(),
                                 IsShelfEmpty: $('#@Html.IdFor(model => model.IsShelfEmpty)').is(":checked"),
+                                IsEmptyAssignedShelf: $('#@Html.IdFor(model => model.IsEmptyAssignedShelf)').is(":checked"),
                                 IsCustomerNotified: $('#@Html.IdFor(model => model.IsCustomerNotified)').val(),
                                 ShelfNoteId: $('#@Html.IdFor(model => model.ShelfNoteId)').val(),
                                 //IsPackageItemProcessedDatetime: $('#@Html.IdFor(model => model.IsPackageItemProcessedDatetime)').val()

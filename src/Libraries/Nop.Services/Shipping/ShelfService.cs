@@ -9,8 +9,8 @@ namespace Nop.Services.Shipping
 {
     public class ShelfService : IShelfService
     {
-        private IRepository<Shelf> _shelfRepository;
-        private IRepository<ShelfOrderItem> _shelfOrderItemRepository;
+        private readonly IRepository<Shelf> _shelfRepository;
+        private readonly IRepository<ShelfOrderItem> _shelfOrderItemRepository;
 
         public ShelfService(IRepository<Shelf> shelfRepository, IRepository<ShelfOrderItem> shelfOrderItemRepository)
         {
@@ -31,8 +31,10 @@ namespace Nop.Services.Shipping
             DateTime? assignedFromUtc = null, DateTime? assignedToUtc = null,
             DateTime? assignedOrderItemFromUtc = null, DateTime? assignedOrderItemToUtc = null,
             DateTime? shippedFromUtc = null, DateTime? shippedToUtc = null,
-            int pageIndex = 0, int pageSize = int.MaxValue, bool isShelfEmpty = false,
-            bool? isCustomerNotified = null, string shelfCode = null, int? shelfNoteId = null, bool? isPackageItemProcessedDatetime = null)
+            int pageIndex = 0, int pageSize = int.MaxValue,
+            bool isShelfEmpty = false, bool isEmptyAssignedShelf = false,
+            bool? isCustomerNotified = null, string shelfCode = null,
+            int? shelfNoteId = null, bool? isPackageItemProcessedDatetime = null)
         {
             var query = _shelfRepository.Table;
 
@@ -103,6 +105,11 @@ namespace Nop.Services.Shipping
             {
                 var shelfOrderItems = _shelfOrderItemRepository.Table.Where(s => s.IsActived).Select(_ => _.ShelfId).Distinct().ToList();
                 query = query.Where(_ => _.CustomerId == null || _.CustomerId == 0 || shelfOrderItems.Contains(_.Id) == false);
+            }
+
+            if (isEmptyAssignedShelf)
+            {
+                query = query.Where(_ => _.ShipmentItems.Count == 0 && _.CustomerId != null && _.CustomerId > 0);
             }
             query = query.OrderBy(_ => _.ShelfCode);
             var shelfList = new PagedList<Shelf>(query, pageIndex, pageSize);

@@ -414,10 +414,10 @@
                                     detailInit: detailInit,
                                     scrollable: false,
                                     dataBound: onDataBound,
-                                    //height: function () {
-                                    //    var gridHeight = $(document).height() - $('.panel-search').height();
-                                    //    return gridHeight;
-                                    //},
+                                    height: function () {
+                                        var gridHeight = $(document).height() - $('.panel-search').height();
+                                        return gridHeight;
+                                    },
                                     columns: [
                                         {
                                             field: "Id",

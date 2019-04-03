@@ -57,6 +57,9 @@ namespace Nop.Web.Areas.Admin.Models.Orders
         [NopResourceDisplayName("Admin.ShelfOrderItem.IsShelfEmpty")]
         public bool IsShelfEmpty { get; set; }
 
+        [NopResourceDisplayName("Admin.ShelfOrderItem.IsEmptyAssignedShelf")]
+        public bool IsEmptyAssignedShelf { get; set; }
+
         [NopResourceDisplayName("Admin.ShelfOrderItem.ShipTodayFilter")]
         public bool ShipTodayFilter { get; set; }
 
