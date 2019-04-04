@@ -98,7 +98,7 @@ namespace Nop.Services.Shipping
             }
             else if (shipperId == -1)
             {
-                query = query.Where(_ => _.ShipperId == null && _.ShipperId == 0);
+                query = query.Where(_ => _.ShipperId == null || _.ShipperId == 0);
             }
 
             if (!string.IsNullOrWhiteSpace(phoneShipperNumber))
