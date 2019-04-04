@@ -75,6 +75,7 @@ namespace Nop.Services.Shipping
         /// <param name="pageSize">Page size</param>
         /// <param name="orderItemId"></param>
         /// <param name="phoneShipperNumber"></param>
+        /// <param name="shipperId"></param>
         /// <returns>Shipments</returns>
         public virtual IPagedList<ShipmentManual> GetAllShipmentsManual(int vendorId = 0,
             int shippingCountryId = 0,
@@ -97,7 +98,7 @@ namespace Nop.Services.Shipping
             }
             else if (shipperId == -1)
             {
-                query = query.Where(_ => _.ShipperId != null && _.ShipperId > 0);
+                query = query.Where(_ => _.ShipperId == null && _.ShipperId == 0);
             }
 
             if (!string.IsNullOrWhiteSpace(phoneShipperNumber))
