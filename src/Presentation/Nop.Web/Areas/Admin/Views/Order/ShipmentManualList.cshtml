@@ -287,7 +287,7 @@
                                                     DeliveryDate: { editable: true, type: "date", nullable: true },
                                                     ShipmentNote: { editable: true, type: "string" },
                                                     Deposit: { editable: false, type: "number" },
-                                                    TotalShippingFee: { editable: false, type: "string" },
+                                                    HasShippingFee: { editable: true, type: "boolean" },
                                                     DepositStr: { editable: false, type: "string" },
                                                     TotalOrderFee: { editable: false, type: "string" }
                                                 }
@@ -429,6 +429,11 @@
                                             title: "@T("Admin.Orders.Shipments.Deposit")",
                                             width: 70,
                                             template: '#= DepositStr #'
+                                        },{
+                                            field: "HasShippingFee",
+                                            title: "@T("Admin.Orders.Shipments.ShippingFee")",
+                                            width: 70,
+                                            template: '# if(HasShippingFee) {# #: kendo.toString(TotalShippingFee, "n0")# #}else {# <p>@T("Admin.Shipment.NoShippingFee")</p> #} #'
                                         }, {
                                             field: "TotalOrderFee",
                                             title: "@T("Admin.Orders.Shipments.TotalOrderFee")",
@@ -520,8 +525,7 @@
                                     });
                             }
 
-
-                            function editProvince(container, options) {
+                           function editProvince(container, options) {
                                 var jsonCustomers =
                                     jQuery.parseJSON(
                                         '@Json.Serialize(Model.AvailableCities.Select(_ => new {ShipmentCityId = _.Value, ShipmentCity = _.Text}))');

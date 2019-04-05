@@ -80,17 +80,20 @@
                                 field: "BasePriceAdjustmentStr",
                                 title:
                                     "@T("Admin.Catalog.Products.ProductAttributes.Attributes.Values.Fields.BasePriceAdjustmentStr")",
-                                width: 150
+                                width: 150,
+                                template: '# if(BasePriceAdjustment > 0) {# #: kendo.toString(BasePriceAdjustment, "n2")# #}else {# <p></p> #} #'
                             }, {
                                 field: "PriceAdjustmentStr",
                                 title:
                                     "@T("Admin.Catalog.Products.ProductAttributes.Attributes.Values.Fields.PriceAdjustment")",
-                                width: 150
+                                width: 150,
+                                template: '# if(PriceAdjustment > 0) {# #: kendo.toString(PriceAdjustment, "n2")# #}else {# <p></p> #} #'
                             }, {
                                 field: "WeightAdjustmentStr",
                                 title:
                                     "@T("Admin.Catalog.Products.ProductAttributes.Attributes.Values.Fields.WeightAdjustment")",
-                                width: 150
+                                width: 150,
+                                template: '# if(WeightAdjustment > 0) {# #: kendo.toString(WeightAdjustment, "n2")# #}else {# <p></p> #} #'
                             }, {
                                 field: "IsPreSelected",
                                 title:

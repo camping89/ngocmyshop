@@ -436,16 +436,11 @@ namespace Nop.Web.Areas.Admin.Controllers
                 var orderItems = _orderService.GetOrderItemsByIds(orderItemIds.ToArray());
                 var totalWeight = orderItems.Sum(_ => _.ItemWeight);
                 var customer = _customerService.GetCustomerById(customerId);
-                var configShippingFee = 0.0m;
-
                 if (customer != null)
                 {
 
                     var customerAddress = customer.Addresses.OrderBy(_ => _.CreatedOnUtc).FirstOrDefault();
-                    if (customerAddress != null && customerAddress.City.ToLower().Equals("đà nẵng"))
-                    {
-                        configShippingFee = _settingService.GetSettingByKey("Admin.Shipment.DefaultShippingFee", 10000.0m);
-                    }
+                    
                     var shipmentEntity = new ShipmentManual
                     {
                         CustomerId = customerId,
@@ -453,7 +448,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                         BagId = StringExtensions.RandomString(6, false),
                         TrackingNumber = StringExtensions.RandomString(6, false),
                         ShippingAddressId = customerAddress?.Id,
-                        TotalShippingFee = configShippingFee,
+                        //TotalShippingFee = configShippingFee,
                         TotalWeight = totalWeight,
                         ShippedDateUtc = shelf.ShippedDate,
                         Address = customerAddress?.Address1,
@@ -462,6 +457,11 @@ namespace Nop.Web.Areas.Admin.Controllers
                         Ward = customerAddress?.Ward
                     };
 
+                    if (customerAddress != null && customerAddress.City.ToLower().Equals("đà nẵng"))
+                    {
+                        shipmentEntity.HasShippingFee = true;
+                        shipmentEntity.TotalShippingFee = _settingService.GetSettingByKey("Admin.Shipment.ShippingFeeDaNang", 10000.0m);
+                    }
                     _shipmentManualService.InsertShipmentManual(shipmentEntity);
                     if (shipmentEntity.Id > 0)
                     {
@@ -521,6 +521,22 @@ namespace Nop.Web.Areas.Admin.Controllers
                 shipmentManual.Address = model.ShipmentAddress;
                 shipmentManual.Ward = model.ShipmentWard;
                 shipmentManual.ShipmentNote = model.ShipmentNote;
+                if (model.HasShippingFee)
+                {
+                    shipmentManual.HasShippingFee = true;
+                    if (string.IsNullOrEmpty(model.ShipmentCity) == false && model.ShipmentCity.ToLower().Equals("đà nẵng"))
+                    {
+                        shipmentManual.TotalShippingFee = _settingService.GetSettingByKey("Admin.Shipment.ShippingFeeDaNang", 10000.0m);
+                    }
+                    else
+                    {
+                        shipmentManual.TotalShippingFee = _settingService.GetSettingByKey("Admin.Shipment.DefaultShippingFee", 1000.0m);
+                    }
+                }
+                else
+                {
+                    shipmentManual.HasShippingFee = false;
+                }
                 _shipmentManualService.UpdateShipmentManual(shipmentManual);
             }
             return Json(new { Success = true });

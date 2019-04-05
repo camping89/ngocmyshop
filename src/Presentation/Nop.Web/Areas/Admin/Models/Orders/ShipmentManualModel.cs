@@ -22,7 +22,9 @@ namespace Nop.Web.Areas.Admin.Models.Orders
         [NopResourceDisplayName("Admin.Orders.Shipments.TotalWeight")]
         public string TotalWeight { get; set; }
         [NopResourceDisplayName("Admin.Orders.Shipments.TotalShippingFee")]
-        public string TotalShippingFee { get; set; }
+        public decimal TotalShippingFee { get; set; }
+        [NopResourceDisplayName("Admin.Orders.Shipments.HasShippingFee")]
+        public bool HasShippingFee { get; set; }
         [NopResourceDisplayName("Admin.Orders.Shipments.TotalOrderFee")]
         public string TotalOrderFee { get; set; }
         public decimal TotalOrderFeeDecimal { get; set; }

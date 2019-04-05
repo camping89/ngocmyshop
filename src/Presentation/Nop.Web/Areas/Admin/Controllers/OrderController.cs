@@ -1634,15 +1634,17 @@ namespace Nop.Web.Areas.Admin.Controllers
                 Deposit = shipment.ShipmentManualItems.Sum(_ => _.OrderItem.Deposit),
                 DepositStr = _priceFormatter.FormatPrice(shipment.ShipmentManualItems.Sum(_ => _.OrderItem.Deposit)),
                 //CustomOrderNumber = shipment.OrderItem.Order.CustomOrderNumber,
-                TotalShippingFee = _priceFormatter.FormatPrice(shipment.TotalShippingFee, true, primaryStoreCurrency,
-                    _workContext.WorkingLanguage, true, false),
+                //TotalShippingFee = _priceFormatter.FormatPrice(shipment.TotalShippingFee, true, primaryStoreCurrency,
+                //    _workContext.WorkingLanguage, true, false),
+                TotalShippingFee = shipment.TotalShippingFee,
                 BagId = shipment.BagId,
                 ShipmentAddress = shipment.Address,
                 ShipmentCity = Core.Extensions.StringExtensions.IsNotNullOrEmpty(shipment.Province) ? shipment.Province : "Chưa xác định",
                 ShipmentCityId = Core.Extensions.StringExtensions.IsNotNullOrEmpty(shipment.Province) ? shipment.Province : "0",
                 ShipmentDistrict = Core.Extensions.StringExtensions.IsNotNullOrEmpty(shipment.District) ? shipment.District : "Chưa xác định",
                 ShipmentDistrictId = Core.Extensions.StringExtensions.IsNotNullOrEmpty(shipment.District) ? shipment.District : "0",
-                ShipmentWard = string.IsNullOrEmpty(shipment.Ward) == false ? shipment.Ward : "Chưa xác định"
+                ShipmentWard = string.IsNullOrEmpty(shipment.Ward) == false ? shipment.Ward : "Chưa xác định",
+                HasShippingFee = shipment.HasShippingFee
             };
 
             var customerOrder = shipment.Customer;

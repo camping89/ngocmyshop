@@ -24,6 +24,7 @@ namespace Nop.Core.Domain.Shipping
         /// </summary>
         public decimal? TotalWeight { get; set; }
         public decimal TotalShippingFee { get; set; }
+        public bool HasShippingFee { get; set; }
 
         /// <summary>
         /// Gets or sets the shipped date and time
