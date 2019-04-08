@@ -1,5 +1,3 @@
-
-
 --DELETE dbo.ShelfOrderItem
 --DELETE dbo.Shelf
 
@@ -17,6 +15,9 @@ BEGIN
 	DECLARE @i INT = 0;
 	DECLARE @count int = 0;
 	DECLARE @letterItem NCHAR(1);
+	declare @code nvarchar(3);
+	DECLARE @j INT = 100;
+	declare @e int = 0;
    SELECT @count=  Count(*) FROM #LetterTmp
 		WHILE @i <= @count
 		BEGIN
@@ -26,12 +27,17 @@ BEGIN
 			OFFSET @i ROWS   
 			FETCH NEXT 1 ROWS ONLY  
 			SET @i = @i + 1;
-			DECLARE @j INT = 101;
-			WHILE @j < 131
+			set @j = 100;
+			while @j <= 700
+			begin 
+				set @e = 0;
+				WHILE @e < 31
 				BEGIN
-					IF NOT EXISTS(SELECT * FROM dbo.Shelf WHERE ShelfCode = CONCAT(@cnt,@letterItem,@j))
+					set @code = @j + @e;
+					IF NOT EXISTS(SELECT * FROM dbo.Shelf WHERE ShelfCode = CONCAT(@cnt,@letterItem,@code))
 					BEGIN
-						PRINT(CONCAT(@cnt,@letterItem,@j));
+						
+						PRINT(CONCAT(@cnt,@letterItem,@code));
 							INSERT INTO dbo.Shelf
 							(
 								ShelfCode,
@@ -43,7 +49,7 @@ BEGIN
 								UpdatedNoteDate
 							)
 							VALUES
-							(   CONCAT(@cnt,@letterItem,@j),       -- ShelfCode - nvarchar(50)
+							(   CONCAT(@cnt,@letterItem,@code),       -- ShelfCode - nvarchar(50)
 								null,         -- CustomerId - int
 								null, -- AssignedDate - datetime
 								NULL, -- ShippedDate - datetime
@@ -53,8 +59,10 @@ BEGIN
 								)
 				   END
 						
-					SET @j = @j + 1;
+					SET @e = @e + 1;
 				END
+				set @j = @j + 100;
+			end
 		END
    SET @cnt = @cnt + 1;
 END;

@@ -657,42 +657,45 @@ namespace Nop.Services.Catalog
                 out discountAmount, out appliedDiscounts);
 
             //discount
-            if (appliedDiscounts.Any())
-            {
-                //we can properly use "MaximumDiscountedQuantity" property only for one discount (not cumulative ones)
-                DiscountForCaching oneAndOnlyDiscount = null;
-                if (appliedDiscounts.Count == 1)
-                    oneAndOnlyDiscount = appliedDiscounts.First();
+            //if (appliedDiscounts.Any())
+            //{
+            //    //we can properly use "MaximumDiscountedQuantity" property only for one discount (not cumulative ones)
+            //    DiscountForCaching oneAndOnlyDiscount = null;
+            //    if (appliedDiscounts.Count == 1)
+            //        oneAndOnlyDiscount = appliedDiscounts.First();
 
-                if (oneAndOnlyDiscount != null &&
-                    oneAndOnlyDiscount.MaximumDiscountedQuantity.HasValue &&
-                    shoppingCartItem.Quantity > oneAndOnlyDiscount.MaximumDiscountedQuantity.Value)
-                {
-                    maximumDiscountQty = oneAndOnlyDiscount.MaximumDiscountedQuantity.Value;
-                    //we cannot apply discount for all shopping cart items
-                    var discountedQuantity = oneAndOnlyDiscount.MaximumDiscountedQuantity.Value;
-                    var discountedSubTotal = unitPrice * discountedQuantity;
-                    discountAmount = discountAmount * discountedQuantity;
+            //    if (oneAndOnlyDiscount != null &&
+            //        oneAndOnlyDiscount.MaximumDiscountedQuantity.HasValue &&
+            //        shoppingCartItem.Quantity > oneAndOnlyDiscount.MaximumDiscountedQuantity.Value)
+            //    {
+            //        maximumDiscountQty = oneAndOnlyDiscount.MaximumDiscountedQuantity.Value;
+            //        //we cannot apply discount for all shopping cart items
+            //        var discountedQuantity = oneAndOnlyDiscount.MaximumDiscountedQuantity.Value;
+            //        var discountedSubTotal = unitPrice * discountedQuantity;
+            //        discountAmount = discountAmount * discountedQuantity;
 
-                    var notDiscountedQuantity = shoppingCartItem.Quantity - discountedQuantity;
-                    var notDiscountedUnitPrice = GetUnitPrice(shoppingCartItem, false);
-                    var notDiscountedSubTotal = notDiscountedUnitPrice * notDiscountedQuantity;
+            //        var notDiscountedQuantity = shoppingCartItem.Quantity - discountedQuantity;
+            //        var notDiscountedUnitPrice = GetUnitPrice(shoppingCartItem, false);
+            //        var notDiscountedSubTotal = notDiscountedUnitPrice * notDiscountedQuantity;
 
-                    subTotal = discountedSubTotal + notDiscountedSubTotal;
-                }
-                else
-                {
-                    //discount is applied to all items (quantity)
-                    //calculate discount amount for all items
-                    discountAmount = discountAmount * shoppingCartItem.Quantity;
+            //        subTotal = discountedSubTotal + notDiscountedSubTotal;
+            //    }
+            //    else
+            //    {
+            //        //discount is applied to all items (quantity)
+            //        //calculate discount amount for all items
+            //        discountAmount = discountAmount * shoppingCartItem.Quantity;
 
-                    subTotal = unitPrice * shoppingCartItem.Quantity;
-                }
-            }
-            else
-            {
-                subTotal = unitPrice * shoppingCartItem.Quantity;
-            }
+            //        subTotal = unitPrice * shoppingCartItem.Quantity;
+            //    }
+            //}
+            //else
+            //{
+            //    subTotal = unitPrice * shoppingCartItem.Quantity;
+            //}
+
+            //subTotal += shoppingCartItem.OrderingFee;
+            subTotal = shoppingCartItem.CustomerEnteredPrice;
             return subTotal;
         }
 

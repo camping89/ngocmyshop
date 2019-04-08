@@ -423,9 +423,9 @@ namespace Nop.Web.Factories
             }
             else
             {
-                var shoppingCartUnitPriceWithDiscountBase = _taxService.GetProductPrice(sci.Product, _priceCalculationService.GetUnitPrice(sci), out decimal _);
-                var shoppingCartUnitPriceWithDiscount = _currencyService.ConvertFromPrimaryStoreCurrency(shoppingCartUnitPriceWithDiscountBase, _workContext.WorkingCurrency);
-
+                //var shoppingCartUnitPriceWithDiscountBase = _taxService.GetProductPrice(sci.Product, _priceCalculationService.GetUnitPrice(sci), out decimal _);
+                //var shoppingCartUnitPriceWithDiscount = _currencyService.ConvertFromPrimaryStoreCurrency(shoppingCartUnitPriceWithDiscountBase, _workContext.WorkingCurrency);
+                var shoppingCartUnitPriceWithDiscount = 0.0m;
                 var currencyProduct = _currencyService.GetCurrencyById(sci.CurrencyId);
                 if (currencyProduct != null)
                 {
@@ -447,22 +447,24 @@ namespace Nop.Web.Factories
             else
             {
                 //sub total
-                var shoppingCartItemSubTotalWithDiscountBase = _taxService.GetProductPrice(sci.Product, _priceCalculationService.GetSubTotal(sci, true, out decimal shoppingCartItemDiscountBase, out List<DiscountForCaching> _, out int? maximumDiscountQty), out decimal taxRate);
-                var shoppingCartItemSubTotalWithDiscount = _currencyService.ConvertFromPrimaryStoreCurrency(shoppingCartItemSubTotalWithDiscountBase, _workContext.WorkingCurrency);
-                cartItemModel.SubTotal = _priceFormatter.FormatPrice(shoppingCartItemSubTotalWithDiscount);
-                cartItemModel.MaximumDiscountedQty = maximumDiscountQty;
+                //var shoppingCartItemSubTotalWithDiscountBase = _taxService.GetProductPrice(sci.Product, _priceCalculationService.GetSubTotal(sci, true, out decimal shoppingCartItemDiscountBase, out List<DiscountForCaching> _, out int? maximumDiscountQty), out decimal taxRate);
+                //var shoppingCartItemSubTotalWithDiscount = _currencyService.ConvertFromPrimaryStoreCurrency(shoppingCartItemSubTotalWithDiscountBase, _workContext.WorkingCurrency);
+                //shoppingCartItemSubTotalWithDiscount += cartItemModel.OrderingFee;
+                //cartItemModel.SubTotal = _priceFormatter.FormatPrice(shoppingCartItemSubTotalWithDiscount);
+                //cartItemModel.MaximumDiscountedQty = maximumDiscountQty;
 
-                //display an applied discount amount
-                if (shoppingCartItemDiscountBase > decimal.Zero)
-                {
-                    shoppingCartItemDiscountBase = _taxService.GetProductPrice(sci.Product, shoppingCartItemDiscountBase, out taxRate);
-                    if (shoppingCartItemDiscountBase > decimal.Zero)
-                    {
-                        var shoppingCartItemDiscount = _currencyService.ConvertFromPrimaryStoreCurrency(shoppingCartItemDiscountBase, _workContext.WorkingCurrency);
-                        cartItemModel.Discount = _priceFormatter.FormatPrice(shoppingCartItemDiscount);
-                    }
-                }
-                //cartItemModel.SubTotal = _priceFormatter.FormatPrice(cartItemModel.UnitPriceDecimal * sci.Quantity);
+                ////display an applied discount amount
+                //if (shoppingCartItemDiscountBase > decimal.Zero)
+                //{
+                //    shoppingCartItemDiscountBase = _taxService.GetProductPrice(sci.Product, shoppingCartItemDiscountBase, out taxRate);
+                //    if (shoppingCartItemDiscountBase > decimal.Zero)
+                //    {
+                //        var shoppingCartItemDiscount = _currencyService.ConvertFromPrimaryStoreCurrency(shoppingCartItemDiscountBase, _workContext.WorkingCurrency);
+                //        cartItemModel.Discount = _priceFormatter.FormatPrice(shoppingCartItemDiscount);
+                //    }
+                //}
+
+                cartItemModel.SubTotal = _priceFormatter.FormatPrice(sci.CustomerEnteredPrice);
             }
 
             //picture
@@ -1117,19 +1119,20 @@ namespace Nop.Web.Factories
             if (cart.Any())
             {
                 //subtotal
-                var subTotalIncludingTax = _workContext.TaxDisplayType == TaxDisplayType.IncludingTax && !_taxSettings.ForceTaxExclusionFromOrderSubtotal;
-                _orderTotalCalculationService.GetShoppingCartSubTotal(cart, subTotalIncludingTax, out decimal orderSubTotalDiscountAmountBase, out List<DiscountForCaching> _, out decimal subTotalWithoutDiscountBase, out decimal _);
-                var subtotalBase = subTotalWithoutDiscountBase;
-                var subtotal = _currencyService.ConvertFromPrimaryStoreCurrency(subtotalBase, _workContext.WorkingCurrency);
-                model.SubTotal = _priceFormatter.FormatPrice(subtotal, true, _workContext.WorkingCurrency, _workContext.WorkingLanguage, subTotalIncludingTax);
+                //var subTotalIncludingTax = _workContext.TaxDisplayType == TaxDisplayType.IncludingTax && !_taxSettings.ForceTaxExclusionFromOrderSubtotal;
+                //_orderTotalCalculationService.GetShoppingCartSubTotal(cart, subTotalIncludingTax, out decimal orderSubTotalDiscountAmountBase, out List<DiscountForCaching> _, out decimal subTotalWithoutDiscountBase, out decimal _);
+                //var subtotalBase = subTotalWithoutDiscountBase;
+                //var subtotal = _currencyService.ConvertFromPrimaryStoreCurrency(subtotalBase, _workContext.WorkingCurrency);
 
-                if (orderSubTotalDiscountAmountBase > decimal.Zero)
-                {
-                    var orderSubTotalDiscountAmount = _currencyService.ConvertFromPrimaryStoreCurrency(orderSubTotalDiscountAmountBase, _workContext.WorkingCurrency);
-                    model.SubTotalDiscount = _priceFormatter.FormatPrice(-orderSubTotalDiscountAmount, true, _workContext.WorkingCurrency, _workContext.WorkingLanguage, subTotalIncludingTax);
-                }
+                //model.SubTotal = _priceFormatter.FormatPrice(subtotal, true, _workContext.WorkingCurrency, _workContext.WorkingLanguage, subTotalIncludingTax);
 
-
+                //if (orderSubTotalDiscountAmountBase > decimal.Zero)
+                //{
+                //    var orderSubTotalDiscountAmount = _currencyService.ConvertFromPrimaryStoreCurrency(orderSubTotalDiscountAmountBase, _workContext.WorkingCurrency);
+                //    model.SubTotalDiscount = _priceFormatter.FormatPrice(-orderSubTotalDiscountAmount, true, _workContext.WorkingCurrency, _workContext.WorkingLanguage, subTotalIncludingTax);
+                //}
+                var subTotal = cart.Sum(_ => _.CustomerEnteredPrice);
+                model.SubTotal = _priceFormatter.FormatPrice(subTotal, true, _workContext.WorkingCurrency, _workContext.WorkingLanguage, false);
                 //shipping info
                 model.RequiresShipping = cart.RequiresShipping(_productService, _productAttributeParser);
                 if (model.RequiresShipping)
@@ -1199,63 +1202,65 @@ namespace Nop.Web.Factories
                 model.DisplayTax = displayTax;
 
                 //total
-                var shoppingCartTotalBase = _orderTotalCalculationService.GetShoppingCartTotal(cart, out decimal orderTotalDiscountAmountBase, out List<DiscountForCaching> _, out List<AppliedGiftCard> appliedGiftCards, out int redeemedRewardPoints, out decimal redeemedRewardPointsAmount);
-                if (shoppingCartTotalBase.HasValue)
-                {
-                    var shoppingCartTotal = _currencyService.ConvertFromPrimaryStoreCurrency(shoppingCartTotalBase.Value, _workContext.WorkingCurrency);
-                    model.OrderTotal = _priceFormatter.FormatPrice(shoppingCartTotal, true, false);
-                }
+                model.OrderTotal = _priceFormatter.FormatPrice(cart.Sum(_ => _.CustomerEnteredPrice), true, false); 
 
-                //discount
-                if (orderTotalDiscountAmountBase > decimal.Zero)
-                {
-                    var orderTotalDiscountAmount = _currencyService.ConvertFromPrimaryStoreCurrency(orderTotalDiscountAmountBase, _workContext.WorkingCurrency);
-                    model.OrderTotalDiscount = _priceFormatter.FormatPrice(-orderTotalDiscountAmount, true, false);
-                }
+                //var shoppingCartTotalBase = _orderTotalCalculationService.GetShoppingCartTotal(cart, out decimal orderTotalDiscountAmountBase, out List<DiscountForCaching> _, out List<AppliedGiftCard> appliedGiftCards, out int redeemedRewardPoints, out decimal redeemedRewardPointsAmount);
+                //if (shoppingCartTotalBase.HasValue)
+                //{
+                //    var shoppingCartTotal = _currencyService.ConvertFromPrimaryStoreCurrency(shoppingCartTotalBase.Value, _workContext.WorkingCurrency);
+                //    model.OrderTotal = _priceFormatter.FormatPrice(shoppingCartTotal, true, false);
+                //}
+
+                ////discount
+                //if (orderTotalDiscountAmountBase > decimal.Zero)
+                //{
+                //    var orderTotalDiscountAmount = _currencyService.ConvertFromPrimaryStoreCurrency(orderTotalDiscountAmountBase, _workContext.WorkingCurrency);
+                //    model.OrderTotalDiscount = _priceFormatter.FormatPrice(-orderTotalDiscountAmount, true, false);
+                //}
 
                 //gift cards
-                if (appliedGiftCards != null && appliedGiftCards.Any())
-                {
-                    foreach (var appliedGiftCard in appliedGiftCards)
-                    {
-                        var gcModel = new OrderTotalsModel.GiftCard
-                        {
-                            Id = appliedGiftCard.GiftCard.Id,
-                            CouponCode = appliedGiftCard.GiftCard.GiftCardCouponCode,
-                        };
-                        var amountCanBeUsed = _currencyService.ConvertFromPrimaryStoreCurrency(appliedGiftCard.AmountCanBeUsed, _workContext.WorkingCurrency);
-                        gcModel.Amount = _priceFormatter.FormatPrice(-amountCanBeUsed, true, false);
+                //if (appliedGiftCards != null && appliedGiftCards.Any())
+                //{
+                //    foreach (var appliedGiftCard in appliedGiftCards)
+                //    {
+                //        var gcModel = new OrderTotalsModel.GiftCard
+                //        {
+                //            Id = appliedGiftCard.GiftCard.Id,
+                //            CouponCode = appliedGiftCard.GiftCard.GiftCardCouponCode,
+                //        };
+                //        var amountCanBeUsed = _currencyService.ConvertFromPrimaryStoreCurrency(appliedGiftCard.AmountCanBeUsed, _workContext.WorkingCurrency);
+                //        gcModel.Amount = _priceFormatter.FormatPrice(-amountCanBeUsed, true, false);
 
-                        var remainingAmountBase = appliedGiftCard.GiftCard.GetGiftCardRemainingAmount() - appliedGiftCard.AmountCanBeUsed;
-                        var remainingAmount = _currencyService.ConvertFromPrimaryStoreCurrency(remainingAmountBase, _workContext.WorkingCurrency);
-                        gcModel.Remaining = _priceFormatter.FormatPrice(remainingAmount, true, false);
+                //        var remainingAmountBase = appliedGiftCard.GiftCard.GetGiftCardRemainingAmount() - appliedGiftCard.AmountCanBeUsed;
+                //        var remainingAmount = _currencyService.ConvertFromPrimaryStoreCurrency(remainingAmountBase, _workContext.WorkingCurrency);
+                //        gcModel.Remaining = _priceFormatter.FormatPrice(remainingAmount, true, false);
 
-                        model.GiftCards.Add(gcModel);
-                    }
-                }
+                //        model.GiftCards.Add(gcModel);
+                //    }
+                //}
 
-                //reward points to be spent (redeemed)
-                if (redeemedRewardPointsAmount > decimal.Zero)
-                {
-                    var redeemedRewardPointsAmountInCustomerCurrency = _currencyService.ConvertFromPrimaryStoreCurrency(redeemedRewardPointsAmount, _workContext.WorkingCurrency);
-                    model.RedeemedRewardPoints = redeemedRewardPoints;
-                    model.RedeemedRewardPointsAmount = _priceFormatter.FormatPrice(-redeemedRewardPointsAmountInCustomerCurrency, true, false);
-                }
+                ////reward points to be spent (redeemed)
+                //if (redeemedRewardPointsAmount > decimal.Zero)
+                //{
+                //    var redeemedRewardPointsAmountInCustomerCurrency = _currencyService.ConvertFromPrimaryStoreCurrency(redeemedRewardPointsAmount, _workContext.WorkingCurrency);
+                //    model.RedeemedRewardPoints = redeemedRewardPoints;
+                //    model.RedeemedRewardPointsAmount = _priceFormatter.FormatPrice(-redeemedRewardPointsAmountInCustomerCurrency, true, false);
+                //}
 
-                //reward points to be earned
-                if (_rewardPointsSettings.Enabled &&
-                    _rewardPointsSettings.DisplayHowMuchWillBeEarned &&
-                    shoppingCartTotalBase.HasValue)
-                {
-                    var shippingBaseInclTax = model.RequiresShipping
-                        ? _orderTotalCalculationService.GetShoppingCartShippingTotal(cart, true)
-                        : 0;
-                    if (shippingBaseInclTax.HasValue)
-                    {
-                        var totalForRewardPoints = _orderTotalCalculationService.CalculateApplicableOrderTotalForRewardPoints(shippingBaseInclTax.Value, shoppingCartTotalBase.Value);
-                        model.WillEarnRewardPoints = _orderTotalCalculationService.CalculateRewardPoints(customer, totalForRewardPoints);
-                    }
-                }
+                ////reward points to be earned
+                //if (_rewardPointsSettings.Enabled &&
+                //    _rewardPointsSettings.DisplayHowMuchWillBeEarned &&
+                //    shoppingCartTotalBase.HasValue)
+                //{
+                //    var shippingBaseInclTax = model.RequiresShipping
+                //        ? _orderTotalCalculationService.GetShoppingCartShippingTotal(cart, true)
+                //        : 0;
+                //    if (shippingBaseInclTax.HasValue)
+                //    {
+                //        var totalForRewardPoints = _orderTotalCalculationService.CalculateApplicableOrderTotalForRewardPoints(shippingBaseInclTax.Value, shoppingCartTotalBase.Value);
+                //        model.WillEarnRewardPoints = _orderTotalCalculationService.CalculateRewardPoints(customer, totalForRewardPoints);
+                //    }
+                //}
 
             }
 

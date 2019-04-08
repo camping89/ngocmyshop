@@ -4215,13 +4215,13 @@ namespace Nop.Web.Areas.Admin.Controllers
                 orderItemModel.ShelfCode = string.Empty;
             }
 
-            ////Validate set shelf code
-            //if (Core.Extensions.StringExtensions.IsNotNullOrEmpty(orderItemModel.ShelfCode)
-            //        && (orderItemModel.WeightCostDec == 0 || Core.Extensions.StringExtensions.IsNullOrEmpty(orderItemModel.PackageItemProcessedDatetime))
-            //    )
-            //{
-            //    return Json(new { errors = _localizationService.GetResource("Admin.OrderVendorCheckout.ValidateAssignShelf") });
-            //}
+            //Validate set shelf code
+            if (Core.Extensions.StringExtensions.IsNotNullOrEmpty(orderItemModel.ShelfCode)
+                    && Core.Extensions.StringExtensions.IsNullOrEmpty(orderItemModel.PackageItemProcessedDatetime)
+                )
+            {
+                return Json(new { errors = _localizationService.GetResource("Admin.OrderVendorCheckout.ValidateAssignShelf") });
+            }
 
             var order = _orderService.GetOrderById(orderItemModel.OrderId);
             if (order == null)
@@ -4282,9 +4282,18 @@ namespace Nop.Web.Areas.Admin.Controllers
             {
                 orderItem.EstimatedTimeArrival = StringExtensions.StringToDateTime(orderItemModel.EstimatedTimeArrival);
             }
-            if (string.IsNullOrEmpty(orderItemModel.DeliveryDateUtc) == false)
+            else
+            {
+                orderItem.EstimatedTimeArrival = null;
+            }
+
+            if (string.IsNullOrEmpty(orderItemModel.DeliveryDateUtc) == false && orderItemModel.IsOrderCheckout)
             {
                 orderItem.DeliveryDateUtc = StringExtensions.StringToDateTime(orderItemModel.DeliveryDateUtc);
+            }
+            else if(string.IsNullOrEmpty(orderItemModel.DeliveryDateUtc) || orderItemModel.IsOrderCheckout)
+            {
+                orderItem.DeliveryDateUtc = null;
             }
 
             orderItem.AssignedByCustomerId = orderItemModel.AssignedByCustomerId;

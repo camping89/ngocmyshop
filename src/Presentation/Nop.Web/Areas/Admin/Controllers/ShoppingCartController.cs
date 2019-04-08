@@ -1610,10 +1610,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             ParseAndSaveCheckoutAttributes(cart, form, customer);
 
             //updated cart
-            cart = customer.ShoppingCartItems
-                .Where(sci => sci.ShoppingCartType == ShoppingCartType.ShoppingCart)
-                .LimitPerStore(_storeContext.CurrentStore.Id)
-                .ToList();
+
             var model = new Web.Models.ShoppingCart.ShoppingCartModel();
             model = _shoppingCartModelFactory.PrepareShoppingCartModel(model, cart, customer: customer);
             //update current warnings

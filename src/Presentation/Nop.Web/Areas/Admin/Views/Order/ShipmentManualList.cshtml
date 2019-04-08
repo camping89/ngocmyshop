@@ -423,7 +423,8 @@
                                         }, {
                                             field: "ShipmentNote",
                                             title: "@T("Admin.Orders.Shipments.ShipmentNote")",
-                                            width: "200px"
+                                            width: 200,
+                                            editor: noteEditorCustom
                                         },{
                                             field: "Deposit",
                                             title: "@T("Admin.Orders.Shipments.Deposit")",
@@ -567,14 +568,25 @@
                                         filter: "contains"
                                     });
                             }
-
+                            
+                            function noteEditorCustom(container, options) {
+                                
+                                $('<input style="width:150px !important;" data-text-field="' +
+                                        options.field +
+                                        '" data-value-field="' +
+                                        options.field +
+                                        '" data-bind="value:' +
+                                        options.field +
+                                        '" />')
+                                    .appendTo(container);
+                            }
 
                             function dateTimeEditorCustom(container, options) {
                                 var dateTime = options.model.AssignedDate;
                                 if (options.model.AssignedDate === null || options.model.AssignedDate === '') {
                                     dateTime = new Date();
                                 }
-                                $('<input data-text-field="' +
+                                $('<input style="width:120px !important;" data-text-field="' +
                                     options.field +
                                     '" data-value-field="' +
                                     options.field +
