@@ -3613,3 +3613,7 @@ span.grid-report-item.red {
         position:fixed;
         z-index: 1;
       }
+
+.k-input[readonly] {
+    background: #d1d1d1 !important;
+}

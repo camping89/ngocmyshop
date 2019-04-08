@@ -464,7 +464,8 @@
                                                     field: "ItemWeight",
                                                     title: "@T("Admin.Orders.Products.ItemWeight")",
                                                     width: 70,
-                                                    template: "#= ItemWeight #"
+                                                    template: "#= ItemWeight #",
+                                                    editor: editItemWeight
                                                     //hidden: true
                                                 }, {
                                                     field: "Deposit",
@@ -603,7 +604,7 @@
                                             //    width: '500px',
                                             //    height: 'auto'
                                             //});
-                                           
+
                                             var weightCostElement = $("input[name=WeightCostDec]");
                                             $("input[name=ItemWeight]").on('input', function () {
                                                 $('input[name=WeightCostDec]').prop('readonly', false);
@@ -673,11 +674,39 @@
                                                 options.field +
                                                 '" data-bind="value:' +
                                                 options.field +
-                                                '" /><span> ' +
-                                                //options.model.PrimaryStoreCurrencyCode +
-                                                '</span >');
+                                                '" />');
 
                                             element.appendTo(container);
+                                        }
+
+                                        function editItemWeight(container, options) {
+                                            var itemWeight = options.model.ItemWeight;
+                                            if (itemWeight === 0) {
+                                                options.model.ItemWeight = '';
+                                            }
+                                            var element = $('<input placeholder="0.00" name="' +
+                                                options.field +
+                                                '" class="k-input k-textbox ItemWeight" data-text-field="' +
+                                                options.field +
+                                                '" data-value-field="' +
+                                                options.field +
+                                                '" data-bind="value:' +
+                                                options.field +
+                                                '" />');
+                                            element.appendTo(container);
+
+                                            $('.ItemWeight').on("focus", function () {
+
+                                                $(this).removeAttr('placeholder');
+
+                                            });
+
+                                            $('.ItemWeight').on("focusout", function () {
+
+                                                if ($(this).val() === '') {
+                                                    $(this).attr('placeholder', 'Chọn ngăn');
+                                                }
+                                            });
                                         }
 
                                         function hideOnEditor(container, options) {
@@ -689,7 +718,7 @@
 
                                         function readonlyField(container, options) {
 
-                                            $('<input readonly data-text-field="' +
+                                            $('<input class="k-input k-textbox" readonly data-text-field="' +
                                                 options.field +
                                                 '" data-value-field="' +
                                                 options.field +
@@ -843,7 +872,7 @@
                                             var existShelf = false;
                                             var postData = { orderItemId: orderItemId };
                                             var $dropDown = $(
-                                                    '<input data-text-field="ShelfCode" data-value-field="' +
+                                                    '<input class="ShelfCode" data-text-field="ShelfCode" placeholder="Chọn ngăn" data-value-field="' +
                                                     options.field +
                                                     '" data-bind="value:ShelfCode" />')
                                                 .appendTo(container);
@@ -917,6 +946,20 @@
                                                 error: function(xhr, ajaxOptions, thrownError) {
                                                     alert(thrownError);
                                                 }
+                                            });
+
+                                            $('.ShelfCode').on("focus", function () {
+
+                                                $(this).removeAttr('placeholder');
+
+                                            });
+
+                                            $('.ShelfCode').on("focusout", function () {
+
+                                                if ($(this).val() === '') {
+                                                    $(this).attr('placeholder', 'Chọn ngăn');
+                                                }
+
                                             });
 
                                         }

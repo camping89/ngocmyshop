@@ -1606,6 +1606,12 @@ namespace Nop.Web.Areas.Admin.Controllers
                 }
             }
 
+            customer = _customerService.GetCustomerById(customerId);
+            cart = customer.ShoppingCartItems
+                .Where(sci => sci.ShoppingCartType == ShoppingCartType.ShoppingCart)
+                .LimitPerStore(_storeContext.CurrentStore.Id)
+                .ToList();
+
             //parse and save checkout attributes
             ParseAndSaveCheckoutAttributes(cart, form, customer);
 
