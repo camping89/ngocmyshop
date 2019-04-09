@@ -1991,13 +1991,14 @@ namespace Nop.Services.Common
             addressTable.AddCell(GetParagraph("PDFPackagingSlip.Name", lang, font, shipmentDetails.Customer.GetFullName()));
             addressTable.AddCell(GetParagraph("PDFPackagingSlip.Phone", lang, font, shipmentDetails.Customer.GetAttribute<string>(SystemCustomerAttributeNames.Phone)));
 
-            addressTable.AddCell(GetParagraph("PDFPackagingSlip.Address", lang, font, shipmentDetails.Address));
+            var address = $"{shipmentDetails.ShippingAddress.Address1}, {shipmentDetails.ShippingAddress.Ward}, {shipmentDetails.ShippingAddress.City}, {(shipmentDetails.ShippingAddress.StateProvince != null ? shipmentDetails.ShippingAddress.StateProvince.GetLocalized(x => x.Name, lang.Id) : "")}";
+            addressTable.AddCell(GetParagraph("PDFPackagingSlip.Address", lang, font, address));
 
-            if (_addressSettings.CityEnabled || _addressSettings.StateProvinceEnabled || _addressSettings.ZipPostalCodeEnabled)
-                addressTable.AddCell(new Paragraph($"{shipmentDetails.ShippingAddress.City}, {(shipmentDetails.ShippingAddress.StateProvince != null ? shipmentDetails.ShippingAddress.StateProvince.GetLocalized(x => x.Name, lang.Id) : "")} {shipmentDetails.ShippingAddress.ZipPostalCode}", font));
+            //if (_addressSettings.CityEnabled || _addressSettings.StateProvinceEnabled || _addressSettings.ZipPostalCodeEnabled)
+            //    addressTable.AddCell(new Paragraph($"{shipmentDetails.ShippingAddress.City}, {(shipmentDetails.ShippingAddress.StateProvince != null ? shipmentDetails.ShippingAddress.StateProvince.GetLocalized(x => x.Name, lang.Id) : "")} {shipmentDetails.ShippingAddress.ZipPostalCode}", font));
 
-            if (_addressSettings.CountryEnabled && shipmentDetails.ShippingAddress.Country != null)
-                addressTable.AddCell(new Paragraph(shipmentDetails.ShippingAddress.Country.GetLocalized(x => x.Name, lang.Id), font));
+            //if (_addressSettings.CountryEnabled && shipmentDetails.ShippingAddress.Country != null)
+            //    addressTable.AddCell(new Paragraph(shipmentDetails.ShippingAddress.Country.GetLocalized(x => x.Name, lang.Id), font));
 
             //custom attributes
             var customShippingAddressAttributes = _addressAttributeFormatter.FormatAttributes(shipmentDetails.ShippingAddress.CustomAttributes);
@@ -2094,8 +2095,8 @@ namespace Nop.Services.Common
 
                 var p = orderItem.Product;
                 var productInfo = p.GetLocalized(x => x.Name, lang.Id);
-                productInfo += "\n " + HtmlHelper.ConvertHtmlToPlainText(orderItem.AttributeDescription, true, true);
-                productInfo += "\n SKU: " + p.Sku;
+                productInfo += "\n" + HtmlHelper.ConvertHtmlToPlainText(orderItem.AttributeDescription, true, true);
+                productInfo += "\nSKU: " + p.Sku;
 
                 productAttribTable.AddCell(new Paragraph(productInfo, font));
 
@@ -2124,7 +2125,6 @@ namespace Nop.Services.Common
                 totalSum += subtotal;
                 var totalIncludeDeposit = subtotal - orderItem.Deposit;
                 totalShipment += totalIncludeDeposit;
-
                 cell = GetPdfCell(_priceFormatter.FormatPrice(totalIncludeDeposit), font);
                 cell.HorizontalAlignment = Element.ALIGN_CENTER;
                 productsTable.AddCell(cell);
@@ -2137,37 +2137,62 @@ namespace Nop.Services.Common
             }
             doc.Add(productsTable);
 
-            var totalsTable = new PdfPTable(1)
+            var totalsTable = new PdfPTable(2)
             {
                 RunDirection = GetDirection(lang),
                 WidthPercentage = 100f
             };
+            totalsTable.SetWidths(new[] { 85, 15 });
             totalsTable.DefaultCell.Border = Rectangle.NO_BORDER;
             totalsTable.AddCell(new Paragraph(" "));
-            var totalSumStr = _priceFormatter.FormatPrice(totalSum);
-            var subCell = GetPdfCell($"{_localizationService.GetResource("PDFPackagingSlip.SubTotal", lang.Id)} {totalSumStr}", font);
+            totalsTable.AddCell(new Paragraph(" "));
+
+            var subCell = GetPdfCell($"{_localizationService.GetResource("PDFPackagingSlip.TotalItems", lang.Id)}", font);
             subCell.HorizontalAlignment = Element.ALIGN_RIGHT;
             subCell.Border = Rectangle.NO_BORDER;
             totalsTable.AddCell(subCell);
 
-            var shippingFeeStr = _priceFormatter.FormatPrice(shipmentDetails.TotalShippingFee);
-            subCell = GetPdfCell($"{_localizationService.GetResource("PDFPackagingSlip.ShippingFee", lang.Id)} {shippingFeeStr}", font);
+            subCell = GetPdfCell($"{shipmentDetails.ShipmentManualItems.Count}", font);
             subCell.HorizontalAlignment = Element.ALIGN_RIGHT;
             subCell.Border = Rectangle.NO_BORDER;
             totalsTable.AddCell(subCell);
+
+            //var shippingFeeStr = _priceFormatter.FormatPrice(shipmentDetails.TotalShippingFee);
+            //subCell = GetPdfCell($"{_localizationService.GetResource("PDFPackagingSlip.ShippingFee", lang.Id)}", font);
+            //subCell.HorizontalAlignment = Element.ALIGN_RIGHT;
+            //subCell.Border = Rectangle.NO_BORDER;
+            //totalsTable.AddCell(subCell);
+
+            //subCell = GetPdfCell($"{shippingFeeStr}", font);
+            //subCell.HorizontalAlignment = Element.ALIGN_RIGHT;
+            //subCell.Border = Rectangle.NO_BORDER;
+            //totalsTable.AddCell(subCell);
 
             var totalDepositStr = _priceFormatter.FormatPrice(totalDeposit);
-            subCell = GetPdfCell($"{_localizationService.GetResource("PDFPackagingSlip.TotalDeposit", lang.Id)} {totalDepositStr}", font);
+            subCell = GetPdfCell($"{_localizationService.GetResource("PDFPackagingSlip.TotalDeposit", lang.Id)}", font);
             subCell.HorizontalAlignment = Element.ALIGN_RIGHT;
             subCell.Border = Rectangle.NO_BORDER;
             totalsTable.AddCell(subCell);
 
-            var orderSubtotalInclTaxStr = _priceFormatter.FormatPrice(totalShipment);
+            subCell = GetPdfCell($"{totalDepositStr} VND", font);
+            subCell.HorizontalAlignment = Element.ALIGN_RIGHT;
+            subCell.Border = Rectangle.NO_BORDER;
+            totalsTable.AddCell(subCell);
+
+            totalsTable.AddCell(new Paragraph(" "));
+            totalsTable.AddCell(new Paragraph(" "));
+
+            var orderSubtotalInclTaxStr = _priceFormatter.FormatPrice(totalShipment + shipmentDetails.TotalShippingFee);
             var fontSub = GetFont();
             fontSub.SetStyle(Font.BOLD);
             fontSub.Color = BaseColor.RED;
             fontSub.Size = 12;
-            subCell = GetPdfCell($"{_localizationService.GetResource("PDFPackagingSlip.TotalShipment", lang.Id)} {orderSubtotalInclTaxStr}", fontSub);
+            subCell = GetPdfCell($"{_localizationService.GetResource("PDFPackagingSlip.TotalShipment", lang.Id)}", fontSub);
+            subCell.HorizontalAlignment = Element.ALIGN_RIGHT;
+            subCell.Border = Rectangle.NO_BORDER;
+            totalsTable.AddCell(subCell);
+
+            subCell = GetPdfCell($"{orderSubtotalInclTaxStr} VND", fontSub);
             subCell.HorizontalAlignment = Element.ALIGN_RIGHT;
             subCell.Border = Rectangle.NO_BORDER;
             totalsTable.AddCell(subCell);

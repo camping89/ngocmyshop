@@ -189,6 +189,22 @@
                                         <nop-editor asp-for="CustomerPhone" />
                                     </div>
                                 </div>
+                                <div class="form-group advanced-setting">
+                                    <div class="col-md-4">
+                                        <nop-label asp-for="StartDate" />
+                                    </div>
+                                    <div class="col-md-8">
+                                        <nop-editor asp-for="StartDate" />
+                                    </div>
+                                </div>
+                                <div class="form-group advanced-setting">
+                                    <div class="col-md-4">
+                                        <nop-label asp-for="EndDate" />
+                                    </div>
+                                    <div class="col-md-8">
+                                        <nop-editor asp-for="EndDate" />
+                                    </div>
+                                </div>
                                 <div class="form-group">
                                     <div class="col-md-4">
                                         <nop-label asp-for="TodayFilter" />
@@ -994,6 +1010,22 @@
 
                                     $(document).ready(function() {
 
+                                        $('#@Html.IdFor(model => model.TodayFilter)').click(function() {
+                                            if ($(this).is(':checked')) {
+                                                var start = new Date();
+                                                start.setHours(0, 0, 0, 0);
+                                                var end = new Date();
+                                                end.setHours(23, 59, 59, 999);
+                                                var startDate = kendo.toString(kendo.parseDate(start), 'MM/dd/yyyy HH:mm tt');
+                                                var endDate = kendo.toString(kendo.parseDate(end), 'MM/dd/yyyy HH:mm tt');
+                                                $('#@Html.IdFor(model => model.StartDate)').val(startDate);
+                                                $('#@Html.IdFor(model => model.EndDate)').val(endDate);
+                                            } else {
+                                                $('#@Html.IdFor(model => model.StartDate)').val('');
+                                                $('#@Html.IdFor(model => model.EndDate)').val('');
+                                            }
+                                        });
+
 
                                         $("#clear-filter").click(function() {
                                             $('#@Html.IdFor(model => model.OrderId)').val('');
@@ -1003,6 +1035,8 @@
                                             $('#@Html.IdFor(model => model.VendorId)').trigger("chosen:updated");
                                             $('#@Html.IdFor(model => model.PackageOrderCode)').val('');
                                             $('#@Html.IdFor(model => model.CustomerPhone)').val('');
+                                            $('#@Html.IdFor(model => model.StartDate)').val('');
+                                            $('#@Html.IdFor(model => model.EndDate)').val('');
 
                                             $('#@Html.IdFor(model => model.TodayFilter)').prop('checked', false);
                                             $('#@Html.IdFor(model => model.IsWeightCostZero)').prop('checked', false);
@@ -1066,6 +1100,8 @@
                                             IsSetPackageOrderId: $('#@Html.IdFor(model => model.IsSetPackageOrderId)').val(),
                                             IsWeightCostZero: $('#@Html.IdFor(model => model.IsWeightCostZero)').is(":checked"),
                                             IsSetSetShelfId: $('#@Html.IdFor(model => model.IsShelfAssigned)').val(),
+                                            StartDate: $('#@Html.IdFor(model => model.StartDate)').val(),
+                                            EndDate: $('#@Html.IdFor(model => model.EndDate)').val(),
                                             TodayFilter: $('#@Html.IdFor(model => model.TodayFilter)').is(":checked"),
                                             CustomerPhone: $('#@Html.IdFor(model => model.CustomerPhone)').val(),
                                             PackageOrderCode: $('#@Html.IdFor(model => model.PackageOrderCode)').val(),

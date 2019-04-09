@@ -469,7 +469,8 @@ namespace Nop.Services.Orders
 
         public virtual IPagedList<OrderItem> GetOrderItemsVendorCheckout(string vendorProductUrl, string orderId = null,
             string orderItemId = null, int pageIndex = 0,
-            int pageSize = int.MaxValue, OrderSortingEnum orderBy = OrderSortingEnum.CreatedOnDesc, bool todayFilter = false,
+            int pageSize = int.MaxValue, OrderSortingEnum orderBy = OrderSortingEnum.CreatedOnDesc,
+            DateTime? startDate = null, DateTime? endDate = null,
             string customerPhone = null, string packageOrderCode = null,
             int vendorId = 0, bool? isSetPackageOrderId = null,
             bool? isSetShelfId = null, int orderItemStatusId = -1, bool? isPackageItemProcessedDatetime = null, bool? isOrderCheckout = null, bool isWeightCostZero = false)
@@ -558,11 +559,14 @@ namespace Nop.Services.Orders
             //    query = query.Where(_ => _.OrderItemStatusId == orderItemStatusId);
             //}
 
-            if (todayFilter)
+            if (startDate != null)
             {
-                var startDate = DateTime.UtcNow.Date;
-                var endDate = DateTime.UtcNow.Date.AddDays(1);
-                query = query.Where(_ => _.Order.CreatedOnUtc != null && startDate <= _.Order.CreatedOnUtc && endDate > _.Order.CreatedOnUtc);
+                query = query.Where(_ => _.Order.CreatedOnUtc != null && _.Order.CreatedOnUtc >= startDate);
+            }
+
+            if (endDate != null)
+            {
+                query = query.Where(_ => _.Order.CreatedOnUtc != null && _.Order.CreatedOnUtc <= endDate);
             }
 
             //if (!string.IsNullOrEmpty(customerPhone))

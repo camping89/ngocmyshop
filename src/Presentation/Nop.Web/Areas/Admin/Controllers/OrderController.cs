@@ -4291,7 +4291,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             {
                 orderItem.DeliveryDateUtc = StringExtensions.StringToDateTime(orderItemModel.DeliveryDateUtc);
             }
-            else if(string.IsNullOrEmpty(orderItemModel.DeliveryDateUtc) || orderItemModel.IsOrderCheckout)
+            else if (string.IsNullOrEmpty(orderItemModel.DeliveryDateUtc) || orderItemModel.IsOrderCheckout)
             {
                 orderItem.DeliveryDateUtc = null;
             }
@@ -6595,7 +6595,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             var primaryStoreCurrency = _currencyService.GetCurrencyById(_currencySettings.PrimaryStoreCurrencyId);
 
             var orderItems = _orderService.GetOrderItemsVendorCheckout(model.VendorProductUrl, model.OrderId, model.OrderItemId, command.Page - 1, command.PageSize,
-                todayFilter: model.TodayFilter,
+                startDate: model.StartDate, endDate: model.EndDate,
                 customerPhone: model.CustomerPhone, packageOrderCode: model.PackageOrderCode,
                 vendorId: model.VendorId, isSetPackageOrderId: model.IsSetPackageOrderId,
                 isSetShelfId: model.IsShelfAssigned, orderItemStatusId: model.OrderItemStatusId,

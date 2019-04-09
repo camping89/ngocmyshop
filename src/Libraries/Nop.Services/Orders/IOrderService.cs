@@ -133,11 +133,11 @@ namespace Nop.Services.Orders
         IPagedList<OrderItem> GetOrderItemsVendorCheckout(string vendorProductUrl, string orderId = null,
             string orderItemId = null, int pageIndex = 0,
             int pageSize = int.MaxValue, OrderSortingEnum orderBy = OrderSortingEnum.CreatedOnDesc,
-            bool todayFilter = false,
+            DateTime? startDate = null, DateTime? endDate = null,
             string customerPhone = null, string packageOrderCode = null,
             int vendorId = 0, bool? isSetPackageOrderId = null,
             bool? isSetShelfId = null, int orderItemStatusId = -1,
-            bool? isPackageItemProcessedDatetime = null, bool? isOrderCheckout = null,bool isWeightCostZero = false);
+            bool? isPackageItemProcessedDatetime = null, bool? isOrderCheckout = null, bool isWeightCostZero = false);
 
         /// <summary>
         /// Delete an order item
