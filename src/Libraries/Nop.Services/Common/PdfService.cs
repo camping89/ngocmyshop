@@ -11,6 +11,7 @@ using Nop.Core.Domain.Localization;
 using Nop.Core.Domain.Orders;
 using Nop.Core.Domain.Shipping;
 using Nop.Core.Domain.Tax;
+using Nop.Core.Extensions;
 using Nop.Core.Html;
 using Nop.Services.Catalog;
 using Nop.Services.Configuration;
@@ -23,11 +24,14 @@ using Nop.Services.Orders;
 using Nop.Services.Payments;
 using Nop.Services.Stores;
 using Nop.Services.Vendors;
+using PAValue;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Xml;
+using System.Xml.Serialization;
 
 namespace Nop.Services.Common
 {
@@ -62,7 +66,7 @@ namespace Nop.Services.Common
         private readonly PdfSettings _pdfSettings;
         private readonly TaxSettings _taxSettings;
         private readonly AddressSettings _addressSettings;
-
+        private readonly IProductAttributeService _productAttributeService;
         #endregion
 
         #region Ctor
@@ -113,7 +117,7 @@ namespace Nop.Services.Common
             MeasureSettings measureSettings,
             PdfSettings pdfSettings,
             TaxSettings taxSettings,
-            AddressSettings addressSettings, ICustomerService customerService, IVendorService vendorService)
+            AddressSettings addressSettings, ICustomerService customerService, IVendorService vendorService, IProductAttributeService productAttributeService)
         {
             this._localizationService = localizationService;
             this._languageService = languageService;
@@ -139,12 +143,42 @@ namespace Nop.Services.Common
             this._addressSettings = addressSettings;
             _customerService = customerService;
             _vendorService = vendorService;
+            _productAttributeService = productAttributeService;
         }
 
         #endregion
 
         #region Utilities
-
+        public AttributesXml XmlToObject(string xml, Type objectType)
+        {
+            StringReader strReader = null;
+            XmlSerializer serializer = null;
+            XmlTextReader xmlReader = null;
+            AttributesXml obj = null;
+            try
+            {
+                strReader = new StringReader(xml);
+                serializer = new XmlSerializer(objectType);
+                xmlReader = new XmlTextReader(strReader);
+                obj = (AttributesXml)serializer.Deserialize(xmlReader);
+            }
+            catch (Exception exp)
+            {
+                //Handle Exception Code
+            }
+            finally
+            {
+                if (xmlReader != null)
+                {
+                    xmlReader.Close();
+                }
+                if (strReader != null)
+                {
+                    strReader.Close();
+                }
+            }
+            return obj;
+        }
         /// <summary>
         /// Get font
         /// </summary>
@@ -1952,6 +1986,8 @@ namespace Nop.Services.Common
             titleFont.Size = 12;
             var font = GetFont();
             font.Size = 12;
+            var fontProductInfo = GetFont();
+            fontProductInfo.Size = 9;
             var attributesFont = GetFont();
             attributesFont.SetStyle(Font.ITALIC);
 
@@ -2021,7 +2057,7 @@ namespace Nop.Services.Common
             productsTable.AddCell(cell);
 
             //product name
-            cell = GetPdfCell("PDFPackagingSlip.ProductName", lang, font);
+            cell = GetPdfCell("PDFPackagingSlip.ProductInfo", lang, font);
             cell.BackgroundColor = BaseColor.LIGHT_GRAY;
             cell.HorizontalAlignment = Element.ALIGN_CENTER;
             productsTable.AddCell(cell);
@@ -2094,14 +2130,90 @@ namespace Nop.Services.Common
                 }
 
                 var p = orderItem.Product;
-                var productInfo = p.GetLocalized(x => x.Name, lang.Id);
-                productInfo += "\n" + HtmlHelper.ConvertHtmlToPlainText(orderItem.AttributeDescription, true, true);
-                productInfo += "\nSKU: " + p.Sku;
 
-                productAttribTable.AddCell(new Paragraph(productInfo, font));
+                var productName = p.GetLocalized(x => x.Name, lang.Id);
+                //productInfo += "\n" + HtmlHelper.ConvertHtmlToPlainText(orderItem.AttributeDescription, true, true);
+                var productSku = p.Sku;
+                var productColor = string.Empty;
+                var productSize = string.Empty;
+                AttributesXml productAttributeValues = XmlToObject(orderItem.AttributesXml, typeof(AttributesXml));
+                if (productAttributeValues != null)
+                {
+
+                    foreach (var orderItemAttributeXml in productAttributeValues.ProductAttribute)
+                    {
+                        //Color
+                        var productAttributeMapping = _productAttributeService.GetProductAttributeMappingById(orderItemAttributeXml.ID.ToIntODefault());
+                        if (productAttributeMapping.ProductAttributeId.Equals(ProductAttributeEnum.Color.ToInt()))
+                        {
+                            var productAttributeVl = _productAttributeService.GetProductAttributeValueById(orderItemAttributeXml.ProductAttributeValue.Value.ToIntODefault());
+                            if (productAttributeVl != null)
+                            {
+                                productColor = productAttributeVl.Name;
+                            }
+                        }
+                        //Size
+                        if (productAttributeMapping.ProductAttributeId.Equals(ProductAttributeEnum.Size.ToInt()))
+                        {
+                            var productAttributeVl = _productAttributeService.GetProductAttributeValueById(orderItemAttributeXml.ProductAttributeValue.Value.ToIntODefault());
+                            if (productAttributeVl != null)
+                            {
+                                productSize = productAttributeVl.Name;
+                            }
+                        }
+                    }
+                }
+
+                var productInfoTable = new PdfPTable(2);
+                productInfoTable.WidthPercentage = 100f;
+                productInfoTable.SetWidths(new[] { 50, 50 });
+                productInfoTable.DefaultCell.Border = Rectangle.NO_BORDER;
+
+                var cellProductInfo = GetPdfCell("PDFPackagingSlip.ProductName", lang, fontProductInfo);
+                cellProductInfo.Border = 0;
+                cellProductInfo.HorizontalAlignment = Element.ALIGN_RIGHT;
+                productInfoTable.AddCell(cellProductInfo);
+                cellProductInfo = GetPdfCell($"{productName}", fontProductInfo);
+                cellProductInfo.Border = 0;
+                cellProductInfo.HorizontalAlignment = Element.ALIGN_RIGHT;
+                productInfoTable.AddCell(cellProductInfo);
+
+                cellProductInfo = GetPdfCell("PDFPackagingSlip.ProductSku", lang, fontProductInfo);
+                cellProductInfo.Border = 0;
+                cellProductInfo.HorizontalAlignment = Element.ALIGN_RIGHT;
+                productInfoTable.AddCell(cellProductInfo);
+                cellProductInfo = GetPdfCell($"{productSku}", fontProductInfo);
+                cellProductInfo.Border = 0;
+                cellProductInfo.HorizontalAlignment = Element.ALIGN_RIGHT;
+                productInfoTable.AddCell(cellProductInfo);
+
+                if (productColor.IsNotNullOrEmpty())
+                {
+                    cellProductInfo = GetPdfCell("PDFPackagingSlip.ProductColor", lang, fontProductInfo);
+                    cellProductInfo.Border = 0;
+                    cellProductInfo.HorizontalAlignment = Element.ALIGN_RIGHT;
+                    productInfoTable.AddCell(cellProductInfo);
+                    cellProductInfo = GetPdfCell($"{productColor}", fontProductInfo);
+                    cellProductInfo.Border = 0;
+                    cellProductInfo.HorizontalAlignment = Element.ALIGN_RIGHT;
+                    productInfoTable.AddCell(cellProductInfo);
+                }
+
+                if (productSize.IsNotNullOrEmpty())
+                {
+                    cellProductInfo = GetPdfCell("PDFPackagingSlip.ProductSize", lang, fontProductInfo);
+                    cellProductInfo.Border = 0;
+                    cellProductInfo.HorizontalAlignment = Element.ALIGN_RIGHT;
+                    productInfoTable.AddCell(cellProductInfo);
+                    cellProductInfo = GetPdfCell($"{productSize}", fontProductInfo);
+                    cellProductInfo.Border = 0;
+                    cellProductInfo.HorizontalAlignment = Element.ALIGN_RIGHT;
+                    productInfoTable.AddCell(cellProductInfo);
+                }
+
+                productAttribTable.AddCell(productInfoTable);
 
                 productsTable.AddCell(productAttribTable);
-
                 //qty
                 cell = GetPdfCell(si.Quantity, font);
                 cell.HorizontalAlignment = Element.ALIGN_CENTER;
