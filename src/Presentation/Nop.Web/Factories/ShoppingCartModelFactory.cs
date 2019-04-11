@@ -464,7 +464,7 @@ namespace Nop.Web.Factories
                 //    }
                 //}
 
-                cartItemModel.SubTotal = _priceFormatter.FormatPrice(sci.CustomerEnteredPrice);
+                cartItemModel.SubTotal = _priceFormatter.FormatPrice(sci.CustomerEnteredPrice * sci.Quantity);
             }
 
             //picture
@@ -1131,7 +1131,7 @@ namespace Nop.Web.Factories
                 //    var orderSubTotalDiscountAmount = _currencyService.ConvertFromPrimaryStoreCurrency(orderSubTotalDiscountAmountBase, _workContext.WorkingCurrency);
                 //    model.SubTotalDiscount = _priceFormatter.FormatPrice(-orderSubTotalDiscountAmount, true, _workContext.WorkingCurrency, _workContext.WorkingLanguage, subTotalIncludingTax);
                 //}
-                var subTotal = cart.Sum(_ => _.CustomerEnteredPrice);
+                var subTotal = cart.Sum(_ => _.CustomerEnteredPrice * _.Quantity);
                 model.SubTotal = _priceFormatter.FormatPrice(subTotal, true, _workContext.WorkingCurrency, _workContext.WorkingLanguage, false);
                 //shipping info
                 model.RequiresShipping = cart.RequiresShipping(_productService, _productAttributeParser);
@@ -1202,7 +1202,7 @@ namespace Nop.Web.Factories
                 model.DisplayTax = displayTax;
 
                 //total
-                model.OrderTotal = _priceFormatter.FormatPrice(cart.Sum(_ => _.CustomerEnteredPrice), true, false); 
+                model.OrderTotal = _priceFormatter.FormatPrice(cart.Sum(_ => _.CustomerEnteredPrice * _.Quantity), true, false);
 
                 //var shoppingCartTotalBase = _orderTotalCalculationService.GetShoppingCartTotal(cart, out decimal orderTotalDiscountAmountBase, out List<DiscountForCaching> _, out List<AppliedGiftCard> appliedGiftCards, out int redeemedRewardPoints, out decimal redeemedRewardPointsAmount);
                 //if (shoppingCartTotalBase.HasValue)

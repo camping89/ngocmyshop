@@ -695,7 +695,7 @@ namespace Nop.Services.Catalog
             //}
 
             //subTotal += shoppingCartItem.OrderingFee;
-            subTotal = shoppingCartItem.CustomerEnteredPrice;
+            subTotal = shoppingCartItem.CustomerEnteredPrice * shoppingCartItem.Quantity;
             return subTotal;
         }
 
