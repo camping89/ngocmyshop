@@ -2492,7 +2492,7 @@ namespace Nop.Services.Common
                     var orderItem = _orderService.GetOrderItemById(shipmentItem.OrderItemId);
                     if (orderItem != null)
                     {
-                        exportShipmentModel.TotalShippingFee += orderItem.UnitPriceInclTax * orderItem.Quantity;
+                        exportShipmentModel.TotalShippingFee += orderItem.PriceInclTax;
                         exportShipmentModel.ProductInfo = orderItem.Product.GetLocalized(x => x.Name, _workContext.WorkingLanguage.Id);
 
                         exportShipmentModel.ProductInfo += "\n " + HtmlHelper.ConvertHtmlToPlainText(orderItem.AttributeDescription, true, true);

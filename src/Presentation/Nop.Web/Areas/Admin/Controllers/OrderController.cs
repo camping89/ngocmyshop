@@ -6640,7 +6640,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                         WeightCostDec = orderItem.WeightCost,
                         WeightCost = _priceFormatter.FormatPrice(orderItem.WeightCost, true,
                         primaryStoreCurrency, _workContext.WorkingLanguage, true, true),
-                        TotalWithoutWeightCost = _priceFormatter.FormatPrice((orderItem.PriceInclTax - orderItem.WeightCost) * orderItem.Quantity, true,
+                        TotalWithoutWeightCost = _priceFormatter.FormatPrice((orderItem.PriceInclTax - orderItem.WeightCost), true,
                         primaryStoreCurrency, _workContext.WorkingLanguage, true, true),
                         UnitPriceBase = _priceFormatter.FormatPrice((orderItem.Product.UnitPriceUsd), true,
                             currencyProduct, _workContext.WorkingLanguage, true, true),
@@ -6705,8 +6705,8 @@ namespace Nop.Web.Areas.Admin.Controllers
                         primaryStoreCurrency, _workContext.WorkingLanguage, true, true);
 
                     //subtotal
-                    orderItemModel.SubTotalInclTaxValue = orderItem.PriceInclTax * orderItem.Quantity;
-                    orderItemModel.SubTotalInclTax = _priceFormatter.FormatPrice(orderItem.PriceInclTax * orderItem.Quantity, true, primaryStoreCurrency,
+                    orderItemModel.SubTotalInclTaxValue = orderItem.PriceInclTax;
+                    orderItemModel.SubTotalInclTax = _priceFormatter.FormatPrice(orderItem.PriceInclTax, true, primaryStoreCurrency,
                         _workContext.WorkingLanguage, true, true);
 
                     orderItemModel.AttributeInfo = orderItem.AttributeDescription ?? string.Empty;
