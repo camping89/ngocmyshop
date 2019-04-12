@@ -406,7 +406,7 @@
                                             editor: dateTimeEditorCustom,
                                             width: 80,
                                             template: "# if (ShippedDate != null) { #" +
-                                                "<p>#= kendo.toString(kendo.parseDate(ShippedDate, 'yyyy-MM-dd'), 'MM/dd/yyyy') #</p>" +
+                                                "<p>#= kendo.toString(kendo.parseDate(ShippedDate, 'yyyy-MM-dd'), 'dd/MM/yyyy') #</p>" +
                                                 "#} else {#" +
                                                 "<p></p>" +
                                                 "# } #"
@@ -416,7 +416,7 @@
                                             editor: dateTimeEditorCustom,
                                             width: 80,
                                             template: "# if (DeliveryDate != null) { #" +
-                                                "<p>#= kendo.toString(kendo.parseDate(DeliveryDate, 'yyyy-MM-dd'), 'MM/dd/yyyy') #</p>" +
+                                                "<p>#= kendo.toString(kendo.parseDate(DeliveryDate, 'yyyy-MM-dd'), 'dd/MM/yyyy') #</p>" +
                                                 "#} else {#" +
                                                 "<p></p>" +
                                                 "# } #"
@@ -568,9 +568,9 @@
                                         filter: "contains"
                                     });
                             }
-                            
+
                             function noteEditorCustom(container, options) {
-                                
+
                                 $('<input style="width:150px !important;" data-text-field="' +
                                         options.field +
                                         '" data-value-field="' +
@@ -595,8 +595,8 @@
                                     '" />')
                                     .appendTo(container)
                                     .kendoDatePicker({
-                                        format: "MM/dd/yyyy",
-                                        value: kendo.toString(new Date(dateTime), 'MM/dd/yyyy')
+                                        format: "dd/MM/yyyy",
+                                        value: kendo.toString(new Date(dateTime), 'dd/MM/yyyy')
                                     });
                             }
 
@@ -677,7 +677,7 @@
                                                     title: "@T("Admin.Orders.Products.DeliveryDateUtc")",
                                                     width: 150,
                                                     template: "# if (DeliveryDateUtc != null) { #" +
-                                                        "<p>#= kendo.toString(kendo.parseDate(DeliveryDateUtc, 'yyyy-MM-dd'), 'MM/dd/yyyy') #</p>" +
+                                                        "<p>#= kendo.toString(kendo.parseDate(DeliveryDateUtc, 'yyyy-MM-dd'), 'dd/MM/yyyy') #</p>" +
                                                         "#} else {#" +
                                                         "<p></p>" +
                                                         "# } #"
@@ -801,8 +801,8 @@
                                 start.setHours(0,0,0,0);
                                 var end = new Date();
                                 end.setHours(23,59,59,999);
-                                var startDate = kendo.toString(kendo.parseDate(start), 'MM/dd/yyyy HH:mm tt');
-                                var endDate = kendo.toString(kendo.parseDate(end), 'MM/dd/yyyy HH:mm tt');
+                                var startDate = kendo.toString(kendo.parseDate(start), 'dd/MM/yyyy HH:mm tt');
+                                var endDate = kendo.toString(kendo.parseDate(end), 'dd/MM/yyyy HH:mm tt');
                                 $('#@Html.IdFor(model => model.StartDate)').val(startDate);
                                 $('#@Html.IdFor(model => model.EndDate)').val(endDate);
                             } else {
@@ -947,11 +947,14 @@
                     });
 
                     function additionalData() {
+                        var startDate = kendo.toString(kendo.parseDate($('#@Html.IdFor(model => model.StartDate)').val(), 'dd/MM/yyyy HH:mm tt'), 'MM/dd/yyyy HH:mm tt');
+                        var endDate = kendo.toString(kendo.parseDate($('#@Html.IdFor(model => model.EndDate)').val(), 'dd/MM/yyyy HH:mm tt'), 'MM/dd/yyyy HH:mm tt');
+
                         var data = {
                             SearchShipperId: $('#@Html.IdFor(model => model.SearchShipperId)').val(),
                             ShipperPhoneNumber: $('#@Html.IdFor(model => model.ShipperPhoneNumber)').val(),
-                            StartDate: $('#@Html.IdFor(model => model.StartDate)').val(),
-                            EndDate: $('#@Html.IdFor(model => model.EndDate)').val(),
+                            StartDate: startDate,
+                            EndDate: endDate,
                             TrackingNumber: $('#@Html.IdFor(model => model.TrackingNumber)').val(),
                             CountryId: $('#@Html.IdFor(model => model.CountryId)').val(),
                             StateProvinceId: $('#@Html.IdFor(model => model.StateProvinceId)').val(),

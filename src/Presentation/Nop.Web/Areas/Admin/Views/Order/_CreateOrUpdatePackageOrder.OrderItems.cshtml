@@ -109,7 +109,7 @@
                                             //format: "{0:G}",
                                             //type: "date",
                                             editor: dateTimeEditorCustom,
-                                            template: "#= kendo.toString(kendo.parseDate(PackageItemProcessedDatetime, 'yyyy-MM-dd'), 'MM/dd/yyyy') #"
+                                            template: "#= kendo.toString(kendo.parseDate(PackageItemProcessedDatetime, 'yyyy-MM-dd'), 'dd/MM/yyyy') #"
                                         }, {
                                             command: {
                                                 name: "edit",
@@ -131,7 +131,8 @@
                             $('<input data-text-field="' + options.field + '" data-value-field="' + options.field + '" data-bind="value:' + options.field + '" />')
                                 .appendTo(container)
                                 .kendoDatePicker({
-                                    value: kendo.toString(kendo.parseDate(options.model.PackageItemProcessedDatetime, 'yyyy-MM-dd'), 'MM/dd/yyyy')
+                                    value: kendo.toString(kendo.parseDate(options.model.PackageItemProcessedDatetime,'yyyy-MM-dd'),'dd/MM/yyyy'),
+                                    format: 'dd/MM/yyyy'
                                 });
                         }
                 </script>

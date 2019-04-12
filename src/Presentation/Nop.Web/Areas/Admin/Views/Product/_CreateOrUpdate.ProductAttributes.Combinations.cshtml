@@ -45,12 +45,12 @@
                                     AttributesXml: { editable: false, type: "string" },
                                     Warnings: { editable: false, type: "string" },
                                     StockQuantity: { editable: true, type: "number" },
-                                    AllowOutOfStockOrders: { editable: true, type: "boolean" },
-                                    Sku: { editable: true, type: "string" },
-                                    ManufacturerPartNumber: { editable: true, type: "string" },
-                                    Gtin: { editable: true, type: "string" },
-                                    OverriddenPrice: { editable: true, type: "number" },
-                                    NotifyAdminForQuantityBelow: { editable: true, type: "number" },
+                                    AllowOutOfStockOrders: { editable: false, type: "boolean" },
+                                    Sku: { editable: false, type: "string" },
+                                    ManufacturerPartNumber: { editable: false, type: "string" },
+                                    Gtin: { editable: false, type: "string" },
+                                    OverriddenPrice: { editable: false, type: "number" },
+                                    NotifyAdminForQuantityBelow: { editable: false, type: "number" },
                                     Id: { editable: false, type: "number" }
                                 }
                             }
@@ -104,15 +104,18 @@
                         }, {
                             field: "Sku",
                             title: "@T("Admin.Catalog.Products.ProductAttributes.AttributeCombinations.Fields.Sku")",
-                            width: 200
+                            width: 200,
+                            hidden: true
                         }, {
                             field: "ManufacturerPartNumber",
                             title: "@T("Admin.Catalog.Products.ProductAttributes.AttributeCombinations.Fields.ManufacturerPartNumber")",
-                            width: 200
+                            width: 200,
+                            hidden: true
                         }, {
                             field: "Gtin",
                             title: "@T("Admin.Catalog.Products.ProductAttributes.AttributeCombinations.Fields.Gtin")",
-                            width: 200
+                            width: 200,
+                            hidden: true
                         }, {
                             field: "OverriddenPrice",
                             title: "@T("Admin.Catalog.Products.ProductAttributes.AttributeCombinations.Fields.OverriddenPrice")",
@@ -124,13 +127,15 @@
                                         format: "{0:n4}",
                                         decimals: 4
                                     });
-                            }
+                            },
+                            hidden: true
                         }, {
                             field: "NotifyAdminForQuantityBelow",
                             title: "@T("Admin.Catalog.Products.ProductAttributes.AttributeCombinations.Fields.NotifyAdminForQuantityBelow")",
                             width: 150,
                             //integer format
-                            format: "{0:0}"
+                            format: "{0:0}",
+                            hidden: true
                         }, {
                             command: [
                                 {
@@ -164,7 +169,7 @@
                     //return false to don't reload a page
                     return false;
                 });
-                
+
                 //generate combinations
                 $('#btnGenerateAllCombinations').click(function() {
                     if (confirm('@T("Admin.Common.AreYouSure")')) {

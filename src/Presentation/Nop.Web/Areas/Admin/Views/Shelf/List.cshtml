@@ -313,7 +313,7 @@
                                         width: 80,
                                         editor: dateTimeEditorCustom,
                                         template: "# if (AssignedDate != null) { #" +
-                                            "<p>#= kendo.toString(kendo.parseDate(AssignedDate, 'yyyy-MM-dd'), 'MM/dd/yyyy') #</p>" +
+                                            "<p>#= kendo.toString(kendo.parseDate(AssignedDate, 'yyyy-MM-dd'), 'dd/MM/yyyy') #</p>" +
                                             "#} else {#" +
                                             "<p></p>" +
                                             "# } #"
@@ -324,7 +324,7 @@
                                         width: 80,
                                         editor: dateTimeEditorCustom,
                                         template: "# if (ShippedDate != null) { #" +
-                                            "<p>#= kendo.toString(kendo.parseDate(ShippedDate, 'yyyy-MM-dd'), 'MM/dd/yyyy') #</p>" +
+                                            "<p>#= kendo.toString(kendo.parseDate(ShippedDate, 'yyyy-MM-dd'), 'dd/MM/yyyy') #</p>" +
                                             "#} else {#" +
                                             "<p></p>" +
                                             "# } #"
@@ -362,7 +362,7 @@
                                         hidden: true,
                                         editor: dateTimeEditorCustom,
                                         template: "# if (UpdatedNoteDate != null) { #" +
-                                            "<p>#= kendo.toString(kendo.parseDate(UpdatedNoteDate, 'yyyy-MM-dd'), 'MM/dd/yyyy') #</p>" +
+                                            "<p>#= kendo.toString(kendo.parseDate(UpdatedNoteDate, 'yyyy-MM-dd'), 'dd/MM/yyyy') #</p>" +
                                             "#} else {#" +
                                             "<p></p>" +
                                             "# } #"
@@ -584,8 +584,8 @@
                                         '" />')
                                     .appendTo(container)
                                     .kendoDatePicker({
-                                        format: "MM/dd/yyyy",
-                                        value: kendo.toString(new Date(dateTime), 'MM/dd/yyyy')
+                                        format: "dd/MM/yyyy",
+                                        value: kendo.toString(new Date(dateTime), 'dd/MM/yyyy')
                                     });
                             }
 
@@ -735,7 +735,7 @@
                                         title: "@T("Admin.ShelfOrderItem.Fields.AssignedShelfDate")",
                                         width: 100,
                                             template: "# if (AssignedShelfDate != null) { #" +
-                                            "<p>#= kendo.toString(kendo.parseDate(AssignedShelfDate, 'yyyy-MM-dd'), 'MM/dd/yyyy') #</p>" +
+                                            "<p>#= kendo.toString(kendo.parseDate(AssignedShelfDate, 'yyyy-MM-dd'), 'dd/MM/yyyy') #</p>" +
                                             "#} else {#" +
                                             "<p></p>" +
                                             "# } #"
@@ -829,8 +829,8 @@
                                     start.setHours(0, 0, 0, 0);
                                     var end = new Date();
                                     end.setHours(23, 59, 59, 999);
-                                    var startDate = kendo.toString(kendo.parseDate(start), 'MM/dd/yyyy HH:mm tt');
-                                    var endDate = kendo.toString(kendo.parseDate(end), 'MM/dd/yyyy HH:mm tt');
+                                    var startDate = kendo.toString(kendo.parseDate(start), 'dd/MM/yyyy HH:mm tt');
+                                    var endDate = kendo.toString(kendo.parseDate(end), 'dd/MM/yyyy HH:mm tt');
                                     $('#@Html.IdFor(model => model.ShippedFromDate)').val(startDate);
                                     $('#@Html.IdFor(model => model.ShippedToDate)').val(endDate);
                                 } else {
@@ -875,14 +875,23 @@
 
 
                         function additionalData() {
+                            var assignedFromDate = kendo.toString(kendo.parseDate($('#@Html.IdFor(model => model.AssignedFromDate)').val(), 'dd/MM/yyyy HH:mm tt'), 'MM/dd/yyyy HH:mm tt');
+                            var assignedToDate = kendo.toString(kendo.parseDate($('#@Html.IdFor(model => model.AssignedToDate)').val(), 'dd/MM/yyyy HH:mm tt'), 'MM/dd/yyyy HH:mm tt');
+
+                            var assignedOrderItemFromDate = kendo.toString(kendo.parseDate($('#@Html.IdFor(model => model.AssignedOrderItemFromDate)').val(), 'dd/MM/yyyy HH:mm tt'), 'MM/dd/yyyy HH:mm tt');
+                            var assignedOrderItemToDate = kendo.toString(kendo.parseDate($('#@Html.IdFor(model => model.AssignedOrderItemToDate)').val(), 'dd/MM/yyyy HH:mm tt'), 'MM/dd/yyyy HH:mm tt');
+
+                            var shippedFromDate = kendo.toString(kendo.parseDate($('#@Html.IdFor(model => model.ShippedFromDate)').val(), 'dd/MM/yyyy HH:mm tt'), 'MM/dd/yyyy HH:mm tt');
+                            var shippedToDate = kendo.toString(kendo.parseDate($('#@Html.IdFor(model => model.ShippedToDate)').val(),'dd/MM/yyyy HH:mm tt'), 'MM/dd/yyyy HH:mm tt');
+
                             var data = {
                                 CustomerId: $('#@Html.IdFor(model => model.CustomerId)').val(),
-                                AssignedFromDate: $('#@Html.IdFor(model => model.AssignedFromDate)').val(),
-                                AssignedToDate: $('#@Html.IdFor(model => model.AssignedToDate)').val(),
-                                AssignedOrderItemFromDate: $('#@Html.IdFor(model => model.AssignedOrderItemFromDate)').val(),
-                                AssignedOrderItemToDate: $('#@Html.IdFor(model => model.AssignedOrderItemToDate)').val(),
-                                ShippedFromDate: $('#@Html.IdFor(model => model.ShippedFromDate)').val(),
-                                ShippedToDate: $('#@Html.IdFor(model => model.ShippedToDate)').val(),
+                                AssignedFromDate: assignedFromDate,
+                                AssignedToDate: assignedToDate,
+                                AssignedOrderItemFromDate: assignedOrderItemFromDate,
+                                AssignedOrderItemToDate: assignedOrderItemToDate,
+                                ShippedFromDate: shippedFromDate,
+                                ShippedToDate: shippedToDate,
                                 ShelfCode: $('#@Html.IdFor(model => model.ShelfCode)').val(),
                                 ShelfOrderItemIsActive: $('#@Html.IdFor(model => model.ShelfOrderItemIsActive)').val(),
                                 IsShelfEmpty: $('#@Html.IdFor(model => model.IsShelfEmpty)').is(":checked"),

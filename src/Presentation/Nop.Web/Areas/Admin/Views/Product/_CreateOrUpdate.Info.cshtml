@@ -1232,7 +1232,7 @@
 
                                 fn_formatCurrency();
 
-                                $('#@Html.IdFor(model => model.UnitPriceUsd),#@Html.IdFor(model => model.OrderingFee),#@Html.IdFor(model => model.SaleOffPercent),#@Html.IdFor(model => model.Weight),#@Html.IdFor(model => model.WeightCost)').map(function () {
+                                $('#@Html.IdFor(model => model.UnitPriceUsd),#@Html.IdFor(model => model.SaleOffPercent)').map(function () {
 
                                     var formatCurrency = this.value.toFloat();
                                     if (formatCurrency == 0) {
@@ -1241,18 +1241,41 @@
                                     }
                                 });
 
+                                $('#@Html.IdFor(model => model.OrderingFee),#@Html.IdFor(model => model.Weight),#@Html.IdFor(model => model.WeightCost)').map(function () {
+
+                                    var formatCurrency = this.value.toFloat();
+                                    if (formatCurrency == 0) {
+                                        $(this).val('');
+                                        $(this).attr('placeholder' , "0");
+                                    }
+                                });
+
+
                                 $('#@Html.IdFor(model => model.UnitPriceUsd),#@Html.IdFor(model => model.OrderingFee),#@Html.IdFor(model => model.SaleOffPercent),#@Html.IdFor(model => model.Weight),#@Html.IdFor(model => model.WeightCost)').on("focus", function () {
 
                                     $(this).removeAttr('placeholder');
 
                                 });
 
-                                $('#@Html.IdFor(model => model.UnitPriceUsd),#@Html.IdFor(model => model.OrderingFee),#@Html.IdFor(model => model.SaleOffPercent),#@Html.IdFor(model => model.Weight),#@Html.IdFor(model => model.WeightCost)').on("focusout", function () {
+                                @*$('#@Html.IdFor(model => model.UnitPriceUsd),#@Html.IdFor(model => model.OrderingFee),#@Html.IdFor(model => model.SaleOffPercent),#@Html.IdFor(model => model.Weight),#@Html.IdFor(model => model.WeightCost)').on("focusout", function () {
 
                                     if ($(this).val() === '' || $(this).val() === '0') {
                                         $(this).attr('placeholder' , "0.00");
                                     }
+                                });*@
+                                $('#@Html.IdFor(model => model.UnitPriceUsd),#@Html.IdFor(model => model.SaleOffPercent)').on("focusout", function () {
+
+                                    if ($(this).val() === '' || $(this).val() === '0') {
+                                        $(this).attr('placeholder', "0.00");
+                                    }
                                 });
+
+                                $('#@Html.IdFor(model => model.OrderingFee),#@Html.IdFor(model => model.Weight),#@Html.IdFor(model => model.WeightCost)').on("focusout", function () {
+                                    if ($(this).val() === '' || $(this).val() === '0') {
+                                        $(this).attr('placeholder' , "0");
+                                    }
+                                });
+
                             });
 
                             function calculatePrice() {
@@ -1283,12 +1306,21 @@
                                     $(this).val(formatCurrency);
 
                                 });
-                                $('#@Html.IdFor(model => model.UnitPriceUsd),#@Html.IdFor(model => model.OrderingFee),#@Html.IdFor(model => model.SaleOffPercent),#@Html.IdFor(model => model.Weight),#@Html.IdFor(model => model.WeightCost)').map(function () {
+                                $('#@Html.IdFor(model => model.UnitPriceUsd),#@Html.IdFor(model => model.SaleOffPercent)').map(function () {
 
                                     var formatCurrency = this.value.toFloat();
                                     if (formatCurrency == 0) {
                                         $(this).val('');
                                         $(this).attr('placeholder' , "0.00");
+                                    }
+                                });
+
+                                $('#@Html.IdFor(model => model.OrderingFee),#@Html.IdFor(model => model.Weight),#@Html.IdFor(model => model.WeightCost)').map(function () {
+
+                                    var formatCurrency = this.value.toFloat();
+                                    if (formatCurrency == 0) {
+                                        $(this).val('');
+                                        $(this).attr('placeholder' , "0");
                                     }
                                 });
 

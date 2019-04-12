@@ -407,7 +407,7 @@
                                                     //format: "{0:G}",
                                                     sortable: true,
                                                     template: "# if (CreatedDate != null) { #" +
-                                                        "<p>#= kendo.toString(kendo.parseDate(CreatedDate, 'yyyy-MM-dd'), 'MM/dd/yyyy') #</p>" +
+                                                        "<p>#= kendo.toString(kendo.parseDate(CreatedDate, 'yyyy-MM-dd'), 'dd/MM/yyyy') #</p>" +
                                                         "#} else {#" +
                                                         "<p></p>" +
                                                         "# } #"
@@ -562,7 +562,7 @@
                                                     width: 150,
                                                     editor: dateTimeEditorCustom,
                                                     template: "# if (PackageItemProcessedDatetime != null) { #" +
-                                                        "<p>#= kendo.toString(kendo.parseDate(PackageItemProcessedDatetime, 'yyyy-MM-dd'), 'MM/dd/yyyy') #</p>" +
+                                                        "<p>#= kendo.toString(kendo.parseDate(PackageItemProcessedDatetime, 'yyyy-MM-dd'), 'dd/MM/yyyy') #</p>" +
                                                         "#} else {#" +
                                                         "<p></p>" +
                                                         "# } #"
@@ -573,7 +573,7 @@
                                                     width: 150,
                                                     editor: dateTimeEditorCustom,
                                                     template: "# if (DeliveryDateUtc != null) { #" +
-                                                        "<p>#= kendo.toString(kendo.parseDate(DeliveryDateUtc, 'yyyy-MM-dd'), 'MM/dd/yyyy') #</p>" +
+                                                        "<p>#= kendo.toString(kendo.parseDate(DeliveryDateUtc, 'yyyy-MM-dd'), 'dd/MM/yyyy') #</p>" +
                                                         "#} else {#" +
                                                         "<p></p>" +
                                                         "# } #"
@@ -756,10 +756,8 @@
                                                     '" />')
                                                 .appendTo(container)
                                                 .kendoDatePicker({
-                                                    value: kendo.toString(
-                                                        kendo.parseDate(options.model.PackageItemProcessedDatetime,
-                                                            'yyyy-MM-dd'),
-                                                        'MM/dd/yyyy')
+                                                    value: kendo.toString(kendo.parseDate(options.model.PackageItemProcessedDatetime,'yyyy-MM-dd'),'dd/MM/yyyy'),
+                                                    format: 'dd/MM/yyyy'
                                                 });
 
 
@@ -1016,8 +1014,8 @@
                                                 start.setHours(0, 0, 0, 0);
                                                 var end = new Date();
                                                 end.setHours(23, 59, 59, 999);
-                                                var startDate = kendo.toString(kendo.parseDate(start), 'MM/dd/yyyy HH:mm tt');
-                                                var endDate = kendo.toString(kendo.parseDate(end), 'MM/dd/yyyy HH:mm tt');
+                                                var startDate = kendo.toString(kendo.parseDate(start), 'dd/MM/yyyy');
+                                                var endDate = kendo.toString(kendo.parseDate(end), 'dd/MM/yyyy');
                                                 $('#@Html.IdFor(model => model.StartDate)').val(startDate);
                                                 $('#@Html.IdFor(model => model.EndDate)').val(endDate);
                                             } else {
@@ -1092,6 +1090,9 @@
                                     });
 
                                     function additionalData() {
+                                        var startDate = kendo.toString(kendo.parseDate($('#@Html.IdFor(model => model.StartDate)').val(), 'dd/MM/yyyy'), 'MM/dd/yyyy');
+                                        var endDate = kendo.toString(kendo.parseDate($('#@Html.IdFor(model => model.EndDate)').val(), 'dd/MM/yyyy'), 'MM/dd/yyyy');
+
                                         var data = {
                                             VendorProductUrl: $('#@Html.IdFor(model => model.VendorProductUrl)').val(),
                                             OrderId: $('#@Html.IdFor(model => model.OrderId)').val(),
@@ -1100,8 +1101,8 @@
                                             IsSetPackageOrderId: $('#@Html.IdFor(model => model.IsSetPackageOrderId)').val(),
                                             IsWeightCostZero: $('#@Html.IdFor(model => model.IsWeightCostZero)').is(":checked"),
                                             IsSetSetShelfId: $('#@Html.IdFor(model => model.IsShelfAssigned)').val(),
-                                            StartDate: $('#@Html.IdFor(model => model.StartDate)').val(),
-                                            EndDate: $('#@Html.IdFor(model => model.EndDate)').val(),
+                                            StartDate: startDate,
+                                            EndDate: endDate,
                                             TodayFilter: $('#@Html.IdFor(model => model.TodayFilter)').is(":checked"),
                                             CustomerPhone: $('#@Html.IdFor(model => model.CustomerPhone)').val(),
                                             PackageOrderCode: $('#@Html.IdFor(model => model.PackageOrderCode)').val(),

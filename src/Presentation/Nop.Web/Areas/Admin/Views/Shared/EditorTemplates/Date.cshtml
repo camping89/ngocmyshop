@@ -2,6 +2,8 @@
 <input id="@Html.IdForModel()" name="@Html.NameForModel()" value="@((Model > DateTime.MinValue ? Model : DateTime.Today).ToShortDateString())" />
 <script type="text/javascript">
     $(document).ready(function () {
-        $("#@Html.IdForModel()").kendoDatePicker();
+        $("#@Html.IdForModel()").kendoDatePicker({
+            format: 'dd/MM/yyyy'
+        });
     });
 </script>
