@@ -15,7 +15,6 @@ using Nop.Services.Security;
 using Nop.Services.Shipping;
 using Nop.Web.Areas.Admin.Extensions;
 using Nop.Web.Areas.Admin.Models.Orders;
-using Nop.Web.Extensions;
 using Nop.Web.Framework.Kendoui;
 using Nop.Web.Framework.Mvc;
 using Nop.Web.Framework.Mvc.Filters;
@@ -23,6 +22,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Dynamic;
+using Nop.Core.Extensions;
+using StringExtensions = Nop.Web.Extensions.StringExtensions;
 
 namespace Nop.Web.Areas.Admin.Controllers
 {
@@ -60,6 +61,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             var shelfListModel = new ShelfListModel();
             shelfListModel.ShelfOrderItemsStatus.AddRange(new List<SelectListItem>()
             {
+                new SelectListItem { Value = "", Text = _localizationService.GetResource("Admin.Common.All"), Selected = true},
                 new SelectListItem() {Value = "True",Text = _localizationService.GetResource("Admin.ShelfOrderItem.IsActive.True"), Selected = true},
                 new SelectListItem() {Value = "False",Text = _localizationService.GetResource("Admin.ShelfOrderItem.IsActive.False")},
             });
@@ -114,6 +116,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 model.ShippedFromDate,
                 model.ShippedToDate,
                 command.Page - 1, command.PageSize,
+                shelfOrderItemIsActive: model.ShelfOrderItemIsActive,
                 isShelfEmpty: model.IsShelfEmpty,
                 isEmptyAssignedShelf: model.IsEmptyAssignedShelf,
                 shelfCode: model.ShelfCode,
@@ -165,7 +168,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                     var orderItems = _shelfService.GetAllShelfOrderItem(x.Id, shelfOrderItemIsActive: true).Select(_ => _.OrderItem).ToList();
                     foreach (var orderItem in orderItems)
                     {
-                        orderItem.PriceInclTax = Math.Ceiling(orderItem.PriceInclTax / 1000) * 1000;
+                        orderItem.PriceInclTax = DecimalExtensions.RoundCustom(orderItem.PriceInclTax / 1000) * 1000;
                     }
                     m.Total = _priceFormatter.FormatPrice(orderItems.Sum(_ => _.PriceInclTax), true, false);
                     return m;
@@ -440,7 +443,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 {
 
                     var customerAddress = customer.Addresses.OrderBy(_ => _.CreatedOnUtc).FirstOrDefault();
-                    
+
                     var shipmentEntity = new ShipmentManual
                     {
                         CustomerId = customerId,

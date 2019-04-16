@@ -16,6 +16,31 @@ namespace Nop.Core.Extensions
         }
     }
 
+    public static class DecimalExtensions
+    {
+        public static decimal RoundCustom(decimal convert)
+        {
+            decimal below = Math.Floor(convert);
+
+            var remainder = convert - below;
+
+            if (remainder <= 0.5m)
+            {
+
+                convert = below + 0.5m;
+
+            }
+            if (remainder > 0.5m)
+            {
+
+                convert = below + 1.0m;
+
+            }
+
+            return convert;
+        }
+    }
+
     public static class StringExtensions
     {
         public static decimal ToDecimalOrDefault(this string value, decimal defaultValue = 0)

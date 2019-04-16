@@ -10,6 +10,7 @@ using Nop.Core.Domain.Directory;
 using Nop.Core.Domain.Media;
 using Nop.Core.Domain.Orders;
 using Nop.Core.Domain.Vendors;
+using Nop.Core.Extensions;
 using Nop.Services;
 using Nop.Services.Catalog;
 using Nop.Services.Common;
@@ -1567,7 +1568,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                         if (formKey.Equals($"itemprice{sci.Id}", StringComparison.InvariantCultureIgnoreCase))
                         {
                             decimal.TryParse(form[formKey], out newPrice);
-                            newPrice = Math.Ceiling(newPrice / 1000) * 1000;
+                            newPrice = DecimalExtensions.RoundCustom(newPrice / 1000) * 1000;
                         }
                         if (formKey.Equals($"itempricebase{sci.Id}", StringComparison.InvariantCultureIgnoreCase))
                         {

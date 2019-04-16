@@ -14,6 +14,7 @@ using Nop.Core.Domain.Payments;
 using Nop.Core.Domain.Shipping;
 using Nop.Core.Domain.Tax;
 using Nop.Core.Domain.Vendors;
+using Nop.Core.Extensions;
 using Nop.Services;
 using Nop.Services.Affiliates;
 using Nop.Services.Catalog;
@@ -55,6 +56,7 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using OrderItem = Nop.Core.Domain.Orders.OrderItem;
+using StringExtensions = Nop.Web.Extensions.StringExtensions;
 
 namespace Nop.Web.Areas.Admin.Controllers
 {
@@ -561,7 +563,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             var currencyProduct = _currencyService.GetCurrencyById(orderItem.Product.CurrencyId, false);
             var packageOrder = packageOrderModels?.FirstOrDefault(_ => _.Id == orderItem.PackageOrderId);
 
-            orderItem.PriceInclTax = Math.Ceiling(orderItem.PriceInclTax / 1000) * 1000;
+            orderItem.PriceInclTax = DecimalExtensions.RoundCustom(orderItem.PriceInclTax / 1000) * 1000;
 
             var orderItemModel = new OrderModel.OrderItemModel
             {
@@ -677,8 +679,8 @@ namespace Nop.Web.Areas.Admin.Controllers
             var currencyProduct = _currencyService.GetCurrencyById(orderItem.Product.CurrencyId, false);
             var packageOrder = packageOrderModels?.FirstOrDefault(_ => _.Id == orderItem.PackageOrderId);
 
-            orderItem.PriceInclTax = Math.Ceiling(orderItem.PriceExclTax / 1000) * 1000;
-            orderItem.PriceInclTax = Math.Ceiling(orderItem.PriceInclTax / 1000) * 1000;
+            orderItem.PriceInclTax = DecimalExtensions.RoundCustom(orderItem.PriceExclTax / 1000) * 1000;
+            orderItem.PriceInclTax = DecimalExtensions.RoundCustom(orderItem.PriceInclTax / 1000) * 1000;
             var orderItemModel = new OrderModel.OrderItemModelBasic
             {
                 Id = orderItem.Id,
@@ -1559,7 +1561,7 @@ namespace Nop.Web.Areas.Admin.Controllers
 
                 var warehouse = _shippingService.GetWarehouseById(shipmentItem.WarehouseId);
 
-                orderItem.UnitPriceInclTax = Math.Ceiling(orderItem.PriceExclTax / 1000) * 1000;
+                orderItem.UnitPriceInclTax = DecimalExtensions.RoundCustom(orderItem.PriceExclTax / 1000) * 1000;
 
                 var shipmentItemModel = new ShipmentModel.ShipmentItemModel
                 {
@@ -1616,7 +1618,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             var baseDimensionIn = baseDimension != null ? baseDimension.Name : "";
             var primaryStoreCurrency = _currencyService.GetCurrencyById(_currencySettings.PrimaryStoreCurrencyId);
 
-            shipment.TotalShippingFee = Math.Ceiling(shipment.TotalShippingFee / 1000) * 1000;
+            shipment.TotalShippingFee = DecimalExtensions.RoundCustom(shipment.TotalShippingFee / 1000) * 1000;
 
             var model = new ShipmentManualModel
             {
@@ -1679,7 +1681,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             decimal totalOrderFee = 0;
             foreach (var shipmentItem in shipment.ShipmentManualItems)
             {
-                totalOrderFee += Math.Ceiling(shipmentItem.OrderItem.PriceInclTax / 1000) * 1000;
+                totalOrderFee += DecimalExtensions.RoundCustom(shipmentItem.OrderItem.PriceInclTax / 1000) * 1000;
             }
 
             model.TotalOrderFee = _priceFormatter.FormatPrice(totalOrderFee, true, primaryStoreCurrency,
@@ -6627,7 +6629,7 @@ namespace Nop.Web.Areas.Admin.Controllers
 
                     var currencyProduct = _currencyService.GetCurrencyById(orderItem.Product.CurrencyId);
 
-                    orderItem.PriceInclTax = Math.Ceiling(orderItem.PriceInclTax / 1000) * 1000;
+                    orderItem.PriceInclTax = DecimalExtensions.RoundCustom(orderItem.PriceInclTax / 1000) * 1000;
 
                     var orderItemModel = new OrderItemExportVendorModelBasic
                     {

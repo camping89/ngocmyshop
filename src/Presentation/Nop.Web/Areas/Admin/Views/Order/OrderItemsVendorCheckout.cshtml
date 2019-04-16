@@ -1014,8 +1014,8 @@
                                                 start.setHours(0, 0, 0, 0);
                                                 var end = new Date();
                                                 end.setHours(23, 59, 59, 999);
-                                                var startDate = kendo.toString(kendo.parseDate(start), 'dd/MM/yyyy');
-                                                var endDate = kendo.toString(kendo.parseDate(end), 'dd/MM/yyyy');
+                                                var startDate = kendo.toString(kendo.parseDate(start), 'dd/MM/yyyy HH:mm tt');
+                                                var endDate = kendo.toString(kendo.parseDate(end), 'dd/MM/yyyy HH:mm tt');
                                                 $('#@Html.IdFor(model => model.StartDate)').val(startDate);
                                                 $('#@Html.IdFor(model => model.EndDate)').val(endDate);
                                             } else {
@@ -1090,8 +1090,8 @@
                                     });
 
                                     function additionalData() {
-                                        var startDate = kendo.toString(kendo.parseDate($('#@Html.IdFor(model => model.StartDate)').val(), 'dd/MM/yyyy'), 'MM/dd/yyyy');
-                                        var endDate = kendo.toString(kendo.parseDate($('#@Html.IdFor(model => model.EndDate)').val(), 'dd/MM/yyyy'), 'MM/dd/yyyy');
+                                        var startDate = kendo.toString(kendo.parseDate($('#@Html.IdFor(model => model.StartDate)').val(), 'dd/MM/yyyy HH:mm tt'), 'MM/dd/yyyy HH:mm tt');
+                                        var endDate = kendo.toString(kendo.parseDate($('#@Html.IdFor(model => model.EndDate)').val(), 'dd/MM/yyyy HH:mm tt'), 'MM/dd/yyyy HH:mm tt');
 
                                         var data = {
                                             VendorProductUrl: $('#@Html.IdFor(model => model.VendorProductUrl)').val(),

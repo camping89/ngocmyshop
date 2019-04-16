@@ -14,6 +14,7 @@ namespace Nop.Services.Shipping
             DateTime? assignedOrderItemFromUtc = null, DateTime? assignedOrderItemToUtc = null,
             DateTime? shippedFromUtc = null, DateTime? shippedToUtc = null,
             int pageIndex = 0, int pageSize = int.MaxValue,
+            bool? shelfOrderItemIsActive = true,
             bool isShelfEmpty = false, bool isEmptyAssignedShelf = false,
             bool? isCustomerNotified = null,
             string shelfCode = null, int? shelfNoteId = null,
