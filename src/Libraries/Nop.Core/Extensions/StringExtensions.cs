@@ -24,7 +24,7 @@ namespace Nop.Core.Extensions
 
             var remainder = convert - below;
 
-            if (remainder <= 0.5m)
+            if (0.0m < remainder && remainder <= 0.5m)
             {
 
                 convert = below + 0.5m;

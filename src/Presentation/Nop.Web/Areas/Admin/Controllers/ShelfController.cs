@@ -4,6 +4,7 @@ using Nop.Core;
 using Nop.Core.Domain.Customers;
 using Nop.Core.Domain.Orders;
 using Nop.Core.Domain.Shipping;
+using Nop.Core.Extensions;
 using Nop.Services;
 using Nop.Services.Catalog;
 using Nop.Services.Common;
@@ -22,7 +23,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Dynamic;
-using Nop.Core.Extensions;
 using StringExtensions = Nop.Web.Extensions.StringExtensions;
 
 namespace Nop.Web.Areas.Admin.Controllers
@@ -61,7 +61,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             var shelfListModel = new ShelfListModel();
             shelfListModel.ShelfOrderItemsStatus.AddRange(new List<SelectListItem>()
             {
-                new SelectListItem { Value = "", Text = _localizationService.GetResource("Admin.Common.All"), Selected = true},
+                new SelectListItem { Value = "", Text = _localizationService.GetResource("Admin.Common.All")},
                 new SelectListItem() {Value = "True",Text = _localizationService.GetResource("Admin.ShelfOrderItem.IsActive.True"), Selected = true},
                 new SelectListItem() {Value = "False",Text = _localizationService.GetResource("Admin.ShelfOrderItem.IsActive.False")},
             });
