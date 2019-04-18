@@ -466,7 +466,7 @@ namespace Nop.Services.Customers
         public List<Customer> SearchCustomers(string phone = null, string email = null, string linkFacebook = null, string username = null,
             string fullName = null)
         {
-            var query = _customerRepository.Table.Where(_ => _.Username != null || _.Username != string.Empty).AsEnumerable();
+            var query = _customerRepository.Table.Where(_ => _.Deleted == false && (_.Username != null || _.Username != string.Empty)).AsEnumerable();
             if (!string.IsNullOrEmpty(email))
             {
                 query = query.Where(_ => _.Email != null && _.Email.ToUpperInvariant().Contains(email.ToUpperInvariant()));

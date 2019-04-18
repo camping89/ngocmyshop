@@ -253,7 +253,7 @@ namespace Nop.Services.Common
         {
             if (text == null)
             {
-                text = string.Empty;
+                text = " ";
             }
             return new PdfPCell(new Phrase(text.ToString(), font));
         }
@@ -1557,112 +1557,104 @@ namespace Nop.Services.Common
             cellProductItem.HorizontalAlignment = Element.ALIGN_CENTER;
             productsTable.AddCell(cellProductItem);
 
-            try
+            foreach (var orderItem in orderItems)
             {
-                foreach (var orderItem in orderItems)
+                if (lang == null || !lang.Published)
+                    lang = _workContext.WorkingLanguage;
+                var p = orderItem.Product;
+
+                var customerOrder = _customerService.GetCustomerById(orderItem.Order.CustomerId);
+                var customerInfo = string.Empty;
+                if (customerOrder != null)
                 {
-                    if (lang == null || !lang.Published)
-                        lang = _workContext.WorkingLanguage;
-                    var p = orderItem.Product;
+                    var linkFacebook = customerOrder.GetAttribute<string>(SystemCustomerAttributeNames.LinkFacebook1);
 
-                    var customerOrder = _customerService.GetCustomerById(orderItem.Order.CustomerId);
-                    var customerInfo = string.Empty;
-                    if (customerOrder != null)
-                    {
-                        var linkFacebook = customerOrder.GetAttribute<string>(SystemCustomerAttributeNames.LinkFacebook1);
-
-                        customerInfo = customerOrder.GetFullName()
-                                       + $" - Phone: {customerOrder.GetAttribute<string>(SystemCustomerAttributeNames.Phone)}"
-                                       + $" - Facebook: {linkFacebook}";
-                    }
+                    customerInfo = customerOrder.GetFullName()
+                                   + $" - Phone: {customerOrder.GetAttribute<string>(SystemCustomerAttributeNames.Phone)}"
+                                   + $" - Facebook: {linkFacebook}";
+                }
 
 
-                    //a vendor should have access only to his products
-                    if (vendorId > 0 && p.VendorId != vendorId)
+                //a vendor should have access only to his products
+                if (vendorId > 0 && p.VendorId != vendorId)
+                    continue;
+
+                var pAttribTable = new PdfPTable(1) { RunDirection = GetDirection(lang) };
+                pAttribTable.DefaultCell.Border = Rectangle.NO_BORDER;
+
+
+                cellProductItem = GetPdfCell(orderItem.Order.CreatedOnUtc.ToString("g"), font);
+                cellProductItem.HorizontalAlignment = Element.ALIGN_LEFT;
+                productsTable.AddCell(cellProductItem);
+
+                cellProductItem = GetPdfCell(orderItem.OrderId.ToString(), font);
+                cellProductItem.HorizontalAlignment = Element.ALIGN_LEFT;
+                productsTable.AddCell(cellProductItem);
+
+                cellProductItem = GetPdfCell(customerInfo, font);
+                cellProductItem.HorizontalAlignment = Element.ALIGN_LEFT;
+                productsTable.AddCell(cellProductItem);
+
+
+                //picture
+                var orderItemPicture =
+                    orderItem.Product.GetProductPicture(orderItem.AttributesXml, _pictureService, _productAttributeParser);
+                if (orderItemPicture != null)
+                {
+                    var picBinary = _pictureService.LoadPictureBinary(orderItemPicture);
+                    if (picBinary == null || picBinary.Length <= 0)
                         continue;
 
-                    var pAttribTable = new PdfPTable(1) { RunDirection = GetDirection(lang) };
-                    pAttribTable.DefaultCell.Border = Rectangle.NO_BORDER;
-
-
-                    cellProductItem = GetPdfCell(orderItem.Order.CreatedOnUtc.ToString("g"), font);
-                    cellProductItem.HorizontalAlignment = Element.ALIGN_LEFT;
-                    productsTable.AddCell(cellProductItem);
-
-                    cellProductItem = GetPdfCell(orderItem.OrderId.ToString(), font);
-                    cellProductItem.HorizontalAlignment = Element.ALIGN_LEFT;
-                    productsTable.AddCell(cellProductItem);
-
-                    cellProductItem = GetPdfCell(customerInfo, font);
-                    cellProductItem.HorizontalAlignment = Element.ALIGN_LEFT;
-                    productsTable.AddCell(cellProductItem);
-
-
-                    //picture
-                    var orderItemPicture =
-                        orderItem.Product.GetProductPicture(orderItem.AttributesXml, _pictureService, _productAttributeParser);
-                    if (orderItemPicture != null)
+                    var pictureLocalPath = _pictureService.GetThumbLocalPath(orderItemPicture, 60, false);
+                    var cell = new PdfPCell(Image.GetInstance(pictureLocalPath))
                     {
-                        var picBinary = _pictureService.LoadPictureBinary(orderItemPicture);
-                        if (picBinary == null || picBinary.Length <= 0)
-                            continue;
-
-                        var pictureLocalPath = _pictureService.GetThumbLocalPath(orderItemPicture, 60, false);
-                        var cell = new PdfPCell(Image.GetInstance(pictureLocalPath))
-                        {
-                            HorizontalAlignment = Element.ALIGN_CENTER,
-                            Border = Rectangle.NO_BORDER
-                        };
-                        productsTable.AddCell(cell);
-                    }
-                    else
-                    {
-                        cellProductItem = GetPdfCell(" ", font);
-                        cellProductItem.HorizontalAlignment = Element.ALIGN_LEFT;
-                        productsTable.AddCell(cellProductItem);
-                    }
-
-                    cellProductItem = GetPdfCell(orderItem.Product.GetLocalized(x => x.Name, _workContext.WorkingLanguage.Id), font);
-                    cellProductItem.HorizontalAlignment = Element.ALIGN_LEFT;
-                    productsTable.AddCell(cellProductItem);
-
-                    cellProductItem = GetPdfCell(HtmlHelper.ConvertHtmlToPlainTextOneLine(orderItem.AttributeDescription, true, true), font);
-                    cellProductItem.HorizontalAlignment = Element.ALIGN_LEFT;
-                    productsTable.AddCell(cellProductItem);
-
-
-                    cellProductItem = GetPdfCell(orderItem.Product.VendorProductUrl != null ? orderItem.Product.VendorProductUrl : string.Empty, font);
-                    cellProductItem.HorizontalAlignment = Element.ALIGN_LEFT;
-                    productsTable.AddCell(cellProductItem);
-
-
-                    cellProductItem = GetPdfCell(orderItem.Product.Sku, font);
-                    cellProductItem.HorizontalAlignment = Element.ALIGN_LEFT;
-                    productsTable.AddCell(cellProductItem);
-
-                    cellProductItem = GetPdfCell(orderItem.Quantity, font);
-                    cellProductItem.HorizontalAlignment = Element.ALIGN_LEFT;
-                    productsTable.AddCell(cellProductItem);
-
-                    cellProductItem = GetPdfCell(orderItem.UnitPriceUsd.ToString("F", CultureInfo.InvariantCulture), font);
-                    cellProductItem.HorizontalAlignment = Element.ALIGN_LEFT;
-                    productsTable.AddCell(cellProductItem);
-
-                    cellProductItem = GetPdfCell(orderItem.Order.AdminNote != null ? orderItem.Order.AdminNote : string.Empty, font);
-                    cellProductItem.HorizontalAlignment = Element.ALIGN_LEFT;
-                    productsTable.AddCell(cellProductItem);
-
-                    var vendor = _vendorService.GetVendorById(orderItem.Product.VendorId);
-                    cellProductItem = GetPdfCell(vendor != null ? vendor.Name : string.Empty, font);
-                    cellProductItem.HorizontalAlignment = Element.ALIGN_LEFT;
-                    productsTable.AddCell(cellProductItem);
-
+                        HorizontalAlignment = Element.ALIGN_CENTER,
+                        Border = Rectangle.NO_BORDER
+                    };
+                    productsTable.AddCell(cell);
                 }
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-                throw;
+                else
+                {
+                    cellProductItem = GetPdfCell(" ", font);
+                    cellProductItem.HorizontalAlignment = Element.ALIGN_LEFT;
+                    productsTable.AddCell(cellProductItem);
+                }
+
+                cellProductItem = GetPdfCell(orderItem.Product.GetLocalized(x => x.Name, _workContext.WorkingLanguage.Id), font);
+                cellProductItem.HorizontalAlignment = Element.ALIGN_LEFT;
+                productsTable.AddCell(cellProductItem);
+
+                cellProductItem = GetPdfCell(HtmlHelper.ConvertHtmlToPlainTextOneLine(orderItem.AttributeDescription, true, true), font);
+                cellProductItem.HorizontalAlignment = Element.ALIGN_LEFT;
+                productsTable.AddCell(cellProductItem);
+
+
+                cellProductItem = GetPdfCell(orderItem.Product.VendorProductUrl ?? string.Empty, font);
+                cellProductItem.HorizontalAlignment = Element.ALIGN_LEFT;
+                productsTable.AddCell(cellProductItem);
+
+
+                cellProductItem = GetPdfCell(orderItem.Product.Sku, font);
+                cellProductItem.HorizontalAlignment = Element.ALIGN_LEFT;
+                productsTable.AddCell(cellProductItem);
+
+                cellProductItem = GetPdfCell(orderItem.Quantity, font);
+                cellProductItem.HorizontalAlignment = Element.ALIGN_LEFT;
+                productsTable.AddCell(cellProductItem);
+
+                cellProductItem = GetPdfCell(orderItem.UnitPriceUsd.ToString("F", CultureInfo.InvariantCulture), font);
+                cellProductItem.HorizontalAlignment = Element.ALIGN_LEFT;
+                productsTable.AddCell(cellProductItem);
+
+                cellProductItem = GetPdfCell(orderItem.Order.AdminNote ?? string.Empty, font);
+                cellProductItem.HorizontalAlignment = Element.ALIGN_LEFT;
+                productsTable.AddCell(cellProductItem);
+
+                var vendor = _vendorService.GetVendorById(orderItem.Product.VendorId);
+                cellProductItem = GetPdfCell(vendor != null ? vendor.Name : string.Empty, font);
+                cellProductItem.HorizontalAlignment = Element.ALIGN_LEFT;
+                productsTable.AddCell(cellProductItem);
+
             }
             doc.Add(productsTable);
             doc.Close();
