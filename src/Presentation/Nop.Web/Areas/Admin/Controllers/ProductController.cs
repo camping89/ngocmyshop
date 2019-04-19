@@ -501,7 +501,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 throw new ArgumentNullException(nameof(product));
 
             model.ProductId = product.Id;
-            model.StockQuantity = 10000;
+            model.StockQuantity = 99999;
             model.NotifyAdminForQuantityBelow = 1;
 
             var attributes = _productAttributeService.GetProductAttributeMappingsByProductId(product.Id)
@@ -4937,7 +4937,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 {
                     ProductId = product.Id,
                     AttributesXml = attributesXml,
-                    StockQuantity = 0,
+                    StockQuantity = 99999,
                     AllowOutOfStockOrders = false,
                     Sku = null,
                     ManufacturerPartNumber = null,

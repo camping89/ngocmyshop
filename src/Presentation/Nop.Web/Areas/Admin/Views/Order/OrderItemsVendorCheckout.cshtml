@@ -1374,7 +1374,8 @@
 
         $('#btn-apply-processed-datetime').click(function (e) {
             e.preventDefault();
-            var datetimeNew = $('#PackageItemProcessedDatetimeNew').val();
+
+            var datetimeNew = kendo.toString(kendo.parseDate($('#PackageItemProcessedDatetimeNew').val(), 'dd/MM/yyyy'), 'MM/dd/yyyy');
             var postData = { selectedIds: selectedIds, datetimeNew: datetimeNew };
             addAntiForgeryToken(postData);
             $.ajax({

@@ -5596,6 +5596,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             //ensure that we at least one shipment selected
             if (!shipments.Any())
             {
+            {
                 ErrorNotification(_localizationService.GetResource("Admin.Orders.Shipments.NoShipmentsSelected"));
                 return RedirectToAction("ShipmentManualList");
             }
@@ -6644,7 +6645,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                         primaryStoreCurrency, _workContext.WorkingLanguage, true, true),
                         TotalWithoutWeightCost = _priceFormatter.FormatPrice((orderItem.PriceInclTax - orderItem.WeightCost), true,
                         primaryStoreCurrency, _workContext.WorkingLanguage, true, true),
-                        UnitPriceBase = _priceFormatter.FormatPrice((orderItem.Product.UnitPriceUsd), true,
+                        UnitPriceBase = _priceFormatter.FormatPrice((orderItem.UnitPriceUsd), true,
                             currencyProduct, _workContext.WorkingLanguage, true, true),
                         PackageOrderId = orderItem.PackageOrderId ?? 0,
                         //PackageOrder = orderItem.PackageOrder != null ? orderItem.PackageOrder.ToModel() : null,

@@ -460,10 +460,14 @@ namespace Nop.Web.Areas.Admin.Controllers
                         Ward = customerAddress?.Ward
                     };
 
+                    shipmentEntity.HasShippingFee = true;
                     if (customerAddress != null && customerAddress.City.ToLower().Equals("đà nẵng"))
                     {
-                        shipmentEntity.HasShippingFee = true;
                         shipmentEntity.TotalShippingFee = _settingService.GetSettingByKey("Admin.Shipment.ShippingFeeDaNang", 10000.0m);
+                    }
+                    else
+                    {
+                        shipmentEntity.TotalShippingFee = _settingService.GetSettingByKey("Admin.Shipment.DefaultShippingFee", 1000.0m);
                     }
                     _shipmentManualService.InsertShipmentManual(shipmentEntity);
                     if (shipmentEntity.Id > 0)

@@ -2284,12 +2284,10 @@ namespace Nop.Services.Common
             totalsTable.AddCell(subCell);
 
             totalsTable.AddCell(new Paragraph(" "));
-            totalsTable.AddCell(new Paragraph(" "));
 
             var orderSubtotalInclTaxStr = _priceFormatter.FormatPrice(totalShipment + shipmentDetails.TotalShippingFee);
             var fontSub = GetFont();
             fontSub.SetStyle(Font.BOLD);
-            fontSub.Color = BaseColor.RED;
             fontSub.Size = 12;
             subCell = GetPdfCell($"{_localizationService.GetResource("PDFPackagingSlip.TotalShipment", lang.Id)}", fontSub);
             subCell.HorizontalAlignment = Element.ALIGN_RIGHT;
