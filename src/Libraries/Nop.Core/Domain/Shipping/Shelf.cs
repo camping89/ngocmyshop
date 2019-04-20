@@ -18,7 +18,7 @@ namespace Nop.Core.Domain.Shipping
         public int ShelfNoteId { get; set; }
         public virtual Customer Customer { get; set; }
 
-        public virtual ICollection<ShelfOrderItem> ShipmentItems
+        public virtual ICollection<ShelfOrderItem> ShelfOrderItems
         {
             get { return _shelfOrderItems ?? (_shelfOrderItems = new List<ShelfOrderItem>()); }
             protected set { _shelfOrderItems = value; }

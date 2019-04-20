@@ -4319,13 +4319,17 @@ namespace Nop.Web.Areas.Admin.Controllers
             order.OrderTotal = order.OrderItems.Sum(_ => _.PriceExclTax);
             _orderService.UpdateOrder(order);
 
-            UpdateShelfOrderItem(orderItem, orderItemModel.ShelfCode, order.CustomerId);
-
+            var errorMess = UpdateShelfOrderItem(orderItem, orderItemModel.ShelfCode, order.CustomerId);
+            if (errorMess.IsNotNullOrEmpty())
+            {
+                return Json(new { errors = errorMess });
+            }
             return new NullJsonResult();
         }
 
-        private void UpdateShelfOrderItem(OrderItem orderItem, string shelfCode, int customerId)
+        private string UpdateShelfOrderItem(OrderItem orderItem, string shelfCode, int customerId)
         {
+            var errorStr = string.Empty;
             if (Core.Extensions.StringExtensions.IsNotNullOrEmpty(shelfCode))
             {
                 shelfCode = shelfCode.Trim();
@@ -4333,48 +4337,61 @@ namespace Nop.Web.Areas.Admin.Controllers
 
                 if (shelf != null)
                 {
-                    shelf.AssignedDate = DateTime.UtcNow;
-                    shelf.CustomerId = customerId;
-                    shelf.IsCustomerNotified = false;
-                    shelf.ShelfNoteStatus = ShelfNoteStatus.NoReply;
-                    _shelfService.UpdateShelf(shelf);
-
-                    var shelfOrderItem = _shelfService.GetShelfOrderItemByOrderItemId(orderItem.Id);
-                    if (shelfOrderItem != null)
+                    if (shelf.CustomerId == null || shelf.CustomerId == 0 || shelf.CustomerId == customerId || (shelf.CustomerId != customerId && shelf.ShelfOrderItems.Any() == false))
                     {
-                        shelfOrderItem.ShelfId = shelf.Id;
-                        _shelfService.UpdateShelfOrderItem(shelfOrderItem);
-                    }
-                    else
-                    {
-                        _shelfService.InsertShelfOrderItem(new ShelfOrderItem
-                        {
-                            OrderItemId = orderItem.Id,
-                            ShelfId = shelf.Id,
-                            CustomerId = customerId,
-                            AssignedDate = DateTime.UtcNow,
-                            IsActived = true
-                        });
+                        shelf.AssignedDate = DateTime.UtcNow;
+                        shelf.CustomerId = customerId;
+                        shelf.IsCustomerNotified = false;
+                        shelf.ShelfNoteStatus = ShelfNoteStatus.NoReply;
+                        _shelfService.UpdateShelf(shelf);
 
-                        var listOrderItems = GetOrderItemsUnAssignShelfByCustomer(customerId);
-                        foreach (var orderItemUnAssign in listOrderItems)
+                        var shelfOrderItem = _shelfService.GetShelfOrderItemByOrderItemId(orderItem.Id);
+                        if (shelfOrderItem != null)
                         {
-                            if (orderItemUnAssign.PackageItemProcessedDatetime != null)
+                            shelfOrderItem.ShelfId = shelf.Id;
+                            _shelfService.UpdateShelfOrderItem(shelfOrderItem);
+                        }
+                        else
+                        {
+                            _shelfService.InsertShelfOrderItem(new ShelfOrderItem
                             {
-                                if (_shelfService.GetShelfOrderItemByOrderItemId(orderItemUnAssign.Id) == null)
+                                OrderItemId = orderItem.Id,
+                                ShelfId = shelf.Id,
+                                CustomerId = customerId,
+                                AssignedDate = DateTime.UtcNow,
+                                IsActived = true
+                            });
+
+                            var listOrderItems = GetOrderItemsUnAssignShelfByCustomer(customerId);
+                            foreach (var orderItemUnAssign in listOrderItems)
+                            {
+                                if (orderItemUnAssign.PackageItemProcessedDatetime != null)
                                 {
-                                    _shelfService.InsertShelfOrderItem(new ShelfOrderItem
+                                    if (_shelfService.GetShelfOrderItemByOrderItemId(orderItemUnAssign.Id) == null)
                                     {
-                                        OrderItemId = orderItemUnAssign.Id,
-                                        ShelfId = shelf.Id,
-                                        CustomerId = customerId,
-                                        AssignedDate = DateTime.UtcNow,
-                                        IsActived = true
-                                    });
+                                        _shelfService.InsertShelfOrderItem(new ShelfOrderItem
+                                        {
+                                            OrderItemId = orderItemUnAssign.Id,
+                                            ShelfId = shelf.Id,
+                                            CustomerId = customerId,
+                                            AssignedDate = DateTime.UtcNow,
+                                            IsActived = true
+                                        });
+                                    }
                                 }
                             }
                         }
                     }
+                    else
+                    {
+                        errorStr = $"Ngăn đã gán cho khách: {shelf.Customer.GetFullName()}.";
+                        return errorStr;
+                    }
+                }
+                else
+                {
+                    errorStr = "Ngăn không tồn tại.";
+                    return errorStr;
                 }
             }
             else
@@ -4386,6 +4403,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 }
             }
 
+            return errorStr;
         }
 
         private List<OrderItem> GetOrderItemsUnAssignShelfByCustomer(int customerId)
@@ -5595,7 +5613,6 @@ namespace Nop.Web.Areas.Admin.Controllers
 
             //ensure that we at least one shipment selected
             if (!shipments.Any())
-            {
             {
                 ErrorNotification(_localizationService.GetResource("Admin.Orders.Shipments.NoShipmentsSelected"));
                 return RedirectToAction("ShipmentManualList");

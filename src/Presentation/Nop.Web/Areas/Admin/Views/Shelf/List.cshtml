@@ -249,7 +249,8 @@
                                                 IsCustomerNotified: { editable: true, type: "boolean" },
                                                 ShelfNoteId: { editable: true, type: "number" },
                                                 ShelfNoteStatus: { editable: false, type: "string" },
-                                                Total: { editable: false, type: "string" }
+                                                Total: { editable: false, type: "string" },
+                                                HasOrderItem: { editable: false, type: "boolean" }
                                             }
                                         },
                                         data: "Data",
@@ -536,19 +537,37 @@
                                 var jsonCustomers =
                                     jQuery.parseJSON(
                                         '@Json.Serialize(Model.Customers.Select(_ => new {CustomerId = _.Value, CustomerName = _.Text}))');
-                                $('<input id="CustomerNameEditor" data-text-field="CustomerName" data-value-field="' +
+                                var hasOrderItem = options.model.HasOrderItem;
+                                if (hasOrderItem) {
+                                    $('<input readonly id="CustomerNameEditor" data-text-field="CustomerName" data-value-field="' +
                                         options.field +
                                         '" data-bind="value:' +
                                         options.field +
                                         '" />')
-                                    .appendTo(container)
-                                    .kendoDropDownList({
-                                        autoBind: true,
-                                        dataTextField: "CustomerName",
-                                        dataValueField: "CustomerId",
-                                        dataSource: jsonCustomers,
-                                        filter: "contains"
-                                    });
+                                        .appendTo(container)
+                                        .kendoDropDownList({
+                                            autoBind: true,
+                                            dataTextField: "CustomerName",
+                                            dataValueField: "CustomerId",
+                                            dataSource: jsonCustomers,
+                                            filter: "contains"
+                                        });
+                                } else {
+                                    $('<input id="CustomerNameEditor" data-text-field="CustomerName" data-value-field="' +
+                                            options.field +
+                                            '" data-bind="value:' +
+                                            options.field +
+                                            '" />')
+                                        .appendTo(container)
+                                        .kendoDropDownList({
+                                            autoBind: true,
+                                            dataTextField: "CustomerName",
+                                            dataValueField: "CustomerId",
+                                            dataSource: jsonCustomers,
+                                            filter: "contains"
+                                        });
+                                }
+
                             }
 
                             function editShelfNoteId(container, options) {

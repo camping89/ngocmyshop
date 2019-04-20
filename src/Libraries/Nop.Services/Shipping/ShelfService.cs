@@ -122,7 +122,7 @@ namespace Nop.Services.Shipping
 
             if (isEmptyAssignedShelf)
             {
-                query = query.Where(_ => _.ShipmentItems.Count == 0 && _.CustomerId != null && _.CustomerId > 0);
+                query = query.Where(_ => _.ShelfOrderItems.Count == 0 && _.CustomerId != null && _.CustomerId > 0);
             }
             query = query.OrderBy(_ => _.ShelfCode);
             var shelfList = new PagedList<Shelf>(query, pageIndex, pageSize);

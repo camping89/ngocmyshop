@@ -1026,6 +1026,7 @@ namespace Nop.Web.Areas.Admin.Infrastructure.Mapper
             CreateMap<Shelf, ShelfModel>()
                 .ForMember(s => s.CustomerFullName, mo => mo.Ignore())
                 .ForMember(s => s.ShelfNoteStatus, mo => mo.Ignore())
+                .ForMember(s => s.HasOrderItem, mo => mo.Ignore())
                 .ForMember(s => s.Total, mo => mo.Ignore())
                 .ForMember(s => s.CustomerPhone, mo => mo.Ignore());
             CreateMap<ShelfModel, Shelf>()

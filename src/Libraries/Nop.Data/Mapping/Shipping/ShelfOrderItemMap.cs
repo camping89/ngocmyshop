@@ -21,7 +21,7 @@ namespace Nop.Data.Mapping.Shipping
                 .HasForeignKey(s => s.CustomerId);
 
             this.HasRequired(s => s.Shelf)
-                .WithMany(s => s.ShipmentItems)
+                .WithMany(s => s.ShelfOrderItems)
                 .HasForeignKey(s => s.ShelfId);
         }
     }
