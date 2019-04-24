@@ -364,12 +364,10 @@
                             $(document).ready(function() {
                                 var grid =   $("#orders-grid").kendoGrid({
                                     dataSource: {
-                                        type: "json",
                                         transport: {
                                             read: {
                                                 url: "@Html.Raw(Url.Action("OrderList", "Order"))",
                                                 type: "POST",
-                                                dataType: "json",
                                                 data: additionalData
                                             }
                                         },
@@ -594,19 +592,16 @@
                             function detailInit(e) {
                                 $('<div id="grid-shelf-items' + e.data.Id + '"></div>').appendTo(e.detailCell).kendoGrid({
                                     dataSource: {
-                                        type: "json",
                                         transport: {
                                             read: {
                                                 url: "@Html.Raw(Url.Action("OrderItemsByOrderId", "Order"))?orderId=" +
                                                     e.data.Id,
                                                 type: "POST",
-                                                dataType: "json",
                                                 data: addAntiForgeryToken
                                             },
                                             update: {
                                                 url: "@Html.Raw(Url.Action("UpdateOrderItem", "Order"))",
                                                 type: "POST",
-                                                dataType: "json",
                                                 data: addAntiForgeryToken
                                             }
                                         },

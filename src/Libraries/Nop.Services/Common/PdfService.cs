@@ -1952,7 +1952,7 @@ namespace Nop.Services.Common
             doc.Close();
         }
 
-        public virtual void PrintShipmentDetailsToPdf(Stream stream, ShipmentManual shipmentDetails, int languageId = 0)
+        public virtual void PrintShipmentDetailsToPdf(Stream stream, ShipmentManual shipmentDetails, int languageId = 0, string shelfCode = null)
         {
             if (stream == null)
                 throw new ArgumentNullException(nameof(stream));
@@ -2014,6 +2014,7 @@ namespace Nop.Services.Common
             addressTable.DefaultCell.Border = Rectangle.NO_BORDER;
             addressTable.WidthPercentage = 100f;
 
+            addressTable.AddCell(GetParagraph("PDFPackagingSlip.ShelfCode", lang, titleFont, shelfCode));
             addressTable.AddCell(GetParagraph("PDFPackagingSlip.Shipment", lang, titleFont, shipmentDetails.Id));
 
             addressTable.AddCell(GetParagraph("PDFPackagingSlip.Name", lang, font, shipmentDetails.Customer.GetFullName()));
@@ -2046,42 +2047,49 @@ namespace Nop.Services.Common
             var cell = GetPdfCell("PDFPackagingSlip.OrderItemId", lang, font);
             cell.BackgroundColor = BaseColor.LIGHT_GRAY;
             cell.HorizontalAlignment = Element.ALIGN_CENTER;
+            cell.VerticalAlignment = Element.ALIGN_MIDDLE;
             productsTable.AddCell(cell);
 
             //product name
             cell = GetPdfCell("PDFPackagingSlip.ProductInfo", lang, font);
             cell.BackgroundColor = BaseColor.LIGHT_GRAY;
             cell.HorizontalAlignment = Element.ALIGN_CENTER;
+            cell.VerticalAlignment = Element.ALIGN_MIDDLE;
             productsTable.AddCell(cell);
 
             //qty
             cell = GetPdfCell("PDFPackagingSlip.QTY", lang, font);
             cell.BackgroundColor = BaseColor.LIGHT_GRAY;
             cell.HorizontalAlignment = Element.ALIGN_CENTER;
+            cell.VerticalAlignment = Element.ALIGN_MIDDLE;
             productsTable.AddCell(cell);
 
             //TotalWithoutDeposit
             cell = GetPdfCell("PDFPackagingSlip.TotalWithoutDeposit", lang, font);
             cell.BackgroundColor = BaseColor.LIGHT_GRAY;
             cell.HorizontalAlignment = Element.ALIGN_CENTER;
+            cell.VerticalAlignment = Element.ALIGN_MIDDLE;
             productsTable.AddCell(cell);
 
             //Deposit
             cell = GetPdfCell("PDFPackagingSlip.Deposit", lang, font);
             cell.BackgroundColor = BaseColor.LIGHT_GRAY;
             cell.HorizontalAlignment = Element.ALIGN_CENTER;
+            cell.VerticalAlignment = Element.ALIGN_MIDDLE;
             productsTable.AddCell(cell);
 
             //TotalOrderItem
             cell = GetPdfCell("PDFPackagingSlip.TotalOrderItem", lang, font);
             cell.BackgroundColor = BaseColor.LIGHT_GRAY;
             cell.HorizontalAlignment = Element.ALIGN_CENTER;
+            cell.VerticalAlignment = Element.ALIGN_MIDDLE;
             productsTable.AddCell(cell);
 
             //Note
             cell = GetPdfCell("PDFPackagingSlip.Note", lang, font);
             cell.BackgroundColor = BaseColor.LIGHT_GRAY;
             cell.HorizontalAlignment = Element.ALIGN_CENTER;
+            cell.VerticalAlignment = Element.ALIGN_MIDDLE;
             productsTable.AddCell(cell);
 
 

@@ -1620,6 +1620,16 @@ namespace Nop.Web.Areas.Admin.Controllers
 
             shipment.TotalShippingFee = DecimalExtensions.RoundCustom(shipment.TotalShippingFee / 1000) * 1000;
 
+            var shelfCode = string.Empty;
+            var shipmentManualItem = shipment.ShipmentManualItems.FirstOrDefault();
+            if (shipmentManualItem != null)
+            {
+                var shelfOrderItem = _shelfService.GetShelfOrderItemByOrderItemId(shipmentManualItem.OrderItemId);
+                if (shelfOrderItem != null && shelfOrderItem.Shelf != null)
+                {
+                    shelfCode = shelfOrderItem.Shelf.ShelfCode;
+                }
+            }
             var model = new ShipmentManualModel
             {
                 Id = shipment.Id,
@@ -1646,7 +1656,8 @@ namespace Nop.Web.Areas.Admin.Controllers
                 ShipmentDistrict = Core.Extensions.StringExtensions.IsNotNullOrEmpty(shipment.District) ? shipment.District : "Chưa xác định",
                 ShipmentDistrictId = Core.Extensions.StringExtensions.IsNotNullOrEmpty(shipment.District) ? shipment.District : "0",
                 ShipmentWard = string.IsNullOrEmpty(shipment.Ward) == false ? shipment.Ward : "Chưa xác định",
-                HasShippingFee = shipment.HasShippingFee
+                HasShippingFee = shipment.HasShippingFee,
+                ShelfCode = shelfCode
             };
 
             var customerOrder = shipment.Customer;
@@ -4337,7 +4348,7 @@ namespace Nop.Web.Areas.Admin.Controllers
 
                 if (shelf != null)
                 {
-                    if (shelf.CustomerId == null || shelf.CustomerId == 0 || shelf.CustomerId == customerId || (shelf.CustomerId != customerId && shelf.ShelfOrderItems.Any() == false))
+                    if (shelf.CustomerId == null || shelf.CustomerId == 0 || shelf.CustomerId == customerId || (shelf.CustomerId != customerId && shelf.ShelfOrderItems.Any(_ => _.IsActived) == false))
                     {
                         shelf.AssignedDate = DateTime.UtcNow;
                         shelf.CustomerId = customerId;
@@ -5588,7 +5599,19 @@ namespace Nop.Web.Areas.Admin.Controllers
             byte[] bytes;
             using (var stream = new MemoryStream())
             {
-                _pdfService.PrintShipmentDetailsToPdf(stream, shipments.FirstOrDefault(), _orderSettings.GeneratePdfInvoiceInCustomerLanguage ? 0 : _workContext.WorkingLanguage.Id);
+                var shipmentManual = shipments.FirstOrDefault();
+
+                var shelfCode = string.Empty;
+                var shipmentManualItem = shipmentManual.ShipmentManualItems.FirstOrDefault();
+                if (shipmentManualItem != null)
+                {
+                    var shelfOrderItem = _shelfService.GetShelfOrderItemByOrderItemId(shipmentManualItem.OrderItemId);
+                    if (shelfOrderItem != null && shelfOrderItem.Shelf != null)
+                    {
+                        shelfCode = shelfOrderItem.Shelf.ShelfCode;
+                    }
+                }
+                _pdfService.PrintShipmentDetailsToPdf(stream, shipments.FirstOrDefault(), _orderSettings.GeneratePdfInvoiceInCustomerLanguage ? 0 : _workContext.WorkingLanguage.Id, shelfCode);
                 bytes = stream.ToArray();
             }
             return File(bytes, MimeTypes.ApplicationPdf, $"shipments_{selectedIds}.pdf");
@@ -6605,13 +6628,6 @@ namespace Nop.Web.Areas.Admin.Controllers
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.OrderCountryReport))
                 return AccessDeniedView();
-            // Create new stopwatch.
-            Stopwatch stopwatch = new Stopwatch();
-
-            // Begin timing.
-            stopwatch.Start();
-
-
             var primaryStoreCurrency = _currencyService.GetCurrencyById(_currencySettings.PrimaryStoreCurrencyId);
 
             var orderItems = _orderService.GetOrderItemsVendorCheckout(model.VendorProductUrl, model.OrderId, model.OrderItemId, command.Page - 1, command.PageSize,
@@ -6737,11 +6753,6 @@ namespace Nop.Web.Areas.Admin.Controllers
                 TotalIds = orderItems.TotalIds
             };
 
-            // Stop timing.
-            stopwatch.Stop();
-
-            // Write result.
-            Console.WriteLine("Time elapsed: {0}", stopwatch.Elapsed);
             return Json(gridModel);
         }
 

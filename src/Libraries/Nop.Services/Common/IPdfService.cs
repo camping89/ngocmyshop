@@ -47,7 +47,7 @@ namespace Nop.Services.Common
         /// <param name="languageId">Language identifier; 0 to use a language used when placing an order</param>
         void PrintPackagingSlipsToPdf(Stream stream, IList<Shipment> shipments, int languageId = 0);
         void PrintPackagingSlipsItemsToPdf(Stream stream, IList<ShipmentManual> shipments, int languageId = 0);
-        void PrintShipmentDetailsToPdf(Stream stream, ShipmentManual shipmentDetails, int languageId = 0);
+        void PrintShipmentDetailsToPdf(Stream stream, ShipmentManual shipmentDetails, int languageId = 0, string shelfCode = null);
 
         /// <summary>
         /// Print products to PDF

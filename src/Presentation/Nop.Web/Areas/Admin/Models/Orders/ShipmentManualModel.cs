@@ -88,6 +88,9 @@ namespace Nop.Web.Areas.Admin.Models.Orders
         public decimal Deposit { get; set; }
         public string DepositStr { get; set; }
 
+        [NopResourceDisplayName("Admin.Orders.Shipments.ShelfCode")]
+        public string ShelfCode { get; set; }
+
 
         [NopResourceDisplayName("Admin.Orders.Fields.ShippingAddress")]
         public AddressModel ShippingAddress { get; set; }

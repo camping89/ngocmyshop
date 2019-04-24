@@ -210,25 +210,21 @@
                                         read: {
                                             url: "@Html.Raw(Url.Action("List", "Shelf"))",
                                             type: "POST",
-                                            dataType: "json",
                                             data: additionalData
                                         },
                                         update: {
                                             url: "@Html.Raw(Url.Action("EditAjax", "Shelf"))",
                                             type: "POST",
-                                            dataType: "json",
                                             data: additionalData
                                         },
                                         destroy: {
                                             url: "@Html.Raw(Url.Action("DeleteAjax", "Shelf"))",
                                             type: "POST",
-                                            dataType: "json",
                                             data: additionalData
                                         },
                                         create: {
                                             url: "@Html.Raw(Url.Action("CreateAjax", "Shelf"))",
                                             type: "POST",
-                                            dataType: "json",
                                             data: additionalData
                                         }
                                     },

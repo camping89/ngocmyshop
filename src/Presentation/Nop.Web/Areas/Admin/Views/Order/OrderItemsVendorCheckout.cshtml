@@ -262,19 +262,16 @@
                                     $(function() {
                                         $("#order-items-grid").kendoGrid({
                                             dataSource: {
-                                                type: "json",
                                                 transport: {
                                                     read: {
                                                         url:
                                                             "@Html.Raw(Url.Action("ListOrderItemsVendorCheckout", "Order"))",
                                                         type: "POST",
-                                                        dataType: "json",
                                                         data: additionalData
                                                     },
                                                     update: {
                                                         url: "@Html.Raw(Url.Action("UpdateOrderItemChekcout", "Order"))",
                                                         type: "POST",
-                                                        dataType: "json",
                                                         data: addAntiForgeryToken
                                                     }
                                                 },

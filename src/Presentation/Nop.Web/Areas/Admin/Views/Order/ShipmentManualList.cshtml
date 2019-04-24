@@ -260,7 +260,6 @@
                                             update: {
                                                 url: "@Html.Raw(Url.Action("EditShipmentManualAjax", "Shelf"))",
                                                 type: "POST",
-                                                dataType: "json",
                                                 data: additionalData
                                             },
                                             destroy: {
@@ -289,6 +288,7 @@
                                                     Deposit: { editable: false, type: "number" },
                                                     HasShippingFee: { editable: true, type: "boolean" },
                                                     DepositStr: { editable: false, type: "string" },
+                                                    ShelfCode: { editable: false, type: "string" },
                                                     TotalOrderFee: { editable: false, type: "string" }
                                                 }
                                             },
@@ -446,6 +446,11 @@
                                                     '<div>@T("Admin.Orders.Shipments.Deposit") <span id=\"aggregator-deposit-block\"></span></div>' +
                                                     '<div>@T("Admin.Orders.Shipments.Total") <span id=\"aggregator-total-block\"></span></div>'
 
+                                        }, {
+                                            field: "ShelfCode",
+                                            title: "@T("Admin.Orders.Shipments.ShelfCode")",
+                                            width: 100,
+                                            editor: noteEditorCustom
                                         }, {
                                         command: [
                                             {
@@ -611,7 +616,6 @@
                                                     "@Html.Raw(Url.Action("ShipmentsManualItemsByShipmentManualId", "Order"))?shipmentId=" +
                                                         e.data.Id,
                                                 type: "POST",
-                                                dataType: "json",
                                                 data: addAntiForgeryToken
                                             }
                                         },

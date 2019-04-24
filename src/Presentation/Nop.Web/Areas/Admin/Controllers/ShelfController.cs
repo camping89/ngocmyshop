@@ -132,7 +132,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                     m.AssignedDate = x.AssignedDate?.ToString("MM/dd/yyyy");
                     m.ShippedDate = x.ShippedDate?.ToString("MM/dd/yyyy");
                     m.UpdatedNoteDate = x.UpdatedNoteDate?.ToString("MM/dd/yyyy");
-                    m.HasOrderItem = x.ShelfOrderItems.Any();
+                    m.HasOrderItem = x.ShelfOrderItems.Any(_ => _.IsActived);
                     var customer = x.Customer;
                     if (customer != null)
                     {

@@ -549,16 +549,6 @@ namespace Nop.Services.Orders
                 query = query.Where(_ => _.IsOrderCheckout == isOrderCheckout);
             }
 
-            //if (isPackageItemProcessed)
-            //{
-            //    query = query.Where(_ => _.PackageItemProcessedDatetime != null);
-            //}
-
-            //if (orderItemStatusId != -1)
-            //{
-            //    query = query.Where(_ => _.OrderItemStatusId == orderItemStatusId);
-            //}
-
             if (startDate != null)
             {
                 query = query.Where(_ => _.Order.CreatedOnUtc != null && _.Order.CreatedOnUtc >= startDate);
@@ -568,19 +558,6 @@ namespace Nop.Services.Orders
             {
                 query = query.Where(_ => _.Order.CreatedOnUtc != null && _.Order.CreatedOnUtc <= endDate);
             }
-
-            //if (!string.IsNullOrEmpty(customerPhone))
-            //    query = query.Where(o => o.Order.BillingAddress != null && !string.IsNullOrEmpty(o.Order.BillingAddress.PhoneNumber) && o.Order.BillingAddress.PhoneNumber.Contains(customerPhone));
-            //if (!string.IsNullOrWhiteSpace(customerPhone))
-            //{
-            //    customerPhone = customerPhone.TrimStart().TrimEnd().Trim();
-            //    query = query
-            //        .Join(_gaRepository.Table, x => x.Order.CustomerId, y => y.EntityId, (x, y) => new { Customer = x, Attribute = y })
-            //        .Where(z => z.Attribute.KeyGroup == "Customer" &&
-            //                    z.Attribute.Key == SystemCustomerAttributeNames.Phone &&
-            //                    z.Attribute.Value.Contains(customerPhone))
-            //        .Select(z => z.Customer);
-            //}
 
             if (!string.IsNullOrWhiteSpace(customerPhone))
             {
