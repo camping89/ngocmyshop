@@ -120,7 +120,7 @@ namespace Nop.Web.Areas.Admin.Models.Orders
     public class OrderItemExportVendorModelBasic : BaseNopEntityModel// : OrderModel.OrderItemModel
     {
         public int OrderId { get; set; }
-        public int ProductId { get; set; }
+        //public int ProductId { get; set; }
         public string ProductName { get; set; }
         public string VendorName { get; set; }
         public string Sku { get; set; }
@@ -128,8 +128,8 @@ namespace Nop.Web.Areas.Admin.Models.Orders
         public string PictureThumbnailUrl { get; set; }
         public string AttributeInfo { get; set; }
         public string UnitPriceBase { get; set; }
-        public string UnitPriceInclTax { get; set; }
-        public decimal UnitPriceInclTaxValue { get; set; }
+        //public string UnitPriceInclTax { get; set; }
+        //public decimal UnitPriceInclTaxValue { get; set; }
         public string SubTotalInclTax { get; set; }
         public decimal SubTotalInclTaxValue { get; set; }
         public string WeightCost { get; set; }
@@ -138,9 +138,9 @@ namespace Nop.Web.Areas.Admin.Models.Orders
         public string PackageOrderCode { get; set; }
         public DateTime? EstimatedTimeArrival { get; set; }
         public DateTime? PackageItemProcessedDatetime { get; set; }
-        public bool IncludeWeightCost { get; set; }
+        //public bool IncludeWeightCost { get; set; }
         public bool IsOrderCheckout { get; set; }
-        public string PrimaryStoreCurrencyCode { get; set; }
+        //public string PrimaryStoreCurrencyCode { get; set; }
 
         public string ShelfCode { get; set; }
 
@@ -160,10 +160,10 @@ namespace Nop.Web.Areas.Admin.Models.Orders
         public decimal Deposit { get; set; }
         public string DepositStr { get; set; }
 
-        [NopResourceDisplayName("Admin.OrderItem.Status")]
-        public string OrderItemStatus { get; set; }
-        [NopResourceDisplayName("Admin.OrderItem.Status")]
-        public int OrderItemStatusId { get; set; }
+        //[NopResourceDisplayName("Admin.OrderItem.Status")]
+        //public string OrderItemStatus { get; set; }
+        //[NopResourceDisplayName("Admin.OrderItem.Status")]
+        //public int OrderItemStatusId { get; set; }
 
         [NopResourceDisplayName("Admin.OrderItem.Note")]
         public string Note { get; set; }

@@ -171,16 +171,6 @@
                                     </div>
                                 </div>
 
-
-                                @*<div class="form-group">
-                                        <div class="col-md-4">
-                                            <nop-label asp-for="OrderItemStatusId" />
-                                        </div>
-                                        <div class="col-md-8">
-                                            <nop-select asp-for="OrderItemStatusId" asp-items="@Model.AvailableOrderStatus" />
-                                        </div>
-                                    </div>*@
-
                                 <div class="form-group">
                                     <div class="col-md-4">
                                         <nop-label asp-for="CustomerPhone" />
@@ -314,7 +304,6 @@
                                                             ItemWeight: { editable: true, type: "string" },
                                                             SubTotalInclTax: { editable: false, type: "string" },
                                                             IsOrderCheckout: { editable: true, type: "boolean" },
-                                                            OrderItemStatusId: { editable: true, type: "int" },
                                                             ShelfId: { editable: true, type: "number" },
                                                             ShelfCode: { editable: true, type: "string" },
                                                             Note: { editable: false, type: "string" },
@@ -575,24 +564,6 @@
                                                         "<p></p>" +
                                                         "# } #"
                                                 },
-
-                                                @*{
-                                                    field: "OrderItemStatusId",
-                                                    title: "@T("Admin.Orders.Products.OrderItemStatus")",
-                                                    width: 100,
-                                                    editor: editOrderItemStatusId,
-                                                    template: '<span class="grid-report-item ' +
-                                                        '# if(OrderItemStatusId == 0) {# red #} #' +
-                                                        '# if(OrderItemStatusId == 1) {# green #} #' +
-                                                        '# if(OrderItemStatusId == 2) {# yellow #} #' +
-                                                        '# if(OrderItemStatusId == 3) {# blue #} #' +
-                                                        '">' +
-                                                        '# if(OrderItemStatusId == 0) {# @T("Admin.Orders.OrderItem.OutOfStock") #} #' +
-                                                        '# if(OrderItemStatusId == 1) {# @T("Admin.Orders.OrderItem.Available") #} #' +
-                                                        '# if(OrderItemStatusId == 2) {# @T("Admin.Orders.OrderItem.PriceChanged") #} #' +
-                                                        '# if(OrderItemStatusId == 3) {# @T("Admin.Orders.OrderItem.OtherReason") #} #' +
-                                                        '</span>'
-                                                },*@
                                                 {
                                                     field: "IsOrderCheckout",
                                                     title: "@T("Admin.Orders.Products.IsOrderCheckout")",
@@ -661,7 +632,7 @@
                                         function editAssignCustomerId(container, options) {
                                             var jsonCustomers =
                                                 jQuery.parseJSON(
-                                                    '@Json.Serialize(Model.AvailableCustomers.Select(_ => new { AssignedByCustomerId = _.Value, CustomerAssignShelfInfo = _.Text}))');
+                                                    '@Json.Serialize(Model.AvailableStaffs.Select(_ => new { AssignedByCustomerId = _.Value, CustomerAssignShelfInfo = _.Text}))');
                                             $('<input id="CustomerNameEditor" data-text-field="CustomerAssignShelfInfo" data-value-field="' +
                                                     options.field +
                                                     '" data-bind="value:' +
@@ -790,24 +761,6 @@
 
                                             }
 
-                                        }
-
-                                        function editOrderItemStatusId(container, options) {
-                                            var jsonCustomers =
-                                                jQuery.parseJSON(
-                                                    '@Json.Serialize(OrderItemStatus.OutOfStock.ToSelectList().Select(_ => new { OrderItemStatusId = _.Value, OrderItemStatus = _.Text}))');
-                                            $('<input data-text-field="OrderItemStatus" data-value-field="' +
-                                                    options.field +
-                                                    '" data-bind="value:' +
-                                                    options.field +
-                                                    '" />')
-                                                .appendTo(container)
-                                                .kendoDropDownList({
-                                                    autoBind: true,
-                                                    dataTextField: "OrderItemStatus",
-                                                    dataValueField: "OrderItemStatusId",
-                                                    dataSource: jsonCustomers
-                                                });
                                         }
 
                                         @*function editPackageOrderId(container, options) {
@@ -1039,7 +992,6 @@
                                             $('#@Html.IdFor(model => model.IsSetPackageOrderIdStatus)').val(0);
                                             $('#@Html.IdFor(model => model.IsSetShelfIdStatus)').val(0);
                                             $('#@Html.IdFor(model => model.IsPackageItemProcessedDatetime)').val(0);
-                                            $('#@Html.IdFor(model => model.OrderItemStatusId)').val(-1);
 
                                             $("#search-orders").click();
                                         });
@@ -1103,7 +1055,6 @@
                                             TodayFilter: $('#@Html.IdFor(model => model.TodayFilter)').is(":checked"),
                                             CustomerPhone: $('#@Html.IdFor(model => model.CustomerPhone)').val(),
                                             PackageOrderCode: $('#@Html.IdFor(model => model.PackageOrderCode)').val(),
-                                            OrderItemStatusId: $('#@Html.IdFor(model => model.OrderItemStatusId)').val(),
                                             IsPackageItemProcessedDatetime: $('#@Html.IdFor(model => model.IsPackageItemProcessedDatetime)').val(),
                                             VendorId: $('#@Html.IdFor(model => model.VendorId)').val()
                                         };

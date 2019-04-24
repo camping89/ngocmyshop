@@ -48,6 +48,10 @@ namespace Nop.Services.Customers
         /// </summary>
         private const string CUSTOMERROLES_PATTERN_KEY = "Nop.customerrole.";
 
+
+        private const string CUSTOMERS_ALL_KEY = "Nop.customers.all";
+
+        private const string CUSTOMERS_PATTERN_KEY = "Nop.customers.";
         #endregion
 
         #region Fields
@@ -463,34 +467,54 @@ namespace Nop.Services.Customers
             return customers;
         }
 
+        public List<Customer> GetAllCustomersByCache(int[] customerRoleIds = null)
+        {
+            var customers = _cacheManager.Get(CUSTOMERS_ALL_KEY, () =>
+            {
+                var query = _customerRepository.Table.Where(_ => _.Username != null && _.Email != null);
+                query = query.Where(c => !c.Deleted);
+                return query.ToList();
+            });
+
+            if (customerRoleIds != null && customerRoleIds.Length > 0)
+                customers = customers.Where(c => c.CustomerRoles.Select(cr => cr.Id).Intersect(customerRoleIds).Any()).ToList();
+            return customers;
+        }
+
         public List<Customer> SearchCustomers(string phone = null, string email = null, string linkFacebook = null, string username = null,
             string fullName = null)
         {
-            var query = _customerRepository.Table.Where(_ => _.Deleted == false && (_.Username != null || _.Username != string.Empty)).AsEnumerable();
+            var query = _customerRepository.Table.Where(_ => _.Deleted == false && (_.Username != null || _.Username != string.Empty));
             if (!string.IsNullOrEmpty(email))
             {
-                query = query.Where(_ => _.Email != null && _.Email.ToUpperInvariant().Contains(email.ToUpperInvariant()));
+                //query = query.Where(_ => _.Email != null && _.Email.ToUpperInvariant().Contains(email.ToUpperInvariant()));
+                query = query.Where(_ => _.Email != null && _.Email.Contains(email));
             }
 
             if (!string.IsNullOrEmpty(phone))
             {
-                query = query.Where(_ => _.Phone != null && _.Phone.ToUpperInvariant().Contains(phone.ToUpperInvariant()));
+                //query = query.Where(_ => _.Phone != null && _.Phone.ToUpperInvariant().Contains(phone.ToUpperInvariant()));
+                query = query.Where(_ => _.Phone != null && _.Phone.Contains(phone));
             }
 
             if (!string.IsNullOrEmpty(username))
             {
-                query = query.Where(_ => _.Username != null && _.Username.ToUpperInvariant().Contains(username.ToUpperInvariant()));
+                //query = query.Where(_ => _.Username != null && _.Username.ToUpperInvariant().Contains(username.ToUpperInvariant()));
+                query = query.Where(_ => _.Username != null && _.Username.Contains(username));
             }
 
             if (!string.IsNullOrEmpty(fullName))
             {
-                query = query.Where(_ => _.FullName != null && _.FullName.ToUpperInvariant().Contains(fullName.ToUpperInvariant()));
+                //query = query.Where(_ => _.FullName != null && _.FullName.ToUpperInvariant().Contains(fullName.ToUpperInvariant()));
+                query = query.Where(_ => _.FullName != null && _.FullName.Contains(fullName));
             }
 
             if (!string.IsNullOrEmpty(linkFacebook))
             {
-                query = query.Where(_ => _.LinkFacebook1 != null && _.LinkFacebook1.ToUpperInvariant().Contains(linkFacebook.ToUpperInvariant())
-                                         || _.LinkFacebook2 != null && _.LinkFacebook2.ToUpperInvariant().Contains(linkFacebook.ToUpperInvariant()));
+                //query = query.Where(_ => _.LinkFacebook1 != null && _.LinkFacebook1.ToUpperInvariant().Contains(linkFacebook.ToUpperInvariant())
+                //                         || _.LinkFacebook2 != null && _.LinkFacebook2.ToUpperInvariant().Contains(linkFacebook.ToUpperInvariant()));
+                query = query.Where(_ => _.LinkFacebook1 != null && _.LinkFacebook1.Contains(linkFacebook)
+                                         || _.LinkFacebook2 != null && _.LinkFacebook2.Contains(linkFacebook));
             }
 
             return query.OrderBy(_ => _.FullName).ToList();
@@ -541,7 +565,6 @@ namespace Nop.Services.Customers
             }
 
             UpdateCustomer(customer);
-
             //event notification
             _eventPublisher.EntityDeleted(customer);
         }
@@ -692,6 +715,7 @@ namespace Nop.Services.Customers
 
             _customerRepository.Insert(customer);
 
+            _cacheManager.RemoveByPattern(CUSTOMERS_PATTERN_KEY);
             //event notification
             _eventPublisher.EntityInserted(customer);
         }
@@ -707,6 +731,8 @@ namespace Nop.Services.Customers
 
             _customerRepository.Update(customer);
 
+
+            _cacheManager.RemoveByPattern(CUSTOMERS_PATTERN_KEY);
             //event notification
             _eventPublisher.EntityUpdated(customer);
         }

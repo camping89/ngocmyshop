@@ -80,18 +80,18 @@ namespace Nop.Web.Areas.Admin.Controllers
                 new SelectListItem() {Value = "False",Text = _localizationService.GetResource("Admin.ShelfOrderItem.IsPackageItemProcessedDatetimeStatus.False")},
             });
 
-            var customers = _customerService.GetAllCustomers(customerRoleIds: new[] { CustomerRoleEnum.Customer.ToInt(), CustomerRoleEnum.Registered.ToInt() }).Where(_ => string.IsNullOrEmpty(_.GetFullName()) == false);
-            shelfListModel.Customers = customers.Select(x =>
-            {
-                var model = new SelectListItem
-                {
-                    Value = x.Id.ToString(),
-                    Text = $"{x.GetFullName()} - {x.GetAttribute<string>(SystemCustomerAttributeNames.Phone)}"
-                };
-                return model;
-            }).ToList();
+            //var customers = _customerService.GetAllCustomersByCache(customerRoleIds: new[] { CustomerRoleEnum.Customer.ToInt(), CustomerRoleEnum.Registered.ToInt() }).Where(_ => string.IsNullOrEmpty(_.GetFullName()) == false);
+            //shelfListModel.Customers = customers.Select(x =>
+            //{
+            //    var model = new SelectListItem
+            //    {
+            //        Value = x.Id.ToString(),
+            //        Text = $"{x.GetFullName()} - {x.GetAttribute<string>(SystemCustomerAttributeNames.Phone)}"
+            //    };
+            //    return model;
+            //}).ToList();
 
-            shelfListModel.Customers.Insert(0, new SelectListItem { Value = "0", Text = _localizationService.GetResource("Admin.Common.All") });
+            //shelfListModel.Customers.Insert(0, new SelectListItem { Value = "0", Text = _localizationService.GetResource("Admin.Common.All") });
 
             shelfListModel.ShelfNoteStatus = ShelfNoteStatus.NoReply.ToSelectList(false).ToList();
             shelfListModel.ShelfNoteStatus.Insert(0, new SelectListItem { Value = "", Text = _localizationService.GetResource("Admin.Common.All"), Selected = true });
@@ -462,7 +462,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                     };
 
                     shipmentEntity.HasShippingFee = true;
-                    if (customerAddress != null && customerAddress.City.ToLower().Equals("đà nẵng"))
+                    if (customerAddress != null && string.IsNullOrEmpty(customerAddress.City) == false && customerAddress.City.ToLower().Equals("đà nẵng"))
                     {
                         shipmentEntity.TotalShippingFee = _settingService.GetSettingByKey("Admin.Shipment.ShippingFeeDaNang", 10000.0m);
                     }

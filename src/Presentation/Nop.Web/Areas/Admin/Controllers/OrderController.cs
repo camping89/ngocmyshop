@@ -1933,10 +1933,10 @@ namespace Nop.Web.Areas.Admin.Controllers
                 {
                     var shortLink = string.Empty;
                     var store = _storeService.GetStoreById(x.StoreId);
-                    var linkFacebook = x.Customer.GetAttribute<string>(SystemCustomerAttributeNames.LinkFacebook1);
+                    var linkFacebook = x.Customer.LinkFacebook1;
                     if (string.IsNullOrEmpty(linkFacebook))
                     {
-                        linkFacebook = x.Customer.GetAttribute<string>(SystemCustomerAttributeNames.LinkFacebook2);
+                        linkFacebook = x.Customer.LinkFacebook2;
                     }
 
                     shortLink = string.IsNullOrEmpty(linkFacebook) ? string.Empty : linkFacebook.Split('/').LastOrDefault();
@@ -6583,13 +6583,13 @@ namespace Nop.Web.Areas.Admin.Controllers
             //}
             //model.PackageOrderIds.Insert(0, new SelectListItem { Text = _localizationService.GetResource("Admin.Common.All"), Value = "0" });
 
-            //customers
-            var customers = _customerService.GetAllCustomers(customerRoleIds: new int[] { CustomerRoleEnum.Registered.ToInt(), CustomerRoleEnum.Customer.ToInt() });
-            foreach (var customer in customers)
-            {
-                model.AvailableCustomers.Add(new SelectListItem { Text = $"{customer.GetFullName()} - {customer.GetAttribute<string>(SystemCustomerAttributeNames.Phone)}", Value = customer.Id.ToString() });
-            }
-            model.AvailableCustomers.Insert(0, new SelectListItem { Text = _localizationService.GetResource("Admin.Common.All"), Value = "0" });
+            ////customers
+            //var customers = _customerService.GetAllCustomersByCache(customerRoleIds: new int[] { CustomerRoleEnum.Registered.ToInt(), CustomerRoleEnum.Customer.ToInt() });
+            //foreach (var customer in customers)
+            //{
+            //    model.AvailableCustomers.Add(new SelectListItem { Text = $"{customer.GetFullName()} - {customer.GetAttribute<string>(SystemCustomerAttributeNames.Phone)}", Value = customer.Id.ToString() });
+            //}
+            //model.AvailableCustomers.Insert(0, new SelectListItem { Text = _localizationService.GetResource("Admin.Common.All"), Value = "0" });
 
 
             //staffs
@@ -6626,6 +6626,12 @@ namespace Nop.Web.Areas.Admin.Controllers
         [HttpPost]
         public IActionResult ListOrderItemsVendorCheckout(OrderItemExportVendorModel model, DataSourceRequest command)
         {
+            // Create new stopwatch.
+            Stopwatch stopwatch = new Stopwatch();
+
+            // Begin timing.
+            stopwatch.Start();
+
             if (!_permissionService.Authorize(StandardPermissionProvider.OrderCountryReport))
                 return AccessDeniedView();
             var primaryStoreCurrency = _currencyService.GetCurrencyById(_currencySettings.PrimaryStoreCurrencyId);
@@ -6648,7 +6654,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                     var customerShortFacebook = string.Empty;
                     if (customerOrder != null)
                     {
-                        customerFacebook = customerOrder.GetAttribute<string>(SystemCustomerAttributeNames.LinkFacebook1);
+                        customerFacebook = customerOrder.LinkFacebook1;
                         if (string.IsNullOrEmpty(customerFacebook) == false)
                         {
                             customerShortFacebook = customerFacebook.Split('/').ToList().Last();
@@ -6658,7 +6664,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                             }
                         }
                         customerInfo = customerOrder.GetFullName()
-                                                 + $"<br/> {customerOrder.GetAttribute<string>(SystemCustomerAttributeNames.Phone)}";
+                                                 + $"<br/> {customerOrder.Phone}";
                     }
 
                     var currencyProduct = _currencyService.GetCurrencyById(orderItem.Product.CurrencyId);
@@ -6669,7 +6675,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                     {
                         Id = orderItem.Id,
                         OrderId = orderItem.OrderId,
-                        ProductId = orderItem.ProductId,
+                        //ProductId = orderItem.ProductId,
                         ProductName = orderItem.Product.Name,
                         Sku = orderItem.Product.FormatSku(orderItem.AttributesXml, _productAttributeParser),
                         Quantity = orderItem.Quantity,
@@ -6691,14 +6697,14 @@ namespace Nop.Web.Areas.Admin.Controllers
                         CustomerLinkFacebook = customerFacebook,
                         CustomerLinkShortFacebook = customerShortFacebook,
                         CreatedDate = orderItem.Order.CreatedOnUtc,
-                        PrimaryStoreCurrencyCode = primaryStoreCurrency != null ? primaryStoreCurrency.CurrencyCode : string.Empty,
+                        //PrimaryStoreCurrencyCode = primaryStoreCurrency != null ? primaryStoreCurrency.CurrencyCode : string.Empty,
                         AssignedByCustomerId = orderItem.AssignedByCustomerId,
                         DeliveryDateUtc = orderItem.DeliveryDateUtc,
                         Deposit = orderItem.Deposit,
                         DepositStr = _priceFormatter.FormatPrice(orderItem.Deposit, true,
                             primaryStoreCurrency, _workContext.WorkingLanguage, true, true),
-                        OrderItemStatus = orderItem.OrderItemStatus.GetLocalizedEnum(_localizationService, _workContext),
-                        OrderItemStatusId = orderItem.OrderItemStatusId,
+                        //OrderItemStatus = orderItem.OrderItemStatus.GetLocalizedEnum(_localizationService, _workContext),
+                        //OrderItemStatusId = orderItem.OrderItemStatusId,
                         Note = orderItem.Note
                     };
                     if (orderItemModel.PackageOrderId > 0)
@@ -6736,9 +6742,9 @@ namespace Nop.Web.Areas.Admin.Controllers
                     orderItemModel.VendorName = vendor != null ? vendor.Name : "";
 
                     //unit price
-                    orderItemModel.UnitPriceInclTaxValue = orderItem.UnitPriceInclTax;
-                    orderItemModel.UnitPriceInclTax = _priceFormatter.FormatPrice(orderItem.UnitPriceInclTax, true,
-                        primaryStoreCurrency, _workContext.WorkingLanguage, true, true);
+                    //orderItemModel.UnitPriceInclTaxValue = orderItem.UnitPriceInclTax;
+                    //orderItemModel.UnitPriceInclTax = _priceFormatter.FormatPrice(orderItem.UnitPriceInclTax, true,
+                    //primaryStoreCurrency, _workContext.WorkingLanguage, true, true);
 
                     //subtotal
                     orderItemModel.SubTotalInclTaxValue = orderItem.PriceInclTax;
@@ -6753,6 +6759,9 @@ namespace Nop.Web.Areas.Admin.Controllers
                 TotalIds = orderItems.TotalIds
             };
 
+            // Stop timing.
+            stopwatch.Stop();
+            var x = stopwatch.Elapsed;
             return Json(gridModel);
         }
 

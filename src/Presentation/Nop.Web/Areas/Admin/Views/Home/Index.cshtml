@@ -49,12 +49,12 @@
                             @await Html.PartialAsync("_OrderStatistics")
                         </div>
                     }
-                    @if (!Model.IsLoggedInAsVendor && canManageCustomers)
-                    {
-                        <div class="col-md-6">
-                            @await Html.PartialAsync("_CustomerStatistics")
-                        </div>
-                    }
+                    @*@if (!Model.IsLoggedInAsVendor && canManageCustomers)
+                        {
+                            <div class="col-md-6">
+                                @await Html.PartialAsync("_CustomerStatistics")
+                            </div>
+                        }*@
                 </div>
             }
             @await Component.InvokeAsync("AdminWidget", new { widgetZone = "admin_dashboard_customerordercharts_after" })

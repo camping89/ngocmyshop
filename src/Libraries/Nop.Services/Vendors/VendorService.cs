@@ -1,9 +1,10 @@
-using System;
-using System.Linq;
 using Nop.Core;
+using Nop.Core.Caching;
 using Nop.Core.Data;
 using Nop.Core.Domain.Vendors;
 using Nop.Services.Events;
+using System;
+using System.Linq;
 
 namespace Nop.Services.Vendors
 {
@@ -12,12 +13,17 @@ namespace Nop.Services.Vendors
     /// </summary>
     public partial class VendorService : IVendorService
     {
+
+        private const string VENDORS_ALL_KEY = "Nop.vendors.all";
+
+        private const string VENDORS_PATTERN_KEY = "Nop.vendors.";
         #region Fields
 
         private readonly IRepository<Vendor> _vendorRepository;
         private readonly IRepository<VendorNote> _vendorNoteRepository;
         private readonly IEventPublisher _eventPublisher;
 
+        private readonly ICacheManager _cacheManager;
         #endregion
 
         #region Ctor
@@ -28,19 +34,21 @@ namespace Nop.Services.Vendors
         /// <param name="vendorRepository">Vendor repository</param>
         /// <param name="vendorNoteRepository">Vendor note repository</param>
         /// <param name="eventPublisher">Event published</param>
+        /// <param name="cacheManager"></param>
         public VendorService(IRepository<Vendor> vendorRepository,
             IRepository<VendorNote> vendorNoteRepository,
-            IEventPublisher eventPublisher)
+            IEventPublisher eventPublisher, ICacheManager cacheManager)
         {
             this._vendorRepository = vendorRepository;
             this._vendorNoteRepository = vendorNoteRepository;
             this._eventPublisher = eventPublisher;
+            _cacheManager = cacheManager;
         }
 
         #endregion
 
         #region Methods
-        
+
         /// <summary>
         /// Gets a vendor by vendor identifier
         /// </summary>
@@ -65,7 +73,6 @@ namespace Nop.Services.Vendors
 
             vendor.Deleted = true;
             UpdateVendor(vendor);
-
             //event notification
             _eventPublisher.EntityDeleted(vendor);
         }
@@ -81,16 +88,20 @@ namespace Nop.Services.Vendors
         public virtual IPagedList<Vendor> GetAllVendors(string name = "",
             int pageIndex = 0, int pageSize = int.MaxValue, bool showHidden = false)
         {
-            var query = _vendorRepository.Table;
-            if (!string.IsNullOrWhiteSpace(name))
-                query = query.Where(v => v.Name.Contains(name));
-            if (!showHidden)
-                query = query.Where(v => v.Active);
-            query = query.Where(v => !v.Deleted);
-            query = query.OrderBy(v => v.DisplayOrder).ThenBy(v => v.Name);
 
-            var vendors = new PagedList<Vendor>(query, pageIndex, pageSize);
-            return vendors;
+            return _cacheManager.Get(VENDORS_ALL_KEY, () =>
+            {
+                var query = _vendorRepository.Table;
+                if (!string.IsNullOrWhiteSpace(name))
+                    query = query.Where(v => v.Name.Contains(name));
+                if (!showHidden)
+                    query = query.Where(v => v.Active);
+                query = query.Where(v => !v.Deleted);
+                query = query.OrderBy(v => v.DisplayOrder).ThenBy(v => v.Name);
+
+                var vendors = new PagedList<Vendor>(query, pageIndex, pageSize);
+                return vendors;
+            });
         }
 
         /// <summary>
@@ -104,6 +115,7 @@ namespace Nop.Services.Vendors
 
             _vendorRepository.Insert(vendor);
 
+            _cacheManager.RemoveByPattern(VENDORS_PATTERN_KEY);
             //event notification
             _eventPublisher.EntityInserted(vendor);
         }
@@ -119,6 +131,7 @@ namespace Nop.Services.Vendors
 
             _vendorRepository.Update(vendor);
 
+            _cacheManager.RemoveByPattern(VENDORS_PATTERN_KEY);
             //event notification
             _eventPublisher.EntityUpdated(vendor);
         }

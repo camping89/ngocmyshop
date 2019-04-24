@@ -40,14 +40,201 @@
             <div class="panel panel-default panel-search">
                 <div class="panel-body">
                     <div class="row">
+                        <input type="hidden" name="CustomerId" id="CustomerId" class="form-control" value="@(Model.CustomerId > 0 ? Model.CustomerId.ToString() : string.Empty)" />
                         <div class="col-md-6">
                             <div class="form-group">
                                 <div class="col-md-4">
                                     <nop-label asp-for="CustomerId" />
                                 </div>
                                 <div class="col-md-8">
-                                    <nop-select asp-for="CustomerId" asp-items="Model.Customers" />
+                                    <input style="float: left;" type="text" name="CustomerName" id="CustomerName" class="form-control" placeholder="@(T("Admin.Common.PleaseInputSearchData"))" value="" />
                                 </div>
+
+                            </div>
+                            <div class="form-group">
+                                <div class="col-md-4">
+                                    <nop-label asp-for="CustomerPhone" />
+                                </div>
+                                <div class="col-md-8">
+                                    <input style="float: left;" type="text" name="CustomerPhone" id="CustomerPhone" class="form-control" placeholder="@(T("Admin.Common.PleaseInputSearchData"))" value="@Model.CustomerPhone" />
+                                </div>
+                            </div>
+                            <div class="form-group">
+
+
+                                <div class="col-md-4">
+                                    <nop-label asp-for="CustomerFacebook" />
+                                </div>
+                                <div class="col-md-8">
+                                    <input style="float: left;" type="text" name="CustomerFacebook" id="CustomerFacebook" class="form-control" placeholder="@(T("Admin.Common.PleaseInputSearchData"))" value="@Model.CustomerFacebook" />
+                                </div>
+                                <script>
+
+                                $(document).ready(function() {
+                                    $("#CustomerName").autocomplete({
+                                        delay: 800,
+                                        source: function(request, response) {
+
+                                            var postData = {
+                                                searchTerm: request.term
+                                            };
+                                            addAntiForgeryToken(postData);
+
+                                            $.ajax({
+                                                cache: false,
+                                                type: "POST",
+                                                url: "@(Url.Action("CustomerSearch", "Customer"))",
+                                                data: postData,
+                                                complete: function(result) {
+                                                    response($.map(result.responseJSON.Data,
+                                                        function(item) {
+                                                            return {
+                                                                label: item.FullName,
+                                                                value: item.Id
+                                                            }
+                                                        }));
+                                                },
+                                                error: function(xhr, ajaxOptions, thrownError) {
+                                                    alert(thrownError);
+                                                },
+                                                traditional: true
+                                            });
+                                        },
+                                        minLength: 2,
+                                        select: function(event, ui) {
+                                            $('#CustomerId').val(ui.item.value);
+                                            this.value = ui.item.label;
+                                            //setTimeout(function() {
+
+                                            //},500);
+                                            return false;
+                                        },
+                                        focus: function(event, ui) {
+                                            event.preventDefault();
+                                            this.value = ui.item.label;
+                                        },
+                                        search: function(e, u) {
+                                            $(this).addClass('ajaxprocessing');
+                                        },
+                                        response: function(event, ui) {
+                                            $(this).removeClass('ajaxprocessing');
+                                        }
+                                    });
+
+                                     $("#CustomerPhone").autocomplete({
+                                        delay: 800,
+                                        source: function(request, response) {
+
+                                            var postData = {
+                                                searchTerm: request.term
+                                            };
+                                            addAntiForgeryToken(postData);
+
+                                            $.ajax({
+                                                cache: false,
+                                                type: "POST",
+                                                url: "@(Url.Action("CustomerSearchPhone", "Customer"))",
+                                                data: postData,
+                                                complete: function(result) {
+                                                    response($.map(result.responseJSON.Data,
+                                                        function(item) {
+                                                            return {
+                                                                label: item.FullName,
+                                                                value: item.Id
+                                                            }
+                                                        }));
+                                                },
+                                                error: function(xhr, ajaxOptions, thrownError) {
+                                                    alert(thrownError);
+                                                },
+                                                traditional: true
+                                            });
+                                        },
+                                        minLength: 2,
+                                        select: function(event, ui) {
+                                            $('#CustomerId').val(ui.item.value);
+                                            this.value = ui.item.label;
+                                            //setTimeout(function() {
+
+                                            //},500);
+                                            return false;
+                                        },
+                                        focus: function(event, ui) {
+                                            event.preventDefault();
+                                            this.value = ui.item.label;
+                                        },
+                                        search: function(e, u) {
+                                            $(this).addClass('ajaxprocessing');
+                                        },
+                                        response: function(event, ui) {
+                                            $(this).removeClass('ajaxprocessing');
+                                        }
+                                    });
+
+                                        $("#CustomerFacebook").autocomplete({
+                                        delay: 800,
+                                        source: function(request, response) {
+
+                                            var postData = {
+                                                searchTerm: request.term
+                                            };
+                                            addAntiForgeryToken(postData);
+
+                                            $.ajax({
+                                                cache: false,
+                                                type: "POST",
+                                                url: "@(Url.Action("CustomerSearchFacebook", "Customer"))",
+                                                data: postData,
+                                                complete: function(result) {
+                                                    response($.map(result.responseJSON.Data,
+                                                        function(item) {
+                                                            return {
+                                                                label: item.FullName,
+                                                                value: item.Id
+                                                            }
+                                                        }));
+                                                },
+                                                error: function(xhr, ajaxOptions, thrownError) {
+                                                    alert(thrownError);
+                                                },
+                                                traditional: true
+                                            });
+                                        },
+                                        minLength: 2,
+                                        select: function(event, ui) {
+                                            $('#CustomerId').val(ui.item.value);
+                                            this.value = ui.item.label;
+                                            //setTimeout(function() {
+
+                                            //},500);
+                                            return false;
+                                        },
+                                        focus: function(event, ui) {
+                                            event.preventDefault();
+                                            this.value = ui.item.label;
+                                        },
+                                        search: function(e, u) {
+                                            $(this).addClass('ajaxprocessing');
+                                        },
+                                        response: function(event, ui) {
+                                            $(this).removeClass('ajaxprocessing');
+                                        }
+                                    });
+
+
+
+
+                                    $('#btnCreateOrder').click(function() {
+                                        if ($('#CustomerId').val() === '' || $('#CustomerId').val() === null) {
+                                            alert('@T("Admin.CreateOrder.AlertChooseCustomer")');
+                                            return;
+                                        }
+                                        window.location.href = "@Url.Action("CreateOrder", "ShoppingCart")?customerId=" +
+                                            $('#CustomerId').val();
+                                    });
+                                })
+
+                                </script>
                             </div>
 
                             <div class="form-group">

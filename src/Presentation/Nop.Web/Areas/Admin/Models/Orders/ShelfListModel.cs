@@ -19,6 +19,11 @@ namespace Nop.Web.Areas.Admin.Models.Orders
         [NopResourceDisplayName("Admin.Orders.Shelf.Fields.CustomerId")]
         public int CustomerId { get; set; }
 
+        [NopResourceDisplayName("Admin.Orders.Shelf.Fields.CustomerPhone")]
+        public string CustomerPhone { get; set; }
+        [NopResourceDisplayName("Admin.Orders.Shelf.Fields.CustomerFacebook")]
+        public string CustomerFacebook { get; set; }
+
         [UIHint("DateNullable")]
         [NopResourceDisplayName("Admin.Orders.Shelf.Fields.AssignedFromDate")]
         public DateTime? AssignedFromDate { get; set; }
