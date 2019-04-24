@@ -2270,6 +2270,10 @@ namespace Nop.Services.Common
             totalsTable.AddCell(subCell);
 
             var shippingFeeStr = _priceFormatter.FormatPrice(shipmentDetails.TotalShippingFee);
+            if (shipmentDetails.HasShippingFee == false)
+            {
+                shippingFeeStr = _priceFormatter.FormatPrice(0.0m);
+            }
             subCell = GetPdfCell($"{_localizationService.GetResource("PDFPackagingSlip.ShippingFee", lang.Id)}", font);
             subCell.HorizontalAlignment = Element.ALIGN_RIGHT;
             subCell.Border = Rectangle.NO_BORDER;
@@ -2295,6 +2299,10 @@ namespace Nop.Services.Common
             totalsTable.AddCell(new Paragraph(" "));
 
             var orderSubtotalInclTaxStr = _priceFormatter.FormatPrice(totalShipment + shipmentDetails.TotalShippingFee);
+            if (shipmentDetails.HasShippingFee == false)
+            {
+                orderSubtotalInclTaxStr = _priceFormatter.FormatPrice(totalShipment);
+            }
             var fontSub = GetFont();
             fontSub.SetStyle(Font.BOLD);
             fontSub.Size = 12;
