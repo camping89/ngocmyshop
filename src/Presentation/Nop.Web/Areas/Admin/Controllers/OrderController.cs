@@ -1480,11 +1480,11 @@ namespace Nop.Web.Areas.Admin.Controllers
                         ShippingFee = shipmentItem.ShippingFee,
                         ShippingFeeStr = _priceFormatter.FormatPrice(shipmentItem.ShippingFee, true, primaryStoreCurrency,
                             _workContext.WorkingLanguage, true, false),
-                        OrderItemFee = _priceFormatter.FormatPrice(orderItem.UnitPriceInclTax * orderItem.Quantity, true, primaryStoreCurrency,
+                        OrderItemFee = _priceFormatter.FormatPrice(orderItem.PriceInclTax, true, primaryStoreCurrency,
                             _workContext.WorkingLanguage, true, false)
                     };
 
-                    totalOrderFee += orderItem.UnitPriceInclTax * orderItem.Quantity;
+                    totalOrderFee += orderItem.PriceInclTax;
                     //picture
                     var orderItemPicture =
                         orderItem.Product.GetProductPicture(orderItem.AttributesXml, _pictureService, _productAttributeParser);
@@ -1586,7 +1586,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                     DeliveryDateUtc = shipmentItem.DeliveryDateUtc,
                     ShippingFeeStr = _priceFormatter.FormatPrice(shipmentItem.ShippingFee, true, primaryStoreCurrency,
                         _workContext.WorkingLanguage, true, false),
-                    OrderItemFee = _priceFormatter.FormatPrice(orderItem.UnitPriceInclTax * orderItem.Quantity, true, primaryStoreCurrency,
+                    OrderItemFee = _priceFormatter.FormatPrice(orderItem.PriceInclTax, true, primaryStoreCurrency,
                         _workContext.WorkingLanguage, true, false)
                 };
 

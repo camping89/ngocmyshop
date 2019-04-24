@@ -2175,7 +2175,7 @@ namespace Nop.Services.Common
                 productInfoTable.AddCell(cellProductInfo);
                 cellProductInfo = GetPdfCell($"{productName}", fontProductInfo);
                 cellProductInfo.Border = 0;
-                cellProductInfo.HorizontalAlignment = Element.ALIGN_RIGHT;
+                cellProductInfo.HorizontalAlignment = Element.ALIGN_LEFT;
                 productInfoTable.AddCell(cellProductInfo);
 
                 cellProductInfo = GetPdfCell("PDFPackagingSlip.ProductSku", lang, fontProductInfo);
@@ -2184,7 +2184,7 @@ namespace Nop.Services.Common
                 productInfoTable.AddCell(cellProductInfo);
                 cellProductInfo = GetPdfCell($"{productSku}", fontProductInfo);
                 cellProductInfo.Border = 0;
-                cellProductInfo.HorizontalAlignment = Element.ALIGN_RIGHT;
+                cellProductInfo.HorizontalAlignment = Element.ALIGN_LEFT;
                 productInfoTable.AddCell(cellProductInfo);
 
                 if (productColor.IsNotNullOrEmpty())
@@ -2195,7 +2195,7 @@ namespace Nop.Services.Common
                     productInfoTable.AddCell(cellProductInfo);
                     cellProductInfo = GetPdfCell($"{productColor}", fontProductInfo);
                     cellProductInfo.Border = 0;
-                    cellProductInfo.HorizontalAlignment = Element.ALIGN_RIGHT;
+                    cellProductInfo.HorizontalAlignment = Element.ALIGN_LEFT;
                     productInfoTable.AddCell(cellProductInfo);
                 }
 
@@ -2207,7 +2207,7 @@ namespace Nop.Services.Common
                     productInfoTable.AddCell(cellProductInfo);
                     cellProductInfo = GetPdfCell($"{productSize}", fontProductInfo);
                     cellProductInfo.Border = 0;
-                    cellProductInfo.HorizontalAlignment = Element.ALIGN_RIGHT;
+                    cellProductInfo.HorizontalAlignment = Element.ALIGN_LEFT;
                     productInfoTable.AddCell(cellProductInfo);
                 }
 
@@ -2220,8 +2220,9 @@ namespace Nop.Services.Common
                 productsTable.AddCell(cell);
 
                 //total without deposit
-                var subtotal = si.OrderItem.UnitPriceInclTax * si.Quantity;
+                var subtotal = si.OrderItem.PriceInclTax;
 
+                totalSum += subtotal;
 
                 cell = GetPdfCell(_priceFormatter.FormatPrice(subtotal), font);
                 cell.HorizontalAlignment = Element.ALIGN_CENTER;
@@ -2234,7 +2235,6 @@ namespace Nop.Services.Common
 
                 //total
                 totalDeposit += orderItem.Deposit;
-                totalSum += subtotal;
                 var totalIncludeDeposit = subtotal - orderItem.Deposit;
                 totalShipment += totalIncludeDeposit;
                 cell = GetPdfCell(_priceFormatter.FormatPrice(totalIncludeDeposit), font);
@@ -2259,26 +2259,26 @@ namespace Nop.Services.Common
             totalsTable.AddCell(new Paragraph(" "));
             totalsTable.AddCell(new Paragraph(" "));
 
-            var subCell = GetPdfCell($"{_localizationService.GetResource("PDFPackagingSlip.TotalItems", lang.Id)}", font);
+            var subCell = GetPdfCell($"{_localizationService.GetResource("PDFPackagingSlip.TotalProductSum", lang.Id)}", font);
             subCell.HorizontalAlignment = Element.ALIGN_RIGHT;
             subCell.Border = Rectangle.NO_BORDER;
             totalsTable.AddCell(subCell);
 
-            subCell = GetPdfCell($"{shipmentDetails.ShipmentManualItems.Count}", font);
+            subCell = GetPdfCell($"{ _priceFormatter.FormatPrice(totalSum)}", font);
             subCell.HorizontalAlignment = Element.ALIGN_RIGHT;
             subCell.Border = Rectangle.NO_BORDER;
             totalsTable.AddCell(subCell);
 
-            //var shippingFeeStr = _priceFormatter.FormatPrice(shipmentDetails.TotalShippingFee);
-            //subCell = GetPdfCell($"{_localizationService.GetResource("PDFPackagingSlip.ShippingFee", lang.Id)}", font);
-            //subCell.HorizontalAlignment = Element.ALIGN_RIGHT;
-            //subCell.Border = Rectangle.NO_BORDER;
-            //totalsTable.AddCell(subCell);
+            var shippingFeeStr = _priceFormatter.FormatPrice(shipmentDetails.TotalShippingFee);
+            subCell = GetPdfCell($"{_localizationService.GetResource("PDFPackagingSlip.ShippingFee", lang.Id)}", font);
+            subCell.HorizontalAlignment = Element.ALIGN_RIGHT;
+            subCell.Border = Rectangle.NO_BORDER;
+            totalsTable.AddCell(subCell);
 
-            //subCell = GetPdfCell($"{shippingFeeStr}", font);
-            //subCell.HorizontalAlignment = Element.ALIGN_RIGHT;
-            //subCell.Border = Rectangle.NO_BORDER;
-            //totalsTable.AddCell(subCell);
+            subCell = GetPdfCell($"{shippingFeeStr}", font);
+            subCell.HorizontalAlignment = Element.ALIGN_RIGHT;
+            subCell.Border = Rectangle.NO_BORDER;
+            totalsTable.AddCell(subCell);
 
             var totalDepositStr = _priceFormatter.FormatPrice(totalDeposit);
             subCell = GetPdfCell($"{_localizationService.GetResource("PDFPackagingSlip.TotalDeposit", lang.Id)}", font);
@@ -2286,11 +2286,12 @@ namespace Nop.Services.Common
             subCell.Border = Rectangle.NO_BORDER;
             totalsTable.AddCell(subCell);
 
-            subCell = GetPdfCell($"{totalDepositStr} VND", font);
+            subCell = GetPdfCell($"{totalDepositStr}", font);
             subCell.HorizontalAlignment = Element.ALIGN_RIGHT;
             subCell.Border = Rectangle.NO_BORDER;
             totalsTable.AddCell(subCell);
 
+            totalsTable.AddCell(new Paragraph(" "));
             totalsTable.AddCell(new Paragraph(" "));
 
             var orderSubtotalInclTaxStr = _priceFormatter.FormatPrice(totalShipment + shipmentDetails.TotalShippingFee);
@@ -2302,7 +2303,7 @@ namespace Nop.Services.Common
             subCell.Border = Rectangle.NO_BORDER;
             totalsTable.AddCell(subCell);
 
-            subCell = GetPdfCell($"{orderSubtotalInclTaxStr} VND", fontSub);
+            subCell = GetPdfCell($"{orderSubtotalInclTaxStr}", fontSub);
             subCell.HorizontalAlignment = Element.ALIGN_RIGHT;
             subCell.Border = Rectangle.NO_BORDER;
             totalsTable.AddCell(subCell);
