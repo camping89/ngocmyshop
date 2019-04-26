@@ -5644,6 +5644,38 @@ namespace Nop.Web.Areas.Admin.Controllers
             byte[] bytes;
             using (var stream = new MemoryStream())
             {
+                _pdfService.PrintPackagingSlipsItemsToPdf(stream, shipments.OrderBy(s => s.Id).ToList(), _orderSettings.GeneratePdfInvoiceInCustomerLanguage ? 0 : _workContext.WorkingLanguage.Id);
+                bytes = stream.ToArray();
+            }
+            return File(bytes, MimeTypes.ApplicationPdf, $"shipments-summary-selected-{DateTime.Now:ddMMyyyyHHmmss}.pdf");
+        }
+
+        [HttpPost]
+        public virtual IActionResult PdfShipmentManualsSelected(string selectedIds)
+        {
+            if (!_permissionService.Authorize(StandardPermissionProvider.ManageOrders))
+                return AccessDeniedView();
+
+            var shipments = new List<ShipmentManual>();
+            if (selectedIds != null)
+            {
+                var ids = selectedIds
+                    .Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
+                    .Select(x => Convert.ToInt32(x))
+                    .ToArray();
+                shipments.AddRange(_shipmentManualService.GetShipmentsManualByIds(ids));
+            }
+
+            //ensure that we at least one shipment selected
+            if (!shipments.Any())
+            {
+                ErrorNotification(_localizationService.GetResource("Admin.Orders.Shipments.NoShipmentsSelected"));
+                return RedirectToAction("ShipmentManualList");
+            }
+
+            byte[] bytes;
+            using (var stream = new MemoryStream())
+            {
                 _pdfService.PrintShipmentsToPdf(stream, shipments.OrderBy(s => s.Id).ToList(), _orderSettings.GeneratePdfInvoiceInCustomerLanguage ? 0 : _workContext.WorkingLanguage.Id);
                 bytes = stream.ToArray();
             }

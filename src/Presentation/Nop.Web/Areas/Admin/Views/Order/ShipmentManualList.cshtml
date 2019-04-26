@@ -20,6 +20,29 @@
         </h1>
         <div class="pull-right">
             <div class="btn-group">
+                <button type="button" class="btn btn bg-orange">
+                    <i class="fa fa-file-pdf-o"></i>
+                    @T("Admin.Orders.Shipments.PrintShipments")
+                </button>
+                <button type="button" class="btn btn bg-orange dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+                    <span class="caret"></span>
+                    <span class="sr-only">&nbsp;</span>
+                </button>
+                <ul class="dropdown-menu" role="menu">
+                    <li>
+                        <button type="button" id="export-pdf-shipments-selected">
+                            @T("Admin.Orders.Shipments.PrintShipments.Selected")
+                        </button>
+                    </li>
+                    <li>
+                        <button type="button" id="export-pdf-shipments-all">
+                            @T("Admin.Orders.Shipments.PrintShipments.All")
+                        </button>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="btn-group">
                 <button type="button" class="btn bg-purple">
                     <i class="fa fa-file-pdf-o"></i>
                     @T("Admin.Orders.Shipments.PrintPackagingSlips")
@@ -1039,6 +1062,38 @@
             var ids = totalIds.join(",");
             $('#pdf-packaging-slip-all-form .selectedIds').val(ids);
             $('#pdf-packaging-slip-all-form').submit();
+            return false;
+        });
+    });
+</script>
+
+<form asp-controller="Order" asp-action="PdfShipmentManualsSelected" method="post" id="pdf-shipments-selected-form">
+    <input type="hidden" class="selectedIds" name="selectedIds" value="" />
+</form>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('#export-pdf-shipments-selected').click(function (e) {
+            e.preventDefault();
+            var ids = selectedIds.join(",");
+            $('#pdf-shipments-selected-form .selectedIds').val(ids);
+            $('#pdf-shipments-selected-form').submit();
+            return false;
+        });
+    });
+</script>
+
+<form asp-controller="Order" asp-action="PdfShipmentManualsSelected" method="post" id="pdf-shipments-all-form">
+    <input type="hidden" class="selectedIds" name="selectedIds" value="" />
+</form>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('#export-pdf-shipments-all').click(function (e) {
+            e.preventDefault();
+            var ids = totalIds.join(",");
+            $('#pdf-shipments-all-form .selectedIds').val(ids);
+            $('#pdf-shipments-all-form').submit();
             return false;
         });
     });
