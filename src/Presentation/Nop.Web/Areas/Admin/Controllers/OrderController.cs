@@ -5644,7 +5644,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             byte[] bytes;
             using (var stream = new MemoryStream())
             {
-                _pdfService.PrintPackagingSlipsItemsToPdf(stream, shipments.OrderBy(s => s.Id).ToList(), _orderSettings.GeneratePdfInvoiceInCustomerLanguage ? 0 : _workContext.WorkingLanguage.Id);
+                _pdfService.PrintShipmentsToPdf(stream, shipments.OrderBy(s => s.Id).ToList(), _orderSettings.GeneratePdfInvoiceInCustomerLanguage ? 0 : _workContext.WorkingLanguage.Id);
                 bytes = stream.ToArray();
             }
             return File(bytes, MimeTypes.ApplicationPdf, $"shipments-selected-{DateTime.Now:ddMMyyyyHHmmss}.pdf");

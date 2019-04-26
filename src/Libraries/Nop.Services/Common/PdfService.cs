@@ -22,6 +22,7 @@ using Nop.Services.Localization;
 using Nop.Services.Media;
 using Nop.Services.Orders;
 using Nop.Services.Payments;
+using Nop.Services.Shipping;
 using Nop.Services.Stores;
 using Nop.Services.Vendors;
 using PAValue;
@@ -67,6 +68,7 @@ namespace Nop.Services.Common
         private readonly TaxSettings _taxSettings;
         private readonly AddressSettings _addressSettings;
         private readonly IProductAttributeService _productAttributeService;
+        private readonly IShelfService _shelfService;
         #endregion
 
         #region Ctor
@@ -117,7 +119,7 @@ namespace Nop.Services.Common
             MeasureSettings measureSettings,
             PdfSettings pdfSettings,
             TaxSettings taxSettings,
-            AddressSettings addressSettings, ICustomerService customerService, IVendorService vendorService, IProductAttributeService productAttributeService)
+            AddressSettings addressSettings, ICustomerService customerService, IVendorService vendorService, IProductAttributeService productAttributeService, IShelfService shelfService)
         {
             this._localizationService = localizationService;
             this._languageService = languageService;
@@ -144,6 +146,7 @@ namespace Nop.Services.Common
             _customerService = customerService;
             _vendorService = vendorService;
             _productAttributeService = productAttributeService;
+            _shelfService = shelfService;
         }
 
         #endregion
@@ -1952,13 +1955,8 @@ namespace Nop.Services.Common
             doc.Close();
         }
 
-        public virtual void PrintShipmentDetailsToPdf(Stream stream, ShipmentManual shipmentDetails, int languageId = 0, string shelfCode = null)
+        public virtual void PrintShipmentsToPdf(Stream stream, List<ShipmentManual> shipmentManuals, int languageId = 0)
         {
-            if (stream == null)
-                throw new ArgumentNullException(nameof(stream));
-
-            if (shipmentDetails == null)
-                throw new ArgumentNullException(nameof(shipmentDetails));
 
             var pageSize = PageSize.A4;
 
@@ -1970,6 +1968,61 @@ namespace Nop.Services.Common
             var doc = new Document(pageSize);
             PdfWriter.GetInstance(doc, stream);
             doc.Open();
+            var ordCount = shipmentManuals.Count;
+            var ordNum = 0;
+
+            foreach (var shipmentDetail in shipmentManuals)
+            {
+                var shipmentManualItem = shipmentDetail.ShipmentManualItems.FirstOrDefault();
+                var shelfCode = string.Empty;
+
+                if (shipmentManualItem != null)
+                {
+                    var shelfOrderItem = _shelfService.GetShelfOrderItemByOrderItemId(shipmentManualItem.OrderItemId);
+                    if (shelfOrderItem.Shelf != null)
+                    {
+                        shelfCode = shelfOrderItem.Shelf.ShelfCode;
+                    }
+                }
+                //print shipment detail one page;
+                PrintShipmentDetails(stream, shipmentDetail, languageId, shelfCode, doc);
+
+                ordNum++;
+                if (ordNum < ordCount)
+                {
+                    doc.NewPage();
+                }
+            }
+
+            doc.Close();
+        }
+
+        public virtual void PrintShipmentDetailsToPdf(Stream stream, ShipmentManual shipmentDetails, int languageId = 0, string shelfCode = null)
+        {
+
+            var pageSize = PageSize.A4;
+
+            if (_pdfSettings.LetterPageSizeEnabled)
+            {
+                pageSize = PageSize.LETTER;
+            }
+
+            var doc = new Document(pageSize);
+            PdfWriter.GetInstance(doc, stream);
+            doc.Open();
+
+            //print shipment detail one page;
+            PrintShipmentDetails(stream, shipmentDetails, languageId, shelfCode, doc);
+
+            doc.Close();
+        }
+        private void PrintShipmentDetails(Stream stream, ShipmentManual shipmentDetails, int languageId = 0, string shelfCode = null, Document doc = null)
+        {
+            if (stream == null)
+                throw new ArgumentNullException(nameof(stream));
+
+            if (shipmentDetails == null)
+                throw new ArgumentNullException(nameof(shipmentDetails));
 
             //fonts
             var titleFont = GetFont();
@@ -2318,7 +2371,7 @@ namespace Nop.Services.Common
 
             doc.Add(totalsTable);
 
-            doc.Close();
+            //doc.Close();
         }
 
         public void PrintPackagingSlipsItemsToPdf(Stream stream, IList<ShipmentManual> shipments, int languageId = 0)

@@ -593,13 +593,10 @@
                                             $("input[name=ItemWeight]").on('input', function () {
                                                 $('input[name=WeightCostDec]').prop('readonly', false);
                                                 var itemWeight = parseFloat($(this).val());
-                                                if (itemWeight > 0) {
-                                                    var unitWeightCost = $("input[name=UnitWeightCost]").val();
-                                                    var weightCostDec = parseFloat(unitWeightCost) * itemWeight;
-                                                    //need trigger change update data to model
-                                                    weightCostElement.val(weightCostDec).change();
-                                                }
-
+                                                var unitWeightCost = $("input[name=UnitWeightCost]").val();
+                                                var weightCostDec = parseFloat(unitWeightCost) * itemWeight;
+                                                //need trigger change update data to model
+                                                weightCostElement.val(weightCostDec).change();
                                                 $('input[name=WeightCostDec]').prop('readonly', true);
                                             });
 
