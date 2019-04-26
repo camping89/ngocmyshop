@@ -153,11 +153,68 @@
                                                 },
                                                 minLength: 2,
                                                 select: function(event, ui) {
-                                                    $('#CustomerId').val(ui.item.value);
                                                     this.value = ui.item.value;
-                                                    //setTimeout(function() {
+                                                    return false;
+                                                },
+                                                focus: function(event, ui) {
+                                                    event.preventDefault();
+                                                    this.value = ui.item.value;
+                                                },
+                                                search: function(e, u) {
+                                                    $(this).addClass('ajaxprocessing');
+                                                },
+                                                response: function(event, ui) {
+                                                    $(this).removeClass('ajaxprocessing');
+                                                }
+                                            });
 
-                                                    //},500);
+                                        });
+                                    </script>
+                                </div>
+                                <div class="form-group">
+                                    <input type="hidden" name="CustomerId" id="CustomerId" class="form-control" value="@(Model.CustomerId > 0 ? Model.CustomerId.ToString() : string.Empty)" />
+                                    <div class="col-md-4">
+                                        <nop-label asp-for="CustomerId" />
+                                    </div>
+                                    <div class="col-md-8">
+                                        <input style="float: left;" type="text" name="CustomerNameOrPhone" id="CustomerNameOrPhone" class="form-control" placeholder="@(T("Admin.Common.PleaseInputSearchData"))" value="" />
+                                    </div>
+                                    <script>
+                                        $(document).ready(function() {
+                                            $("#CustomerNameOrPhone").autocomplete({
+                                                delay: 800,
+                                                source: function(request, response) {
+
+                                                    var postData = {
+                                                        searchTerm: request.term
+                                                    };
+                                                    addAntiForgeryToken(postData);
+
+                                                    $.ajax({
+                                                        cache: false,
+                                                        type: "POST",
+                                                        url:
+                                                            "@(Url.Action("CustomerSearchPhoneAndFullName", "Customer"))",
+                                                        data: postData,
+                                                        complete: function(result) {
+                                                            response($.map(result.responseJSON.Data,
+                                                                function(item) {
+                                                                    return {
+                                                                        label: item.FullName,
+                                                                        value: item.Id
+                                                                    }
+                                                                }));
+                                                        },
+                                                        error: function(xhr, ajaxOptions, thrownError) {
+                                                            alert(thrownError);
+                                                        },
+                                                        traditional: true
+                                                    });
+                                                },
+                                                minLength: 2,
+                                                select: function(event, ui) {
+                                                    $("#CustomerId").val(ui.item.value);
+                                                    this.value = ui.item.label;
                                                     return false;
                                                 },
                                                 focus: function(event, ui) {
@@ -818,6 +875,8 @@
                             $('#@Html.IdFor(model => model.LoadNotShipped)').prop('checked', false);
                             $('#@Html.IdFor(model => model.ExceptCity)').prop('checked', false);
                             $('#@Html.IdFor(model => model.OrderId)').val('');
+                            $('#@Html.IdFor(model => model.CustomerId)').val('');
+                            $('#CustomerNameOrPhone').val('');
 
                             $("#search-shipments").click();
                         });
@@ -979,6 +1038,7 @@
 
                         var data = {
                             SearchShipperId: $('#@Html.IdFor(model => model.SearchShipperId)').val(),
+                            CustomerId: $('#@Html.IdFor(model => model.CustomerId)').val(),
                             ShipperPhoneNumber: $('#@Html.IdFor(model => model.ShipperPhoneNumber)').val(),
                             StartDate: startDate,
                             EndDate: endDate,

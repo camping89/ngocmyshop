@@ -76,6 +76,7 @@ namespace Nop.Services.Shipping
         /// <param name="orderItemId"></param>
         /// <param name="phoneShipperNumber"></param>
         /// <param name="shipperId"></param>
+        /// <param name="customerId"></param>
         /// <returns>Shipments</returns>
         public virtual IPagedList<ShipmentManual> GetAllShipmentsManual(int vendorId = 0,
             int shippingCountryId = 0,
@@ -86,7 +87,7 @@ namespace Nop.Services.Shipping
             bool loadNotShipped = false,
             bool exceptCity = false,
             DateTime? createdFromUtc = null, DateTime? createdToUtc = null,
-            int pageIndex = 0, int pageSize = int.MaxValue, int orderItemId = 0, string phoneShipperNumber = null,int shipperId = 0)
+            int pageIndex = 0, int pageSize = int.MaxValue, int orderItemId = 0, string phoneShipperNumber = null, int shipperId = 0, int customerId = 0)
         {
             var query = _shipmentManualRepository.Table;
             if (!string.IsNullOrEmpty(trackingNumber))
@@ -99,6 +100,11 @@ namespace Nop.Services.Shipping
             else if (shipperId == -1)
             {
                 query = query.Where(_ => _.ShipperId == null || _.ShipperId == 0);
+            }
+
+            if (customerId > 0)
+            {
+                query = query.Where(_ => _.CustomerId == customerId);
             }
 
             if (!string.IsNullOrWhiteSpace(phoneShipperNumber))

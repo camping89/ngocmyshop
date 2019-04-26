@@ -10,6 +10,7 @@
     				<PackageProjectUrl>http://www.nopcommerce.com/</PackageProjectUrl>
     				<RepositoryUrl>https://github.com/nopSolutions/nopCommerce</RepositoryUrl>
     				<RepositoryType>Git</RepositoryType>
+    				<LangVersion>7.2</LangVersion>
   			</PropertyGroup>
   			<ItemGroup>
   			  <PackageReference Include="NUnit" Version="3.8.1" />

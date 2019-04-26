@@ -73,6 +73,8 @@ namespace Nop.Web.Areas.Admin.Models.Orders
         public IList<SelectListItem> AvailableShippers { get; set; }
         [NopResourceDisplayName("Admin.Orders.Shipments.List.SearchShipperId")]
         public int SearchShipperId { get; set; }
+        [NopResourceDisplayName("Admin.Orders.Shipments.List.CustomerId")]
+        public int CustomerId { get; set; }
         public IList<SelectListItem> AvailableShippersForSearch { get; set; }
         [NopResourceDisplayName("Admin.Orders.Shipments.List.ExceptCity")]
         public bool ExceptCity { get; set; }

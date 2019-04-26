@@ -481,6 +481,15 @@ namespace Nop.Services.Customers
             return customers;
         }
 
+        public List<Customer> SearchCustomersPhoneOrName(string phone = null, string fullName = null, int[] customerRoleIds = null)
+        {
+            var query = _customerRepository.Table.Where(_ => _.Deleted == false && (_.Username != null || _.Username != string.Empty));
+            if (customerRoleIds != null && customerRoleIds.Length > 0)
+                query = query.Where(c => c.CustomerRoles.Select(cr => cr.Id).Intersect(customerRoleIds).Any());
+
+            query = query.Where(_ => (string.IsNullOrEmpty(phone) == false && _.Phone.Contains(phone)) || (string.IsNullOrEmpty(fullName) == false && _.FullName.Contains(fullName)));
+            return query.OrderBy(_ => _.FullName).ToList();
+        }
         public List<Customer> SearchCustomers(string phone = null, string email = null, string linkFacebook = null, string username = null,
             string fullName = null)
         {

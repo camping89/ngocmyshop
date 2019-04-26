@@ -879,6 +879,14 @@ namespace Nop.Web.Areas.Admin.Controllers
         }
 
         [HttpPost]
+        public virtual IActionResult CustomerSearchPhoneAndFullName(string searchTerm)
+        {
+            var customers = _customerService.SearchCustomersPhoneOrName(phone: searchTerm, fullName: searchTerm, new int[] { CustomerRoleEnum.Customer.ToInt(), CustomerRoleEnum.Registered.ToInt() });
+            var result = customers.Select(_ => new { Id = _.Id, Phone = _.Phone, FullName = _.FullName + " - " + _.Phone }).ToArray();
+            return Json(new { Data = result });
+        }
+
+        [HttpPost]
         public virtual IActionResult CustomerSearch(string searchTerm)
         {
             var customers = _customerService.SearchCustomers(fullName: searchTerm);

@@ -5900,7 +5900,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 pageIndex: command.Page - 1,
                 pageSize: command.PageSize,
                 orderItemId: model.OrderItemId,
-                phoneShipperNumber: model.ShipperPhoneNumber, shipperId: model.SearchShipperId);
+                phoneShipperNumber: model.ShipperPhoneNumber, shipperId: model.SearchShipperId, customerId: model.CustomerId);
 
             var gridModel = new DataSourceResult
             {
