@@ -1650,7 +1650,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 //    _workContext.WorkingLanguage, true, false),
                 TotalShippingFee = shipment.TotalShippingFee,
                 BagId = shipment.BagId,
-                ShipmentAddress = shipment.Address,
+                ShipmentAddress = Core.Extensions.StringExtensions.IsNotNullOrEmpty(shipment.Address) ? shipment.Address : "Chưa xác định",
                 ShipmentCity = Core.Extensions.StringExtensions.IsNotNullOrEmpty(shipment.Province) ? shipment.Province : "Chưa xác định",
                 ShipmentCityId = Core.Extensions.StringExtensions.IsNotNullOrEmpty(shipment.Province) ? shipment.Province : "0",
                 ShipmentDistrict = Core.Extensions.StringExtensions.IsNotNullOrEmpty(shipment.District) ? shipment.District : "Chưa xác định",
@@ -5898,7 +5898,8 @@ namespace Nop.Web.Areas.Admin.Controllers
                 phoneShipperNumber: model.ShipperPhoneNumber,
                 shipperId: model.SearchShipperId,
                 customerId: model.CustomerId,
-                isNotSetShippedDate: model.IsNotSetShippedDate);
+                isNotSetShippedDate: model.IsNotSetShippedDate,
+                isAddressEmpty: model.IsAddressEmpty);
 
             var gridModel = new DataSourceResult
             {

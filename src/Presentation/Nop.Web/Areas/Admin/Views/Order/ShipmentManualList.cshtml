@@ -271,6 +271,14 @@
 
                                 <div class="form-group">
                                     <div class="col-md-4">
+                                        <nop-label asp-for="IsAddressEmpty" />
+                                    </div>
+                                    <div class="col-md-8">
+                                        <nop-editor asp-for="IsAddressEmpty" />
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-md-4">
                                         <nop-label asp-for="LoadNotShipped" />
                                     </div>
                                     <div class="col-md-8">
@@ -885,6 +893,7 @@
                             $('#@Html.IdFor(model => model.ExceptCity)').prop('checked', false);
                             $('#@Html.IdFor(model => model.ExceptCity)').prop('checked', false);
                             $('#@Html.IdFor(model => model.IsNotSetShippedDate)').prop('checked', false);
+                            $('#@Html.IdFor(model => model.IsAddressEmpty)').prop('checked', false);
                             $('#@Html.IdFor(model => model.OrderId)').val('');
                             $('#@Html.IdFor(model => model.CustomerId)').val('');
                             $('#CustomerNameOrPhone').val('');
@@ -1062,6 +1071,7 @@
                             LoadNotShipped: $('#@Html.IdFor(model => model.LoadNotShipped)').is(':checked'),
                             ExceptCity: $('#@Html.IdFor(model => model.ExceptCity)').is(':checked'),
                             IsNotSetShippedDate: $('#@Html.IdFor(model => model.IsNotSetShippedDate)').is(':checked'),
+                            IsAddressEmpty: $('#@Html.IdFor(model => model.IsAddressEmpty)').is(':checked'),
                             OrderId: $('#@Html.IdFor(model => model.OrderId)').val()
                         };
                         addAntiForgeryToken(data);

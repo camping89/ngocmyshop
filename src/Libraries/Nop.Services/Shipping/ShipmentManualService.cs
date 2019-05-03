@@ -1,4 +1,4 @@
-using Nop.Core;
+﻿using Nop.Core;
 using Nop.Core.Data;
 using Nop.Core.Domain.Common;
 using Nop.Core.Domain.Customers;
@@ -90,7 +90,8 @@ namespace Nop.Services.Shipping
             int pageIndex = 0, int pageSize = int.MaxValue,
             int orderItemId = 0, string phoneShipperNumber = null,
             int shipperId = 0, int customerId = 0,
-            bool isNotSetShippedDate = true)
+            bool isNotSetShippedDate = false,
+            bool isAddressEmpty = false)
         {
             var query = _shipmentManualRepository.Table;
             if (!string.IsNullOrEmpty(trackingNumber))
@@ -98,6 +99,10 @@ namespace Nop.Services.Shipping
             if (isNotSetShippedDate)
             {
                 query = query.Where(_ => _.ShippedDateUtc == null);
+            }
+            if (isAddressEmpty)
+            {
+                query = query.Where(_ => _.Address == null || _.Address == string.Empty || _.Address == @"Chưa xác định");
             }
             if (shipperId > 0)
             {

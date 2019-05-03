@@ -25,7 +25,8 @@ namespace Nop.Services.Shipping
             int pageIndex = 0, int pageSize = int.MaxValue,
             int orderItemId = 0, string phoneShipperNumber = null,
             int shipperId = 0, int customerId = 0,
-            bool isNotSetShippedDate = false);
+            bool isNotSetShippedDate = false,
+            bool isAddressEmpty = false);
 
         IList<ShipmentManual> GetShipmentsManualByIds(int[] shipmentManualIds);
 
