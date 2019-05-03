@@ -10,6 +10,7 @@ using Nop.Services.Catalog;
 using Nop.Services.Common;
 using Nop.Services.Configuration;
 using Nop.Services.Customers;
+using Nop.Services.Directory;
 using Nop.Services.Localization;
 using Nop.Services.Orders;
 using Nop.Services.Security;
@@ -38,7 +39,8 @@ namespace Nop.Web.Areas.Admin.Controllers
         private readonly IPriceFormatter _priceFormatter;
         private readonly IWorkContext _workContext;
         private readonly ISettingService _settingService;
-        public ShelfController(ICustomerService customerService, IShelfService shelfService, IOrderService orderService, IPermissionService permissionService, ILocalizationService localizationService, IShipmentManualService shipmentManualService, IWorkContext workContext, IPriceFormatter priceFormatter, ISettingService settingService)
+        private readonly IStateProvinceService _stateProvinceService;
+        public ShelfController(ICustomerService customerService, IShelfService shelfService, IOrderService orderService, IPermissionService permissionService, ILocalizationService localizationService, IShipmentManualService shipmentManualService, IWorkContext workContext, IPriceFormatter priceFormatter, ISettingService settingService, IStateProvinceService stateProvinceService)
         {
             _customerService = customerService;
             _shelfService = shelfService;
@@ -49,6 +51,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             _workContext = workContext;
             _priceFormatter = priceFormatter;
             _settingService = settingService;
+            _stateProvinceService = stateProvinceService;
         }
 
         public IActionResult Index()
@@ -522,10 +525,12 @@ namespace Nop.Web.Areas.Admin.Controllers
                 {
                     shipmentManual.DeliveryDateUtc = StringExtensions.StringToDateTime(model.DeliveryDate);
                 }
+
+                var district = _stateProvinceService.GetDistrictById(model.ShipmentDistrictId.ToIntODefault());
                 shipmentManual.BagId = model.BagId;
                 shipmentManual.ShipperId = model.ShipperId;
                 shipmentManual.Province = model.ShipmentCityId;
-                shipmentManual.District = model.ShipmentDistrictId;
+                shipmentManual.District = district == null ? string.Empty : district.Name;
                 shipmentManual.Address = model.ShipmentAddress;
                 shipmentManual.Ward = model.ShipmentWard;
                 shipmentManual.ShipmentNote = model.ShipmentNote;

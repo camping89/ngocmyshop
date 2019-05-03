@@ -2024,13 +2024,15 @@ namespace Nop.Services.Common
             if (shipmentDetails == null)
                 throw new ArgumentNullException(nameof(shipmentDetails));
 
+            var customer = _customerService.GetCustomerById(shipmentDetails.CustomerId);
+
             //fonts
             var titleFont = GetFont();
             titleFont.SetStyle(Font.BOLD);
             titleFont.Color = BaseColor.BLACK;
             titleFont.Size = 12;
             var font = GetFont();
-            font.Size = 12;
+            font.Size = 10;
             var fontProductInfo = GetFont();
             fontProductInfo.Size = 9;
             var attributesFont = GetFont();
@@ -2073,7 +2075,7 @@ namespace Nop.Services.Common
             addressTable.AddCell(GetParagraph("PDFPackagingSlip.Name", lang, font, shipmentDetails.Customer.GetFullName()));
             addressTable.AddCell(GetParagraph("PDFPackagingSlip.Phone", lang, font, shipmentDetails.Customer.GetAttribute<string>(SystemCustomerAttributeNames.Phone)));
 
-            var address = $"{shipmentDetails.ShippingAddress.Address1}, {shipmentDetails.ShippingAddress.Ward}, {shipmentDetails.ShippingAddress.City}, {(shipmentDetails.ShippingAddress.StateProvince != null ? shipmentDetails.ShippingAddress.StateProvince.GetLocalized(x => x.Name, lang.Id) : "")}";
+            var address = $"{shipmentDetails.Address}, {shipmentDetails.Ward}, {shipmentDetails.District}, {shipmentDetails.Province}";
             addressTable.AddCell(GetParagraph("PDFPackagingSlip.Address", lang, font, address));
 
             //if (_addressSettings.CityEnabled || _addressSettings.StateProvinceEnabled || _addressSettings.ZipPostalCodeEnabled)
@@ -2101,6 +2103,7 @@ namespace Nop.Services.Common
             cell.BackgroundColor = BaseColor.LIGHT_GRAY;
             cell.HorizontalAlignment = Element.ALIGN_CENTER;
             cell.VerticalAlignment = Element.ALIGN_MIDDLE;
+            cell.FixedHeight = 40.0f;
             productsTable.AddCell(cell);
 
             //product name
@@ -2155,7 +2158,7 @@ namespace Nop.Services.Common
                 if (orderItem == null)
                     continue;
 
-                cell = GetPdfCell($"{orderItem.OrderId}.{orderItem.Id}", font);
+                cell = GetPdfCell($"{orderItem.OrderId}. \n {orderItem.Id}", font);
                 cell.HorizontalAlignment = Element.ALIGN_CENTER;
                 productsTable.AddCell(cell);
 
@@ -2166,7 +2169,8 @@ namespace Nop.Services.Common
                 productAttribTable.DefaultCell.Border = Rectangle.NO_BORDER;
 
                 //product info
-                var picture = _pictureService.GetPicturesByProductId(orderItem.ProductId).ToList().FirstOrDefault();
+
+                var picture = orderItem.Product.GetProductPicture(orderItem.AttributesXml, _pictureService, _productAttributeParser);
                 if (picture != null)
                 {
                     var picBinary = _pictureService.LoadPictureBinary(picture);
@@ -2219,7 +2223,7 @@ namespace Nop.Services.Common
 
                 var productInfoTable = new PdfPTable(2);
                 productInfoTable.WidthPercentage = 100f;
-                productInfoTable.SetWidths(new[] { 50, 50 });
+                productInfoTable.SetWidths(new[] { 40, 60 });
                 productInfoTable.DefaultCell.Border = Rectangle.NO_BORDER;
 
                 var cellProductInfo = GetPdfCell("PDFPackagingSlip.ProductName", lang, fontProductInfo);

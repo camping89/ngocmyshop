@@ -78,6 +78,8 @@ namespace Nop.Web.Areas.Admin.Models.Orders
         public IList<SelectListItem> AvailableShippersForSearch { get; set; }
         [NopResourceDisplayName("Admin.Orders.Shipments.List.ExceptCity")]
         public bool ExceptCity { get; set; }
+        [NopResourceDisplayName("Admin.Orders.Shipments.List.IsShipDateEmpty")]
+        public bool IsNotSetShippedDate { get; set; }
 
     }
 

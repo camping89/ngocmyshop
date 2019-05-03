@@ -536,7 +536,7 @@ namespace Nop.Services.Orders
 
             if (isPackageItemProcessedDatetime.HasValue)
             {
-                query = query.Where(_ => _.PackageItemProcessedDatetime != null == isPackageItemProcessedDatetime);
+                query = query.Where(_ => _.PackageItemProcessedDatetime != null == isPackageItemProcessedDatetime.Value);
             }
 
             if (vendorId > 0)
@@ -546,17 +546,17 @@ namespace Nop.Services.Orders
 
             if (isOrderCheckout.HasValue)
             {
-                query = query.Where(_ => _.IsOrderCheckout == isOrderCheckout);
+                query = query.Where(_ => _.IsOrderCheckout == isOrderCheckout.Value);
             }
 
             if (startDate != null)
             {
-                query = query.Where(_ => _.Order.CreatedOnUtc != null && _.Order.CreatedOnUtc >= startDate);
+                query = query.Where(_ => _.Order.CreatedOnUtc != null && _.Order.CreatedOnUtc >= startDate.Value);
             }
 
             if (endDate != null)
             {
-                query = query.Where(_ => _.Order.CreatedOnUtc != null && _.Order.CreatedOnUtc <= endDate);
+                query = query.Where(_ => _.Order.CreatedOnUtc != null && _.Order.CreatedOnUtc <= endDate.Value);
             }
 
             if (!string.IsNullOrWhiteSpace(customerPhone))
@@ -590,7 +590,8 @@ namespace Nop.Services.Orders
                     break;
             }
 
-            var results = new PagedList<OrderItem>(query, pageIndex, pageSize) { TotalIds = query.Select(_ => _.Id).ToList() };
+            //var results = new PagedList<OrderItem>(query, pageIndex, pageSize) { TotalIds = query.Select(_ => _.Id).ToList() };
+            var results = new PagedList<OrderItem>(query, pageIndex, pageSize);
             return results;
         }
         /// <summary>

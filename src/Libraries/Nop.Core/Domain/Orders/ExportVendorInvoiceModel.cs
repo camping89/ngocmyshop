@@ -48,10 +48,11 @@ namespace Nop.Core.Domain.Orders
         public decimal TotalWithoutWeightCost { get; set; }
         public decimal WeightCost { get; set; }
         public decimal TotalCost { get; set; }
+        public string CurrencyCode { get; set; }
         public string UnitWeightCost { get; set; }
         public string Weight { get; set; }
 
-        public string BaseUnitPrice { get; set; }
+        public decimal BaseUnitPrice { get; set; }
         public string Deposit { get; set; }
         public string ShelfCode { get; set; }
         public string DeliveryDateUtc { get; set; }

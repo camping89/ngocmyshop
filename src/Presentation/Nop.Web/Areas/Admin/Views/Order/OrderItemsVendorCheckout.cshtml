@@ -331,7 +331,7 @@
                                                 pageSize: @(defaultGridPageSize),
                                                 serverPaging: true,
                                                 serverFiltering: true,
-                                                serverSorting: true
+                                                //serverSorting: true
                                             },
                                             edit: grid_edit,
                                             editable: {
@@ -383,7 +383,7 @@
                                                 }, {
                                                     field: "OrderId",
                                                     title: "@T("Admin.Orders.ShelfOrderItemId")",
-                                                    width: 80,
+                                                    width: 120,
                                                     template: "#=OrderId#.#=Id#"
                                                 }, {
                                                     field: "CreatedDate",
@@ -391,7 +391,6 @@
                                                     width: 80,
                                                     type: "date",
                                                     //format: "{0:G}",
-                                                    sortable: true,
                                                     template: "# if (CreatedDate != null) { #" +
                                                         "<p>#= kendo.toString(kendo.parseDate(CreatedDate, 'yyyy-MM-dd'), 'dd/MM/yyyy') #</p>" +
                                                         "#} else {#" +

@@ -87,12 +87,18 @@ namespace Nop.Services.Shipping
             bool loadNotShipped = false,
             bool exceptCity = false,
             DateTime? createdFromUtc = null, DateTime? createdToUtc = null,
-            int pageIndex = 0, int pageSize = int.MaxValue, int orderItemId = 0, string phoneShipperNumber = null, int shipperId = 0, int customerId = 0)
+            int pageIndex = 0, int pageSize = int.MaxValue,
+            int orderItemId = 0, string phoneShipperNumber = null,
+            int shipperId = 0, int customerId = 0,
+            bool isNotSetShippedDate = true)
         {
             var query = _shipmentManualRepository.Table;
             if (!string.IsNullOrEmpty(trackingNumber))
                 query = query.Where(s => s.TrackingNumber.Contains(trackingNumber));
-
+            if (isNotSetShippedDate)
+            {
+                query = query.Where(_ => _.ShippedDateUtc == null);
+            }
             if (shipperId > 0)
             {
                 query = query.Where(_ => _.ShipperId != null && _.ShipperId == shipperId);

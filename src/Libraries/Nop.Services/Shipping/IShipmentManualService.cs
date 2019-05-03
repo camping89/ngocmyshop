@@ -22,7 +22,10 @@ namespace Nop.Services.Shipping
             bool loadNotShipped = false,
             bool exceptCity = false,
             DateTime? createdFromUtc = null, DateTime? createdToUtc = null,
-            int pageIndex = 0, int pageSize = int.MaxValue, int orderItemId = 0, string phoneShipperNumber = null, int shipperId = 0, int customerId = 0);
+            int pageIndex = 0, int pageSize = int.MaxValue,
+            int orderItemId = 0, string phoneShipperNumber = null,
+            int shipperId = 0, int customerId = 0,
+            bool isNotSetShippedDate = false);
 
         IList<ShipmentManual> GetShipmentsManualByIds(int[] shipmentManualIds);
 

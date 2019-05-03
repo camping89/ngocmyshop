@@ -5875,11 +5875,6 @@ namespace Nop.Web.Areas.Admin.Controllers
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageOrders))
                 return AccessDeniedKendoGridJson();
 
-            var startDateValue = (model.StartDate == null) ? null
-                            : (DateTime?)_dateTimeHelper.ConvertToUtcTime(model.StartDate.Value, _dateTimeHelper.CurrentTimeZone);
-
-            var endDateValue = (model.EndDate == null) ? null
-                            : (DateTime?)_dateTimeHelper.ConvertToUtcTime(model.EndDate.Value, _dateTimeHelper.CurrentTimeZone).AddDays(1);
 
             //a vendor should have access only to his products
             var vendorId = 0;
@@ -5895,12 +5890,15 @@ namespace Nop.Web.Areas.Admin.Controllers
                 trackingNumber: model.TrackingNumber,
                 loadNotShipped: model.LoadNotShipped,
                 exceptCity: model.ExceptCity,
-                createdFromUtc: startDateValue,
-                createdToUtc: endDateValue,
+                createdFromUtc: model.StartDate,
+                createdToUtc: model.EndDate,
                 pageIndex: command.Page - 1,
                 pageSize: command.PageSize,
                 orderItemId: model.OrderItemId,
-                phoneShipperNumber: model.ShipperPhoneNumber, shipperId: model.SearchShipperId, customerId: model.CustomerId);
+                phoneShipperNumber: model.ShipperPhoneNumber,
+                shipperId: model.SearchShipperId,
+                customerId: model.CustomerId,
+                isNotSetShippedDate: model.IsNotSetShippedDate);
 
             var gridModel = new DataSourceResult
             {
@@ -6658,12 +6656,6 @@ namespace Nop.Web.Areas.Admin.Controllers
         [HttpPost]
         public IActionResult ListOrderItemsVendorCheckout(OrderItemExportVendorModel model, DataSourceRequest command)
         {
-            // Create new stopwatch.
-            Stopwatch stopwatch = new Stopwatch();
-
-            // Begin timing.
-            stopwatch.Start();
-
             if (!_permissionService.Authorize(StandardPermissionProvider.OrderCountryReport))
                 return AccessDeniedView();
             var primaryStoreCurrency = _currencyService.GetCurrencyById(_currencySettings.PrimaryStoreCurrencyId);
@@ -6788,12 +6780,9 @@ namespace Nop.Web.Areas.Admin.Controllers
                     return orderItemModel;
                 }),
                 Total = orderItems.TotalCount,
-                TotalIds = orderItems.TotalIds
+                //TotalIds = orderItems.TotalIds
             };
 
-            // Stop timing.
-            stopwatch.Stop();
-            var x = stopwatch.Elapsed;
             return Json(gridModel);
         }
 

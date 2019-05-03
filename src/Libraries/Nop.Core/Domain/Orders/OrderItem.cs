@@ -2,6 +2,7 @@ using Nop.Core.Domain.Catalog;
 using Nop.Core.Domain.Customers;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Nop.Core.Domain.Orders
 {
@@ -74,11 +75,13 @@ namespace Nop.Core.Domain.Orders
         /// <summary>
         /// Gets or sets the attribute description
         /// </summary>
+        [Column(TypeName = "varchar")]
         public string AttributeDescription { get; set; }
 
         /// <summary>
         /// Gets or sets the product attributes in XML format
         /// </summary>
+        [Column(TypeName = "varchar")]
         public string AttributesXml { get; set; }
 
         /// <summary>
@@ -139,6 +142,7 @@ namespace Nop.Core.Domain.Orders
 
         public decimal Deposit { get; set; }
 
+        [Column(TypeName = "varchar")]
         public string Note { get; set; }
         public int OrderItemStatusId { get; set; }
         /// <summary>
