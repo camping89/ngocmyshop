@@ -525,12 +525,10 @@ namespace Nop.Web.Areas.Admin.Controllers
                 {
                     shipmentManual.DeliveryDateUtc = StringExtensions.StringToDateTime(model.DeliveryDate);
                 }
-
-                var district = _stateProvinceService.GetDistrictById(model.ShipmentDistrictId.ToIntODefault());
                 shipmentManual.BagId = model.BagId;
                 shipmentManual.ShipperId = model.ShipperId;
                 shipmentManual.Province = model.ShipmentCityId;
-                shipmentManual.District = district == null ? string.Empty : district.Name;
+                shipmentManual.District = model.ShipmentDistrictId;
                 shipmentManual.Address = model.ShipmentAddress;
                 shipmentManual.Ward = model.ShipmentWard;
                 shipmentManual.ShipmentNote = model.ShipmentNote;
