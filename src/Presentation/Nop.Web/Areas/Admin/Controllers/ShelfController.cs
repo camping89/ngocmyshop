@@ -528,7 +528,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 shipmentManual.BagId = model.BagId;
                 shipmentManual.ShipperId = model.ShipperId;
                 shipmentManual.Province = model.ShipmentCityId;
-                shipmentManual.District = model.ShipmentDistrictId;
+                shipmentManual.District = model.ShipmentDistrictId == "0" ? string.Empty : model.ShipmentDistrictId;
                 shipmentManual.Address = model.ShipmentAddress;
                 shipmentManual.Ward = model.ShipmentWard;
                 shipmentManual.ShipmentNote = model.ShipmentNote;
