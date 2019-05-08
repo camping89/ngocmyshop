@@ -18,6 +18,9 @@ namespace Nop.Web.Areas.Admin.Models.Orders
             AvailableShippersForSearch = new List<SelectListItem>();
             AvailableCities = new List<SelectListItem>();
         }
+        [NopResourceDisplayName("Admin.Orders.Shipments.List.ShipmentId")]
+        public int ShipmentId { get; set; }
+
         [NopResourceDisplayName("Admin.Orders.Shipments.List.ShipperPhoneNumber")]
         public string ShipperPhoneNumber { get; set; }
 

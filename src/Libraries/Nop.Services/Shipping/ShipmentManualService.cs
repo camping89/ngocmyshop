@@ -78,7 +78,7 @@ namespace Nop.Services.Shipping
         /// <param name="shipperId"></param>
         /// <param name="customerId"></param>
         /// <returns>Shipments</returns>
-        public virtual IPagedList<ShipmentManual> GetAllShipmentsManual(int vendorId = 0,
+        public virtual IPagedList<ShipmentManual> GetAllShipmentsManual(int shipmentId = 0, int vendorId = 0,
             int shippingCountryId = 0,
             int shippingStateId = 0,
             string shippingCity = null,
@@ -94,6 +94,10 @@ namespace Nop.Services.Shipping
             bool isAddressEmpty = false)
         {
             var query = _shipmentManualRepository.Table;
+            if (shipmentId > 0)
+            {
+                query = query.Where(_ => _.Id == shipmentId);
+            }
             if (!string.IsNullOrEmpty(trackingNumber))
                 query = query.Where(s => s.TrackingNumber.Contains(trackingNumber));
             if (isNotSetShippedDate)

@@ -2326,10 +2326,10 @@ namespace Nop.Services.Common
             subCell.Border = Rectangle.NO_BORDER;
             totalsTable.AddCell(subCell);
 
-            var shippingFeeStr = _priceFormatter.FormatPrice(shipmentDetails.TotalShippingFee);
-            if (shipmentDetails.HasShippingFee == false)
+            var shippingFeeStr = _priceFormatter.FormatPrice(0.0m);
+            if (shipmentDetails.HasShippingFee)
             {
-                shippingFeeStr = _priceFormatter.FormatPrice(0.0m);
+                shippingFeeStr = _priceFormatter.FormatPrice(shipmentDetails.TotalShippingFee);
             }
             subCell = GetPdfCell($"{_localizationService.GetResource("PDFPackagingSlip.ShippingFee", lang.Id)}", font);
             subCell.HorizontalAlignment = Element.ALIGN_RIGHT;

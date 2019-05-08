@@ -5882,7 +5882,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 vendorId = _workContext.CurrentVendor.Id;
 
             //load shipments
-            var shipments = _shipmentManualService.GetAllShipmentsManual(vendorId: vendorId,
+            var shipments = _shipmentManualService.GetAllShipmentsManual(shipmentId: model.ShipmentId, vendorId: vendorId,
                 shippingCountryId: model.CountryId,
                 shippingStateId: model.StateProvinceId,
                 shippingCity: model.City,
