@@ -23,6 +23,7 @@
         public string CustomerAddress { get; set; }
         public string CustomerStateProvince { get; set; }
         public string CustomerDistrict { get; set; }
+        public string CustomerWard { get; set; }
         public string ShipperInfo { get; set; }
         public string DeliveryDate { get; set; }
         public string ShippedDate { get; set; }

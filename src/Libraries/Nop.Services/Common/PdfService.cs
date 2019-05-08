@@ -2201,21 +2201,24 @@ namespace Nop.Services.Common
                     {
                         //Color
                         var productAttributeMapping = _productAttributeService.GetProductAttributeMappingById(orderItemAttributeXml.ID.ToIntODefault());
-                        if (productAttributeMapping.ProductAttributeId.Equals(ProductAttributeEnum.Color.ToInt()))
+                        if (productAttributeMapping != null)
                         {
-                            var productAttributeVl = _productAttributeService.GetProductAttributeValueById(orderItemAttributeXml.ProductAttributeValue.Value.ToIntODefault());
-                            if (productAttributeVl != null)
+                            if (productAttributeMapping.ProductAttributeId.Equals(ProductAttributeEnum.Color.ToInt()))
                             {
-                                productColor = productAttributeVl.Name;
+                                var productAttributeVl = _productAttributeService.GetProductAttributeValueById(orderItemAttributeXml.ProductAttributeValue.Value.ToIntODefault());
+                                if (productAttributeVl != null)
+                                {
+                                    productColor = productAttributeVl.Name;
+                                }
                             }
-                        }
-                        //Size
-                        if (productAttributeMapping.ProductAttributeId.Equals(ProductAttributeEnum.Size.ToInt()))
-                        {
-                            var productAttributeVl = _productAttributeService.GetProductAttributeValueById(orderItemAttributeXml.ProductAttributeValue.Value.ToIntODefault());
-                            if (productAttributeVl != null)
+                            //Size
+                            if (productAttributeMapping.ProductAttributeId.Equals(ProductAttributeEnum.Size.ToInt()))
                             {
-                                productSize = productAttributeVl.Name;
+                                var productAttributeVl = _productAttributeService.GetProductAttributeValueById(orderItemAttributeXml.ProductAttributeValue.Value.ToIntODefault());
+                                if (productAttributeVl != null)
+                                {
+                                    productSize = productAttributeVl.Name;
+                                }
                             }
                         }
                     }
@@ -2405,9 +2408,9 @@ namespace Nop.Services.Common
             var lang = _workContext.WorkingLanguage;
 
 
-            var productsTable = new PdfPTable(10) { WidthPercentage = 100f };
+            var productsTable = new PdfPTable(11) { WidthPercentage = 100f };
 
-            productsTable.SetWidths(new[] { 10, 10, 10, 10, 10, 10, 10, 10, 10, 10 });
+            productsTable.SetWidths(new[] { 10, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9 });
 
             //var cell = GetPdfCell("PDFPackagingSlip.BagId", lang, font);
             //cell.BackgroundColor = BaseColor.LIGHT_GRAY;
@@ -2457,11 +2460,16 @@ namespace Nop.Services.Common
             //cell.HorizontalAlignment = Element.ALIGN_CENTER;
             //productsTable.AddCell(cell);
 
-            cell = GetPdfCell("PDFPackagingSlip.Address", lang, font);
+            cell = GetPdfCell("PDFPackagingSlip.AddressTitle", lang, font);
             cell.BackgroundColor = BaseColor.LIGHT_GRAY;
             cell.HorizontalAlignment = Element.ALIGN_CENTER;
             productsTable.AddCell(cell);
 
+
+            cell = GetPdfCell("PDFPackagingSlip.Ward", lang, font);
+            cell.BackgroundColor = BaseColor.LIGHT_GRAY;
+            cell.HorizontalAlignment = Element.ALIGN_CENTER;
+            productsTable.AddCell(cell);
 
             cell = GetPdfCell("PDFPackagingSlip.District", lang, font);
             cell.BackgroundColor = BaseColor.LIGHT_GRAY;
@@ -2529,7 +2537,8 @@ namespace Nop.Services.Common
                     CustomerName = string.Empty,
                     CustomerAddress = shipment.Address,
                     CustomerStateProvince = shipment.Province,
-                    CustomerDistrict = shipment.District
+                    CustomerDistrict = shipment.District,
+                    CustomerWard = shipment.Ward
                 };
 
                 if (customerOrder != null)
@@ -2602,6 +2611,10 @@ namespace Nop.Services.Common
                 //productsTable.AddCell(cell);
 
                 cell = GetPdfCell(exportShipmentModel.CustomerAddress, font);
+                cell.HorizontalAlignment = Element.ALIGN_CENTER;
+                productsTable.AddCell(cell);
+
+                cell = GetPdfCell(exportShipmentModel.CustomerWard, font);
                 cell.HorizontalAlignment = Element.ALIGN_CENTER;
                 productsTable.AddCell(cell);
 
