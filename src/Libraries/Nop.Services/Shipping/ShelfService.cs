@@ -102,12 +102,12 @@ namespace Nop.Services.Shipping
                 }
             }
 
-            if (shelfOrderItemIsActive != null || shelfOrderItemIsActive == true)
+            if (shelfOrderItemIsActive != null && shelfOrderItemIsActive == true)
             {
                 var shelfOrderItems = _shelfOrderItemRepository.Table.Where(s => s.IsActived).Select(_ => _.ShelfId).Distinct().ToList();
                 query = query.Where(_ => shelfOrderItems.Contains(_.Id));
             }
-            else if (shelfOrderItemIsActive != null || shelfOrderItemIsActive == false)
+            else if (shelfOrderItemIsActive != null && shelfOrderItemIsActive == false)
             {
                 var shelfOrderItems = _shelfOrderItemRepository.Table.Where(s => s.IsActived == false).Select(_ => _.ShelfId).Distinct().ToList();
                 query = query.Where(_ => shelfOrderItems.Contains(_.Id));
