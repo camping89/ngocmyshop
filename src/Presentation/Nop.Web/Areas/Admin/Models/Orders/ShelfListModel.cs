@@ -10,7 +10,6 @@ namespace Nop.Web.Areas.Admin.Models.Orders
     {
         public ShelfListModel()
         {
-            Customers = new List<SelectListItem>();
             ShelfOrderItemsStatus = new List<SelectListItem>();
             CustomerNotifiedStatus = new List<SelectListItem>();
             ShelfNoteStatus = new List<SelectListItem>();
@@ -50,8 +49,6 @@ namespace Nop.Web.Areas.Admin.Models.Orders
         [NopResourceDisplayName("Admin.Orders.Shelf.Fields.ShelfCode")]
         public string ShelfCode { get; set; }
 
-
-        public List<SelectListItem> Customers { get; set; }
 
         [NopResourceDisplayName("Admin.ShelfOrderItem.IsActive")]
         public bool? ShelfOrderItemIsActive { get; set; }

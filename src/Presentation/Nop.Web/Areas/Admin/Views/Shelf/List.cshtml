@@ -571,7 +571,7 @@
                                 var $target = $(e.target);
                                 // if you have links or other things in your rows that you don't want to
                                 // trigger the detail row expansion, use an if statement to ignore them.
-                                if (!$target.hasClass("sample-link")){
+                                if (!$target.hasClass("sample-link")) {
                                     var $this = $(this);
                                     var $link = $this.find(".k-icon");
                                     $link.click();
@@ -587,24 +587,34 @@
                             });
 
                             function editCustomerId(container, options) {
-                                var jsonCustomers =
-                                    jQuery.parseJSON(
-                                        '@Json.Serialize(Model.Customers.Select(_ => new {CustomerId = _.Value, CustomerName = _.Text}))');
+
                                 var hasOrderItem = options.model.HasOrderItem;
                                 if (hasOrderItem) {
-                                    $('<input readonly id="CustomerNameEditor" data-text-field="CustomerName" data-value-field="' +
-                                        options.field +
-                                        '" data-bind="value:' +
-                                        options.field +
-                                        '" />')
-                                        .appendTo(container)
-                                        .kendoDropDownList({
-                                            autoBind: true,
-                                            dataTextField: "CustomerName",
-                                            dataValueField: "CustomerId",
-                                            dataSource: jsonCustomers,
-                                            filter: "contains"
-                                        });
+
+                                    $.ajax({
+                                        cache: false,
+                                        type: "POST",
+                                        url: "@Url.Action("CustomerAssignedShelf", "Shelf")",
+                                        data: addAntiForgeryToken({ customerId: options.model.CustomerId }),
+                                        complete: function(result) {
+
+                                            $('<input readonly id="CustomerNameEditor" data-text-field="CustomerName" data-value-field="' +
+                                                    options.field +
+                                                    '" data-bind="value:' +
+                                                    options.field +
+                                                    '" />')
+                                                .appendTo(container).kendoDropDownList({
+                                                    autoBind: true,
+                                                    dataTextField: "CustomerName",
+                                                    dataValueField: "CustomerId",
+                                                    dataSource: result.responseJSON.Data
+                                                });;
+                                        },
+                                        error: function(xhr, ajaxOptions, thrownError) {
+                                            alert(thrownError);
+                                        },
+                                        traditional: true
+                                    });
                                 } else {
                                     $('<input id="CustomerNameEditor" data-text-field="CustomerName" data-value-field="' +
                                             options.field +
@@ -613,10 +623,30 @@
                                             '" />')
                                         .appendTo(container)
                                         .kendoDropDownList({
-                                            autoBind: true,
+                                            filtering: function (e) {
+
+                                                var filter = e.filter;
+
+                                                if (!filter.value) {
+                                                    //prevent filtering if the filter does not value
+                                                    e.preventDefault();
+                                                }
+                                            },
+                                            autoBind: false,
+                                            enforceMinLength: true,
                                             dataTextField: "CustomerName",
                                             dataValueField: "CustomerId",
-                                            dataSource: jsonCustomers,
+                                            dataSource: {
+                                                serverFiltering: true,
+                                                transport: {
+                                                    read: {
+                                                        type: "GET",
+                                                        url: "@(Url.Action("CustomerFilterPhoneAndFullName", "Customer"))",
+                                                        dataType: "json"
+                                                    }
+                                                }
+                                            },
+                                            minLength: 3,
                                             filter: "contains"
                                         });
                                 }

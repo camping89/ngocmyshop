@@ -282,6 +282,13 @@ namespace Nop.Web.Areas.Admin.Controllers
         public IActionResult EditAjax(ShelfModel model)
         {
             var entity = _shelfService.GetShelfById(model.Id);
+
+            if ((entity.CustomerId != model.CustomerId || model.CustomerId == 0) && entity.ShelfOrderItems.Any(_ => _.IsActived) == false)
+            {
+                entity.ShippedDate = null;
+                entity.UpdatedNoteDate = null;
+                entity.AssignedDate = null;
+            }
             entity = model.ToEntity(entity);
 
             if (string.IsNullOrEmpty(model.AssignedDate) == false)
@@ -303,6 +310,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 entity.UpdatedNoteDate = StringExtensions.StringToDateTime(model.UpdatedNoteDate);
             }
 
+
             _shelfService.UpdateShelf(entity);
             return Json(new { Success = true });
         }
@@ -322,6 +330,16 @@ namespace Nop.Web.Areas.Admin.Controllers
                 return Json(new { Success = true });
             }
             return Json(new { Success = false });
+        }
+
+
+        [HttpPost]
+        public IActionResult CustomerAssignedShelf(int customerId)
+        {
+            var customer = _customerService.GetCustomerById(customerId);
+            var customers = new List<Customer>() { customer };
+            var result = customers.Select(_ => new { CustomerId = _.Id, CustomerName = _.FullName + " - " + _.Phone }).ToArray();
+            return Json(new { Data = result });
         }
 
 
