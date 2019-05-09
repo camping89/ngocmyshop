@@ -4354,6 +4354,12 @@ namespace Nop.Web.Areas.Admin.Controllers
                         shelf.CustomerId = customerId;
                         shelf.IsCustomerNotified = false;
                         shelf.ShelfNoteStatus = ShelfNoteStatus.NoReply;
+                        if (shelf.CustomerId != customerId)
+                        {
+                            shelf.ShippedDate = null;
+                            shelf.UpdatedNoteDate = null;
+                        }
+
                         _shelfService.UpdateShelf(shelf);
 
                         var shelfOrderItem = _shelfService.GetShelfOrderItemByOrderItemId(orderItem.Id);
