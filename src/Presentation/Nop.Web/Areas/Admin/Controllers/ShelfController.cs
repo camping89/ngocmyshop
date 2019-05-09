@@ -285,31 +285,36 @@ namespace Nop.Web.Areas.Admin.Controllers
 
             if ((entity.CustomerId != model.CustomerId || model.CustomerId == 0) && entity.ShelfOrderItems.Any(_ => _.IsActived) == false)
             {
+                entity = model.ToEntity(entity);
+
                 entity.ShippedDate = null;
                 entity.UpdatedNoteDate = null;
-                entity.AssignedDate = null;
-            }
-            entity = model.ToEntity(entity);
-
-            if (string.IsNullOrEmpty(model.AssignedDate) == false)
-            {
-                entity.AssignedDate = StringExtensions.StringToDateTime(model.AssignedDate);
-            }
-
-            if (string.IsNullOrEmpty(model.ShippedDate) == false)
-            {
-                entity.ShippedDate = StringExtensions.StringToDateTime(model.ShippedDate);
+                entity.AssignedDate = DateTime.Now;
             }
             else
             {
-                entity.ShippedDate = null;
-            }
+                entity = model.ToEntity(entity);
 
-            if (string.IsNullOrEmpty(model.UpdatedNoteDate) == false)
-            {
-                entity.UpdatedNoteDate = StringExtensions.StringToDateTime(model.UpdatedNoteDate);
-            }
+                if (string.IsNullOrEmpty(model.AssignedDate) == false)
+                {
+                    entity.AssignedDate = StringExtensions.StringToDateTime(model.AssignedDate);
+                }
 
+                if (string.IsNullOrEmpty(model.ShippedDate) == false)
+                {
+                    entity.ShippedDate = StringExtensions.StringToDateTime(model.ShippedDate);
+                }
+                else
+                {
+                    entity.ShippedDate = null;
+                }
+
+                if (string.IsNullOrEmpty(model.UpdatedNoteDate) == false)
+                {
+                    entity.UpdatedNoteDate = StringExtensions.StringToDateTime(model.UpdatedNoteDate);
+                }
+
+            }
 
             _shelfService.UpdateShelf(entity);
             return Json(new { Success = true });
