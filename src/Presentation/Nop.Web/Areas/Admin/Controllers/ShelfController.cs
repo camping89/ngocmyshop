@@ -549,7 +549,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                     shipmentManual.DeliveryDateUtc = StringExtensions.StringToDateTime(model.DeliveryDate);
                 }
                 shipmentManual.BagId = model.BagId;
-                shipmentManual.ShipperId = model.ShipperId;
+                if (model.ShipperId != null) shipmentManual.ShipperId = model.ShipperId.Value;
                 shipmentManual.Province = model.ShipmentCityId;
                 shipmentManual.District = model.ShipmentDistrictId == "0" ? string.Empty : model.ShipmentDistrictId;
                 shipmentManual.Address = model.ShipmentAddress;

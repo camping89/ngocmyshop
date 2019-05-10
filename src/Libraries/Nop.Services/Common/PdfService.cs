@@ -2508,7 +2508,7 @@ namespace Nop.Services.Common
 
                 var customerOrder = _customerService.GetCustomerById(shipment.CustomerId);
 
-                var shipper = _customerService.GetCustomerById(shipment.ShipperId != null ? shipment.ShipperId.Value : 0);
+                var shipper = _customerService.GetCustomerById(shipment.ShipperId);
                 var shipperInfo = string.Empty;
                 if (shipper != null)
                 {

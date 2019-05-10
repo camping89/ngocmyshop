@@ -110,11 +110,11 @@ namespace Nop.Services.Shipping
             }
             if (shipperId > 0)
             {
-                query = query.Where(_ => _.ShipperId != null && _.ShipperId == shipperId);
+                query = query.Where(_ => _.ShipperId == shipperId);
             }
             else if (shipperId == -1)
             {
-                query = query.Where(_ => _.ShipperId == null || _.ShipperId == 0);
+                query = query.Where(_ => _.ShipperId == 0);
             }
 
             if (customerId > 0)
