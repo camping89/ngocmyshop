@@ -1587,7 +1587,8 @@ namespace Nop.Web.Areas.Admin.Controllers
                     ShippingFeeStr = _priceFormatter.FormatPrice(shipmentItem.ShippingFee, true, primaryStoreCurrency,
                         _workContext.WorkingLanguage, true, false),
                     OrderItemFee = _priceFormatter.FormatPrice(orderItem.PriceInclTax, true, primaryStoreCurrency,
-                        _workContext.WorkingLanguage, true, false)
+                        _workContext.WorkingLanguage, true, false),
+                    VendorName = orderItem.Product.Vendor != null ? orderItem.Product.Vendor.Name : string.Empty
                 };
 
                 //picture

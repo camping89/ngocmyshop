@@ -752,12 +752,18 @@
                                             field: "OrderItemNumber",
                                             title: "@T("Admin.Orders.Shipments.Products.OrderItemNumber")",
                                             width: 50
-                                        },{
+                                        }, {
                                             field: "ImageUrl",
+                                            title: "@T("Admin.Orders.Products.Picture")",
+                                            template: '<img src="#=ImageUrl#" />',
+                                            width: 100
+                                        },{
+                                            field: "ProductName",
                                             title: "@T("Admin.Orders.Shipments.Products.ProductName")",
-                                            template: '<p>#=ProductName#</p>' +
-                                                '<p><b>Sku: #=Sku#</b></p>' +
-                                                '<img src="#=ImageUrl#" />',
+                                            template: '@T("Admin.Products.ProductName") #=ProductName#'+
+                                                '<p>#=AttributeInfo#</p>' +
+                                                '<p>@T("Admin.Common.Vendor") #=VendorName#</p>' +
+                                                '<p>@T("Admin.Products.Sku") #=Sku#</p>',
                                             width: 400
                                         }, {
                                             field: "OrderItemFee",
