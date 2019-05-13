@@ -4360,11 +4360,6 @@ namespace Nop.Web.Areas.Admin.Controllers
                             shelf.ShippedDate = null;
                             shelf.UpdatedNoteDate = null;
                         }
-                        else
-                        {
-                            shelf.ShippedDate = DateTime.Now;
-                        }
-
                         _shelfService.UpdateShelf(shelf);
 
                         var shelfOrderItem = _shelfService.GetShelfOrderItemByOrderItemId(orderItem.Id);
@@ -4372,6 +4367,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                         {
                             shelfOrderItem.ShelfId = shelf.Id;
                             _shelfService.UpdateShelfOrderItem(shelfOrderItem);
+
                         }
                         else
                         {
@@ -4402,6 +4398,9 @@ namespace Nop.Web.Areas.Admin.Controllers
                                     }
                                 }
                             }
+
+                            shelf.ShippedDate = null;
+                            _shelfService.UpdateShelf(shelf);
                         }
                     }
                     else
