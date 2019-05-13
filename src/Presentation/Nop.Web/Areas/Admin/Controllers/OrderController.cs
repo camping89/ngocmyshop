@@ -4360,6 +4360,10 @@ namespace Nop.Web.Areas.Admin.Controllers
                             shelf.ShippedDate = null;
                             shelf.UpdatedNoteDate = null;
                         }
+                        else
+                        {
+                            shelf.ShippedDate = DateTime.Now;
+                        }
 
                         _shelfService.UpdateShelf(shelf);
 
