@@ -879,6 +879,25 @@ namespace Nop.Web.Areas.Admin.Controllers
         }
 
         [HttpPost]
+        public virtual IActionResult CustomerSearchPhoneAndFullName(string searchTerm)
+        {
+            var customers = _customerService.SearchCustomersPhoneOrName(phone: searchTerm, fullName: searchTerm, new int[] { CustomerRoleEnum.Customer.ToInt(), CustomerRoleEnum.Registered.ToInt() });
+            var result = customers.Select(_ => new { Id = _.Id, Phone = _.Phone, FullName = _.FullName + " - " + _.Phone }).ToArray();
+            return Json(new { Data = result });
+        }
+
+        [HttpGet]
+        public virtual IActionResult CustomerFilterPhoneAndFullName()
+        {
+            var requestFilter = Request.Query.FirstOrDefault(_ => _.Key.Contains("filter[filters][0][value]")).Value;
+            var customers = _customerService.SearchCustomersPhoneOrName(phone: requestFilter, fullName: requestFilter, new int[] { CustomerRoleEnum.Customer.ToInt(), CustomerRoleEnum.Registered.ToInt() });
+            customers = customers.ToList();
+            customers.Insert(0, new Customer() { Id = 0, FullName = _localizationService.GetResource("Admin.Common.NotSetCustomer") });
+            var result = customers.Select(_ => new { CustomerId = _.Id, CustomerName = _.FullName + " - " + _.Phone }).ToArray();
+            return Json(result);
+        }
+
+        [HttpPost]
         public virtual IActionResult CustomerSearch(string searchTerm)
         {
             var customers = _customerService.SearchCustomers(fullName: searchTerm);

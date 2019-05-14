@@ -18,6 +18,9 @@ namespace Nop.Web.Areas.Admin.Models.Orders
             AvailableShippersForSearch = new List<SelectListItem>();
             AvailableCities = new List<SelectListItem>();
         }
+        [NopResourceDisplayName("Admin.Orders.Shipments.List.ShipmentId")]
+        public int ShipmentId { get; set; }
+
         [NopResourceDisplayName("Admin.Orders.Shipments.List.ShipperPhoneNumber")]
         public string ShipperPhoneNumber { get; set; }
 
@@ -73,9 +76,16 @@ namespace Nop.Web.Areas.Admin.Models.Orders
         public IList<SelectListItem> AvailableShippers { get; set; }
         [NopResourceDisplayName("Admin.Orders.Shipments.List.SearchShipperId")]
         public int SearchShipperId { get; set; }
+        [NopResourceDisplayName("Admin.Orders.Shipments.List.CustomerId")]
+        public int CustomerId { get; set; }
         public IList<SelectListItem> AvailableShippersForSearch { get; set; }
         [NopResourceDisplayName("Admin.Orders.Shipments.List.ExceptCity")]
         public bool ExceptCity { get; set; }
+        [NopResourceDisplayName("Admin.Orders.Shipments.List.IsShipDateEmpty")]
+        public bool IsNotSetShippedDate { get; set; }
+
+        [NopResourceDisplayName("Admin.Orders.Shipments.List.IsAddressEmpty")]
+        public bool IsAddressEmpty { get; set; }
 
     }
 

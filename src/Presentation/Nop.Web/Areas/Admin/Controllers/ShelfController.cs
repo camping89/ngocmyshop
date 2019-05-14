@@ -10,6 +10,7 @@ using Nop.Services.Catalog;
 using Nop.Services.Common;
 using Nop.Services.Configuration;
 using Nop.Services.Customers;
+using Nop.Services.Directory;
 using Nop.Services.Localization;
 using Nop.Services.Orders;
 using Nop.Services.Security;
@@ -38,7 +39,8 @@ namespace Nop.Web.Areas.Admin.Controllers
         private readonly IPriceFormatter _priceFormatter;
         private readonly IWorkContext _workContext;
         private readonly ISettingService _settingService;
-        public ShelfController(ICustomerService customerService, IShelfService shelfService, IOrderService orderService, IPermissionService permissionService, ILocalizationService localizationService, IShipmentManualService shipmentManualService, IWorkContext workContext, IPriceFormatter priceFormatter, ISettingService settingService)
+        private readonly IStateProvinceService _stateProvinceService;
+        public ShelfController(ICustomerService customerService, IShelfService shelfService, IOrderService orderService, IPermissionService permissionService, ILocalizationService localizationService, IShipmentManualService shipmentManualService, IWorkContext workContext, IPriceFormatter priceFormatter, ISettingService settingService, IStateProvinceService stateProvinceService)
         {
             _customerService = customerService;
             _shelfService = shelfService;
@@ -49,6 +51,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             _workContext = workContext;
             _priceFormatter = priceFormatter;
             _settingService = settingService;
+            _stateProvinceService = stateProvinceService;
         }
 
         public IActionResult Index()
@@ -279,25 +282,38 @@ namespace Nop.Web.Areas.Admin.Controllers
         public IActionResult EditAjax(ShelfModel model)
         {
             var entity = _shelfService.GetShelfById(model.Id);
-            entity = model.ToEntity(entity);
 
-            if (string.IsNullOrEmpty(model.AssignedDate) == false)
+            if ((entity.CustomerId != model.CustomerId || model.CustomerId == 0) && entity.ShelfOrderItems.Any(_ => _.IsActived) == false)
             {
-                entity.AssignedDate = StringExtensions.StringToDateTime(model.AssignedDate);
-            }
+                entity = model.ToEntity(entity);
 
-            if (string.IsNullOrEmpty(model.ShippedDate) == false)
-            {
-                entity.ShippedDate = StringExtensions.StringToDateTime(model.ShippedDate);
+                entity.ShippedDate = null;
+                entity.UpdatedNoteDate = null;
+                entity.AssignedDate = DateTime.Now;
             }
             else
             {
-                entity.ShippedDate = null;
-            }
+                entity = model.ToEntity(entity);
 
-            if (string.IsNullOrEmpty(model.UpdatedNoteDate) == false)
-            {
-                entity.UpdatedNoteDate = StringExtensions.StringToDateTime(model.UpdatedNoteDate);
+                if (string.IsNullOrEmpty(model.AssignedDate) == false)
+                {
+                    entity.AssignedDate = StringExtensions.StringToDateTime(model.AssignedDate);
+                }
+
+                if (string.IsNullOrEmpty(model.ShippedDate) == false)
+                {
+                    entity.ShippedDate = StringExtensions.StringToDateTime(model.ShippedDate);
+                }
+                else
+                {
+                    entity.ShippedDate = null;
+                }
+
+                if (string.IsNullOrEmpty(model.UpdatedNoteDate) == false)
+                {
+                    entity.UpdatedNoteDate = StringExtensions.StringToDateTime(model.UpdatedNoteDate);
+                }
+
             }
 
             _shelfService.UpdateShelf(entity);
@@ -319,6 +335,16 @@ namespace Nop.Web.Areas.Admin.Controllers
                 return Json(new { Success = true });
             }
             return Json(new { Success = false });
+        }
+
+
+        [HttpPost]
+        public IActionResult CustomerAssignedShelf(int customerId)
+        {
+            var customer = _customerService.GetCustomerById(customerId);
+            var customers = new List<Customer>() { customer };
+            var result = customers.Select(_ => new { CustomerId = _.Id, CustomerName = _.FullName + " - " + _.Phone }).ToArray();
+            return Json(new { Data = result });
         }
 
 
@@ -523,9 +549,9 @@ namespace Nop.Web.Areas.Admin.Controllers
                     shipmentManual.DeliveryDateUtc = StringExtensions.StringToDateTime(model.DeliveryDate);
                 }
                 shipmentManual.BagId = model.BagId;
-                shipmentManual.ShipperId = model.ShipperId;
+                if (model.ShipperId != null) shipmentManual.ShipperId = model.ShipperId.Value;
                 shipmentManual.Province = model.ShipmentCityId;
-                shipmentManual.District = model.ShipmentDistrictId;
+                shipmentManual.District = model.ShipmentDistrictId == "0" ? string.Empty : model.ShipmentDistrictId;
                 shipmentManual.Address = model.ShipmentAddress;
                 shipmentManual.Ward = model.ShipmentWard;
                 shipmentManual.ShipmentNote = model.ShipmentNote;

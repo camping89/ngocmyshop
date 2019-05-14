@@ -10,7 +10,8 @@
     <PackageLicenseUrl></PackageLicenseUrl> 
     <PackageProjectUrl>http://www.nopcommerce.com/</PackageProjectUrl> 
     <RepositoryUrl>https://github.com/nopSolutions/nopCommerce</RepositoryUrl> 
-    <RepositoryType>Git</RepositoryType>
+    <RepositoryType>Git</RepositoryType> 
+    <LangVersion>7.2</LangVersion>
   </PropertyGroup>
   
   <ItemGroup>

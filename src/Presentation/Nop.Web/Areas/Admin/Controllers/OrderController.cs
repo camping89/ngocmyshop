@@ -1587,7 +1587,8 @@ namespace Nop.Web.Areas.Admin.Controllers
                     ShippingFeeStr = _priceFormatter.FormatPrice(shipmentItem.ShippingFee, true, primaryStoreCurrency,
                         _workContext.WorkingLanguage, true, false),
                     OrderItemFee = _priceFormatter.FormatPrice(orderItem.PriceInclTax, true, primaryStoreCurrency,
-                        _workContext.WorkingLanguage, true, false)
+                        _workContext.WorkingLanguage, true, false),
+                    VendorName = orderItem.Product.Vendor != null ? orderItem.Product.Vendor.Name : string.Empty
                 };
 
                 //picture
@@ -1650,7 +1651,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 //    _workContext.WorkingLanguage, true, false),
                 TotalShippingFee = shipment.TotalShippingFee,
                 BagId = shipment.BagId,
-                ShipmentAddress = shipment.Address,
+                ShipmentAddress = Core.Extensions.StringExtensions.IsNotNullOrEmpty(shipment.Address) ? shipment.Address : "Chưa xác định",
                 ShipmentCity = Core.Extensions.StringExtensions.IsNotNullOrEmpty(shipment.Province) ? shipment.Province : "Chưa xác định",
                 ShipmentCityId = Core.Extensions.StringExtensions.IsNotNullOrEmpty(shipment.Province) ? shipment.Province : "0",
                 ShipmentDistrict = Core.Extensions.StringExtensions.IsNotNullOrEmpty(shipment.District) ? shipment.District : "Chưa xác định",
@@ -4354,6 +4355,11 @@ namespace Nop.Web.Areas.Admin.Controllers
                         shelf.CustomerId = customerId;
                         shelf.IsCustomerNotified = false;
                         shelf.ShelfNoteStatus = ShelfNoteStatus.NoReply;
+                        if (shelf.CustomerId != customerId)
+                        {
+                            shelf.ShippedDate = null;
+                            shelf.UpdatedNoteDate = null;
+                        }
                         _shelfService.UpdateShelf(shelf);
 
                         var shelfOrderItem = _shelfService.GetShelfOrderItemByOrderItemId(orderItem.Id);
@@ -4361,6 +4367,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                         {
                             shelfOrderItem.ShelfId = shelf.Id;
                             _shelfService.UpdateShelfOrderItem(shelfOrderItem);
+
                         }
                         else
                         {
@@ -4391,6 +4398,9 @@ namespace Nop.Web.Areas.Admin.Controllers
                                     }
                                 }
                             }
+
+                            shelf.ShippedDate = null;
+                            _shelfService.UpdateShelf(shelf);
                         }
                     }
                     else
@@ -5647,6 +5657,38 @@ namespace Nop.Web.Areas.Admin.Controllers
                 _pdfService.PrintPackagingSlipsItemsToPdf(stream, shipments.OrderBy(s => s.Id).ToList(), _orderSettings.GeneratePdfInvoiceInCustomerLanguage ? 0 : _workContext.WorkingLanguage.Id);
                 bytes = stream.ToArray();
             }
+            return File(bytes, MimeTypes.ApplicationPdf, $"shipments-summary-selected-{DateTime.Now:ddMMyyyyHHmmss}.pdf");
+        }
+
+        [HttpPost]
+        public virtual IActionResult PdfShipmentManualsSelected(string selectedIds)
+        {
+            if (!_permissionService.Authorize(StandardPermissionProvider.ManageOrders))
+                return AccessDeniedView();
+
+            var shipments = new List<ShipmentManual>();
+            if (selectedIds != null)
+            {
+                var ids = selectedIds
+                    .Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
+                    .Select(x => Convert.ToInt32(x))
+                    .ToArray();
+                shipments.AddRange(_shipmentManualService.GetShipmentsManualByIds(ids));
+            }
+
+            //ensure that we at least one shipment selected
+            if (!shipments.Any())
+            {
+                ErrorNotification(_localizationService.GetResource("Admin.Orders.Shipments.NoShipmentsSelected"));
+                return RedirectToAction("ShipmentManualList");
+            }
+
+            byte[] bytes;
+            using (var stream = new MemoryStream())
+            {
+                _pdfService.PrintShipmentsToPdf(stream, shipments.OrderBy(s => s.Id).ToList(), _orderSettings.GeneratePdfInvoiceInCustomerLanguage ? 0 : _workContext.WorkingLanguage.Id);
+                bytes = stream.ToArray();
+            }
             return File(bytes, MimeTypes.ApplicationPdf, $"shipments-selected-{DateTime.Now:ddMMyyyyHHmmss}.pdf");
         }
 
@@ -5843,11 +5885,6 @@ namespace Nop.Web.Areas.Admin.Controllers
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageOrders))
                 return AccessDeniedKendoGridJson();
 
-            var startDateValue = (model.StartDate == null) ? null
-                            : (DateTime?)_dateTimeHelper.ConvertToUtcTime(model.StartDate.Value, _dateTimeHelper.CurrentTimeZone);
-
-            var endDateValue = (model.EndDate == null) ? null
-                            : (DateTime?)_dateTimeHelper.ConvertToUtcTime(model.EndDate.Value, _dateTimeHelper.CurrentTimeZone).AddDays(1);
 
             //a vendor should have access only to his products
             var vendorId = 0;
@@ -5855,7 +5892,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 vendorId = _workContext.CurrentVendor.Id;
 
             //load shipments
-            var shipments = _shipmentManualService.GetAllShipmentsManual(vendorId: vendorId,
+            var shipments = _shipmentManualService.GetAllShipmentsManual(shipmentId: model.ShipmentId, vendorId: vendorId,
                 shippingCountryId: model.CountryId,
                 shippingStateId: model.StateProvinceId,
                 shippingCity: model.City,
@@ -5863,12 +5900,16 @@ namespace Nop.Web.Areas.Admin.Controllers
                 trackingNumber: model.TrackingNumber,
                 loadNotShipped: model.LoadNotShipped,
                 exceptCity: model.ExceptCity,
-                createdFromUtc: startDateValue,
-                createdToUtc: endDateValue,
+                createdFromUtc: model.StartDate,
+                createdToUtc: model.EndDate,
                 pageIndex: command.Page - 1,
                 pageSize: command.PageSize,
                 orderItemId: model.OrderItemId,
-                phoneShipperNumber: model.ShipperPhoneNumber, shipperId: model.SearchShipperId);
+                phoneShipperNumber: model.ShipperPhoneNumber,
+                shipperId: model.SearchShipperId,
+                customerId: model.CustomerId,
+                isNotSetShippedDate: model.IsNotSetShippedDate,
+                isAddressEmpty: model.IsAddressEmpty);
 
             var gridModel = new DataSourceResult
             {
@@ -6626,12 +6667,6 @@ namespace Nop.Web.Areas.Admin.Controllers
         [HttpPost]
         public IActionResult ListOrderItemsVendorCheckout(OrderItemExportVendorModel model, DataSourceRequest command)
         {
-            // Create new stopwatch.
-            Stopwatch stopwatch = new Stopwatch();
-
-            // Begin timing.
-            stopwatch.Start();
-
             if (!_permissionService.Authorize(StandardPermissionProvider.OrderCountryReport))
                 return AccessDeniedView();
             var primaryStoreCurrency = _currencyService.GetCurrencyById(_currencySettings.PrimaryStoreCurrencyId);
@@ -6756,12 +6791,9 @@ namespace Nop.Web.Areas.Admin.Controllers
                     return orderItemModel;
                 }),
                 Total = orderItems.TotalCount,
-                TotalIds = orderItems.TotalIds
+                //TotalIds = orderItems.TotalIds
             };
 
-            // Stop timing.
-            stopwatch.Stop();
-            var x = stopwatch.Elapsed;
             return Json(gridModel);
         }
 

@@ -13,7 +13,7 @@ namespace Nop.Services.Shipping
         void DeleteShipmentManual(ShipmentManual shipmentManual);
 
 
-        IPagedList<ShipmentManual> GetAllShipmentsManual(int vendorId = 0,
+        IPagedList<ShipmentManual> GetAllShipmentsManual(int shipmentId = 0, int vendorId = 0,
             int shippingCountryId = 0,
             int shippingStateId = 0,
             string shippingCity = null,
@@ -22,7 +22,11 @@ namespace Nop.Services.Shipping
             bool loadNotShipped = false,
             bool exceptCity = false,
             DateTime? createdFromUtc = null, DateTime? createdToUtc = null,
-            int pageIndex = 0, int pageSize = int.MaxValue, int orderItemId = 0, string phoneShipperNumber = null, int shipperId = 0);
+            int pageIndex = 0, int pageSize = int.MaxValue,
+            int orderItemId = 0, string phoneShipperNumber = null,
+            int shipperId = 0, int customerId = 0,
+            bool isNotSetShippedDate = false,
+            bool isAddressEmpty = false);
 
         IList<ShipmentManual> GetShipmentsManualByIds(int[] shipmentManualIds);
 

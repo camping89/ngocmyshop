@@ -10,6 +10,7 @@
     				<Authors>Nop Solutions, Ltd</Authors>
     				<Company>Nop Solutions, Ltd</Company>
     				<Description>The project contains a set of classes for testing of Nop.Data</Description>
+    				<LangVersion>7.2</LangVersion>
   			</PropertyGroup>
   			<ItemGroup>
   			  <ProjectReference Include="..\..\Libraries\Nop.Data\Nop.Data.csproj" />

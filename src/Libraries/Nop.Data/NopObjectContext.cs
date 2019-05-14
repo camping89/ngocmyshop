@@ -1,3 +1,5 @@
+using Nop.Core;
+using Nop.Data.Mapping;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -6,8 +8,6 @@ using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
 using System.Linq;
 using System.Reflection;
-using Nop.Core;
-using Nop.Data.Mapping;
 
 namespace Nop.Data
 {
@@ -25,7 +25,7 @@ namespace Nop.Data
         public NopObjectContext(string nameOrConnectionString)
             : base(nameOrConnectionString)
         {
-            //((IObjectContextAdapter) this).ObjectContext.ContextOptions.LazyLoadingEnabled = true;
+            //((IObjectContextAdapter)this).ObjectContext.ContextOptions.LazyLoadingEnabled = false;
         }
 
         #endregion
@@ -101,7 +101,7 @@ namespace Nop.Data
         {
             return base.Set<TEntity>();
         }
-        
+
         /// <summary>
         /// Execute stores procedure and load a list of entities at the end
         /// </summary>
@@ -161,7 +161,7 @@ namespace Nop.Data
         {
             return Database.SqlQuery<TElement>(sql, parameters);
         }
-    
+
         /// <summary>
         /// Executes the given DDL/DML command against the database.
         /// </summary>
@@ -176,8 +176,8 @@ namespace Nop.Data
             if (timeout.HasValue)
             {
                 //store previous timeout
-                previousTimeout = ((IObjectContextAdapter) this).ObjectContext.CommandTimeout;
-                ((IObjectContextAdapter) this).ObjectContext.CommandTimeout = timeout;
+                previousTimeout = ((IObjectContextAdapter)this).ObjectContext.CommandTimeout;
+                ((IObjectContextAdapter)this).ObjectContext.CommandTimeout = timeout;
             }
 
             var transactionalBehavior = doNotEnsureTransaction
@@ -188,7 +188,7 @@ namespace Nop.Data
             if (timeout.HasValue)
             {
                 //Set previous timeout back
-                ((IObjectContextAdapter) this).ObjectContext.CommandTimeout = previousTimeout;
+                ((IObjectContextAdapter)this).ObjectContext.CommandTimeout = previousTimeout;
             }
 
             //return result

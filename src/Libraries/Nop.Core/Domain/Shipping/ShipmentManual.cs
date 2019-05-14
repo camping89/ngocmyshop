@@ -51,7 +51,7 @@ namespace Nop.Core.Domain.Shipping
 
         public string BagId { get; set; }
 
-        public int? ShipperId { get; set; }
+        public int ShipperId { get; set; }
 
         public virtual Customer Shipper { get; set; }
         public int CustomerId { get; set; }

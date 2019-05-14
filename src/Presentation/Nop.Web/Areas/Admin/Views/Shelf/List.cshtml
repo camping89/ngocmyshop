@@ -47,31 +47,12 @@
                                     <nop-label asp-for="CustomerId" />
                                 </div>
                                 <div class="col-md-8">
-                                    <input style="float: left;" type="text" name="CustomerName" id="CustomerName" class="form-control" placeholder="@(T("Admin.Common.PleaseInputSearchData"))" value="" />
-                                </div>
-
-                            </div>
-                            <div class="form-group">
-                                <div class="col-md-4">
-                                    <nop-label asp-for="CustomerPhone" />
-                                </div>
-                                <div class="col-md-8">
-                                    <input style="float: left;" type="text" name="CustomerPhone" id="CustomerPhone" class="form-control" placeholder="@(T("Admin.Common.PleaseInputSearchData"))" value="@Model.CustomerPhone" />
-                                </div>
-                            </div>
-                            <div class="form-group">
-
-
-                                <div class="col-md-4">
-                                    <nop-label asp-for="CustomerFacebook" />
-                                </div>
-                                <div class="col-md-8">
-                                    <input style="float: left;" type="text" name="CustomerFacebook" id="CustomerFacebook" class="form-control" placeholder="@(T("Admin.Common.PleaseInputSearchData"))" value="@Model.CustomerFacebook" />
+                                    <input style="float: left;" type="text" name="CustomerNameOrPhone" id="CustomerNameOrPhone" class="form-control" placeholder="@(T("Admin.Common.PleaseInputSearchData"))" value="" />
                                 </div>
                                 <script>
 
                                 $(document).ready(function() {
-                                    $("#CustomerName").autocomplete({
+                                    $("#CustomerNameOrPhone").autocomplete({
                                         delay: 800,
                                         source: function(request, response) {
 
@@ -83,7 +64,7 @@
                                             $.ajax({
                                                 cache: false,
                                                 type: "POST",
-                                                url: "@(Url.Action("CustomerSearch", "Customer"))",
+                                                url: "@(Url.Action("CustomerSearchPhoneAndFullName", "Customer"))",
                                                 data: postData,
                                                 complete: function(result) {
                                                     response($.map(result.responseJSON.Data,
@@ -120,121 +101,10 @@
                                             $(this).removeClass('ajaxprocessing');
                                         }
                                     });
-
-                                     $("#CustomerPhone").autocomplete({
-                                        delay: 800,
-                                        source: function(request, response) {
-
-                                            var postData = {
-                                                searchTerm: request.term
-                                            };
-                                            addAntiForgeryToken(postData);
-
-                                            $.ajax({
-                                                cache: false,
-                                                type: "POST",
-                                                url: "@(Url.Action("CustomerSearchPhone", "Customer"))",
-                                                data: postData,
-                                                complete: function(result) {
-                                                    response($.map(result.responseJSON.Data,
-                                                        function(item) {
-                                                            return {
-                                                                label: item.FullName,
-                                                                value: item.Id
-                                                            }
-                                                        }));
-                                                },
-                                                error: function(xhr, ajaxOptions, thrownError) {
-                                                    alert(thrownError);
-                                                },
-                                                traditional: true
-                                            });
-                                        },
-                                        minLength: 2,
-                                        select: function(event, ui) {
-                                            $('#CustomerId').val(ui.item.value);
-                                            this.value = ui.item.label;
-                                            //setTimeout(function() {
-
-                                            //},500);
-                                            return false;
-                                        },
-                                        focus: function(event, ui) {
-                                            event.preventDefault();
-                                            this.value = ui.item.label;
-                                        },
-                                        search: function(e, u) {
-                                            $(this).addClass('ajaxprocessing');
-                                        },
-                                        response: function(event, ui) {
-                                            $(this).removeClass('ajaxprocessing');
-                                        }
-                                    });
-
-                                        $("#CustomerFacebook").autocomplete({
-                                        delay: 800,
-                                        source: function(request, response) {
-
-                                            var postData = {
-                                                searchTerm: request.term
-                                            };
-                                            addAntiForgeryToken(postData);
-
-                                            $.ajax({
-                                                cache: false,
-                                                type: "POST",
-                                                url: "@(Url.Action("CustomerSearchFacebook", "Customer"))",
-                                                data: postData,
-                                                complete: function(result) {
-                                                    response($.map(result.responseJSON.Data,
-                                                        function(item) {
-                                                            return {
-                                                                label: item.FullName,
-                                                                value: item.Id
-                                                            }
-                                                        }));
-                                                },
-                                                error: function(xhr, ajaxOptions, thrownError) {
-                                                    alert(thrownError);
-                                                },
-                                                traditional: true
-                                            });
-                                        },
-                                        minLength: 2,
-                                        select: function(event, ui) {
-                                            $('#CustomerId').val(ui.item.value);
-                                            this.value = ui.item.label;
-                                            //setTimeout(function() {
-
-                                            //},500);
-                                            return false;
-                                        },
-                                        focus: function(event, ui) {
-                                            event.preventDefault();
-                                            this.value = ui.item.label;
-                                        },
-                                        search: function(e, u) {
-                                            $(this).addClass('ajaxprocessing');
-                                        },
-                                        response: function(event, ui) {
-                                            $(this).removeClass('ajaxprocessing');
-                                        }
-                                    });
-
-
-
-
-                                    $('#btnCreateOrder').click(function() {
-                                        if ($('#CustomerId').val() === '' || $('#CustomerId').val() === null) {
-                                            alert('@T("Admin.CreateOrder.AlertChooseCustomer")');
-                                            return;
-                                        }
-                                        window.location.href = "@Url.Action("CreateOrder", "ShoppingCart")?customerId=" +
-                                            $('#CustomerId').val();
-                                    });
-                                })
+                                });
 
                                 </script>
+
                             </div>
 
                             <div class="form-group">
@@ -701,7 +571,7 @@
                                 var $target = $(e.target);
                                 // if you have links or other things in your rows that you don't want to
                                 // trigger the detail row expansion, use an if statement to ignore them.
-                                if (!$target.hasClass("sample-link")){
+                                if (!$target.hasClass("sample-link")) {
                                     var $this = $(this);
                                     var $link = $this.find(".k-icon");
                                     $link.click();
@@ -717,24 +587,34 @@
                             });
 
                             function editCustomerId(container, options) {
-                                var jsonCustomers =
-                                    jQuery.parseJSON(
-                                        '@Json.Serialize(Model.Customers.Select(_ => new {CustomerId = _.Value, CustomerName = _.Text}))');
+
                                 var hasOrderItem = options.model.HasOrderItem;
                                 if (hasOrderItem) {
-                                    $('<input readonly id="CustomerNameEditor" data-text-field="CustomerName" data-value-field="' +
-                                        options.field +
-                                        '" data-bind="value:' +
-                                        options.field +
-                                        '" />')
-                                        .appendTo(container)
-                                        .kendoDropDownList({
-                                            autoBind: true,
-                                            dataTextField: "CustomerName",
-                                            dataValueField: "CustomerId",
-                                            dataSource: jsonCustomers,
-                                            filter: "contains"
-                                        });
+
+                                    $.ajax({
+                                        cache: false,
+                                        type: "POST",
+                                        url: "@Url.Action("CustomerAssignedShelf", "Shelf")",
+                                        data: addAntiForgeryToken({ customerId: options.model.CustomerId }),
+                                        complete: function(result) {
+
+                                            $('<input readonly id="CustomerNameEditor" data-text-field="CustomerName" data-value-field="' +
+                                                    options.field +
+                                                    '" data-bind="value:' +
+                                                    options.field +
+                                                    '" />')
+                                                .appendTo(container).kendoDropDownList({
+                                                    autoBind: true,
+                                                    dataTextField: "CustomerName",
+                                                    dataValueField: "CustomerId",
+                                                    dataSource: result.responseJSON.Data
+                                                });;
+                                        },
+                                        error: function(xhr, ajaxOptions, thrownError) {
+                                            alert(thrownError);
+                                        },
+                                        traditional: true
+                                    });
                                 } else {
                                     $('<input id="CustomerNameEditor" data-text-field="CustomerName" data-value-field="' +
                                             options.field +
@@ -743,10 +623,30 @@
                                             '" />')
                                         .appendTo(container)
                                         .kendoDropDownList({
-                                            autoBind: true,
+                                            filtering: function (e) {
+
+                                                var filter = e.filter;
+
+                                                if (!filter.value) {
+                                                    //prevent filtering if the filter does not value
+                                                    e.preventDefault();
+                                                }
+                                            },
+                                            autoBind: false,
+                                            enforceMinLength: true,
                                             dataTextField: "CustomerName",
                                             dataValueField: "CustomerId",
-                                            dataSource: jsonCustomers,
+                                            dataSource: {
+                                                serverFiltering: true,
+                                                transport: {
+                                                    read: {
+                                                        type: "GET",
+                                                        url: "@(Url.Action("CustomerFilterPhoneAndFullName", "Customer"))",
+                                                        dataType: "json"
+                                                    }
+                                                }
+                                            },
+                                            minLength: 3,
                                             filter: "contains"
                                         });
                                 }
@@ -886,8 +786,10 @@
                                         }, {
                                             field: "ProductName",
                                             title: "@T("Admin.Orders.Products.ProductName")",
-                                            template: 'Product name: #=ProductName#' +
-                                                '<p>#=AttributeInfo#</p>' ,
+                                            template: '@T("Admin.Products.ProductName") #=ProductName#'+
+                                                '<p>#=AttributeInfo#</p>' +
+                                                '<p>@T("Admin.Common.Vendor") #=VendorName#</p>' +
+                                                '<p>@T("Admin.Products.Sku") #=Sku#</p>',
                                             width: 250
                                         }, {
                                             field: "Quantity",
@@ -1068,6 +970,7 @@
                                 $('#@Html.IdFor(model => model.ShipTodayFilter)').prop('checked', false);
                                 $('#@Html.IdFor(model => model.IsCustomerNotified)').val(0);
                                 $('#@Html.IdFor(model => model.ShelfNoteId)').val(0);
+                                $('#CustomerNameOrPhone').val('');
                                 //$('#@Html.IdFor(model => model.IsPackageItemProcessedDatetime)').val(0);
                                 $("#search-shelf").click();
                             });

@@ -331,7 +331,7 @@
                                                 pageSize: @(defaultGridPageSize),
                                                 serverPaging: true,
                                                 serverFiltering: true,
-                                                serverSorting: true
+                                                //serverSorting: true
                                             },
                                             edit: grid_edit,
                                             editable: {
@@ -383,7 +383,7 @@
                                                 }, {
                                                     field: "OrderId",
                                                     title: "@T("Admin.Orders.ShelfOrderItemId")",
-                                                    width: 80,
+                                                    width: 120,
                                                     template: "#=OrderId#.#=Id#"
                                                 }, {
                                                     field: "CreatedDate",
@@ -391,7 +391,6 @@
                                                     width: 80,
                                                     type: "date",
                                                     //format: "{0:G}",
-                                                    sortable: true,
                                                     template: "# if (CreatedDate != null) { #" +
                                                         "<p>#= kendo.toString(kendo.parseDate(CreatedDate, 'yyyy-MM-dd'), 'dd/MM/yyyy') #</p>" +
                                                         "#} else {#" +
@@ -429,9 +428,9 @@
                                                 }, {
                                                     field: "ProductName",
                                                     title: "@T("Admin.Orders.Products.ProductName")",
-                                                    template: '<p>@T("Admin.Common.Vendor") #=VendorName#</p>' +
+                                                    template: '@T("Admin.Products.ProductName") #=ProductName#'+
                                                         '<p>#=AttributeInfo#</p>' +
-                                                        '@T("Admin.Products.ProductName") #=ProductName#' +
+                                                        '<p>@T("Admin.Common.Vendor") #=VendorName#</p>' +
                                                         '<p>@T("Admin.Products.Sku") #=Sku#</p>',
                                                     width: 250
                                                 }, {
@@ -593,13 +592,10 @@
                                             $("input[name=ItemWeight]").on('input', function () {
                                                 $('input[name=WeightCostDec]').prop('readonly', false);
                                                 var itemWeight = parseFloat($(this).val());
-                                                if (itemWeight > 0) {
-                                                    var unitWeightCost = $("input[name=UnitWeightCost]").val();
-                                                    var weightCostDec = parseFloat(unitWeightCost) * itemWeight;
-                                                    //need trigger change update data to model
-                                                    weightCostElement.val(weightCostDec).change();
-                                                }
-
+                                                var unitWeightCost = $("input[name=UnitWeightCost]").val();
+                                                var weightCostDec = parseFloat(unitWeightCost) * itemWeight;
+                                                //need trigger change update data to model
+                                                weightCostElement.val(weightCostDec).change();
                                                 $('input[name=WeightCostDec]').prop('readonly', true);
                                             });
 

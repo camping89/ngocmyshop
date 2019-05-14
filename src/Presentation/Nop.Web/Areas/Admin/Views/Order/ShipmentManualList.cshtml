@@ -20,6 +20,29 @@
         </h1>
         <div class="pull-right">
             <div class="btn-group">
+                <button type="button" class="btn btn bg-orange">
+                    <i class="fa fa-file-pdf-o"></i>
+                    @T("Admin.Orders.Shipments.PrintShipments")
+                </button>
+                <button type="button" class="btn btn bg-orange dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+                    <span class="caret"></span>
+                    <span class="sr-only">&nbsp;</span>
+                </button>
+                <ul class="dropdown-menu" role="menu">
+                    <li>
+                        <button type="button" id="export-pdf-shipments-selected">
+                            @T("Admin.Orders.Shipments.PrintShipments.Selected")
+                        </button>
+                    </li>
+                    <li>
+                        <button type="button" id="export-pdf-shipments-all">
+                            @T("Admin.Orders.Shipments.PrintShipments.All")
+                        </button>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="btn-group">
                 <button type="button" class="btn bg-purple">
                     <i class="fa fa-file-pdf-o"></i>
                     @T("Admin.Orders.Shipments.PrintPackagingSlips")
@@ -39,19 +62,19 @@
                             @T("Admin.Orders.Shipments.PrintPackagingSlips.All")
                         </button>
                     </li>
-                    <li class="divider"></li>
-                    <li>
-                        <button type="button" id="exportexcel-all">
-                            <i class="fa fa-file-excel-o"></i>
-                            @T("Admin.Common.ExportToExcel.All")
-                        </button>
-                    </li>
-                    <li>
-                        <button type="button" id="exportexcel-selected">
-                            <i class="fa fa-file-excel-o"></i>
-                            @T("Admin.Common.ExportToExcel.Selected")
-                        </button>
-                    </li>
+                    @*<li class="divider"></li>
+                        <li>
+                            <button type="button" id="exportexcel-all">
+                                <i class="fa fa-file-excel-o"></i>
+                                @T("Admin.Common.ExportToExcel.All")
+                            </button>
+                        </li>
+                        <li>
+                            <button type="button" id="exportexcel-selected">
+                                <i class="fa fa-file-excel-o"></i>
+                                @T("Admin.Common.ExportToExcel.Selected")
+                            </button>
+                        </li>*@
                 </ul>
             </div>
 
@@ -81,6 +104,14 @@
                     <div class="panel-body">
                         <div class="row">
                             <div class="col-md-5">
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <nop-label asp-for="ShipmentId" />
+                                    </div>
+                                    <div class="col-md-8">
+                                        <nop-editor asp-for="ShipmentId" />
+                                    </div>
+                                </div>
                                 <div class="form-group">
                                     <div class="col-md-4">
                                         <nop-label asp-for="SearchShipperId" />
@@ -130,11 +161,68 @@
                                                 },
                                                 minLength: 2,
                                                 select: function(event, ui) {
-                                                    $('#CustomerId').val(ui.item.value);
                                                     this.value = ui.item.value;
-                                                    //setTimeout(function() {
+                                                    return false;
+                                                },
+                                                focus: function(event, ui) {
+                                                    event.preventDefault();
+                                                    this.value = ui.item.value;
+                                                },
+                                                search: function(e, u) {
+                                                    $(this).addClass('ajaxprocessing');
+                                                },
+                                                response: function(event, ui) {
+                                                    $(this).removeClass('ajaxprocessing');
+                                                }
+                                            });
 
-                                                    //},500);
+                                        });
+                                    </script>
+                                </div>
+                                <div class="form-group">
+                                    <input type="hidden" name="CustomerId" id="CustomerId" class="form-control" value="@(Model.CustomerId > 0 ? Model.CustomerId.ToString() : string.Empty)" />
+                                    <div class="col-md-4">
+                                        <nop-label asp-for="CustomerId" />
+                                    </div>
+                                    <div class="col-md-8">
+                                        <input style="float: left;" type="text" name="CustomerNameOrPhone" id="CustomerNameOrPhone" class="form-control" placeholder="@(T("Admin.Common.PleaseInputSearchData"))" value="" />
+                                    </div>
+                                    <script>
+                                        $(document).ready(function() {
+                                            $("#CustomerNameOrPhone").autocomplete({
+                                                delay: 800,
+                                                source: function(request, response) {
+
+                                                    var postData = {
+                                                        searchTerm: request.term
+                                                    };
+                                                    addAntiForgeryToken(postData);
+
+                                                    $.ajax({
+                                                        cache: false,
+                                                        type: "POST",
+                                                        url:
+                                                            "@(Url.Action("CustomerSearchPhoneAndFullName", "Customer"))",
+                                                        data: postData,
+                                                        complete: function(result) {
+                                                            response($.map(result.responseJSON.Data,
+                                                                function(item) {
+                                                                    return {
+                                                                        label: item.FullName,
+                                                                        value: item.Id
+                                                                    }
+                                                                }));
+                                                        },
+                                                        error: function(xhr, ajaxOptions, thrownError) {
+                                                            alert(thrownError);
+                                                        },
+                                                        traditional: true
+                                                    });
+                                                },
+                                                minLength: 2,
+                                                select: function(event, ui) {
+                                                    $("#CustomerId").val(ui.item.value);
+                                                    this.value = ui.item.label;
                                                     return false;
                                                 },
                                                 focus: function(event, ui) {
@@ -177,9 +265,26 @@
                                     </div>
                                 </div>
 
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <nop-label asp-for="IsNotSetShippedDate" />
+                                    </div>
+                                    <div class="col-md-8">
+                                        <nop-editor asp-for="IsNotSetShippedDate" />
+                                    </div>
+                                </div>
+
                             </div>
                             <div class="col-md-7">
 
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <nop-label asp-for="IsAddressEmpty" />
+                                    </div>
+                                    <div class="col-md-8">
+                                        <nop-editor asp-for="IsAddressEmpty" />
+                                    </div>
+                                </div>
                                 <div class="form-group">
                                     <div class="col-md-4">
                                         <nop-label asp-for="LoadNotShipped" />
@@ -647,12 +752,18 @@
                                             field: "OrderItemNumber",
                                             title: "@T("Admin.Orders.Shipments.Products.OrderItemNumber")",
                                             width: 50
-                                        },{
+                                        }, {
                                             field: "ImageUrl",
+                                            title: "@T("Admin.Orders.Products.Picture")",
+                                            template: '<img src="#=ImageUrl#" />',
+                                            width: 100
+                                        },{
+                                            field: "ProductName",
                                             title: "@T("Admin.Orders.Shipments.Products.ProductName")",
-                                            template: '<p>#=ProductName#</p>' +
-                                                '<p><b>Sku: #=Sku#</b></p>' +
-                                                '<img src="#=ImageUrl#" />',
+                                            template: '@T("Admin.Products.ProductName") #=ProductName#'+
+                                                '<p>#=AttributeInfo#</p>' +
+                                                '<p>@T("Admin.Common.Vendor") #=VendorName#</p>' +
+                                                '<p>@T("Admin.Products.Sku") #=Sku#</p>',
                                             width: 400
                                         }, {
                                             field: "OrderItemFee",
@@ -780,6 +891,7 @@
                         });
 
                         $("#clear-filter").click(function() {
+                            $('#@Html.IdFor(model => model.ShipmentId)').val('');
                             $('#@Html.IdFor(model => model.ShipperPhoneNumber)').val('');
                             $('#@Html.IdFor(model => model.StartDate)').val('');
                             $('#@Html.IdFor(model => model.EndDate)').val('');
@@ -794,7 +906,12 @@
                             $('#@Html.IdFor(model => model.District)').trigger("chosen:updated");
                             $('#@Html.IdFor(model => model.LoadNotShipped)').prop('checked', false);
                             $('#@Html.IdFor(model => model.ExceptCity)').prop('checked', false);
+                            $('#@Html.IdFor(model => model.ExceptCity)').prop('checked', false);
+                            $('#@Html.IdFor(model => model.IsNotSetShippedDate)').prop('checked', false);
+                            $('#@Html.IdFor(model => model.IsAddressEmpty)').prop('checked', false);
                             $('#@Html.IdFor(model => model.OrderId)').val('');
+                            $('#@Html.IdFor(model => model.CustomerId)').val('');
+                            $('#CustomerNameOrPhone').val('');
 
                             $("#search-shipments").click();
                         });
@@ -955,7 +1072,9 @@
                         var endDate = kendo.toString(kendo.parseDate($('#@Html.IdFor(model => model.EndDate)').val(), 'dd/MM/yyyy HH:mm tt'), 'MM/dd/yyyy HH:mm tt');
 
                         var data = {
+                            ShipmentId: $('#@Html.IdFor(model => model.ShipmentId)').val(),
                             SearchShipperId: $('#@Html.IdFor(model => model.SearchShipperId)').val(),
+                            CustomerId: $('#@Html.IdFor(model => model.CustomerId)').val(),
                             ShipperPhoneNumber: $('#@Html.IdFor(model => model.ShipperPhoneNumber)').val(),
                             StartDate: startDate,
                             EndDate: endDate,
@@ -967,6 +1086,8 @@
                             WarehouseId: $('#@Html.IdFor(model => model.WarehouseId)').val(),
                             LoadNotShipped: $('#@Html.IdFor(model => model.LoadNotShipped)').is(':checked'),
                             ExceptCity: $('#@Html.IdFor(model => model.ExceptCity)').is(':checked'),
+                            IsNotSetShippedDate: $('#@Html.IdFor(model => model.IsNotSetShippedDate)').is(':checked'),
+                            IsAddressEmpty: $('#@Html.IdFor(model => model.IsAddressEmpty)').is(':checked'),
                             OrderId: $('#@Html.IdFor(model => model.OrderId)').val()
                         };
                         addAntiForgeryToken(data);
@@ -1039,6 +1160,38 @@
             var ids = totalIds.join(",");
             $('#pdf-packaging-slip-all-form .selectedIds').val(ids);
             $('#pdf-packaging-slip-all-form').submit();
+            return false;
+        });
+    });
+</script>
+
+<form asp-controller="Order" asp-action="PdfShipmentManualsSelected" method="post" id="pdf-shipments-selected-form">
+    <input type="hidden" class="selectedIds" name="selectedIds" value="" />
+</form>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('#export-pdf-shipments-selected').click(function (e) {
+            e.preventDefault();
+            var ids = selectedIds.join(",");
+            $('#pdf-shipments-selected-form .selectedIds').val(ids);
+            $('#pdf-shipments-selected-form').submit();
+            return false;
+        });
+    });
+</script>
+
+<form asp-controller="Order" asp-action="PdfShipmentManualsSelected" method="post" id="pdf-shipments-all-form">
+    <input type="hidden" class="selectedIds" name="selectedIds" value="" />
+</form>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('#export-pdf-shipments-all').click(function (e) {
+            e.preventDefault();
+            var ids = totalIds.join(",");
+            $('#pdf-shipments-all-form .selectedIds').val(ids);
+            $('#pdf-shipments-all-form').submit();
             return false;
         });
     });

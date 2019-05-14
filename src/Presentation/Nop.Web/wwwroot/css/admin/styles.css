@@ -3617,3 +3617,7 @@ span.grid-report-item.red {
 .k-input[readonly] {
     background: #d1d1d1 !important;
 }
+
+p {
+    margin: 0 0 0px !important;
+}

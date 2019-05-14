@@ -679,9 +679,9 @@
                                         }, {
                                             field: "ProductName",
                                             title: "@T("Admin.Orders.Products.ProductName")",
-                                            template: '<p>@T("Admin.Common.Vendor") #=VendorName#</p>' +
+                                            template: '@T("Admin.Products.ProductName") #=ProductName#'+
                                                 '<p>#=AttributeInfo#</p>' +
-                                                '@T("Admin.Products.ProductName") #=ProductName#' +
+                                                '<p>@T("Admin.Common.Vendor") #=VendorName#</p>' +
                                                 '<p>@T("Admin.Products.Sku") #=Sku#</p>',
                                             width: 250
                                         }, {

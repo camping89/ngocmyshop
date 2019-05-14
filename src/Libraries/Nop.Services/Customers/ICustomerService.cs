@@ -59,6 +59,8 @@ namespace Nop.Services.Customers
             int[] customerRoleIds, int pageIndex = 0, int pageSize = int.MaxValue);
 
 
+        List<Customer> SearchCustomersPhoneOrName(string phone = null, string fullName = null, int[] customerRoleIds = null);
+
         List<Customer> SearchCustomers(string phone = null, string email = null, string linkFacebook = null, string username = null,
             string fullName = null);
         /// <summary>

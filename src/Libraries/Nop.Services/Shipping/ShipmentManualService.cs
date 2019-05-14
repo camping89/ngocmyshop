@@ -1,4 +1,4 @@
-using Nop.Core;
+﻿using Nop.Core;
 using Nop.Core.Data;
 using Nop.Core.Domain.Common;
 using Nop.Core.Domain.Customers;
@@ -76,8 +76,9 @@ namespace Nop.Services.Shipping
         /// <param name="orderItemId"></param>
         /// <param name="phoneShipperNumber"></param>
         /// <param name="shipperId"></param>
+        /// <param name="customerId"></param>
         /// <returns>Shipments</returns>
-        public virtual IPagedList<ShipmentManual> GetAllShipmentsManual(int vendorId = 0,
+        public virtual IPagedList<ShipmentManual> GetAllShipmentsManual(int shipmentId = 0, int vendorId = 0,
             int shippingCountryId = 0,
             int shippingStateId = 0,
             string shippingCity = null,
@@ -86,19 +87,39 @@ namespace Nop.Services.Shipping
             bool loadNotShipped = false,
             bool exceptCity = false,
             DateTime? createdFromUtc = null, DateTime? createdToUtc = null,
-            int pageIndex = 0, int pageSize = int.MaxValue, int orderItemId = 0, string phoneShipperNumber = null,int shipperId = 0)
+            int pageIndex = 0, int pageSize = int.MaxValue,
+            int orderItemId = 0, string phoneShipperNumber = null,
+            int shipperId = 0, int customerId = 0,
+            bool isNotSetShippedDate = false,
+            bool isAddressEmpty = false)
         {
             var query = _shipmentManualRepository.Table;
+            if (shipmentId > 0)
+            {
+                query = query.Where(_ => _.Id == shipmentId);
+            }
             if (!string.IsNullOrEmpty(trackingNumber))
                 query = query.Where(s => s.TrackingNumber.Contains(trackingNumber));
-
+            if (isNotSetShippedDate)
+            {
+                query = query.Where(_ => _.ShippedDateUtc == null);
+            }
+            if (isAddressEmpty)
+            {
+                query = query.Where(_ => _.Address == null || _.Address == string.Empty || _.Address == @"Chưa xác định");
+            }
             if (shipperId > 0)
             {
-                query = query.Where(_ => _.ShipperId != null && _.ShipperId == shipperId);
+                query = query.Where(_ => _.ShipperId == shipperId);
             }
             else if (shipperId == -1)
             {
-                query = query.Where(_ => _.ShipperId == null || _.ShipperId == 0);
+                query = query.Where(_ => _.ShipperId == 0);
+            }
+
+            if (customerId > 0)
+            {
+                query = query.Where(_ => _.CustomerId == customerId);
             }
 
             if (!string.IsNullOrWhiteSpace(phoneShipperNumber))

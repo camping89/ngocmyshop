@@ -10,6 +10,7 @@ using Nop.Core.Domain.Media;
 using Nop.Core.Domain.Orders;
 using Nop.Core.Domain.Shipping;
 using Nop.Core.Domain.Tax;
+using Nop.Core.Extensions;
 using Nop.Core.Http.Extensions;
 using Nop.Services.Catalog;
 using Nop.Services.Common;
@@ -464,7 +465,7 @@ namespace Nop.Web.Factories
                 //    }
                 //}
 
-                cartItemModel.SubTotal = _priceFormatter.FormatPrice(sci.CustomerEnteredPrice * sci.Quantity);
+                cartItemModel.SubTotal = _priceFormatter.FormatPrice(DecimalExtensions.RoundCustom(sci.CustomerEnteredPrice * sci.Quantity));
             }
 
             //picture
