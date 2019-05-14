@@ -141,10 +141,10 @@ namespace Nop.Services.Shipping
             if (shippingStateId > 0)
                 query = query.Where(s => s.Customer.ShippingAddress.StateProvinceId == shippingStateId);
             if (!string.IsNullOrWhiteSpace(shippingCity))
-                query = query.Where(s => s.Province.Contains(shippingCity) == !exceptCity);
+                query = query.Where(s => s.Province.Equals(shippingCity) == !exceptCity);
 
             if (!string.IsNullOrWhiteSpace(shippingDistrict))
-                query = query.Where(s => s.District.Contains(shippingDistrict));
+                query = query.Where(s => s.District.Equals(shippingDistrict));
 
             if (loadNotShipped)
                 query = query.Where(s => !s.DeliveryDateUtc.HasValue);

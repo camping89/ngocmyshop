@@ -582,7 +582,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             var shipmentManual = _shipmentManualService.GetShipmentManualById(id);
             if (shipmentManual != null)
             {
-                foreach (var shipmentManualItem in shipmentManual.ShipmentManualItems)
+                foreach (var shipmentManualItem in shipmentManual.ShipmentManualItems.Where(_=>_.OrderItem != null))
                 {
                     //update status order
                     var order = _orderService.GetOrderById(shipmentManualItem.OrderItem.OrderId);

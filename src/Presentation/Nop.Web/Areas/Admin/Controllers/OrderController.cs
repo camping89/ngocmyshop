@@ -1547,7 +1547,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             var baseDimension = _measureService.GetMeasureDimensionById(_measureSettings.BaseDimensionId);
             var baseDimensionIn = baseDimension != null ? baseDimension.Name : "";
             var primaryStoreCurrency = _currencyService.GetCurrencyById(_currencySettings.PrimaryStoreCurrencyId);
-            foreach (var shipmentItem in shipment.ShipmentManualItems)
+            foreach (var shipmentItem in shipment.ShipmentManualItems.Where(_=>_.OrderItem != null))
             {
                 var orderItem = _orderService.GetOrderItemById(shipmentItem.OrderItemId);
                 if (orderItem == null)
@@ -1606,8 +1606,6 @@ namespace Nop.Web.Areas.Admin.Controllers
 
                 results.Add(shipmentItemModel);
             }
-
-
             return results;
         }
         protected virtual ShipmentManualModel PrepareShipmentManualModel(ShipmentManual shipment, bool prepareProducts = false, bool prepareShipmentEvent = false)
@@ -1622,7 +1620,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             shipment.TotalShippingFee = DecimalExtensions.RoundCustom(shipment.TotalShippingFee / 1000) * 1000;
 
             var shelfCode = string.Empty;
-            var shipmentManualItem = shipment.ShipmentManualItems.FirstOrDefault();
+            var shipmentManualItem = shipment.ShipmentManualItems.Where(_=>_.OrderItem != null).FirstOrDefault();
             if (shipmentManualItem != null)
             {
                 var shelfOrderItem = _shelfService.GetShelfOrderItemByOrderItemId(shipmentManualItem.OrderItemId);
@@ -1644,8 +1642,8 @@ namespace Nop.Web.Areas.Admin.Controllers
                 CanDeliver = shipment.ShippedDateUtc.HasValue && !shipment.DeliveryDateUtc.HasValue,
                 AdminComment = shipment.AdminComment,
                 ShipmentNote = shipment.ShipmentNote,
-                Deposit = shipment.ShipmentManualItems.Sum(_ => _.OrderItem.Deposit),
-                DepositStr = _priceFormatter.FormatPrice(shipment.ShipmentManualItems.Sum(_ => _.OrderItem.Deposit)),
+                Deposit = shipment.ShipmentManualItems.Where(s=>s.OrderItem != null).Sum(_ => _.OrderItem.Deposit),
+                DepositStr = _priceFormatter.FormatPrice(shipment.ShipmentManualItems.Where(s => s.OrderItem != null).Sum(_ => _.OrderItem.Deposit)),
                 //CustomOrderNumber = shipment.OrderItem.Order.CustomOrderNumber,
                 //TotalShippingFee = _priceFormatter.FormatPrice(shipment.TotalShippingFee, true, primaryStoreCurrency,
                 //    _workContext.WorkingLanguage, true, false),
@@ -1691,7 +1689,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             }
 
             decimal totalOrderFee = 0;
-            foreach (var shipmentItem in shipment.ShipmentManualItems)
+            foreach (var shipmentItem in shipment.ShipmentManualItems.Where(_=>_.OrderItem != null))
             {
                 totalOrderFee += DecimalExtensions.RoundCustom(shipmentItem.OrderItem.PriceInclTax / 1000) * 1000;
             }
@@ -5612,7 +5610,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 var shipmentManual = shipments.FirstOrDefault();
 
                 var shelfCode = string.Empty;
-                var shipmentManualItem = shipmentManual.ShipmentManualItems.FirstOrDefault();
+                var shipmentManualItem = shipmentManual.ShipmentManualItems.Where(_=>_.OrderItem != null).FirstOrDefault();
                 if (shipmentManualItem != null)
                 {
                     var shelfOrderItem = _shelfService.GetShelfOrderItemByOrderItemId(shipmentManualItem.OrderItemId);
