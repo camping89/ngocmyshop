@@ -27,7 +27,7 @@ namespace Nop.Web.Areas.Admin.Validators.Common
             //    .NotEmpty()
             //    .WithMessage(localizationService.GetResource("Admin.Address.Fields.Company.Required"))
             //    .When(x => x.CompanyEnabled && x.CompanyRequired);
-            
+
             RuleFor(x => x.CountryId)
                 .NotEmpty()
                 .NotEqual(0)
@@ -37,9 +37,9 @@ namespace Nop.Web.Areas.Admin.Validators.Common
                 .NotEmpty()
                 .WithMessage(localizationService.GetResource("Admin.Address.Fields.City.Required"))
                 .When(x => x.CityEnabled && x.CityRequired);
-            RuleFor(x => x.Ward)
-                .NotEmpty()
-                .WithMessage(localizationService.GetResource("Admin.Address.Fields.Ward.Required"));
+            //RuleFor(x => x.Ward)
+            //    .NotEmpty()
+            //    .WithMessage(localizationService.GetResource("Admin.Address.Fields.Ward.Required"));
             RuleFor(x => x.Address1)
                 .NotEmpty()
                 .WithMessage(localizationService.GetResource("Admin.Address.Fields.Address1.Required"))
