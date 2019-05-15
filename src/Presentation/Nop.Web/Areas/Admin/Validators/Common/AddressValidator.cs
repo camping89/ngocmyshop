@@ -37,6 +37,9 @@ namespace Nop.Web.Areas.Admin.Validators.Common
                 .NotEmpty()
                 .WithMessage(localizationService.GetResource("Admin.Address.Fields.City.Required"))
                 .When(x => x.CityEnabled && x.CityRequired);
+            RuleFor(x => x.District)
+                .NotEmpty()
+                .WithMessage(localizationService.GetResource("Admin.Address.Fields.District.Required"));
             //RuleFor(x => x.Ward)
             //    .NotEmpty()
             //    .WithMessage(localizationService.GetResource("Admin.Address.Fields.Ward.Required"));
