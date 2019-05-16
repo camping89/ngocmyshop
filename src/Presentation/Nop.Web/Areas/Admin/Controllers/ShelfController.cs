@@ -622,6 +622,25 @@ namespace Nop.Web.Areas.Admin.Controllers
             return Json(new { Success = true });
         }
 
+        [HttpPost]
+        public IActionResult SetShelfOrderItemActiveOrInActive(int orderItemId)
+        {
+            var shelfOrderItem = _shelfService.GetShelfOrderItemByOrderItemId(orderItemId);
+            if (shelfOrderItem != null)
+            {
+                if (shelfOrderItem.IsActived)
+                {
+                    shelfOrderItem.IsActived = false;
+                }
+                else
+                {
+                    shelfOrderItem.IsActived = true;
+                }
+                _shelfService.UpdateShelfOrderItem(shelfOrderItem);
+            }
+            return Json(new { Success = true });
+        }
+
         //public IActionResult CreateAuto()
         //{
         //    var shelfItems = _shelfService.GetAllShelfOrderItem();

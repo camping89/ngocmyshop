@@ -865,6 +865,34 @@
                                                     name: "destroy",
                                                     text: "@T("Admin.Common.Delete")",
                                                     template: '<a class="btn btn-danger k-button-icontext k-grid-delete" href="" >@T("Admin.Common.Delete")</a>'
+                                                },
+                                                {
+                                                    name: "setitemactive",
+                                                    text: "@T("Admin.ShelfOrderItem.ShipSelected")",
+                                                    template: '<a role="button" href="javascript:void(0);" class="btn btn-primary k-button-icontext k-grid-setitemactive">@T("Admin.ShelfOrderItem.SetItemActiveOrInActive")</a>',
+                                                    click: function(e) {
+                                                        e.preventDefault();
+
+                                                        var tr = $(e.target).closest("tr");
+                                                        var data = this.dataItem(tr);
+                                                        console.log("Shelf order item id: " + data.Id);
+
+                                                        var postData = { orderItemId: data.Id};
+                                                        addAntiForgeryToken(postData);
+                                                        $.ajax({
+                                                            cache: false,
+                                                            type: "POST",
+                                                            url: "@(Url.Action("SetShelfOrderItemActiveOrInActive", "Shelf"))",
+                                                            data: postData,
+                                                            complete: function(result) {
+                                                                $("#search-shelf").trigger('click');
+                                                            },
+                                                            error: function(xhr, ajaxOptions, thrownError) {
+                                                                alert(thrownError);
+                                                            },
+                                                            traditional: true
+                                                        });
+                                                    }
                                                 }
                                             ],
                                             width: 100
