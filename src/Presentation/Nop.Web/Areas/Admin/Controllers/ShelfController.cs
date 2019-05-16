@@ -582,7 +582,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             var shipmentManual = _shipmentManualService.GetShipmentManualById(id);
             if (shipmentManual != null)
             {
-                foreach (var shipmentManualItem in shipmentManual.ShipmentManualItems.Where(_=>_.OrderItem != null))
+                foreach (var shipmentManualItem in shipmentManual.ShipmentManualItems.Where(_ => _.OrderItem != null))
                 {
                     //update status order
                     var order = _orderService.GetOrderById(shipmentManualItem.OrderItem.OrderId);
@@ -606,6 +606,21 @@ namespace Nop.Web.Areas.Admin.Controllers
             return Json(new { Success = true });
         }
 
+        [HttpPost]
+        public IActionResult EditDepositShipmentItem(int id, decimal deposit)
+        {
+            var shipmentManualItem = _shipmentManualService.GetShipmentManualItemById(id);
+            if (shipmentManualItem != null)
+            {
+                var orderItem = _orderService.GetOrderItemById(shipmentManualItem.OrderItemId);
+                if (orderItem != null)
+                {
+                    orderItem.Deposit = deposit;
+                    _orderService.UpdateOrderItem(orderItem);
+                }
+            }
+            return Json(new { Success = true });
+        }
 
         //public IActionResult CreateAuto()
         //{

@@ -722,12 +722,37 @@
                                                         e.data.Id,
                                                 type: "POST",
                                                 data: addAntiForgeryToken
+                                            },
+                                            update: {
+                                                url: "@Html.Raw(Url.Action("EditDepositShipmentItem", "Shelf"))",
+                                                type: "POST",
+                                                data: additionalData
                                             }
                                         },
                                         schema: {
+                                            model: {
+                                                id: "Id",
+                                                fields: {
+                                                    OrderItemNumber: { editable: false, type: "string" },
+                                                    ImageUrl: { editable: false, type: "string" },
+                                                    ProductName: { editable: false, type: "string" },
+                                                    OrderItemFee: { editable: false, type: "number" },
+                                                    ShippingFeeStr: { editable: false, type: "string" },
+                                                    QuantityInThisShipment: { editable: false, type: "number" },
+                                                    ItemWeight: { editable: false, type: "number" },
+                                                    Deposit: { editable: true, type: "number" },
+                                                    DeliveryDateUtc: { editable: false, type: "string" }
+                                                }
+                                            },
                                             data: "Data",
                                             total: "Total",
                                             errors: "Errors"
+                                        },
+                                        requestEnd: function (e) {
+                                            if (e.type !== "read") {
+                                                var grid = $("#shipments-grid").data('kendoGrid');
+                                                grid.dataSource.page(1);
+                                            }
                                         },
                                         error: function(e) {
                                             display_kendoui_grid_error(e);
@@ -747,7 +772,15 @@
                                         info: false,
                                         @await Html.PartialAsync("_GridPagerMessages")
                                     },
+                                    editable: {
+                                        confirmation: "@T("Admin.Common.DeleteConfirmation")",
+                                        mode: "inline"
+                                    },
                                     columns: [
+                                        {
+                                            field: "Id",
+                                            hidden: true
+                                        },
                                         {
                                             field: "OrderItemNumber",
                                             title: "@T("Admin.Orders.Shipments.Products.OrderItemNumber")",
@@ -801,7 +834,20 @@
                                             field: "ItemDimensions",
                                             title: "@T("Admin.Orders.Shipments.Products.ItemDimensions")",
                                             width: 150
-                                        }*@
+                                        }*@,
+                                        {
+                                        command: [
+                                            {
+                                                name: "edit",
+                                                text: {
+                                                    edit: "@T("Admin.Common.Edit")",
+                                                    update: "@T("Admin.Common.Update")",
+                                                    cancel: "@T("Admin.Common.Cancel")"
+                                                }
+                                            }
+                                        ],
+                                        title: "@T("Admin.Common.Function")"
+                                    }
                                     ]
                                 });
                             }
