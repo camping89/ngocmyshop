@@ -150,7 +150,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                         if (customer.Addresses != null && customer.Addresses.Count > 0)
                         {
 
-                            var customerAddress = customer.Addresses.OrderBy(_ => _.CreatedOnUtc).FirstOrDefault();
+                            var customerAddress = customer.Addresses.OrderByDescending(_ => _.CreatedOnUtc).FirstOrDefault();
                             if (customerAddress != null)
                             {
                                 m.CustomerAddress = $"{customerAddress.Address1}, {customerAddress.Ward}, {customerAddress.District}, {customerAddress.City}";
@@ -466,29 +466,28 @@ namespace Nop.Web.Areas.Admin.Controllers
                 var orderItems = _orderService.GetOrderItemsByIds(orderItemIds.ToArray());
                 var totalWeight = orderItems.Sum(_ => _.ItemWeight);
                 var customer = _customerService.GetCustomerById(customerId);
-                if (customer != null)
+                var orderItemFirst = orderItems.FirstOrDefault();
+                if (customer != null && orderItemFirst != null)
                 {
-
-                    var customerAddress = customer.Addresses.OrderBy(_ => _.CreatedOnUtc).FirstOrDefault();
-
+                    var order = orderItemFirst.Order;
                     var shipmentEntity = new ShipmentManual
                     {
                         CustomerId = customerId,
                         CreatedOnUtc = DateTime.UtcNow,
                         BagId = StringExtensions.RandomString(6, false),
                         TrackingNumber = StringExtensions.RandomString(6, false),
-                        ShippingAddressId = customerAddress?.Id,
+                        ShippingAddressId = order.ShippingAddressId,
                         //TotalShippingFee = configShippingFee,
                         TotalWeight = totalWeight,
                         ShippedDateUtc = shelf.ShippedDate,
-                        Address = customerAddress?.Address1,
-                        Province = customerAddress?.City,
-                        District = customerAddress?.District,
-                        Ward = customerAddress?.Ward
+                        Address = order.ShippingAddress?.Address1,
+                        Province = order.ShippingAddress?.City,
+                        District = order.ShippingAddress?.District,
+                        Ward = order.ShippingAddress?.Ward
                     };
 
                     shipmentEntity.HasShippingFee = true;
-                    if (customerAddress != null && string.IsNullOrEmpty(customerAddress.City) == false && customerAddress.City.ToLower().Equals("đà nẵng"))
+                    if (order.ShippingAddress != null && string.IsNullOrEmpty(order.ShippingAddress.City) == false && order.ShippingAddress.City.ToLower().Equals("đà nẵng"))
                     {
                         shipmentEntity.TotalShippingFee = _settingService.GetSettingByKey("Admin.Shipment.ShippingFeeDaNang", 10000.0m);
                     }

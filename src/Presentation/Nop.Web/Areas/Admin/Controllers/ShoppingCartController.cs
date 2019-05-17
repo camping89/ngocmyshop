@@ -727,7 +727,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 }
                 modelResult.ShoppingCartModel = _shoppingCartModelFactory.PrepareShoppingCartModel(shoppingCartModel, cart, customer: customer);
                 modelResult.CustomerFullName = $"<strong>{customer.GetFullName()}</strong> - Phone: <strong>{customer.GetAttribute<string>(SystemCustomerAttributeNames.Phone)}</strong> - Facebook: <strong>{customer.GetAttribute<string>(SystemCustomerAttributeNames.LinkFacebook1)}</strong>";
-                var customerAddress = customer.Addresses.OrderBy(_ => _.CreatedOnUtc).FirstOrDefault();
+                var customerAddress = customer.Addresses.OrderByDescending(_ => _.CreatedOnUtc).FirstOrDefault();
                 if (customerAddress != null)
                 {
                     modelResult.CustomerAddress = customerAddress.Address1;

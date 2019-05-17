@@ -445,33 +445,9 @@ namespace Nop.Services.Orders
             if (details.CustomerLanguage == null || !details.CustomerLanguage.Published)
                 details.CustomerLanguage = _workContext.WorkingLanguage;
 
-
-
-
-            //if (!CommonHelper.IsValidEmail(details.Customer.BillingAddress.Email))
-            //    throw new NopException("Email is not valid");
             var lastOrderCust = _orderService.GetLastOrderByCustomerId(customerId: details.Customer.Id);
 
-            if (lastOrderCust == null)
-            {
-                //billing address
-                if (details.Customer.BillingAddress == null)
-                //throw new NopException("Billing address is not provided");
-                {
-                    var addresCustomer = details.Customer.Addresses.LastOrDefault();
-                    details.BillingAddress = addresCustomer;
-                }
-                else
-                {
-                    details.BillingAddress = (Address)details.Customer.BillingAddress.Clone();
-                }
-            }
-            else
-            {
-                details.BillingAddress = lastOrderCust.BillingAddress;
-            }
-            //if (details.BillingAddress.Country != null && !details.BillingAddress.Country.AllowsBilling)
-            //    throw new NopException($"Country '{details.BillingAddress.Country.Name}' is not allowed for billing");
+            details.BillingAddress = details.Customer.Addresses.LastOrDefault();
 
             //payment method 
             if (lastOrderCust != null)
@@ -571,32 +547,7 @@ namespace Nop.Services.Orders
                 }
                 else
                 {
-                    //if (details.Customer.ShippingAddress == null)
-                    //    throw new NopException("Shipping address is not provided");
-
-                    //if (!CommonHelper.IsValidEmail(details.Customer.ShippingAddress.Email))
-                    //    throw new NopException("Email is not valid");
-
-                    //clone shipping address
-
-                    if (lastOrderCust == null)
-                    {
-                        if (details.Customer.ShippingAddress == null)
-                        {
-                            var addresCustomer = details.Customer.Addresses.LastOrDefault();
-                            details.ShippingAddress = addresCustomer;
-                        }
-                        else
-                        {
-                            details.ShippingAddress = (Address)details.Customer.ShippingAddress.Clone();
-                        }
-                    }
-                    else
-                    {
-                        details.ShippingAddress = lastOrderCust.ShippingAddress;
-                    }
-                    //if (details.ShippingAddress.Country != null && !details.ShippingAddress.Country.AllowsShipping)
-                    //    throw new NopException($"Country '{details.ShippingAddress.Country.Name}' is not allowed for shipping");
+                    details.ShippingAddress = details.BillingAddress;
                 }
 
 
