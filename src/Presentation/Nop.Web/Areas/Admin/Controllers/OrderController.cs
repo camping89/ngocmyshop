@@ -6730,7 +6730,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                         CustomerLinkShortFacebook = customerShortFacebook,
                         CreatedDate = orderItem.Order.CreatedOnUtc,
                         //PrimaryStoreCurrencyCode = primaryStoreCurrency != null ? primaryStoreCurrency.CurrencyCode : string.Empty,
-                        AssignedByCustomerId = orderItem.AssignedByCustomerId,
+                        AssignedByCustomerId = orderItem.AssignedByCustomerId != null ? orderItem.AssignedByCustomerId.Value : 0,
                         DeliveryDateUtc = orderItem.DeliveryDateUtc,
                         Deposit = orderItem.Deposit,
                         DepositStr = _priceFormatter.FormatPrice(orderItem.Deposit, true,

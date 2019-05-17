@@ -353,7 +353,7 @@ namespace Nop.Web.Areas.Admin.Models.Orders
             public int OrderItemStatusId { get; set; }
             public string Note { get; set; }
             public string VendorName { get; set; }
-            public int? AssignedByCustomerId { get; set; }
+            public int AssignedByCustomerId { get; set; }
             public DateTime? AssignedShelfDate { get; set; }
 
         }
