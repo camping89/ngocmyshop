@@ -470,24 +470,25 @@ namespace Nop.Web.Areas.Admin.Controllers
                 if (customer != null && orderItemFirst != null)
                 {
                     var order = orderItemFirst.Order;
+                    var customerAddress = order.Customer.Addresses.OrderByDescending(_ => _.CreatedOnUtc).FirstOrDefault();
                     var shipmentEntity = new ShipmentManual
                     {
                         CustomerId = customerId,
                         CreatedOnUtc = DateTime.UtcNow,
                         BagId = StringExtensions.RandomString(6, false),
                         TrackingNumber = StringExtensions.RandomString(6, false),
-                        ShippingAddressId = order.ShippingAddressId,
+                        ShippingAddressId = customerAddress?.Id,
                         //TotalShippingFee = configShippingFee,
                         TotalWeight = totalWeight,
                         ShippedDateUtc = shelf.ShippedDate,
-                        Address = order.ShippingAddress?.Address1,
-                        Province = order.ShippingAddress?.City,
-                        District = order.ShippingAddress?.District,
-                        Ward = order.ShippingAddress?.Ward
+                        Address = customerAddress?.Address1,
+                        Province = customerAddress?.City,
+                        District = customerAddress?.District,
+                        Ward = customerAddress?.Ward
                     };
 
                     shipmentEntity.HasShippingFee = true;
-                    if (order.ShippingAddress != null && string.IsNullOrEmpty(order.ShippingAddress.City) == false && order.ShippingAddress.City.ToLower().Equals("đà nẵng"))
+                    if (customerAddress != null && string.IsNullOrEmpty(customerAddress.City) == false && customerAddress.City.ToLower().Equals("đà nẵng"))
                     {
                         shipmentEntity.TotalShippingFee = _settingService.GetSettingByKey("Admin.Shipment.ShippingFeeDaNang", 10000.0m);
                     }

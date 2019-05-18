@@ -2075,21 +2075,35 @@ namespace Nop.Services.Common
             addressTable.AddCell(GetParagraph("PDFPackagingSlip.Name", lang, font, shipmentDetails.Customer.GetFullName()));
             addressTable.AddCell(GetParagraph("PDFPackagingSlip.Phone", lang, font, shipmentDetails.Customer.GetAttribute<string>(SystemCustomerAttributeNames.Phone)));
 
+            var customerAddress = shipmentDetails.Customer.Addresses.OrderByDescending(_ => _.CreatedOnUtc).FirstOrDefault();
+
+            if (string.IsNullOrEmpty(shipmentDetails.Address))
+            {
+                shipmentDetails.Address = customerAddress?.Address1;
+            }
+            if (string.IsNullOrEmpty(shipmentDetails.Ward))
+            {
+                shipmentDetails.Ward = customerAddress?.Ward;
+            }
+            if (string.IsNullOrEmpty(shipmentDetails.District))
+            {
+                shipmentDetails.District = customerAddress?.District;
+            }
+            if (string.IsNullOrEmpty(shipmentDetails.Province))
+            {
+                shipmentDetails.Province = customerAddress?.City;
+            }
+
             var address = $"{shipmentDetails.Address}, {shipmentDetails.Ward}, {shipmentDetails.District}, {shipmentDetails.Province}";
+
             addressTable.AddCell(GetParagraph("PDFPackagingSlip.Address", lang, font, address));
 
-            //if (_addressSettings.CityEnabled || _addressSettings.StateProvinceEnabled || _addressSettings.ZipPostalCodeEnabled)
-            //    addressTable.AddCell(new Paragraph($"{shipmentDetails.ShippingAddress.City}, {(shipmentDetails.ShippingAddress.StateProvince != null ? shipmentDetails.ShippingAddress.StateProvince.GetLocalized(x => x.Name, lang.Id) : "")} {shipmentDetails.ShippingAddress.ZipPostalCode}", font));
-
-            //if (_addressSettings.CountryEnabled && shipmentDetails.ShippingAddress.Country != null)
-            //    addressTable.AddCell(new Paragraph(shipmentDetails.ShippingAddress.Country.GetLocalized(x => x.Name, lang.Id), font));
-
             //custom attributes
-            var customShippingAddressAttributes = _addressAttributeFormatter.FormatAttributes(shipmentDetails.ShippingAddress.CustomAttributes);
-            if (!string.IsNullOrEmpty(customShippingAddressAttributes))
-            {
-                addressTable.AddCell(new Paragraph(HtmlHelper.ConvertHtmlToPlainText(customShippingAddressAttributes, true, true), font));
-            }
+            //var customShippingAddressAttributes = _addressAttributeFormatter.FormatAttributes(shipmentDetails.ShippingAddress.CustomAttributes);
+            //if (!string.IsNullOrEmpty(customShippingAddressAttributes))
+            //{
+            //    addressTable.AddCell(new Paragraph(HtmlHelper.ConvertHtmlToPlainText(customShippingAddressAttributes, true, true), font));
+            //}
 
             addressTable.AddCell(new Paragraph(" "));
 
@@ -2507,7 +2521,7 @@ namespace Nop.Services.Common
             {
 
                 var customerOrder = _customerService.GetCustomerById(shipment.CustomerId);
-
+                var customerAddress = customerOrder.Addresses.OrderByDescending(_ => _.CreatedOnUtc).FirstOrDefault();
                 var shipper = _customerService.GetCustomerById(shipment.ShipperId);
                 var shipperInfo = string.Empty;
                 if (shipper != null)
@@ -2535,10 +2549,10 @@ namespace Nop.Services.Common
                     CustomerPhone = string.Empty,
                     CustomerFacebookUrl = string.Empty,
                     CustomerName = string.Empty,
-                    CustomerAddress = shipment.Address,
-                    CustomerStateProvince = shipment.Province,
-                    CustomerDistrict = shipment.District,
-                    CustomerWard = shipment.Ward
+                    CustomerAddress = string.IsNullOrEmpty(shipment.Address) == false ? shipment.Address : customerAddress?.Address1,
+                    CustomerStateProvince = string.IsNullOrEmpty(shipment.Province) == false ? shipment.Province : customerAddress?.City,
+                    CustomerDistrict = string.IsNullOrEmpty(shipment.District) == false ? shipment.District : customerAddress?.District,
+                    CustomerWard = string.IsNullOrEmpty(shipment.Ward) == false ? shipment.Ward : customerAddress?.Ward,
                 };
 
                 if (customerOrder != null)

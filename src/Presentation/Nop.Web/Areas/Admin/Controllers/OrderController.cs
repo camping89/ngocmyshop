@@ -1629,6 +1629,9 @@ namespace Nop.Web.Areas.Admin.Controllers
                     shelfCode = shelfOrderItem.Shelf.ShelfCode;
                 }
             }
+
+            var customerAddress = shipment.Customer.Addresses.OrderByDescending(_ => _.CreatedOnUtc).FirstOrDefault();
+
             var model = new ShipmentManualModel
             {
                 Id = shipment.Id,
@@ -1649,12 +1652,12 @@ namespace Nop.Web.Areas.Admin.Controllers
                 //    _workContext.WorkingLanguage, true, false),
                 TotalShippingFee = shipment.TotalShippingFee,
                 BagId = shipment.BagId,
-                ShipmentAddress = Core.Extensions.StringExtensions.IsNotNullOrEmpty(shipment.Address) ? shipment.Address : "Chưa xác định",
-                ShipmentCity = Core.Extensions.StringExtensions.IsNotNullOrEmpty(shipment.Province) ? shipment.Province : "Chưa xác định",
-                ShipmentCityId = Core.Extensions.StringExtensions.IsNotNullOrEmpty(shipment.Province) ? shipment.Province : "0",
-                ShipmentDistrict = Core.Extensions.StringExtensions.IsNotNullOrEmpty(shipment.District) ? shipment.District : "Chưa xác định",
-                ShipmentDistrictId = Core.Extensions.StringExtensions.IsNotNullOrEmpty(shipment.District) ? shipment.District : "0",
-                ShipmentWard = string.IsNullOrEmpty(shipment.Ward) == false ? shipment.Ward : "Chưa xác định",
+                ShipmentAddress = Core.Extensions.StringExtensions.IsNotNullOrEmpty(shipment.Address) ? shipment.Address : customerAddress.Address1,
+                ShipmentCity = Core.Extensions.StringExtensions.IsNotNullOrEmpty(shipment.Province) ? shipment.Province : customerAddress.City,
+                ShipmentCityId = Core.Extensions.StringExtensions.IsNotNullOrEmpty(shipment.Province) ? shipment.Province : customerAddress.City,
+                ShipmentDistrict = Core.Extensions.StringExtensions.IsNotNullOrEmpty(shipment.District) ? shipment.District : customerAddress.District,
+                ShipmentDistrictId = Core.Extensions.StringExtensions.IsNotNullOrEmpty(shipment.District) ? shipment.District : customerAddress.District,
+                ShipmentWard = string.IsNullOrEmpty(shipment.Ward) == false ? shipment.Ward : customerAddress.Ward,
                 HasShippingFee = shipment.HasShippingFee,
                 ShelfCode = shelfCode
             };
@@ -1944,6 +1947,8 @@ namespace Nop.Web.Areas.Admin.Controllers
                         shortLink = shortLink.Split('?').FirstOrDefault();
                     }
 
+                    var customerAddress = x.Customer.Addresses.OrderByDescending(_ => _.CreatedOnUtc).FirstOrDefault();
+
                     var orderModel = new OrderModelBasic
                     {
                         Id = x.Id,
@@ -1956,12 +1961,12 @@ namespace Nop.Web.Areas.Admin.Controllers
                         ShippingStatus = x.ShippingStatus.GetLocalizedEnum(_localizationService, _workContext),
                         //ShippingStatusId = x.ShippingStatusId,
                         //CustomerEmail = x.BillingAddress.Email,
-                        CustomerFullName = $"{x.BillingAddress.FirstName} {x.BillingAddress.LastName}",
-                        CustomerAddress = x.BillingAddress.Address1,
+                        CustomerFullName = $"{x.Customer.GetFullName()}",
+                        CustomerAddress = customerAddress.Address1,
                         CustomerPhone = x.Customer.Phone,
-                        CustomerDistrict = x.BillingAddress != null ? x.BillingAddress.District : "Chưa xác định",
-                        CustomerCity = x.BillingAddress != null ? x.BillingAddress.City : "Chưa xác định",
-                        CustomerWard = x.BillingAddress != null ? x.BillingAddress.Ward : "Chưa xác định",
+                        CustomerDistrict = customerAddress != null ? customerAddress.District : "Chưa xác định",
+                        CustomerCity = customerAddress != null ? customerAddress.City : "Chưa xác định",
+                        CustomerWard = customerAddress != null ? customerAddress.Ward : "Chưa xác định",
                         CustomerLinkFacebook = linkFacebook,
                         CustomerShortLinkFacebook = shortLink,
                         CreatedOn = _dateTimeHelper.ConvertToUserTime(x.CreatedOnUtc, DateTimeKind.Utc),
