@@ -1383,7 +1383,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 model.CurrencyCurrent = _currencyService.GetCurrencyById(_currencySettings.PrimaryStoreCurrencyId, false);
                 var primaryStoreCurrency = _currencyService.GetCurrencyById(_currencySettings.PrimaryStoreCurrencyId, false);
                 model.PrimaryExchangeCurrency = primaryStoreCurrency ?? throw new NopException("Primary store currency is not set");
-                model.ExchangeRate = model.PrimaryExchangeCurrency.VndRate;
+                model.ExchangeRate = primaryStoreCurrency.VndRate;
                 //model.CustomerEntersPrice = true;
                 model.UnitWeightCost = model.CurrencyCurrent.UnitWeightCost;
                 model.WeightCost = _settingService.GetSettingByKey("Product.WeightCostDefault", 0m);
