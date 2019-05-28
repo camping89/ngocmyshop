@@ -169,7 +169,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                         }
                     }
 
-                    var orderItems = _shelfService.GetAllShelfOrderItem(x.Id, shelfOrderItemIsActive: true).Select(_ => _.OrderItem).ToList();
+                    var orderItems = _shelfService.GetAllShelfOrderItem(x.Id, shelfOrderItemIsActive: true).Where(_ => _.OrderItem != null).Select(_ => _.OrderItem).ToList();
                     foreach (var orderItem in orderItems)
                     {
                         orderItem.PriceInclTax = DecimalExtensions.RoundCustom(orderItem.PriceInclTax / 1000) * 1000;
