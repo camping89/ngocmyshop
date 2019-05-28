@@ -689,7 +689,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 Quantity = orderItem.Quantity,
                 ProductName = orderItem.Product.Name,
                 Sku = orderItem.Product.FormatSku(orderItem.AttributesXml, _productAttributeParser),
-                TotalWithoutWeightCost = _priceFormatter.FormatPrice((orderItem.PriceInclTax - orderItem.WeightCost), true,
+                TotalWithoutWeightCost = _priceFormatter.FormatPrice((orderItem.PriceInclTax - (orderItem.WeightCost * orderItem.Quantity)), true,
                         primaryStoreCurrency, _workContext.WorkingLanguage, true, true),
                 UnitPriceBase = _priceFormatter.FormatPrice((orderItem.UnitPriceUsd), true,
                         currencyProduct, _workContext.WorkingLanguage, true, true),
@@ -4403,6 +4403,8 @@ namespace Nop.Web.Areas.Admin.Controllers
 
                             shelf.ShippedDate = null;
                             _shelfService.UpdateShelf(shelf);
+
+                            _customerActivityService.InsertActivity("EditShelf", _localizationService.GetResource("activitylog.updateshelforderitemvendorcheckout"), orderItem.Id, shelf.ShelfCode);
                         }
                     }
                     else
@@ -6719,7 +6721,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                         WeightCostDec = orderItem.WeightCost,
                         WeightCost = _priceFormatter.FormatPrice(orderItem.WeightCost, true,
                         primaryStoreCurrency, _workContext.WorkingLanguage, true, true),
-                        TotalWithoutWeightCost = _priceFormatter.FormatPrice((orderItem.PriceInclTax - orderItem.WeightCost), true,
+                        TotalWithoutWeightCost = _priceFormatter.FormatPrice((orderItem.PriceInclTax - (orderItem.WeightCost * orderItem.Quantity)), true,
                         primaryStoreCurrency, _workContext.WorkingLanguage, true, true),
                         UnitPriceBase = _priceFormatter.FormatPrice((orderItem.UnitPriceUsd), true,
                             currencyProduct, _workContext.WorkingLanguage, true, true),

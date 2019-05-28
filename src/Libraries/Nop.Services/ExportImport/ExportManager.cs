@@ -1973,7 +1973,7 @@ namespace Nop.Services.ExportImport
                     VendorProductUrl = orderItem.Product.VendorProductUrl,
                     Sku = orderItem.Product.Sku,
                     Quantity = orderItem.Quantity,
-                    TotalWithoutWeightCost = (orderItem.PriceExclTax - orderItem.WeightCost),
+                    TotalWithoutWeightCost = (orderItem.PriceExclTax - (orderItem.WeightCost * orderItem.Quantity)),
                     WeightCost = orderItem.WeightCost,
                     Weight = orderItem.Product.Weight,
                     UnitWeightCost = orderItem.UnitWeightCost != null ? orderItem.UnitWeightCost.Value : 0,

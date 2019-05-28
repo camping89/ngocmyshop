@@ -12,6 +12,7 @@ using Nop.Services.Configuration;
 using Nop.Services.Customers;
 using Nop.Services.Directory;
 using Nop.Services.Localization;
+using Nop.Services.Logging;
 using Nop.Services.Orders;
 using Nop.Services.Security;
 using Nop.Services.Shipping;
@@ -40,7 +41,8 @@ namespace Nop.Web.Areas.Admin.Controllers
         private readonly IWorkContext _workContext;
         private readonly ISettingService _settingService;
         private readonly IStateProvinceService _stateProvinceService;
-        public ShelfController(ICustomerService customerService, IShelfService shelfService, IOrderService orderService, IPermissionService permissionService, ILocalizationService localizationService, IShipmentManualService shipmentManualService, IWorkContext workContext, IPriceFormatter priceFormatter, ISettingService settingService, IStateProvinceService stateProvinceService)
+        private readonly ICustomerActivityService _customerActivityService;
+        public ShelfController(ICustomerService customerService, IShelfService shelfService, IOrderService orderService, IPermissionService permissionService, ILocalizationService localizationService, IShipmentManualService shipmentManualService, IWorkContext workContext, IPriceFormatter priceFormatter, ISettingService settingService, IStateProvinceService stateProvinceService, ICustomerActivityService customerActivityService)
         {
             _customerService = customerService;
             _shelfService = shelfService;
@@ -52,6 +54,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             _priceFormatter = priceFormatter;
             _settingService = settingService;
             _stateProvinceService = stateProvinceService;
+            _customerActivityService = customerActivityService;
         }
 
         public IActionResult Index()
@@ -229,6 +232,8 @@ namespace Nop.Web.Areas.Admin.Controllers
                 entity.UpdatedNoteDate = StringExtensions.StringToDateTime(model.UpdatedNoteDate);
             }
             _shelfService.InsertShelf(entity);
+
+            _customerActivityService.InsertActivity("InsertShelf", _localizationService.GetResource("activitylog.insertshelf"), model.ShelfCode);
             return Json(new { Success = true });
         }
 
@@ -317,6 +322,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             }
 
             _shelfService.UpdateShelf(entity);
+            _customerActivityService.InsertActivity("UpdateShelf", _localizationService.GetResource("activitylog.updateshelf"), model.ShelfCode);
             return Json(new { Success = true });
         }
 
@@ -331,7 +337,12 @@ namespace Nop.Web.Areas.Admin.Controllers
                 {
                     _shelfService.DeleteShelfOrderItem(shelfOrderItem.Id);
                 }
+
+                var shelf = _shelfService.GetShelfById(model.Id);
                 _shelfService.DeleteShelf(model.Id);
+
+                _customerActivityService.InsertActivity("DeleteShelf", _localizationService.GetResource("activitylog.removeshelf"), shelf.ShelfCode);
+
                 return Json(new { Success = true });
             }
             return Json(new { Success = false });
@@ -400,15 +411,19 @@ namespace Nop.Web.Areas.Admin.Controllers
             if (shelfOrderItem != null)
             {
 
+                var shelf = _shelfService.GetShelfById(shelfOrderItem.ShelfId);
+                var orderitem = shelfOrderItem.OrderItemId;
                 _shelfService.DeleteShelfOrderItem(shelfOrderItemId);
-
-                var shelfItems = _shelfService.GetAllShelfOrderItem(shelfOrderItem.ShelfId, shelfOrderItem.CustomerId, shelfOrderItemIsActive: true).ToList();
-                if (shelfItems.Count == 0)
+                if (shelf != null)
                 {
-                    var shelf = _shelfService.GetShelfById(shelfOrderItem.ShelfId);
-                    shelf.AssignedDate = null;
-                    shelf.CustomerId = null;
-                    _shelfService.UpdateShelf(shelf);
+                    _customerActivityService.InsertActivity("EditShelf", _localizationService.GetResource("activitylog.removeshelforderitem"), orderitem, shelf.ShelfCode);
+                    var shelfItems = _shelfService.GetAllShelfOrderItem(shelfOrderItem.ShelfId, shelfOrderItem.CustomerId, shelfOrderItemIsActive: true).ToList();
+                    if (shelfItems.Count == 0)
+                    {
+                        shelf.AssignedDate = null;
+                        shelf.CustomerId = null;
+                        _shelfService.UpdateShelf(shelf);
+                    }
                 }
             }
 
@@ -601,6 +616,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                     }
                 }
                 _shipmentManualService.DeleteShipmentManual(shipmentManual);
+
             }
 
             return Json(new { Success = true });
