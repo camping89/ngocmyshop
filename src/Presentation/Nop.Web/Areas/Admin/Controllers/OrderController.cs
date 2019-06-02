@@ -1652,12 +1652,12 @@ namespace Nop.Web.Areas.Admin.Controllers
                 //    _workContext.WorkingLanguage, true, false),
                 TotalShippingFee = shipment.TotalShippingFee,
                 BagId = shipment.BagId,
-                ShipmentAddress = Core.Extensions.StringExtensions.IsNotNullOrEmpty(shipment.Address) ? shipment.Address : customerAddress.Address1,
-                ShipmentCity = Core.Extensions.StringExtensions.IsNotNullOrEmpty(shipment.Province) ? shipment.Province : customerAddress.City,
-                ShipmentCityId = Core.Extensions.StringExtensions.IsNotNullOrEmpty(shipment.Province) ? shipment.Province : customerAddress.City,
-                ShipmentDistrict = Core.Extensions.StringExtensions.IsNotNullOrEmpty(shipment.District) ? shipment.District : customerAddress.District,
-                ShipmentDistrictId = Core.Extensions.StringExtensions.IsNotNullOrEmpty(shipment.District) ? shipment.District : customerAddress.District,
-                ShipmentWard = string.IsNullOrEmpty(shipment.Ward) == false ? shipment.Ward : customerAddress.Ward,
+                ShipmentAddress = Core.Extensions.StringExtensions.IsNotNullOrEmpty(shipment.Address) ? shipment.Address : customerAddress?.Address1,
+                ShipmentCity = Core.Extensions.StringExtensions.IsNotNullOrEmpty(shipment.Province) ? shipment.Province : customerAddress?.City,
+                ShipmentCityId = Core.Extensions.StringExtensions.IsNotNullOrEmpty(shipment.Province) ? shipment.Province : customerAddress?.City,
+                ShipmentDistrict = Core.Extensions.StringExtensions.IsNotNullOrEmpty(shipment.District) ? shipment.District : customerAddress?.District,
+                ShipmentDistrictId = Core.Extensions.StringExtensions.IsNotNullOrEmpty(shipment.District) ? shipment.District : customerAddress?.District,
+                ShipmentWard = string.IsNullOrEmpty(shipment.Ward) == false ? shipment.Ward : customerAddress?.Ward,
                 HasShippingFee = shipment.HasShippingFee,
                 ShelfCode = shelfCode
             };
@@ -4250,12 +4250,25 @@ namespace Nop.Web.Areas.Admin.Controllers
             {
                 if (string.IsNullOrEmpty(orderItemModel.PackageOrderCode) == false)
                 {
-                    orderItem.PackageOrderId = orderItemModel.PackageOrderId;
-                    var packageOrder = _packageOrderService.GetById(orderItemModel.PackageOrderId);
+
+                    var packageOrder = _packageOrderService.GetByCode(orderItemModel.PackageOrderCode);
                     if (packageOrder != null)
                     {
-                        packageOrder.PackageCode = orderItemModel.PackageOrderCode;
-                        _packageOrderService.Update(packageOrder);
+                        orderItem.PackageOrderId = packageOrder.Id;
+                    }
+                    else
+                    {
+                        var packageOrderNew = new PackageOrder
+                        {
+                            PackageCode = orderItemModel.PackageOrderCode,
+                            PackageName = orderItemModel.PackageOrderCode
+                        };
+                        _packageOrderService.Create(packageOrderNew);
+                        if (packageOrderNew.Id > 0)
+                        {
+                            orderItem.PackageOrderId = packageOrderNew.Id;
+                            //orderItem.PackageItemProcessedDatetime = DateTime.UtcNow;
+                        }
                     }
                 }
                 else
@@ -6680,7 +6693,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 customerPhone: model.CustomerPhone, packageOrderCode: model.PackageOrderCode,
                 vendorId: model.VendorId, isSetPackageOrderId: model.IsSetPackageOrderId,
                 isSetShelfId: model.IsShelfAssigned, orderItemStatusId: model.OrderItemStatusId,
-                isPackageItemProcessedDatetime: model.IsPackageItemProcessedDatetime, isOrderCheckout: model.IsOrderCheckout, isWeightCostZero: model.IsWeightCostZero);
+                isPackageItemProcessedDatetime: model.IsPackageItemProcessedDatetime, isOrderCheckout: model.IsOrderCheckout, isWeightCostZero: model.IsWeightCostZero,productSku: model.ProductSku);
 
             var vendors = _vendorService.GetAllVendors();
             var gridModel = new DataSourceResult

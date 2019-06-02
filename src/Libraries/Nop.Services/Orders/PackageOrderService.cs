@@ -49,6 +49,11 @@ namespace Nop.Services.Orders
             return _packageOrdeRepository.GetById(id);
         }
 
+        public PackageOrder GetByCode(string code)
+        {
+            return _packageOrdeRepository.Table.FirstOrDefault(_ => _.PackageCode == code);
+        }
+
         public void Create(PackageOrder entity)
         {
             if (entity != null)

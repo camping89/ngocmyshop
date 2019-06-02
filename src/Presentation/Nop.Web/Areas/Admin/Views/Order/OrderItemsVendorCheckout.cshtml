@@ -119,6 +119,14 @@
                                 </div>
                                 <div class="form-group">
                                     <div class="col-md-4">
+                                        <nop-label asp-for="ProductSku" />
+                                    </div>
+                                    <div class="col-md-8">
+                                        <nop-editor asp-for="ProductSku" />
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-md-4">
                                         <nop-label asp-for="VendorProductUrl" />
                                     </div>
                                     <div class="col-md-8">
@@ -973,6 +981,7 @@
 
                                         $("#clear-filter").click(function() {
                                             $('#@Html.IdFor(model => model.OrderId)').val('');
+                                            $('#@Html.IdFor(model => model.ProductSku)').val('');
                                             $('#@Html.IdFor(model => model.OrderItemId)').val('');
                                             $('#@Html.IdFor(model => model.VendorProductUrl)').val('');
                                             $('#@Html.IdFor(model => model.VendorId)').val(0);
@@ -1040,6 +1049,7 @@
 
                                         var data = {
                                             VendorProductUrl: $('#@Html.IdFor(model => model.VendorProductUrl)').val(),
+                                            ProductSku: $('#@Html.IdFor(model => model.ProductSku)').val(),
                                             OrderId: $('#@Html.IdFor(model => model.OrderId)').val(),
                                             OrderItemId: $('#@Html.IdFor(model => model.OrderItemId)').val(),
                                             IsOrderCheckout: $('#@Html.IdFor(model => model.IsOrderCheckout)').val(),

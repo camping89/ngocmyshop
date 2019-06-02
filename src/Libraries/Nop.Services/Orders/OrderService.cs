@@ -473,12 +473,19 @@ namespace Nop.Services.Orders
             DateTime? startDate = null, DateTime? endDate = null,
             string customerPhone = null, string packageOrderCode = null,
             int vendorId = 0, bool? isSetPackageOrderId = null,
-            bool? isSetShelfId = null, int orderItemStatusId = -1, bool? isPackageItemProcessedDatetime = null, bool? isOrderCheckout = null, bool isWeightCostZero = false)
+            bool? isSetShelfId = null, int orderItemStatusId = -1, bool? isPackageItemProcessedDatetime = null, bool? isOrderCheckout = null, bool isWeightCostZero = false,string productSku = null)
         {
             var query = from orderItem in _orderItemRepository.Table
                         join o in _orderRepository.Table on orderItem.OrderId equals o.Id
                         where !o.Deleted
                         select orderItem;
+            if (string.IsNullOrEmpty(productSku) == false)
+            {
+                query = from orderItem in query
+                    join p in _productRepository.Table on orderItem.ProductId equals p.Id
+                    where p.Sku == productSku
+                    select orderItem;
+            }
             if (isWeightCostZero)
             {
                 query = query.Where(_ => _.WeightCost == Decimal.Zero);

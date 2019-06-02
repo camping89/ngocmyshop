@@ -137,7 +137,7 @@ namespace Nop.Services.Orders
             string customerPhone = null, string packageOrderCode = null,
             int vendorId = 0, bool? isSetPackageOrderId = null,
             bool? isSetShelfId = null, int orderItemStatusId = -1,
-            bool? isPackageItemProcessedDatetime = null, bool? isOrderCheckout = null, bool isWeightCostZero = false);
+            bool? isPackageItemProcessedDatetime = null, bool? isOrderCheckout = null, bool isWeightCostZero = false,string productSku = null);
 
         /// <summary>
         /// Delete an order item
