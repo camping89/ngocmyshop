@@ -1962,7 +1962,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                         //ShippingStatusId = x.ShippingStatusId,
                         //CustomerEmail = x.BillingAddress.Email,
                         CustomerFullName = $"{x.Customer.GetFullName()}",
-                        CustomerAddress = customerAddress.Address1,
+                        CustomerAddress = customerAddress != null ? customerAddress.Address1 : "Chưa xác định",
                         CustomerPhone = x.Customer.Phone,
                         CustomerDistrict = customerAddress != null ? customerAddress.District : "Chưa xác định",
                         CustomerCity = customerAddress != null ? customerAddress.City : "Chưa xác định",
@@ -6693,7 +6693,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 customerPhone: model.CustomerPhone, packageOrderCode: model.PackageOrderCode,
                 vendorId: model.VendorId, isSetPackageOrderId: model.IsSetPackageOrderId,
                 isSetShelfId: model.IsShelfAssigned, orderItemStatusId: model.OrderItemStatusId,
-                isPackageItemProcessedDatetime: model.IsPackageItemProcessedDatetime, isOrderCheckout: model.IsOrderCheckout, isWeightCostZero: model.IsWeightCostZero,productSku: model.ProductSku);
+                isPackageItemProcessedDatetime: model.IsPackageItemProcessedDatetime, isOrderCheckout: model.IsOrderCheckout, isWeightCostZero: model.IsWeightCostZero, productSku: model.ProductSku);
 
             var vendors = _vendorService.GetAllVendors();
             var gridModel = new DataSourceResult
