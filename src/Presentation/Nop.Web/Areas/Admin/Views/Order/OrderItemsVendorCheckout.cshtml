@@ -314,7 +314,7 @@
                                                             IsOrderCheckout: { editable: true, type: "boolean" },
                                                             ShelfId: { editable: true, type: "number" },
                                                             ShelfCode: { editable: true, type: "string" },
-                                                            Note: { editable: false, type: "string" },
+                                                            Note: { editable: true, type: "string" },
                                                             Deposit: { editable: true, type: "string" }
                                                         }
                                                     }
@@ -1044,8 +1044,8 @@
                                     });
 
                                     function additionalData() {
-                                        var startDate = kendo.toString(kendo.parseDate($('#@Html.IdFor(model => model.StartDate)').val(), 'dd/MM/yyyy HH:mm tt'), 'MM/dd/yyyy HH:mm tt');
-                                        var endDate = kendo.toString(kendo.parseDate($('#@Html.IdFor(model => model.EndDate)').val(), 'dd/MM/yyyy HH:mm tt'), 'MM/dd/yyyy HH:mm tt');
+                                        var startDate = kendo.toString(kendo.parseDate($('#@Html.IdFor(model => model.StartDate)').val(), 'dd/MM/yyyy'), 'MM/dd/yyyy');
+                                        var endDate = kendo.toString(kendo.parseDate($('#@Html.IdFor(model => model.EndDate)').val(), 'dd/MM/yyyy'), 'MM/dd/yyyy');
 
                                         var data = {
                                             VendorProductUrl: $('#@Html.IdFor(model => model.VendorProductUrl)').val(),

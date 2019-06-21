@@ -37,6 +37,7 @@ using System.Linq;
 using System.Text;
 using System.Xml;
 using System.Xml.Serialization;
+using Nop.Core.Domain.Media;
 
 
 namespace PAValue
@@ -352,6 +353,10 @@ namespace Nop.Services.ExportImport
 
             return new[] { picture1, picture2, picture3 };
         }
+        protected virtual string GetPicture(Picture picture)
+        {
+            return _pictureService.GetThumbLocalPath(picture);
+        }
 
         /// <summary>
         /// Export objects to XLSX
@@ -404,6 +409,7 @@ namespace Nop.Services.ExportImport
                 // ok, we can run the real code of the sample now
                 using (var xlPackage = new ExcelPackage(stream))
                 {
+                    var checkHasImage = properties.Where(p => !p.Ignore).Any(p => p.IsImage);
                     // uncomment this line if you want the XML written out to the outputDir
                     //xlPackage.DebugMode = true; 
 
@@ -419,6 +425,15 @@ namespace Nop.Services.ExportImport
                     var row = 2;
                     foreach (var items in itemsToExport)
                     {
+                        if (checkHasImage)
+                        {
+                            worksheet.Row(row).Height = 100;
+                            var positionColImage = properties.FirstOrDefault(_ => _.IsImage);
+                            if (positionColImage != null)
+                            {
+                                worksheet.Column(positionColImage.PropertyOrderPosition).Width = 80;
+                            }
+                        }
                         manager.CurrentObject = items;
                         manager.WriteToXlsx(worksheet, row++, _catalogSettings.ExportImportUseDropdownlistsForAssociatedEntities, fWorksheet: fWorksheet);
                     }
@@ -1880,11 +1895,11 @@ namespace Nop.Services.ExportImport
                 new PropertyByName<ExportVendorInvoiceItemModel>("OrderItemId", oi => oi.OrderItemId),
                 new PropertyByName<ExportVendorInvoiceItemModel>("OrderDate", oi => oi.OrderDate),
                 new PropertyByName<ExportVendorInvoiceItemModel>("CustomerInfo",  oi => oi.CustomerInfo),
-                
-                //new PropertyByName<ExportVendorInvoiceItemModel>("ProductImage", oi => oi.ProductImage)
-                //{
-                //    IsImage = true
-                //},
+
+                new PropertyByName<ExportVendorInvoiceItemModel>("ProductImage", oi => oi.ProductImage)
+                {
+                    IsImage = true
+                },
                 new PropertyByName<ExportVendorInvoiceItemModel>("ProductInfo", oi => oi.ProductInfo),
                 new PropertyByName<ExportVendorInvoiceItemModel>("ProductSize", oi => oi.ProductSize),
                 new PropertyByName<ExportVendorInvoiceItemModel>("ProductColor", oi => oi.ProductColor),
@@ -1960,6 +1975,9 @@ namespace Nop.Services.ExportImport
 
                 var currencyProduct = _currencyService.GetCurrencyById(orderItem.Product.CurrencyId);
                 var shelfOrderItem = _shelfService.GetShelfOrderItemByOrderItemId(orderItem.Id);
+                //picture
+                var orderItemPicture =
+                    orderItem.Product.GetProductPicture(orderItem.AttributesXml, _pictureService, _productAttributeParser);
                 var exportVendorInvoiceModel = new ExportVendorInvoiceItemModel()
                 {
                     OrderItemId = $"{orderItem.OrderId}.{orderItem.Id}",
@@ -1967,7 +1985,7 @@ namespace Nop.Services.ExportImport
                     AssignedByUser = assignedByUser,
                     ProductInfo = orderItem.Product.GetLocalized(x => x.Name, _workContext.WorkingLanguage.Id),
                     //ProductAttributeInfo = HtmlHelper.ConvertHtmlToPlainTextOneLine(orderItem.AttributeDescription, true, true),
-                    //ProductImage = GetPictures(orderItem.Product)[0],
+                    ProductImage = orderItemPicture != null ? GetPicture(orderItemPicture) : null,
                     OrderDate = orderItem.Order.CreatedOnUtc.ToString("g"),
                     VendorName = vendor != null ? vendor.Name : string.Empty,
                     VendorProductUrl = orderItem.Product.VendorProductUrl,

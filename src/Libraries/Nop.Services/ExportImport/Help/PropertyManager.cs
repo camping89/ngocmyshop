@@ -5,6 +5,7 @@ using OfficeOpenXml;
 using OfficeOpenXml.Style;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 
 namespace Nop.Services.ExportImport.Help
@@ -135,6 +136,14 @@ namespace Nop.Services.ExportImport.Help
                     }
 
                     validator.Formula.ExcelFormula = $"{fWorksheet.Name}!{fWorksheet.Cells[1, prop.PropertyOrderPosition].Address}:{fWorksheet.Cells[dropDownElements.Length, prop.PropertyOrderPosition].Address}";
+                }
+                else if(prop.IsImage)
+                {
+                    Image logo = Image.FromFile(prop.GetProperty(CurrentObject).ToString());
+                    // Add picture in Excel cell.
+                    var picture = worksheet.Drawings.AddPicture(row.ToString(), logo);
+                    picture.SetSize(75, 100);
+                    picture.SetPosition(row-1, 10, prop.PropertyOrderPosition-1, 10);
                 }
                 else
                 {
