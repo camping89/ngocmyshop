@@ -66,11 +66,11 @@ namespace Nop.Web.Areas.Admin.Models.Orders
         public List<SelectListItem> IsSetShelfIdStatus { get; set; }
 
         [NopResourceDisplayName("Admin.Orders.List.StartDate")]
-        [UIHint("DateNullable")]
+        [UIHint("DateTimeNullable")]
         public DateTime? StartDate { get; set; }
 
         [NopResourceDisplayName("Admin.Orders.List.EndDate")]
-        [UIHint("DateNullable")]
+        [UIHint("DateTimeNullable")]
         public DateTime? EndDate { get; set; }
 
         [NopResourceDisplayName("Admin.Orders.List.TodayFilter")]

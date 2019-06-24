@@ -1044,8 +1044,8 @@
                                     });
 
                                     function additionalData() {
-                                        var startDate = kendo.toString(kendo.parseDate($('#@Html.IdFor(model => model.StartDate)').val(), 'dd/MM/yyyy'), 'MM/dd/yyyy');
-                                        var endDate = kendo.toString(kendo.parseDate($('#@Html.IdFor(model => model.EndDate)').val(), 'dd/MM/yyyy'), 'MM/dd/yyyy');
+                                        var startDate = kendo.toString(kendo.parseDate($('#@Html.IdFor(model => model.StartDate)').val(), 'dd/MM/yyyy HH:mm tt'), 'MM/dd/yyyy HH:mm tt');
+                                        var endDate = kendo.toString(kendo.parseDate($('#@Html.IdFor(model => model.EndDate)').val(), 'dd/MM/yyyy HH:mm tt'), 'MM/dd/yyyy HH:mm tt');
 
                                         var data = {
                                             VendorProductUrl: $('#@Html.IdFor(model => model.VendorProductUrl)').val(),
