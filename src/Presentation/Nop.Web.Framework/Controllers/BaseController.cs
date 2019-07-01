@@ -236,19 +236,26 @@ namespace Nop.Web.Framework.Controllers
         /// <param name="persistForTheNextRequest">A value indicating whether a message should be persisted for the next request</param>
         protected virtual void AddNotification(NotifyType type, string message, bool persistForTheNextRequest)
         {
-            var dataKey = $"nop.notifications.{type}";
+            try
+            {
+                var dataKey = $"nop.notifications.{type}";
 
-            if (persistForTheNextRequest)
-            {
-                if (TempData[dataKey] == null)
-                    TempData[dataKey] = new List<string>();
-                ((List<string>)TempData[dataKey]).Add(message);
+                if (persistForTheNextRequest)
+                {
+                    if (TempData[dataKey] == null)
+                        TempData[dataKey] = new List<string>();
+                    ((List<string>)TempData[dataKey]).Add(message);
+                }
+                else
+                {
+                    if (ViewData[dataKey] == null)
+                        ViewData[dataKey] = new List<string>();
+                    ((List<string>)ViewData[dataKey]).Add(message);
+                }
             }
-            else
+            catch (Exception)
             {
-                if (ViewData[dataKey] == null)
-                    ViewData[dataKey] = new List<string>();
-                ((List<string>)ViewData[dataKey]).Add(message);
+                //ignore;
             }
         }
 
