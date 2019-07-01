@@ -23,7 +23,9 @@ namespace Nop.Services.Shipping
             bool exceptCity = false,
             DateTime? createdFromUtc = null, DateTime? createdToUtc = null,
             int pageIndex = 0, int pageSize = int.MaxValue,
-            int orderItemId = 0, string phoneShipperNumber = null,
+            int orderItemId = 0,
+            string shelfCode = null,
+            string phoneShipperNumber = null,
             int shipperId = 0, int customerId = 0,
             bool isNotSetShippedDate = false,
             bool isAddressEmpty = false);

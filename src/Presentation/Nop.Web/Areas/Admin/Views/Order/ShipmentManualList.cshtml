@@ -320,14 +320,22 @@
                                     </div>
                                 </div>
 
-                                @*<div class="form-group">
+                                <div class="form-group">
                                         <div class="col-md-4">
-                                            <nop-label asp-for="OrderId" />
+                                            <nop-label asp-for="ShelfCode" />
                                         </div>
                                         <div class="col-md-8">
-                                            <nop-editor asp-for="OrderId" />
+                                            <nop-editor asp-for="ShelfCode" />
                                         </div>
-                                    </div>*@
+                                    </div>
+                                <div class="form-group">
+                                        <div class="col-md-4">
+                                            <nop-label asp-for="OrderItemId" />
+                                        </div>
+                                        <div class="col-md-8">
+                                            <nop-editor asp-for="OrderItemId" />
+                                        </div>
+                                    </div>
                             </div>
                             <div class="row">
                                 <div class="col-md-7 col-md-offset-4">
@@ -956,7 +964,8 @@
                             $('#@Html.IdFor(model => model.IsNotSetShippedDate)').prop('checked', false);
                             $('#@Html.IdFor(model => model.IsAddressEmpty)').prop('checked', false);
                             $('#@Html.IdFor(model => model.OrderId)').val('');
-                            $('#@Html.IdFor(model => model.CustomerId)').val('');
+                            $('#@Html.IdFor(model => model.OrderItemId)').val('');
+                            $('#@Html.IdFor(model => model.ShelfCode)').val('');
                             $('#CustomerNameOrPhone').val('');
 
                             $("#search-shipments").click();
@@ -1134,7 +1143,9 @@
                             ExceptCity: $('#@Html.IdFor(model => model.ExceptCity)').is(':checked'),
                             IsNotSetShippedDate: $('#@Html.IdFor(model => model.IsNotSetShippedDate)').is(':checked'),
                             IsAddressEmpty: $('#@Html.IdFor(model => model.IsAddressEmpty)').is(':checked'),
-                            OrderId: $('#@Html.IdFor(model => model.OrderId)').val()
+                            OrderId: $('#@Html.IdFor(model => model.OrderId)').val(),
+                            OrderItemId: $('#@Html.IdFor(model => model.OrderItemId)').val(),
+                            ShelfCode: $('#@Html.IdFor(model => model.ShelfCode)').val()
                         };
                         addAntiForgeryToken(data);
                         return data;

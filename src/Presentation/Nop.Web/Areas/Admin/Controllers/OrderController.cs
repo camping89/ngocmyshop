@@ -5922,6 +5922,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 pageIndex: command.Page - 1,
                 pageSize: command.PageSize,
                 orderItemId: model.OrderItemId,
+                shelfCode:model.ShelfCode,
                 phoneShipperNumber: model.ShipperPhoneNumber,
                 shipperId: model.SearchShipperId,
                 customerId: model.CustomerId,

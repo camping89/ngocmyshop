@@ -7,6 +7,7 @@ using Nop.Core.Domain.Shipping;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Nop.Core.Extensions;
 
 namespace Nop.Services.Shipping
 {
@@ -21,6 +22,8 @@ namespace Nop.Services.Shipping
         private readonly IRepository<ShipmentManualItem> _shipmentManualItemRepository;
         private readonly IRepository<GenericAttribute> _gaRepository;
         private readonly IRepository<OrderItem> _orderItemRepository;
+        private readonly IRepository<Shelf> _shelfRepository;
+        private readonly IRepository<ShelfOrderItem> _shelfOrderItemRepository;
 
         #endregion
 
@@ -35,12 +38,14 @@ namespace Nop.Services.Shipping
         /// <param name="gaRepository"></param>
         /// <param name="shipmentManualItemRepository"></param>
         public ShipmentManualService(IRepository<ShipmentManual> shipmentManualRepository,
-            IRepository<OrderItem> orderItemRepository, IRepository<GenericAttribute> gaRepository, IRepository<ShipmentManualItem> shipmentManualItemRepository)
+            IRepository<OrderItem> orderItemRepository, IRepository<GenericAttribute> gaRepository, IRepository<ShipmentManualItem> shipmentManualItemRepository, IRepository<Shelf> shelfRepository, IRepository<ShelfOrderItem> shelfOrderItemRepository)
         {
             this._shipmentManualRepository = shipmentManualRepository;
             this._orderItemRepository = orderItemRepository;
             _gaRepository = gaRepository;
             _shipmentManualItemRepository = shipmentManualItemRepository;
+            _shelfRepository = shelfRepository;
+            _shelfOrderItemRepository = shelfOrderItemRepository;
         }
 
         #endregion
@@ -88,7 +93,9 @@ namespace Nop.Services.Shipping
             bool exceptCity = false,
             DateTime? createdFromUtc = null, DateTime? createdToUtc = null,
             int pageIndex = 0, int pageSize = int.MaxValue,
-            int orderItemId = 0, string phoneShipperNumber = null,
+            int orderItemId = 0,
+            string shelfCode = null,
+            string phoneShipperNumber = null,
             int shipperId = 0, int customerId = 0,
             bool isNotSetShippedDate = false,
             bool isAddressEmpty = false)
@@ -154,13 +161,28 @@ namespace Nop.Services.Shipping
                 query = query.Where(s => s.ShippedDateUtc != null && createdToUtc.Value >= s.ShippedDateUtc);
             if (vendorId > 0)
             {
-                var queryVendorOrderItems = from orderItem in _orderItemRepository.Table
+                var queryVendorOrderItems = from orderItem in _orderItemRepository.TableNoTracking
                                             where orderItem.Product.VendorId == vendorId
                                             select orderItem.Id;
 
                 query = from s in query
                         where s.ShipmentManualItems.Any(_ => queryVendorOrderItems.Contains(_.OrderItemId))
                         select s;
+            }
+
+            if (shelfCode.IsNotNullOrEmpty())
+            {
+                shelfCode = shelfCode.ToUpper();
+                var orderItemIds = new List<int>();
+                var shelf = _shelfRepository.TableNoTracking.FirstOrDefault(_ => _.ShelfCode != null && _.ShelfCode == shelfCode);
+                if (shelf != null)
+                {
+                    orderItemIds = _shelfOrderItemRepository.TableNoTracking.Where(_ => _.ShelfId == shelf.Id).Select(s => s.OrderItemId).ToList();
+                }
+
+                query = from s in query
+                    where s.ShipmentManualItems.Any(_ => orderItemIds.Contains(_.OrderItemId))
+                    select s;
             }
 
             query = query.OrderByDescending(s => s.CreatedOnUtc);
