@@ -475,14 +475,14 @@ namespace Nop.Services.Orders
             int vendorId = 0, bool? isSetPackageOrderId = null,
             bool? isSetShelfId = null, int orderItemStatusId = -1, bool? isPackageItemProcessedDatetime = null, bool? isOrderCheckout = null, bool isWeightCostZero = false,string productSku = null)
         {
-            var query = from orderItem in _orderItemRepository.Table
-                        join o in _orderRepository.Table on orderItem.OrderId equals o.Id
+            var query = from orderItem in _orderItemRepository.TableNoTracking
+                        join o in _orderRepository.TableNoTracking on orderItem.OrderId equals o.Id
                         where !o.Deleted
                         select orderItem;
             if (string.IsNullOrEmpty(productSku) == false)
             {
                 query = from orderItem in query
-                    join p in _productRepository.Table on orderItem.ProductId equals p.Id
+                    join p in _productRepository.TableNoTracking on orderItem.ProductId equals p.Id
                     where p.Sku == productSku
                     select orderItem;
             }
@@ -530,7 +530,7 @@ namespace Nop.Services.Orders
 
             if (isSetShelfId.HasValue)
             {
-                var shelfOrderItemIds = _shelfOrderItemRepository.Table.Select(_ => _.OrderItemId).ToList();
+                var shelfOrderItemIds = _shelfOrderItemRepository.TableNoTracking.Select(_ => _.OrderItemId).ToList();
                 if (isSetShelfId.Value)
                 {
                     query = query.Where(_ => shelfOrderItemIds.Contains(_.Id));
@@ -570,7 +570,7 @@ namespace Nop.Services.Orders
             {
                 customerPhone = customerPhone.TrimStart().TrimEnd().Trim();
                 query = query
-                    .Join(_customerRepository.Table, x => x.Order.CustomerId, y => y.Id, (x, y) => new { OrderItem = x, Customer = y })
+                    .Join(_customerRepository.TableNoTracking, x => x.Order.CustomerId, y => y.Id, (x, y) => new { OrderItem = x, Customer = y })
                     .Where(z => z.Customer.Phone.Contains(customerPhone))
                     .Select(z => z.OrderItem);
             }
