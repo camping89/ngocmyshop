@@ -37,7 +37,7 @@ namespace Nop.Services.Shipping
             bool? isCustomerNotified = null, string shelfCode = null,
             int? shelfNoteId = null, bool? isPackageItemProcessedDatetime = null)
         {
-            var query = _shelfRepository.TableNoTracking;
+            var query = _shelfRepository.Table;
 
             if (string.IsNullOrEmpty(shelfCode) == false)
             {
@@ -63,7 +63,7 @@ namespace Nop.Services.Shipping
 
             if (assignedOrderItemFromUtc != null && assignedOrderItemToUtc != null)
             {
-                var subQuery = _shelfOrderItemRepository.TableNoTracking;
+                var subQuery = _shelfOrderItemRepository.Table;
                 var shelfIds = subQuery.Where(_ => _.AssignedDate >= assignedOrderItemFromUtc && _.AssignedDate <= assignedOrderItemToUtc).Select(s => s.ShelfId).Distinct().ToList();
                 query = query.Where(_ => shelfIds.Contains(_.Id));
             }
@@ -92,31 +92,31 @@ namespace Nop.Services.Shipping
             {
                 if (isPackageItemProcessedDatetime.Value)
                 {
-                    var shelfOrderItems = _shelfOrderItemRepository.TableNoTracking.Where(s => s.OrderItem.PackageItemProcessedDatetime != null).Select(_ => _.ShelfId).Distinct().ToList();
+                    var shelfOrderItems = _shelfOrderItemRepository.Table.Where(s => s.OrderItem.PackageItemProcessedDatetime != null).Select(_ => _.ShelfId).Distinct().ToList();
                     query = query.Where(_ => shelfOrderItems.Contains(_.Id));
                 }
                 else
                 {
-                    var shelfOrderItems = _shelfOrderItemRepository.TableNoTracking.Where(s => s.OrderItem.PackageItemProcessedDatetime == null).Select(_ => _.ShelfId).Distinct().ToList();
+                    var shelfOrderItems = _shelfOrderItemRepository.Table.Where(s => s.OrderItem.PackageItemProcessedDatetime == null).Select(_ => _.ShelfId).Distinct().ToList();
                     query = query.Where(_ => shelfOrderItems.Contains(_.Id));
                 }
             }
 
             if (shelfOrderItemIsActive != null && shelfOrderItemIsActive == true)
             {
-                var shelfOrderItems = _shelfOrderItemRepository.TableNoTracking.Where(s => s.IsActived).Select(_ => _.ShelfId).Distinct().ToList();
+                var shelfOrderItems = _shelfOrderItemRepository.Table.Where(s => s.IsActived).Select(_ => _.ShelfId).Distinct().ToList();
                 query = query.Where(_ => shelfOrderItems.Contains(_.Id));
             }
             else if (shelfOrderItemIsActive != null && shelfOrderItemIsActive == false)
             {
-                var shelfOrderItems = _shelfOrderItemRepository.TableNoTracking.Where(s => s.IsActived == false).Select(_ => _.ShelfId).Distinct().ToList();
+                var shelfOrderItems = _shelfOrderItemRepository.Table.Where(s => s.IsActived == false).Select(_ => _.ShelfId).Distinct().ToList();
                 query = query.Where(_ => shelfOrderItems.Contains(_.Id));
             }
 
 
             if (isShelfEmpty)
             {
-                var shelfOrderItems = _shelfOrderItemRepository.TableNoTracking.Where(s => s.IsActived).Select(_ => _.ShelfId).Distinct().ToList();
+                var shelfOrderItems = _shelfOrderItemRepository.Table.Where(s => s.IsActived).Select(_ => _.ShelfId).Distinct().ToList();
                 query = query.Where(_ => _.CustomerId == null || _.CustomerId == 0 || shelfOrderItems.Contains(_.Id) == false);
             }
 
@@ -146,7 +146,7 @@ namespace Nop.Services.Shipping
 
         public List<Shelf> GetAllShelfAvailable(int customerId = 0, string shelfCode = null)
         {
-            var shelfOrderItems = _shelfOrderItemRepository.TableNoTracking.Where(s => s.IsActived && (customerId == 0 || s.CustomerId != customerId)).Select(_ => _.ShelfId).Distinct().ToList();
+            var shelfOrderItems = _shelfOrderItemRepository.Table.Where(s => s.IsActived && (customerId == 0 || s.CustomerId != customerId)).Select(_ => _.ShelfId).Distinct().ToList();
             var query = _shelfRepository.Table;
             if (string.IsNullOrEmpty(shelfCode) == false)
             {
@@ -195,7 +195,7 @@ namespace Nop.Services.Shipping
 
         public IPagedList<ShelfOrderItem> GetAllShelfOrderItem(int shelfId = 0, int customerId = 0, DateTime? assignedFromUtc = null, DateTime? assignedToUtc = null, int pageIndex = 0, int pageSize = Int32.MaxValue, bool? shelfOrderItemIsActive = null)
         {
-            var query = _shelfOrderItemRepository.TableNoTracking;
+            var query = _shelfOrderItemRepository.Table;
             if (shelfId > 0)
             {
                 query = query.Where(_ => _.ShelfId == shelfId);

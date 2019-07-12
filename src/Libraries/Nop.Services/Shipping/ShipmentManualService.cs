@@ -170,22 +170,27 @@ namespace Nop.Services.Shipping
                         select s;
             }
 
+            //if (shelfCode.IsNotNullOrEmpty())
+            //{
+            //    shelfCode = shelfCode.ToUpper();
+            //    var orderItemIds = new List<int>();
+            //    var shelf = _shelfRepository.TableNoTracking.FirstOrDefault(_ => _.ShelfCode != null && _.ShelfCode == shelfCode);
+            //    if (shelf != null)
+            //    {
+            //        orderItemIds = _shelfOrderItemRepository.TableNoTracking.Where(_ => _.ShelfId == shelf.Id).Select(s => s.OrderItemId).ToList();
+            //    }
+
+            //    query = from s in query
+            //        where s.ShipmentManualItems.Any(_ => orderItemIds.Contains(_.OrderItemId))
+            //        select s;
+            //}
             if (shelfCode.IsNotNullOrEmpty())
             {
                 shelfCode = shelfCode.ToUpper();
-                var orderItemIds = new List<int>();
-                var shelf = _shelfRepository.TableNoTracking.FirstOrDefault(_ => _.ShelfCode != null && _.ShelfCode == shelfCode);
-                if (shelf != null)
-                {
-                    orderItemIds = _shelfOrderItemRepository.TableNoTracking.Where(_ => _.ShelfId == shelf.Id).Select(s => s.OrderItemId).ToList();
-                }
-
-                query = from s in query
-                    where s.ShipmentManualItems.Any(_ => orderItemIds.Contains(_.OrderItemId))
-                    select s;
+                query = query.Where(_ => _.ShelfCode.Equals(shelfCode));
             }
 
-            query = query.OrderByDescending(s => s.CreatedOnUtc);
+            //query = query.OrderByDescending(s => s.CreatedOnUtc);
             query = query.OrderByDescending(o => o.Id).ThenByDescending(o => o.CreatedOnUtc);
             var shipments = new PagedList<ShipmentManual>(query, pageIndex, pageSize) { TotalIds = query.Select(_ => _.Id).ToList() };
             return shipments;
@@ -253,6 +258,13 @@ namespace Nop.Services.Shipping
                 throw new ArgumentNullException(nameof(shipmentManual));
 
             _shipmentManualRepository.Update(shipmentManual);
+        }
+        public virtual void UpdateShipmentManuals(List<ShipmentManual> shipmentManuals)
+        {
+            if (shipmentManuals == null)
+                throw new ArgumentNullException(nameof(shipmentManuals));
+
+            _shipmentManualRepository.Update(shipmentManuals);
         }
 
         public void DeleteShipmentManualItem(ShipmentManualItem shipmentManualItem)

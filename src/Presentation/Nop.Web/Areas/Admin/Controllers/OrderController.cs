@@ -1619,16 +1619,16 @@ namespace Nop.Web.Areas.Admin.Controllers
 
             shipment.TotalShippingFee = DecimalExtensions.RoundCustom(shipment.TotalShippingFee / 1000) * 1000;
 
-            var shelfCode = string.Empty;
-            var shipmentManualItem = shipment.ShipmentManualItems.Where(_ => _.OrderItem != null).FirstOrDefault();
-            if (shipmentManualItem != null)
-            {
-                var shelfOrderItem = _shelfService.GetShelfOrderItemByOrderItemId(shipmentManualItem.OrderItemId);
-                if (shelfOrderItem != null && shelfOrderItem.Shelf != null)
-                {
-                    shelfCode = shelfOrderItem.Shelf.ShelfCode;
-                }
-            }
+            //var shelfCode = string.Empty;
+            //var shipmentManualItem = shipment.ShipmentManualItems.Where(_ => _.OrderItem != null).FirstOrDefault();
+            //if (shipmentManualItem != null)
+            //{
+            //    var shelfOrderItem = _shelfService.GetShelfOrderItemByOrderItemId(shipmentManualItem.OrderItemId);
+            //    if (shelfOrderItem != null && shelfOrderItem.Shelf != null)
+            //    {
+            //        shelfCode = shelfOrderItem.Shelf.ShelfCode;
+            //    }
+            //}
 
             var customerAddress = shipment.Customer.Addresses.OrderByDescending(_ => _.CreatedOnUtc).FirstOrDefault();
 
@@ -1645,7 +1645,8 @@ namespace Nop.Web.Areas.Admin.Controllers
                 CanDeliver = shipment.ShippedDateUtc.HasValue && !shipment.DeliveryDateUtc.HasValue,
                 AdminComment = shipment.AdminComment,
                 ShipmentNote = shipment.ShipmentNote,
-                Deposit = shipment.ShipmentManualItems.Where(s => s.OrderItem != null).Sum(_ => _.OrderItem.Deposit),
+                //Deposit = shipment.ShipmentManualItems.Where(s => s.OrderItem != null).Sum(_ => _.OrderItem.Deposit),
+                Deposit = shipment.Deposit,
                 DepositStr = _priceFormatter.FormatPrice(shipment.ShipmentManualItems.Where(s => s.OrderItem != null).Sum(_ => _.OrderItem.Deposit)),
                 //CustomOrderNumber = shipment.OrderItem.Order.CustomOrderNumber,
                 //TotalShippingFee = _priceFormatter.FormatPrice(shipment.TotalShippingFee, true, primaryStoreCurrency,
@@ -1659,7 +1660,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 ShipmentDistrictId = Core.Extensions.StringExtensions.IsNotNullOrEmpty(shipment.District) ? shipment.District : customerAddress?.District,
                 ShipmentWard = string.IsNullOrEmpty(shipment.Ward) == false ? shipment.Ward : customerAddress?.Ward,
                 HasShippingFee = shipment.HasShippingFee,
-                ShelfCode = shelfCode
+                ShelfCode = shipment.ShelfCode
             };
 
             var customerOrder = shipment.Customer;
@@ -1684,22 +1685,22 @@ namespace Nop.Web.Areas.Admin.Controllers
             {
                 model.ShipperId = shipment.ShipperId;
                 //model.Customer = shipment.Customer;
-                model.ShipperFullName = $"(ID:{shipment.CustomerId}) " + shipment.Shipper.GetFullName() + " - " + shipment.Shipper.GetAttribute<string>(SystemCustomerAttributeNames.Phone);
+                model.ShipperFullName = $"(ID:{shipment.ShipperId}) " + shipment.Shipper.GetFullName() + " - " + shipment.Shipper.GetAttribute<string>(SystemCustomerAttributeNames.Phone);
             }
             else
             {
                 model.ShipperId = 0;
             }
 
-            decimal totalOrderFee = 0;
-            foreach (var shipmentItem in shipment.ShipmentManualItems.Where(_ => _.OrderItem != null))
-            {
-                totalOrderFee += DecimalExtensions.RoundCustom(shipmentItem.OrderItem.PriceInclTax / 1000) * 1000;
-            }
+            //decimal totalOrderFee = 0;
+            //foreach (var shipmentItem in shipment.ShipmentManualItems.Where(_ => _.OrderItem != null))
+            //{
+            //    totalOrderFee += DecimalExtensions.RoundCustom(shipmentItem.OrderItem.PriceInclTax / 1000) * 1000;
+            //}
 
-            model.TotalOrderFee = _priceFormatter.FormatPrice(totalOrderFee, true, primaryStoreCurrency,
+            model.TotalOrderFee = _priceFormatter.FormatPrice(shipment.Total, true, primaryStoreCurrency,
                 _workContext.WorkingLanguage, true, false);
-            model.TotalOrderFeeDecimal = totalOrderFee;
+            model.TotalOrderFeeDecimal = shipment.Total;
 
             return model;
         }
@@ -4375,7 +4376,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                             shelf.ShippedDate = null;
                             shelf.UpdatedNoteDate = null;
                         }
-                        _shelfService.UpdateShelf(shelf);
+                        UpdateTotalShelf(shelf.Id);
 
                         var shelfOrderItem = _shelfService.GetShelfOrderItemByOrderItemId(orderItem.Id);
                         if (shelfOrderItem != null)
@@ -4383,17 +4384,27 @@ namespace Nop.Web.Areas.Admin.Controllers
                             shelfOrderItem.ShelfId = shelf.Id;
                             _shelfService.UpdateShelfOrderItem(shelfOrderItem);
 
+                            orderItem.ShelfCode = shelfCode;
+                            orderItem.ShelfOrderItemId = shelfOrderItem.Id;
+                            orderItem.ShelfId = shelf.Id;
+                            _orderService.UpdateOrderItem(orderItem);
                         }
                         else
                         {
-                            _shelfService.InsertShelfOrderItem(new ShelfOrderItem
+                            var newShelfOrderItem = new ShelfOrderItem
                             {
                                 OrderItemId = orderItem.Id,
                                 ShelfId = shelf.Id,
                                 CustomerId = customerId,
                                 AssignedDate = DateTime.UtcNow,
                                 IsActived = true
-                            });
+                            };
+                            _shelfService.InsertShelfOrderItem(newShelfOrderItem);
+
+                            orderItem.ShelfCode = shelfCode;
+                            orderItem.ShelfOrderItemId = newShelfOrderItem.Id;
+                            orderItem.ShelfId = shelf.Id;
+                            _orderService.UpdateOrderItem(orderItem);
 
                             var listOrderItems = GetOrderItemsUnAssignShelfByCustomer(customerId);
                             foreach (var orderItemUnAssign in listOrderItems)
@@ -4410,15 +4421,22 @@ namespace Nop.Web.Areas.Admin.Controllers
                                             AssignedDate = DateTime.UtcNow,
                                             IsActived = true
                                         });
+
+                                        orderItemUnAssign.ShelfCode = shelfCode;
+                                        orderItemUnAssign.ShelfOrderItemId = newShelfOrderItem.Id;
+                                        orderItemUnAssign.ShelfId = shelf.Id;
+                                        _orderService.UpdateOrderItem(orderItemUnAssign);
+
                                     }
                                 }
                             }
 
                             shelf.ShippedDate = null;
-                            _shelfService.UpdateShelf(shelf);
-
+                            
                             _customerActivityService.InsertActivity("EditShelf", _localizationService.GetResource("activitylog.updateshelforderitemvendorcheckout"), orderItem.Id, shelf.ShelfCode);
                         }
+
+                        UpdateTotalShelf(shelf.Id);
                     }
                     else
                     {
@@ -4437,11 +4455,43 @@ namespace Nop.Web.Areas.Admin.Controllers
                 var sheflOrderItem = _shelfService.GetShelfOrderItemByOrderItemId(orderItem.Id);
                 if (sheflOrderItem != null)
                 {
+                    var shelfId = sheflOrderItem.ShelfId;
                     _shelfService.DeleteShelfOrderItem(sheflOrderItem.Id);
+
+                    orderItem.ShelfCode = null;
+                    orderItem.ShelfOrderItemId = null;
+                    orderItem.ShelfId = null;
+                    _orderService.UpdateOrderItem(orderItem);
+                    
+                    UpdateTotalShelf(shelfId);
                 }
             }
 
             return errorStr;
+        }
+
+        private void UpdateTotalShelf(int shelfId)
+        {
+            var shelf = _shelfService.GetShelfById(shelfId);
+            if (shelf != null)
+            {
+                decimal total = 0;
+                decimal totalWithoutDeposit = 0;
+                if (shelf.ShelfOrderItems != null)
+                {
+                    foreach (var shelfOrderItem in shelf.ShelfOrderItems.Where(_=> _.OrderItem != null && _.IsActived))
+                    {
+                        var itemTotal = DecimalExtensions.RoundCustom(shelfOrderItem.OrderItem.PriceInclTax / 1000) * 1000 * shelfOrderItem.OrderItem.Quantity;
+                        total += itemTotal;
+                        totalWithoutDeposit += itemTotal - DecimalExtensions.RoundCustom(shelfOrderItem.OrderItem.Deposit / 1000) * 1000;
+                    }
+
+                    shelf.HasOrderItem = shelf.ShelfOrderItems.Any();
+                }
+                shelf.Total = total;
+                shelf.TotalWithoutDeposit = totalWithoutDeposit;
+                _shelfService.UpdateShelf(shelf);
+            }
         }
 
         private List<OrderItem> GetOrderItemsUnAssignShelfByCustomer(int customerId)
@@ -6751,7 +6801,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                         CustomerLinkShortFacebook = customerShortFacebook,
                         CreatedDate = orderItem.Order.CreatedOnUtc,
                         //PrimaryStoreCurrencyCode = primaryStoreCurrency != null ? primaryStoreCurrency.CurrencyCode : string.Empty,
-                        AssignedByCustomerId = orderItem.AssignedByCustomerId != null ? orderItem.AssignedByCustomerId.Value : 0,
+                        
                         DeliveryDateUtc = orderItem.DeliveryDateUtc,
                         Deposit = orderItem.Deposit,
                         DepositStr = _priceFormatter.FormatPrice(orderItem.Deposit, true,
@@ -6762,28 +6812,21 @@ namespace Nop.Web.Areas.Admin.Controllers
                     };
                     if (orderItemModel.PackageOrderId > 0)
                     {
-                        var packageOrder = orderItem.PackageOrder;
-                        if (packageOrder != null)
-                        {
-                            orderItemModel.PackageOrderCode = packageOrder.PackageCode;
-                        }
+                        orderItemModel.PackageOrderCode = orderItem.PackageOrder?.PackageCode;
                     }
-                    //var shelfOrderItem = _shelfService.GetShelfOrderItemByOrderItemId(orderItem.Id);
-                    var shelfOrderItem = _shelfService.GetShelfOrderItemByOrderItemId(orderItem.Id);
-                    if (shelfOrderItem != null && shelfOrderItem.Shelf != null)
+
+                    if (orderItem.ShelfId != null )
                     {
-                        orderItemModel.ShelfCode = shelfOrderItem.Shelf.ShelfCode;
-                        orderItemModel.ShelfId = shelfOrderItem.Shelf.Id;
-                        orderItemModel.ShelfOrderItemId = shelfOrderItem.Id;
+                        orderItemModel.ShelfCode = orderItem.ShelfCode;
+                        orderItemModel.ShelfId = orderItem.ShelfId.Value;
+                        orderItemModel.ShelfOrderItemId = orderItem.ShelfOrderItemId ?? 0;
                     }
 
                     if (orderItem.AssignedByCustomer != null)
                     {
+                        orderItemModel.AssignedByCustomerId = orderItem.AssignedByCustomerId.Value;
                         var assignedByCustomer = orderItem.AssignedByCustomer;
-                        if (assignedByCustomer != null)
-                        {
-                            orderItemModel.CustomerAssignShelfInfo = assignedByCustomer.GetFullName();
-                        }
+                        orderItemModel.CustomerAssignShelfInfo = assignedByCustomer?.GetFullName();
                     }
                     //picture
                     var orderItemPicture =

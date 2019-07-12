@@ -2,6 +2,7 @@ using Nop.Core;
 using Nop.Core.Domain.Shipping;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Nop.Services.Shipping
 {
@@ -39,6 +40,7 @@ namespace Nop.Services.Shipping
         void InsertShipmentManual(ShipmentManual shipmentManual);
 
         void UpdateShipmentManual(ShipmentManual shipmentManual);
+        void UpdateShipmentManuals(List<ShipmentManual> shipmentManuals);
 
 
         void DeleteShipmentManualItem(ShipmentManualItem shipmentManualItem);

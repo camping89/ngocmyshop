@@ -101,7 +101,7 @@ namespace Nop.Web.Areas.Admin.Controllers
 
             shelfListModel.ShelfNoteStatus = ShelfNoteStatus.NoReply.ToSelectList(false).ToList();
             shelfListModel.ShelfNoteStatus.Insert(0, new SelectListItem { Value = "", Text = _localizationService.GetResource("Admin.Common.All"), Selected = true });
-
+            shelfListModel.IsAdmin = _workContext.CurrentCustomer.IsAdmin();
             return View(shelfListModel);
         }
 
@@ -131,14 +131,15 @@ namespace Nop.Web.Areas.Admin.Controllers
                 isPackageItemProcessedDatetime: model.IsPackageItemProcessedDatetime);
             var gridModel = new DataSourceResult
             {
-                Data = shelfs.Select(x =>
+                Data =
+                    shelfs.Select(x =>
                 {
                     var m = x.ToModel();
                     m.ShelfNoteStatus = x.ShelfNoteStatus.GetLocalizedEnum(_localizationService, _workContext);
                     m.AssignedDate = x.AssignedDate?.ToString("MM/dd/yyyy");
                     m.ShippedDate = x.ShippedDate?.ToString("MM/dd/yyyy");
                     m.UpdatedNoteDate = x.UpdatedNoteDate?.ToString("MM/dd/yyyy");
-                    m.HasOrderItem = x.ShelfOrderItems.Any(_ => _.IsActived);
+                    m.HasOrderItem = x.HasOrderItem;
                     var customer = x.Customer;
                     if (customer != null)
                     {
@@ -172,12 +173,14 @@ namespace Nop.Web.Areas.Admin.Controllers
                         }
                     }
 
-                    var orderItems = _shelfService.GetAllShelfOrderItem(x.Id, shelfOrderItemIsActive: true).Where(_ => _.OrderItem != null).Select(_ => _.OrderItem).ToList();
-                    foreach (var orderItem in orderItems)
-                    {
-                        orderItem.PriceInclTax = DecimalExtensions.RoundCustom(orderItem.PriceInclTax / 1000) * 1000;
-                    }
-                    m.Total = _priceFormatter.FormatPrice(orderItems.Sum(_ => _.PriceInclTax), true, false);
+                    m.Total = _priceFormatter.FormatPrice(x.Total, true, false);
+                    m.TotalWithoutDeposit = _priceFormatter.FormatPrice(x.TotalWithoutDeposit, true, false);
+                    //var orderItems = _shelfService.GetAllShelfOrderItem(x.Id, shelfOrderItemIsActive: true).Where(_ => _.OrderItem != null).Select(_ => _.OrderItem).ToList();
+                    //foreach (var orderItem in orderItems)
+                    //{
+                    //    orderItem.PriceInclTax = DecimalExtensions.RoundCustom(orderItem.PriceInclTax / 1000) * 1000;
+                    //}
+                    //m.Total = _priceFormatter.FormatPrice(orderItems.Sum(_ => _.PriceInclTax), true, false);
                     return m;
                 }),
                 Total = shelfs.TotalCount
@@ -287,11 +290,10 @@ namespace Nop.Web.Areas.Admin.Controllers
         public IActionResult EditAjax(ShelfModel model)
         {
             var entity = _shelfService.GetShelfById(model.Id);
-
-            if ((entity.CustomerId != model.CustomerId || model.CustomerId == 0) && entity.ShelfOrderItems.Any(_ => _.IsActived) == false)
+            var shelfOrderItems = _shelfService.GetAllShelfOrderItem(entity.Id);
+            if ((entity.CustomerId != model.CustomerId || model.CustomerId == 0) && shelfOrderItems.Any(_ => _.IsActived) == false)
             {
                 entity = model.ToEntity(entity);
-
                 entity.ShippedDate = null;
                 entity.UpdatedNoteDate = null;
                 entity.AssignedDate = DateTime.Now;
@@ -322,6 +324,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             }
 
             _shelfService.UpdateShelf(entity);
+            UpdateTotalShelf(entity.Id);
             _customerActivityService.InsertActivity("UpdateShelf", _localizationService.GetResource("activitylog.updateshelf"), model.ShelfCode);
             return Json(new { Success = true });
         }
@@ -425,8 +428,9 @@ namespace Nop.Web.Areas.Admin.Controllers
                         _shelfService.UpdateShelf(shelf);
                     }
                 }
+                UpdateTotalShelf(shelfOrderItem.ShelfId);
             }
-
+            
             return new NullJsonResult();
         }
 
@@ -460,6 +464,8 @@ namespace Nop.Web.Areas.Admin.Controllers
                 CreateShipment(shelf, shelfOrderItems.Select(_ => _.OrderItemId).ToList(), customerId);
             }
 
+            UpdateTotalShelf(shelfId);
+
             return Json(new { Success = true });
         }
 
@@ -471,6 +477,8 @@ namespace Nop.Web.Areas.Admin.Controllers
             {
                 CreateShipment(shelf, orderItemIds, customerId);
             }
+
+            UpdateTotalShelf(shelfId);
             return Json(new { Success = true });
         }
 
@@ -479,6 +487,13 @@ namespace Nop.Web.Areas.Admin.Controllers
             if (customerId > 0 && orderItemIds != null)
             {
                 var orderItems = _orderService.GetOrderItemsByIds(orderItemIds.ToArray());
+                foreach (var orderItem in orderItems)
+                {
+                    orderItem.PriceInclTax = DecimalExtensions.RoundCustom(orderItem.PriceInclTax / 1000) * 1000;
+                }
+                var totalMoney = orderItems.Sum(_ => _.PriceInclTax * _.Quantity);
+                var deposit = orderItems.Sum(_ => _.Deposit);
+                
                 var totalWeight = orderItems.Sum(_ => _.ItemWeight);
                 var customer = _customerService.GetCustomerById(customerId);
                 var orderItemFirst = orderItems.FirstOrDefault();
@@ -499,7 +514,10 @@ namespace Nop.Web.Areas.Admin.Controllers
                         Address = customerAddress?.Address1,
                         Province = customerAddress?.City,
                         District = customerAddress?.District,
-                        Ward = customerAddress?.Ward
+                        Ward = customerAddress?.Ward,
+                        Total = totalMoney,
+                        Deposit = deposit,
+                        ShelfCode = shelf.ShelfCode
                     };
 
                     shipmentEntity.HasShippingFee = true;
@@ -532,6 +550,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                             }
                         }
                     }
+
                 }
             }
         }
@@ -615,12 +634,44 @@ namespace Nop.Web.Areas.Admin.Controllers
                         _shelfService.UpdateShelfOrderItem(shelfOrderItem);
                     }
                 }
+
+                var shelf = _shelfService.GetShelfByCode(shipmentManual.ShelfCode);
+                if (shelf != null)
+                {
+                    UpdateTotalShelf(shelf.Id);
+                }
+
                 _shipmentManualService.DeleteShipmentManual(shipmentManual);
 
             }
 
             return Json(new { Success = true });
         }
+
+        private void UpdateTotalShelf(int shelfId)
+        {
+            var shelf = _shelfService.GetShelfById(shelfId);
+            if (shelf != null)
+            {
+                decimal total = 0;
+                decimal totalWithoutDeposit = 0;
+                if (shelf.ShelfOrderItems != null)
+                {
+                    foreach (var shelfOrderItem in shelf.ShelfOrderItems.Where(_=> _.OrderItem != null && _.IsActived))
+                    {
+                        var itemTotal = DecimalExtensions.RoundCustom(shelfOrderItem.OrderItem.PriceInclTax / 1000) * 1000 * shelfOrderItem.OrderItem.Quantity;
+                        total += itemTotal;
+                        totalWithoutDeposit += itemTotal - DecimalExtensions.RoundCustom(shelfOrderItem.OrderItem.Deposit / 1000) * 1000;
+                    }
+
+                    shelf.HasOrderItem = shelf.ShelfOrderItems.Any();
+                }
+                shelf.Total = total;
+                shelf.TotalWithoutDeposit = totalWithoutDeposit;
+                _shelfService.UpdateShelf(shelf);
+            }
+        }
+
 
         [HttpPost]
         public IActionResult EditDepositShipmentItem(int id, decimal deposit)
@@ -656,6 +707,78 @@ namespace Nop.Web.Areas.Admin.Controllers
             }
             return Json(new { Success = true });
         }
+
+        public IActionResult UpdateTotalShelfs()
+        {
+            var shelfs = _shelfService.GetAllShelf(shelfOrderItemIsActive: true);
+            foreach (var shelf in shelfs)
+            {
+                decimal total = 0;
+                decimal totalWithoutDeposit = 0;
+                if (shelf.ShelfOrderItems != null)
+                {
+                    foreach (var shelfOrderItem in shelf.ShelfOrderItems.Where(_=> _.OrderItem != null && _.IsActived))
+                    {
+                        var itemTotal = DecimalExtensions.RoundCustom(shelfOrderItem.OrderItem.PriceInclTax / 1000) * 1000 * shelfOrderItem.OrderItem.Quantity;
+                        total += itemTotal;
+                        totalWithoutDeposit += itemTotal - DecimalExtensions.RoundCustom(shelfOrderItem.OrderItem.Deposit / 1000) * 1000;
+                    }
+
+                    shelf.HasOrderItem = shelf.ShelfOrderItems.Any();
+                }
+                shelf.Total = total;
+                shelf.TotalWithoutDeposit = totalWithoutDeposit;
+                _shelfService.UpdateShelf(shelf);
+            }
+
+            return new NullJsonResult();
+        }
+       
+        public IActionResult UpdateShelfToOrdeItem()
+        {
+            var shelfOrderItems = _shelfService.GetAllShelfOrderItem();
+            foreach (var shelfOrderItem in shelfOrderItems)
+            {
+                var orderItem = shelfOrderItem.OrderItem;
+                orderItem.ShelfId = shelfOrderItem.ShelfId;
+                orderItem.ShelfCode = shelfOrderItem.Shelf.ShelfCode;
+                orderItem.ShelfOrderItemId = shelfOrderItem.Id;
+                _orderService.UpdateOrderItem(orderItem);
+            }
+
+            return new NullJsonResult();
+        }
+        
+        public IActionResult UpdateShipmentsManual()
+        {
+            var shipmentManuals = _shipmentManualService.GetAllShipmentsManual().ToList();
+            foreach (var shipmentManual in shipmentManuals)
+            {
+                if (shipmentManual.ShipmentManualItems != null)
+                {
+                    var orderItems = shipmentManual.ShipmentManualItems.Where(_ => _.OrderItem != null).Select(_ => _.OrderItem).ToList();
+                    foreach (var orderItem in orderItems)
+                    {
+                        shipmentManual.Total +=  DecimalExtensions.RoundCustom(orderItem.PriceInclTax / 1000) * 1000 * orderItem.Quantity;
+                        shipmentManual.Deposit +=  DecimalExtensions.RoundCustom(orderItem.Deposit / 1000) * 1000;
+                    }
+
+                    var first = shipmentManual.ShipmentManualItems.FirstOrDefault();
+                    if (first != null)
+                    {
+                        var shelfOrderItem = _shelfService.GetShelfOrderItemByOrderItemId(first.OrderItemId);
+                        if (shelfOrderItem != null)
+                        {
+                            shipmentManual.ShelfCode = shelfOrderItem.Shelf?.ShelfCode;
+                        }
+                    }
+               
+                    _shipmentManualService.UpdateShipmentManual(shipmentManual);
+                }
+            }
+            return new NullJsonResult();
+        }
+
 
         //public IActionResult CreateAuto()
         //{

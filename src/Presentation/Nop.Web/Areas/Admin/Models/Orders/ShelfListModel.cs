@@ -76,5 +76,7 @@ namespace Nop.Web.Areas.Admin.Models.Orders
         public List<SelectListItem> CustomerNotifiedStatus { get; set; }
         public List<SelectListItem> ShelfNoteStatus { get; set; }
 
+        public bool IsAdmin { get; set; }
+
     }
 }

@@ -303,6 +303,7 @@
                                                 ShelfNoteId: { editable: true, type: "number" },
                                                 ShelfNoteStatus: { editable: false, type: "string" },
                                                 Total: { editable: false, type: "string" },
+                                                TotalWithoutDeposit: { editable: false, type: "string" },
                                                 HasOrderItem: { editable: false, type: "boolean" }
                                             }
                                         },
@@ -407,6 +408,10 @@
                                     },{
                                         field: "Total",
                                         title: "@T("Admin.Shelf.Fields.Total")",
+                                        width: 100
+                                    },{
+                                        field: "TotalWithoutDeposit",
+                                        title: "@T("Admin.Shelf.Fields.TotalWithoutDeposit")",
                                         width: 100
                                     },
                                     {
@@ -866,34 +871,39 @@
                                                     text: "@T("Admin.Common.Delete")",
                                                     template: '<a class="btn btn-danger k-button-icontext k-grid-delete" href="" >@T("Admin.Common.Delete")</a>'
                                                 },
-                                                @*{
-                                                    name: "setitemactive",
-                                                    text: "@T("Admin.ShelfOrderItem.ShipSelected")",
-                                                    template: '<a role="button" href="javascript:void(0);" class="btn btn-primary k-button-icontext k-grid-setitemactive">@T("Admin.ShelfOrderItem.SetItemActiveOrInActive")</a>',
-                                                    click: function(e) {
-                                                        e.preventDefault();
+                                                @if (Model.IsAdmin)
+                                                {
+                                                    <text>
+                                                        {
+                                                            name: "setitemactive",
+                                                            text: "@T("Admin.ShelfOrderItem.ShipSelected")",
+                                                            template: '<a role="button" href="javascript:void(0);" class="btn btn-primary k-button-icontext k-grid-setitemactive">@T("Admin.ShelfOrderItem.SetItemActiveOrInActive")</a>',
+                                                            click: function(e) {
+                                                                e.preventDefault();
 
-                                                        var tr = $(e.target).closest("tr");
-                                                        var data = this.dataItem(tr);
-                                                        console.log("Shelf order item id: " + data.Id);
+                                                                var tr = $(e.target).closest("tr");
+                                                                var data = this.dataItem(tr);
+                                                                console.log("Shelf order item id: " + data.Id);
 
-                                                        var postData = { orderItemId: data.Id};
-                                                        addAntiForgeryToken(postData);
-                                                        $.ajax({
-                                                            cache: false,
-                                                            type: "POST",
-                                                            url: "@(Url.Action("SetShelfOrderItemActiveOrInActive", "Shelf"))",
-                                                            data: postData,
-                                                            complete: function(result) {
-                                                                $("#search-shelf").trigger('click');
-                                                            },
-                                                            error: function(xhr, ajaxOptions, thrownError) {
-                                                                alert(thrownError);
-                                                            },
-                                                            traditional: true
-                                                        });
-                                                    }
-                                                }*@
+                                                                var postData = { orderItemId: data.Id};
+                                                                addAntiForgeryToken(postData);
+                                                                $.ajax({
+                                                                    cache: false,
+                                                                    type: "POST",
+                                                                    url: "@(Url.Action("SetShelfOrderItemActiveOrInActive", "Shelf"))",
+                                                                    data: postData,
+                                                                    complete: function(result) {
+                                                                        $("#search-shelf").trigger('click');
+                                                                    },
+                                                                    error: function(xhr, ajaxOptions, thrownError) {
+                                                                        alert(thrownError);
+                                                                    },
+                                                                    traditional: true
+                                                                });
+                                                            }
+                                                        }
+                                                    </text>
+                                                }
                                             ],
                                             width: 100
                                         }

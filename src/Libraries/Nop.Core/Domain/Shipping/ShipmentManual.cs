@@ -49,6 +49,9 @@ namespace Nop.Core.Domain.Shipping
         /// </summary>
         public DateTime CreatedOnUtc { get; set; }
 
+        public string ShelfCode { get; set; }
+        public decimal Total { get; set; }
+
         public string BagId { get; set; }
 
         public int ShipperId { get; set; }
@@ -64,7 +67,7 @@ namespace Nop.Core.Domain.Shipping
         public string Ward { get; set; }
 
         public int? ShippingAddressId { get; set; }
-
+        public decimal Deposit { get; set; }
         public virtual Address ShippingAddress { get; set; }
 
         /// <summary>

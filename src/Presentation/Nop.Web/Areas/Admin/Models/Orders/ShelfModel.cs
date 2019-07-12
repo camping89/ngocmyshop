@@ -49,6 +49,7 @@ namespace Nop.Web.Areas.Admin.Models.Orders
         public List<SelectListItem> Customers { get; set; }
 
         public string Total { get; set; }
+        public string TotalWithoutDeposit { get; set; }
 
         public bool HasOrderItem { get; set; }
     }
