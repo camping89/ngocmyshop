@@ -3,6 +3,7 @@ using Nop.Core.Domain.Customers;
 using Nop.Core.Domain.Orders;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Nop.Services.Customers
 {
@@ -46,7 +47,7 @@ namespace Nop.Services.Customers
             string ipAddress = null, bool loadOnlyWithShoppingCart = false, ShoppingCartType? sct = null,
             int pageIndex = 0, int pageSize = int.MaxValue);
 
-        List<Customer> GetAllCustomersByCache(int[] customerRoleIds = null);
+        IQueryable<Customer> GetAllCustomersByCache(int[] customerRoleIds = null);
         /// <summary>
         /// Gets online customers
         /// </summary>

@@ -316,7 +316,8 @@ namespace Nop.Services.Customers
             string ipAddress = null, bool loadOnlyWithShoppingCart = false, ShoppingCartType? sct = null,
             int pageIndex = 0, int pageSize = int.MaxValue)
         {
-            var query = _customerRepository.Table.Where(_ => _.Username != null && _.Email != null);
+            //var query = _customerRepository.Table.Where(_ => _.Username != null && _.Email != null);
+            var query = GetAllCustomersByCache();
             if (createdFromUtc.HasValue)
                 query = query.Where(c => createdFromUtc.Value <= c.CreatedOnUtc);
             if (createdToUtc.HasValue)
@@ -333,12 +334,13 @@ namespace Nop.Services.Customers
             //search by facebook
             if (!string.IsNullOrWhiteSpace(linkFacebook))
             {
-                query = query
-                    .Join(_gaRepository.Table, x => x.Id, y => y.EntityId, (x, y) => new { Customer = x, Attribute = y })
-                    .Where((z => z.Attribute.KeyGroup == "Customer" &&
-                                 (z.Attribute.Key == SystemCustomerAttributeNames.LinkFacebook1 || z.Attribute.Key == SystemCustomerAttributeNames.LinkFacebook2) &&
-                                 z.Attribute.Value.Contains(linkFacebook)))
-                    .Select(z => z.Customer);
+                //query = query
+                //    .Join(_gaRepository.Table, x => x.Id, y => y.EntityId, (x, y) => new { Customer = x, Attribute = y })
+                //    .Where((z => z.Attribute.KeyGroup == "Customer" &&
+                //                 (z.Attribute.Key == SystemCustomerAttributeNames.LinkFacebook1 || z.Attribute.Key == SystemCustomerAttributeNames.LinkFacebook2) &&
+                //                 z.Attribute.Value.Contains(linkFacebook)))
+                //    .Select(z => z.Customer);
+                query = query.Where(_ => _.LinkFacebook1.Contains(linkFacebook) || _.LinkFacebook2.Contains(linkFacebook));
             }
             if (!string.IsNullOrWhiteSpace(username))
                 query = query.Where(c => c.Username.Contains(username));
@@ -467,17 +469,17 @@ namespace Nop.Services.Customers
             return customers;
         }
 
-        public List<Customer> GetAllCustomersByCache(int[] customerRoleIds = null)
+        public IQueryable<Customer> GetAllCustomersByCache(int[] customerRoleIds = null)
         {
             var customers = _cacheManager.Get(CUSTOMERS_ALL_KEY, () =>
             {
                 var query = _customerRepository.Table.Where(_ => _.Username != null && _.Email != null);
                 query = query.Where(c => !c.Deleted);
-                return query.ToList();
+                return query;
             });
 
             if (customerRoleIds != null && customerRoleIds.Length > 0)
-                customers = customers.Where(c => c.CustomerRoles.Select(cr => cr.Id).Intersect(customerRoleIds).Any()).ToList();
+                customers = customers.Where(c => c.CustomerRoles.Select(cr => cr.Id).Intersect(customerRoleIds).Any());
             return customers;
         }
 
