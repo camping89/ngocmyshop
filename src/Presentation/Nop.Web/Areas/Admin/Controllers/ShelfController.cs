@@ -491,7 +491,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 {
                     orderItem.PriceInclTax = DecimalExtensions.RoundCustom(orderItem.PriceInclTax / 1000) * 1000;
                 }
-                var totalMoney = orderItems.Sum(_ => _.PriceInclTax * _.Quantity);
+                var totalMoney = orderItems.Sum(_ => _.PriceInclTax);
                 var deposit = orderItems.Sum(_ => _.Deposit);
                 
                 var totalWeight = orderItems.Sum(_ => _.ItemWeight);
@@ -640,9 +640,8 @@ namespace Nop.Web.Areas.Admin.Controllers
                 {
                     UpdateTotalShelf(shelf.Id);
                 }
-
+                _customerActivityService.InsertActivity("DeleteShipmentManual", _localizationService.GetResource("activitylog.DeleteShipmentManual"),shipmentManual.Id );
                 _shipmentManualService.DeleteShipmentManual(shipmentManual);
-
             }
 
             return Json(new { Success = true });
@@ -659,7 +658,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 {
                     foreach (var shelfOrderItem in shelf.ShelfOrderItems.Where(_=> _.OrderItem != null && _.IsActived))
                     {
-                        var itemTotal = DecimalExtensions.RoundCustom(shelfOrderItem.OrderItem.PriceInclTax / 1000) * 1000 * shelfOrderItem.OrderItem.Quantity;
+                        var itemTotal = DecimalExtensions.RoundCustom(shelfOrderItem.OrderItem.PriceInclTax / 1000) * 1000;
                         total += itemTotal;
                         totalWithoutDeposit += itemTotal - DecimalExtensions.RoundCustom(shelfOrderItem.OrderItem.Deposit / 1000) * 1000;
                     }
@@ -704,6 +703,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                     shelfOrderItem.IsActived = true;
                 }
                 _shelfService.UpdateShelfOrderItem(shelfOrderItem);
+                _customerActivityService.InsertActivity("SetActiveShelfOrderItem", _localizationService.GetResource("activitylog.SetActiveShelfOrderItem"), orderItemId, shelfOrderItem.IsActived);
             }
             return Json(new { Success = true });
         }
@@ -719,7 +719,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 {
                     foreach (var shelfOrderItem in shelf.ShelfOrderItems.Where(_=> _.OrderItem != null && _.IsActived))
                     {
-                        var itemTotal = DecimalExtensions.RoundCustom(shelfOrderItem.OrderItem.PriceInclTax / 1000) * 1000 * shelfOrderItem.OrderItem.Quantity;
+                        var itemTotal = DecimalExtensions.RoundCustom(shelfOrderItem.OrderItem.PriceInclTax / 1000) * 1000;
                         total += itemTotal;
                         totalWithoutDeposit += itemTotal - DecimalExtensions.RoundCustom(shelfOrderItem.OrderItem.Deposit / 1000) * 1000;
                     }
@@ -759,7 +759,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                     var orderItems = shipmentManual.ShipmentManualItems.Where(_ => _.OrderItem != null).Select(_ => _.OrderItem).ToList();
                     foreach (var orderItem in orderItems)
                     {
-                        shipmentManual.Total +=  DecimalExtensions.RoundCustom(orderItem.PriceInclTax / 1000) * 1000 * orderItem.Quantity;
+                        shipmentManual.Total +=  DecimalExtensions.RoundCustom(orderItem.PriceInclTax / 1000) * 1000;
                         shipmentManual.Deposit +=  DecimalExtensions.RoundCustom(orderItem.Deposit / 1000) * 1000;
                     }
 

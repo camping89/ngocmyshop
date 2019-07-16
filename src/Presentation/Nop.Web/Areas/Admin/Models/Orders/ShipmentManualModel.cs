@@ -27,6 +27,8 @@ namespace Nop.Web.Areas.Admin.Models.Orders
         public bool HasShippingFee { get; set; }
         [NopResourceDisplayName("Admin.Orders.Shipments.TotalOrderFee")]
         public string TotalOrderFee { get; set; }
+        [NopResourceDisplayName("Admin.Orders.Shipments.TotalWithoutDeposit")]
+        public string TotalWithoutDeposit { get; set; }
         public decimal TotalOrderFeeDecimal { get; set; }
         [NopResourceDisplayName("Admin.Orders.Shipments.TrackingNumber")]
         public string TrackingNumber { get; set; }
