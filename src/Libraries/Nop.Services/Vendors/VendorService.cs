@@ -17,6 +17,7 @@ namespace Nop.Services.Vendors
         private const string VENDORS_ALL_KEY = "Nop.vendors.all";
 
         private const string VENDORS_PATTERN_KEY = "Nop.vendors.";
+        private const string VENDORS_DETAIL_KEY = "Nop.vendors.id-{0}";
         #region Fields
 
         private readonly IRepository<Vendor> _vendorRepository;
@@ -58,8 +59,9 @@ namespace Nop.Services.Vendors
         {
             if (vendorId == 0)
                 return null;
-
-            return _vendorRepository.GetById(vendorId);
+            
+            var key = string.Format(VENDORS_DETAIL_KEY, vendorId);
+            return _cacheManager.Get(key, () => _vendorRepository.GetById(vendorId));
         }
 
         /// <summary>

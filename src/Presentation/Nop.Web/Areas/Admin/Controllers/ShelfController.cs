@@ -143,12 +143,12 @@ namespace Nop.Web.Areas.Admin.Controllers
                     var customer = x.Customer;
                     if (customer != null)
                     {
-                        m.CustomerPhone = customer.GetAttribute<string>(SystemCustomerAttributeNames.Phone);
+                        m.CustomerPhone = customer.Phone;
 
-                        var linkFacebook = customer.GetAttribute<string>(SystemCustomerAttributeNames.LinkFacebook1);
+                        var linkFacebook = customer.LinkFacebook1;
                         if (string.IsNullOrEmpty(linkFacebook))
                         {
-                            linkFacebook = customer.GetAttribute<string>(SystemCustomerAttributeNames.LinkFacebook2);
+                            linkFacebook = customer.LinkFacebook2;
                         }
 
                         if (customer.Addresses != null && customer.Addresses.Count > 0)
@@ -161,7 +161,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                             }
                         }
 
-                        m.CustomerFullName = customer.GetFullName();
+                        m.CustomerFullName = customer.FullName;
                         m.CustomerLinkFacebook = linkFacebook;
                         if (string.IsNullOrEmpty(linkFacebook) == false)
                         {

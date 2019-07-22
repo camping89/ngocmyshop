@@ -1611,10 +1611,12 @@ namespace Nop.Web.Areas.Admin.Controllers
         protected virtual ShipmentManualModel PrepareShipmentManualModel(ShipmentManual shipment, bool prepareProducts = false, bool prepareShipmentEvent = false)
         {
             //measures
-            var baseWeight = _measureService.GetMeasureWeightById(_measureSettings.BaseWeightId);
-            var baseWeightIn = baseWeight != null ? baseWeight.Name : "";
-            var baseDimension = _measureService.GetMeasureDimensionById(_measureSettings.BaseDimensionId);
-            var baseDimensionIn = baseDimension != null ? baseDimension.Name : "";
+            //var baseWeight = _measureService.GetMeasureWeightById(_measureSettings.BaseWeightId);
+            //var baseWeightIn = baseWeight != null ? baseWeight.Name : "";
+            //var baseDimension = _measureService.GetMeasureDimensionById(_measureSettings.BaseDimensionId);
+            //var baseDimensionIn = baseDimension != null ? baseDimension.Name : "";
+
+
             var primaryStoreCurrency = _currencyService.GetCurrencyById(_currencySettings.PrimaryStoreCurrencyId);
 
             shipment.TotalShippingFee = DecimalExtensions.RoundCustom(shipment.TotalShippingFee / 1000) * 1000;
@@ -1636,7 +1638,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             {
                 Id = shipment.Id,
                 TrackingNumber = shipment.TrackingNumber,
-                TotalWeight = shipment.TotalWeight.HasValue ? $"{shipment.TotalWeight:F2} [{baseWeightIn}]" : "",
+                //TotalWeight = shipment.TotalWeight.HasValue ? $"{shipment.TotalWeight:F2} [{baseWeightIn}]" : "",
                 ShippedDate = shipment.ShippedDateUtc?.ToString("MM/dd/yyyy"),
                 ShippedDateUtc = shipment.ShippedDateUtc,
                 CanShip = !shipment.ShippedDateUtc.HasValue,
@@ -1647,18 +1649,27 @@ namespace Nop.Web.Areas.Admin.Controllers
                 ShipmentNote = shipment.ShipmentNote,
                 //Deposit = shipment.ShipmentManualItems.Where(s => s.OrderItem != null).Sum(_ => _.OrderItem.Deposit),
                 Deposit = shipment.Deposit,
-                DepositStr = _priceFormatter.FormatPrice(shipment.ShipmentManualItems.Where(s => s.OrderItem != null).Sum(_ => _.OrderItem.Deposit)),
+                DepositStr = _priceFormatter.FormatPrice(shipment.Deposit),
                 //CustomOrderNumber = shipment.OrderItem.Order.CustomOrderNumber,
                 //TotalShippingFee = _priceFormatter.FormatPrice(shipment.TotalShippingFee, true, primaryStoreCurrency,
                 //    _workContext.WorkingLanguage, true, false),
                 TotalShippingFee = shipment.TotalShippingFee,
                 BagId = shipment.BagId,
-                ShipmentAddress = Core.Extensions.StringExtensions.IsNotNullOrEmpty(shipment.Address) ? shipment.Address : customerAddress?.Address1,
-                ShipmentCity = Core.Extensions.StringExtensions.IsNotNullOrEmpty(shipment.Province) ? shipment.Province : customerAddress?.City,
-                ShipmentCityId = Core.Extensions.StringExtensions.IsNotNullOrEmpty(shipment.Province) ? shipment.Province : customerAddress?.City,
-                ShipmentDistrict = Core.Extensions.StringExtensions.IsNotNullOrEmpty(shipment.District) ? shipment.District : customerAddress?.District,
-                ShipmentDistrictId = Core.Extensions.StringExtensions.IsNotNullOrEmpty(shipment.District) ? shipment.District : customerAddress?.District,
-                ShipmentWard = string.IsNullOrEmpty(shipment.Ward) == false ? shipment.Ward : customerAddress?.Ward,
+                //ShipmentAddress = Core.Extensions.StringExtensions.IsNotNullOrEmpty(shipment.Address) ? shipment.Address : customerAddress?.Address1,
+                //ShipmentCity = Core.Extensions.StringExtensions.IsNotNullOrEmpty(shipment.Province) ? shipment.Province : customerAddress?.City,
+                //ShipmentCityId = Core.Extensions.StringExtensions.IsNotNullOrEmpty(shipment.Province) ? shipment.Province : customerAddress?.City,
+                //ShipmentDistrict = Core.Extensions.StringExtensions.IsNotNullOrEmpty(shipment.District) ? shipment.District : customerAddress?.District,
+                //ShipmentDistrictId = Core.Extensions.StringExtensions.IsNotNullOrEmpty(shipment.District) ? shipment.District : customerAddress?.District,
+                //ShipmentWard = string.IsNullOrEmpty(shipment.Ward) == false ? shipment.Ward : customerAddress?.Ward,
+
+
+                ShipmentAddress = shipment.Address,
+                ShipmentCity = shipment.Province,
+                ShipmentCityId = shipment.Province,
+                ShipmentDistrict = shipment.District,
+                ShipmentDistrictId = shipment.District,
+                ShipmentWard = shipment.Ward,
+
                 HasShippingFee = shipment.HasShippingFee,
                 ShelfCode = shipment.ShelfCode
             };
@@ -1666,10 +1677,10 @@ namespace Nop.Web.Areas.Admin.Controllers
             var customerOrder = shipment.Customer;
             if (customerOrder != null)
             {
-                var linkFacebook = customerOrder.GetAttribute<string>(SystemCustomerAttributeNames.LinkFacebook1);
+                var linkFacebook = customerOrder.LinkFacebook1;
 
-                model.CustomerFullName = customerOrder.GetFullName();
-                model.CustomerPhone = customerOrder.GetAttribute<string>(SystemCustomerAttributeNames.Phone);
+                model.CustomerFullName = customerOrder.FullName;
+                model.CustomerPhone = customerOrder.Phone;
                 model.CustomerLinkFacebook = linkFacebook;
                 if (Core.Extensions.StringExtensions.IsNotNullOrEmpty(linkFacebook))
                 {
@@ -1685,7 +1696,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             {
                 model.ShipperId = shipment.ShipperId;
                 //model.Customer = shipment.Customer;
-                model.ShipperFullName = $"(ID:{shipment.ShipperId}) " + shipment.Shipper.GetFullName() + " - " + shipment.Shipper.GetAttribute<string>(SystemCustomerAttributeNames.Phone);
+                model.ShipperFullName = $"(ID:{shipment.ShipperId}) " + shipment.Shipper.FullName + " - " + shipment.Shipper.Phone;
             }
             else
             {
@@ -6772,7 +6783,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                                 customerShortFacebook = customerFacebook.Split('?').FirstOrDefault();
                             }
                         }
-                        customerInfo = customerOrder.GetFullName()
+                        customerInfo = customerOrder.FullName
                                                  + $"<br/> {customerOrder.Phone}";
                     }
 
