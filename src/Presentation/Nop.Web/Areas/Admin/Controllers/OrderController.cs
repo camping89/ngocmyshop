@@ -4574,8 +4574,12 @@ namespace Nop.Web.Areas.Admin.Controllers
 
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageOrders))
                 return AccessDeniedKendoGridJson();
-            var orderItems = _shelfService.GetAllShelfOrderItem(shelfId, shelfOrderItemIsActive: isActive).Where(_ => _.OrderItem != null).Select(_ => _.OrderItem).ToList();
-
+            var shelf = _shelfService.GetShelfById(shelfId);
+            var orderItems = new List<OrderItem>();
+            if (shelf.CustomerId.HasValue)
+            {
+               orderItems =  _shelfService.GetAllShelfOrderItem(shelfId, customerId: shelf.CustomerId.Value, shelfOrderItemIsActive: isActive).Where(_ => _.OrderItem != null).Select(_ => _.OrderItem).ToList();
+            }
             var resultDatas = PrepareOrderItemsModelBasic(orderItems);
             var gridModel = new DataSourceResult
             {
