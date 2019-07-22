@@ -689,7 +689,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 Quantity = orderItem.Quantity,
                 ProductName = orderItem.Product.Name,
                 Sku = orderItem.Product.FormatSku(orderItem.AttributesXml, _productAttributeParser),
-                TotalWithoutWeightCost = _priceFormatter.FormatPrice((orderItem.PriceInclTax - (orderItem.WeightCost * orderItem.Quantity)), true,
+                TotalWithoutWeightCost = _priceFormatter.FormatPrice((orderItem.PriceInclTax - orderItem.WeightCost), true,
                         primaryStoreCurrency, _workContext.WorkingLanguage, true, true),
                 UnitPriceBase = _priceFormatter.FormatPrice((orderItem.UnitPriceUsd), true,
                         currencyProduct, _workContext.WorkingLanguage, true, true),
@@ -1699,6 +1699,8 @@ namespace Nop.Web.Areas.Admin.Controllers
             //}
 
             model.TotalOrderFee = _priceFormatter.FormatPrice(shipment.Total, true, primaryStoreCurrency,
+                _workContext.WorkingLanguage, true, false);
+            model.TotalWithoutDeposit = _priceFormatter.FormatPrice(shipment.Total - shipment.Deposit, true, primaryStoreCurrency,
                 _workContext.WorkingLanguage, true, false);
             model.TotalOrderFeeDecimal = shipment.Total;
 
@@ -4481,7 +4483,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 {
                     foreach (var shelfOrderItem in shelf.ShelfOrderItems.Where(_=> _.OrderItem != null && _.IsActived))
                     {
-                        var itemTotal = DecimalExtensions.RoundCustom(shelfOrderItem.OrderItem.PriceInclTax / 1000) * 1000 * shelfOrderItem.OrderItem.Quantity;
+                        var itemTotal = DecimalExtensions.RoundCustom(shelfOrderItem.OrderItem.PriceInclTax / 1000) * 1000;
                         total += itemTotal;
                         totalWithoutDeposit += itemTotal - DecimalExtensions.RoundCustom(shelfOrderItem.OrderItem.Deposit / 1000) * 1000;
                     }
@@ -4572,8 +4574,12 @@ namespace Nop.Web.Areas.Admin.Controllers
 
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageOrders))
                 return AccessDeniedKendoGridJson();
-            var orderItems = _shelfService.GetAllShelfOrderItem(shelfId, shelfOrderItemIsActive: isActive).Where(_ => _.OrderItem != null).Select(_ => _.OrderItem).ToList();
-
+            var shelf = _shelfService.GetShelfById(shelfId);
+            var orderItems = new List<OrderItem>();
+            if (shelf.CustomerId.HasValue)
+            {
+               orderItems =  _shelfService.GetAllShelfOrderItem(shelfId, customerId: shelf.CustomerId.Value, shelfOrderItemIsActive: isActive).Where(_ => _.OrderItem != null).Select(_ => _.OrderItem).ToList();
+            }
             var resultDatas = PrepareOrderItemsModelBasic(orderItems);
             var gridModel = new DataSourceResult
             {
@@ -6785,7 +6791,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                         WeightCostDec = orderItem.WeightCost,
                         WeightCost = _priceFormatter.FormatPrice(orderItem.WeightCost, true,
                         primaryStoreCurrency, _workContext.WorkingLanguage, true, true),
-                        TotalWithoutWeightCost = _priceFormatter.FormatPrice((orderItem.PriceInclTax - (orderItem.WeightCost * orderItem.Quantity)), true,
+                        TotalWithoutWeightCost = _priceFormatter.FormatPrice((orderItem.PriceInclTax - orderItem.WeightCost), true,
                         primaryStoreCurrency, _workContext.WorkingLanguage, true, true),
                         UnitPriceBase = _priceFormatter.FormatPrice((orderItem.UnitPriceUsd), true,
                             currencyProduct, _workContext.WorkingLanguage, true, true),
