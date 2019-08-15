@@ -283,6 +283,14 @@ namespace Nop.Services.Shipping
             return _shipmentManualItemRepository.GetById(id);
         }
 
+        public ShipmentManualItem GetShipmentManualItemByOrderItemId(int orderItemId)
+        {
+            if (orderItemId == 0)
+                return null;
+
+            return _shipmentManualItemRepository.Table.FirstOrDefault(_=>_.OrderItemId == orderItemId);
+        }
+
         public void InsertShipmentManualItem(ShipmentManualItem shipmentManualItem)
         {
             if (shipmentManualItem == null)

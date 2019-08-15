@@ -62,19 +62,20 @@
                             @T("Admin.Orders.Shipments.PrintPackagingSlips.All")
                         </button>
                     </li>
-                    @*<li class="divider"></li>
-                        <li>
-                            <button type="button" id="exportexcel-all">
-                                <i class="fa fa-file-excel-o"></i>
-                                @T("Admin.Common.ExportToExcel.All")
-                            </button>
-                        </li>
-                        <li>
-                            <button type="button" id="exportexcel-selected">
-                                <i class="fa fa-file-excel-o"></i>
-                                @T("Admin.Common.ExportToExcel.Selected")
-                            </button>
-                        </li>*@
+                    <li class="divider"></li>
+
+                    <li>
+                        <button type="button" id="exportexcel-selected">
+                            <i class="fa fa-file-excel-o"></i>
+                            @T("Admin.Common.ExportToExcel.Selected")
+                        </button>
+                    </li>
+                    <li>
+                        <button type="button" id="exportexcel-all">
+                            <i class="fa fa-file-excel-o"></i>
+                            @T("Admin.Common.ExportToExcel.All")
+                        </button>
+                    </li>
                 </ul>
             </div>
 
@@ -321,21 +322,21 @@
                                 </div>
 
                                 <div class="form-group">
-                                        <div class="col-md-4">
-                                            <nop-label asp-for="ShelfCode" />
-                                        </div>
-                                        <div class="col-md-8">
-                                            <nop-editor asp-for="ShelfCode" />
-                                        </div>
+                                    <div class="col-md-4">
+                                        <nop-label asp-for="ShelfCode" />
                                     </div>
+                                    <div class="col-md-8">
+                                        <nop-editor asp-for="ShelfCode" />
+                                    </div>
+                                </div>
                                 <div class="form-group">
-                                        <div class="col-md-4">
-                                            <nop-label asp-for="OrderItemId" />
-                                        </div>
-                                        <div class="col-md-8">
-                                            <nop-editor asp-for="OrderItemId" />
-                                        </div>
+                                    <div class="col-md-4">
+                                        <nop-label asp-for="OrderItemId" />
                                     </div>
+                                    <div class="col-md-8">
+                                        <nop-editor asp-for="OrderItemId" />
+                                    </div>
+                                </div>
                             </div>
                             <div class="row">
                                 <div class="col-md-7 col-md-offset-4">
@@ -740,6 +741,11 @@
                                                 url: "@Html.Raw(Url.Action("EditDepositShipmentItem", "Shelf"))",
                                                 type: "POST",
                                                 data: additionalData
+                                            },
+                                            destroy: {
+                                                url: "@Html.Raw(Url.Action("DeleteShipmentItem", "Shelf"))",
+                                                type: "POST",
+                                                data: additionalData
                                             }
                                         },
                                         schema: {
@@ -849,14 +855,24 @@
                                             width: 150
                                         }*@,
                                         {
-                                        command: [
+                                            command: [
+                                                {
+                                                    name: "edit",
+                                                    text: {
+                                                        edit: "@T("Admin.Common.Edit")",
+                                                        update: "@T("Admin.Common.Update")",
+                                                        cancel: "@T("Admin.Common.Cancel")"
+                                                    }
+                                                },
+                                            @if (Model.IsAdmin)
                                             {
-                                                name: "edit",
-                                                text: {
-                                                    edit: "@T("Admin.Common.Edit")",
-                                                    update: "@T("Admin.Common.Update")",
-                                                    cancel: "@T("Admin.Common.Cancel")"
-                                                }
+                                                <text>
+                                                    {
+                                                        name: "destroy",
+                                                        text: "@T("Admin.Common.Delete")",
+                                                        template: '<a class="btn btn-danger k-button-icontext k-grid-delete" href="" >@T("Admin.Common.Delete")</a>'
+                                                    }
+                                                </text>
                                             }
                                         ],
                                         title: "@T("Admin.Common.Function")"
@@ -1284,7 +1300,7 @@
     $(document).ready(function () {
         $('#exportexcel-selected').click(function (e) {
             e.preventDefault();
-            var ids = totalIds.join(",");
+            var ids = selectedIds.join(",");
             $('#excel-packaging-slip-selected-form .selectedIds').val(ids);
             $('#excel-packaging-slip-selected-form').submit();
             return false;

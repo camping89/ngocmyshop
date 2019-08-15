@@ -88,6 +88,7 @@ namespace Nop.Web.Areas.Admin.Models.Orders
 
         [NopResourceDisplayName("Admin.Orders.Shipments.List.IsAddressEmpty")]
         public bool IsAddressEmpty { get; set; }
+        public bool IsAdmin { get; set; }
 
     }
 

@@ -4230,10 +4230,62 @@ namespace Nop.Web.Areas.Admin.Controllers
             order.OrderTotal = order.OrderItems.Sum(_ => _.PriceExclTax);
             _orderService.UpdateOrder(order);
 
+            UpdateTotalShipmentManual(orderItem.Id);
+
+            if (orderItem.ShelfId.HasValue && orderItem.ShelfId > 0)
+            {
+                UpdateTotalShelf(orderItem.ShelfId.Value);
+            }
             //UpdateShelfOrderItem(orderItem, orderItemModel.ShelfCode, order.CustomerId);
 
             return new NullJsonResult();
         }
+
+        private void UpdateTotalShipmentManual(int orderItemId)
+        {
+            var shipmentManualItem = _shipmentManualService.GetShipmentManualItemByOrderItemId(orderItemId);
+            if (shipmentManualItem != null)
+            {
+                var shipmentManual = _shipmentManualService.GetShipmentManualById(shipmentManualItem.ShipmentManualId);
+                if (shipmentManual != null)
+                {
+                    var orderItems = _orderService.GetOrderItemsByIds(shipmentManual.ShipmentManualItems.Select(_ => _.OrderItemId).ToArray());
+                    if (orderItems != null)
+                    {
+                        shipmentManual.Deposit = orderItems.Sum(_ => _.Deposit);
+                        shipmentManual.Total = orderItems.Sum(_ => _.PriceInclTax);
+                        shipmentManual.TotalWeight = orderItems.Sum(_ => _.ItemWeight);
+
+                        _shipmentManualService.UpdateShipmentManual(shipmentManual);
+                    }
+                }
+            }
+        }
+
+        private void UpdateTotalShelf(int shelfId)
+        {
+            var shelf = _shelfService.GetShelfById(shelfId);
+            if (shelf != null)
+            {
+                decimal total = 0;
+                decimal totalWithoutDeposit = 0;
+                if (shelf.ShelfOrderItems != null)
+                {
+                    foreach (var shelfOrderItem in shelf.ShelfOrderItems.Where(_ => _.OrderItem != null && _.IsActived))
+                    {
+                        var itemTotal = DecimalExtensions.RoundCustom(shelfOrderItem.OrderItem.PriceInclTax / 1000) * 1000;
+                        total += itemTotal;
+                        totalWithoutDeposit += itemTotal - DecimalExtensions.RoundCustom(shelfOrderItem.OrderItem.Deposit / 1000) * 1000;
+                    }
+
+                    shelf.HasOrderItem = shelf.ShelfOrderItems.Any();
+                }
+                shelf.Total = total;
+                shelf.TotalWithoutDeposit = totalWithoutDeposit;
+                _shelfService.UpdateShelf(shelf);
+            }
+        }
+
 
         [HttpPost]
         public virtual IActionResult UpdateOrderItemChekcout(OrderModel.OrderItemModelBasic orderItemModel)
@@ -4360,6 +4412,8 @@ namespace Nop.Web.Areas.Admin.Controllers
             order.OrderTotal = order.OrderItems.Sum(_ => _.PriceExclTax);
             _orderService.UpdateOrder(order);
 
+            UpdateTotalShipmentManual(orderItem.Id);
+
             var errorMess = UpdateShelfOrderItem(orderItem, orderItemModel.ShelfCode, order.CustomerId);
             if (errorMess.IsNotNullOrEmpty())
             {
@@ -4445,7 +4499,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                             }
 
                             shelf.ShippedDate = null;
-                            
+
                             _customerActivityService.InsertActivity("EditShelf", _localizationService.GetResource("activitylog.updateshelforderitemvendorcheckout"), orderItem.Id, shelf.ShelfCode);
                         }
 
@@ -4475,7 +4529,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                     orderItem.ShelfOrderItemId = null;
                     orderItem.ShelfId = null;
                     _orderService.UpdateOrderItem(orderItem);
-                    
+
                     UpdateTotalShelf(shelfId);
                 }
             }
@@ -4483,29 +4537,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             return errorStr;
         }
 
-        private void UpdateTotalShelf(int shelfId)
-        {
-            var shelf = _shelfService.GetShelfById(shelfId);
-            if (shelf != null)
-            {
-                decimal total = 0;
-                decimal totalWithoutDeposit = 0;
-                if (shelf.ShelfOrderItems != null)
-                {
-                    foreach (var shelfOrderItem in shelf.ShelfOrderItems.Where(_=> _.OrderItem != null && _.IsActived))
-                    {
-                        var itemTotal = DecimalExtensions.RoundCustom(shelfOrderItem.OrderItem.PriceInclTax / 1000) * 1000;
-                        total += itemTotal;
-                        totalWithoutDeposit += itemTotal - DecimalExtensions.RoundCustom(shelfOrderItem.OrderItem.Deposit / 1000) * 1000;
-                    }
 
-                    shelf.HasOrderItem = shelf.ShelfOrderItems.Any();
-                }
-                shelf.Total = total;
-                shelf.TotalWithoutDeposit = totalWithoutDeposit;
-                _shelfService.UpdateShelf(shelf);
-            }
-        }
 
         private List<OrderItem> GetOrderItemsUnAssignShelfByCustomer(int customerId)
         {
@@ -4589,7 +4621,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             var orderItems = new List<OrderItem>();
             if (shelf.CustomerId.HasValue)
             {
-               orderItems =  _shelfService.GetAllShelfOrderItem(shelfId, customerId: shelf.CustomerId.Value, shelfOrderItemIsActive: isActive).Where(_ => _.OrderItem != null).Select(_ => _.OrderItem).ToList();
+                orderItems = _shelfService.GetAllShelfOrderItem(shelfId, customerId: shelf.CustomerId.Value, shelfOrderItemIsActive: isActive).Where(_ => _.OrderItem != null).Select(_ => _.OrderItem).ToList();
             }
             var resultDatas = PrepareOrderItemsModelBasic(orderItems);
             var gridModel = new DataSourceResult
@@ -5802,7 +5834,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             try
             {
                 var bytes = _exportManager.ExportShipmentManualToXlsxBasic(shipments.OrderBy(s => s.Id).ToList());
-                return File(bytes, MimeTypes.TextCsv, $"shipments-selected-{DateTime.Now:ddMMyyyyHHmmss}.csv");
+                return File(bytes, MimeTypes.TextXlsx, $"shipments-selected-{DateTime.Now:ddMMyyyyHHmmss}.xlsx");
             }
             catch (Exception exc)
             {
@@ -5960,6 +5992,8 @@ namespace Nop.Web.Areas.Admin.Controllers
             model.AvailableShippersForSearch.Insert(1, new SelectListItem { Text = _localizationService.GetResource("Admin.Shipment.NotSetShipper"), Value = "-1" });
 
             model.AvailableCities = SelectListHelper.GetStateProvinceSelectListItems(_stateProvinceService, "Đà Nẵng");
+
+            model.IsAdmin = _workContext.CurrentCustomer.IsAdmin();
             return View(model);
         }
 
@@ -5989,7 +6023,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 pageIndex: command.Page - 1,
                 pageSize: command.PageSize,
                 orderItemId: model.OrderItemId,
-                shelfCode:model.ShelfCode,
+                shelfCode: model.ShelfCode,
                 phoneShipperNumber: model.ShipperPhoneNumber,
                 shipperId: model.SearchShipperId,
                 customerId: model.CustomerId,
@@ -6818,7 +6852,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                         CustomerLinkShortFacebook = customerShortFacebook,
                         CreatedDate = orderItem.Order.CreatedOnUtc,
                         //PrimaryStoreCurrencyCode = primaryStoreCurrency != null ? primaryStoreCurrency.CurrencyCode : string.Empty,
-                        
+
                         DeliveryDateUtc = orderItem.DeliveryDateUtc,
                         Deposit = orderItem.Deposit,
                         DepositStr = _priceFormatter.FormatPrice(orderItem.Deposit, true,
@@ -6832,7 +6866,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                         orderItemModel.PackageOrderCode = orderItem.PackageOrder?.PackageCode;
                     }
 
-                    if (orderItem.ShelfId != null )
+                    if (orderItem.ShelfId != null)
                     {
                         orderItemModel.ShelfCode = orderItem.ShelfCode;
                         orderItemModel.ShelfId = orderItem.ShelfId.Value;

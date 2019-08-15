@@ -46,6 +46,7 @@ namespace Nop.Services.Shipping
         void DeleteShipmentManualItem(ShipmentManualItem shipmentManualItem);
 
         ShipmentManualItem GetShipmentManualItemById(int id);
+        ShipmentManualItem GetShipmentManualItemByOrderItemId(int orderItemId);
 
         void InsertShipmentManualItem(ShipmentManualItem shipmentManualItem);
 

@@ -1979,7 +1979,7 @@ namespace Nop.Services.Common
                 if (shipmentManualItem != null)
                 {
                     var shelfOrderItem = _shelfService.GetShelfOrderItemByOrderItemId(shipmentManualItem.OrderItemId);
-                    if (shelfOrderItem.Shelf != null)
+                    if (shelfOrderItem!= null && shelfOrderItem.Shelf != null)
                     {
                         shelfCode = shelfOrderItem.Shelf.ShelfCode;
                     }
@@ -2188,16 +2188,16 @@ namespace Nop.Services.Common
                 if (picture != null)
                 {
                     var picBinary = _pictureService.LoadPictureBinary(picture);
-                    if (picBinary == null || picBinary.Length <= 0)
-                        continue;
-
-                    var pictureLocalPath = _pictureService.GetThumbLocalPath(picture, 70, false);
-                    var cellPic = new PdfPCell(Image.GetInstance(pictureLocalPath))
+                    if (picBinary != null && picBinary.Length > 0)
                     {
-                        HorizontalAlignment = Element.ALIGN_LEFT,
-                        Border = Rectangle.NO_BORDER
-                    };
-                    productAttribTable.AddCell(cellPic);
+                        var pictureLocalPath = _pictureService.GetThumbLocalPath(picture, 70, false);
+                        var cellPic = new PdfPCell(Image.GetInstance(pictureLocalPath))
+                        {
+                            HorizontalAlignment = Element.ALIGN_LEFT,
+                            Border = Rectangle.NO_BORDER
+                        };
+                        productAttribTable.AddCell(cellPic);
+                    }
                 }
 
                 var p = orderItem.Product;

@@ -2,6 +2,7 @@
 using Nop.Core.Domain.Catalog;
 using Nop.Core.Domain.Customers;
 using Nop.Core.Domain.Directory;
+using Nop.Core.Domain.Media;
 using Nop.Core.Domain.Messages;
 using Nop.Core.Domain.Orders;
 using Nop.Core.Domain.Payments;
@@ -37,7 +38,6 @@ using System.Linq;
 using System.Text;
 using System.Xml;
 using System.Xml.Serialization;
-using Nop.Core.Domain.Media;
 
 
 namespace PAValue
@@ -2145,11 +2145,14 @@ namespace Nop.Services.ExportImport
             var orderItemProperties = new[]
             {
                 //new PropertyByName<ShipmentExportModel>("BagId", oi => oi.BagId),
-                new PropertyByName<ShipmentExportModel>("CustomerInfo", oi => oi.CustomerInfo),
+                new PropertyByName<ShipmentExportModel>("CustomerName", oi => oi.CustomerName),
+                new PropertyByName<ShipmentExportModel>("CustomerPhone", oi => oi.CustomerPhone),
+                new PropertyByName<ShipmentExportModel>("CustomerFacebookUrl", oi => oi.CustomerFacebookUrl),
                 new PropertyByName<ShipmentExportModel>("ShipmentId", oi => oi.ShipmentId),
                 new PropertyByName<ShipmentExportModel>("ShipperInfo", oi => oi.ShipperInfo),
                 new PropertyByName<ShipmentExportModel>("ShippedDate", oi => oi.ShippedDate),
                 new PropertyByName<ShipmentExportModel>("CustomerAddress", oi => oi.CustomerAddress),
+                new PropertyByName<ShipmentExportModel>("CustomerWard", oi => oi.CustomerWard),
                 new PropertyByName<ShipmentExportModel>("CustomerDistrict", oi => oi.CustomerDistrict),
                 new PropertyByName<ShipmentExportModel>("CustomerStateProvince", oi => oi.CustomerStateProvince),
                 new PropertyByName<ShipmentExportModel>("Deposit", oi => oi.DepositStr),
@@ -2168,15 +2171,16 @@ namespace Nop.Services.ExportImport
             foreach (var shipment in shipments)
             {
                 var customerOrder = _customerService.GetCustomerById(shipment.CustomerId);
-                var customerInfo = string.Empty;
-                if (customerOrder != null)
-                {
-                    var linkFacebook = customerOrder.GetAttribute<string>(SystemCustomerAttributeNames.LinkFacebook1);
+                var customerAddress = customerOrder.Addresses.OrderByDescending(_ => _.CreatedOnUtc).FirstOrDefault();
+                //var customerInfo = string.Empty;
+                //if (customerOrder != null)
+                //{
+                //    var linkFacebook = customerOrder.GetAttribute<string>(SystemCustomerAttributeNames.LinkFacebook1);
 
-                    customerInfo = customerOrder.GetFullName()
-                                   + $"\n {customerOrder.GetAttribute<string>(SystemCustomerAttributeNames.Phone)}"
-                                   + $"\n {linkFacebook}";
-                }
+                //    customerInfo = customerOrder.GetFullName()
+                //                   + $"\n {customerOrder.GetAttribute<string>(SystemCustomerAttributeNames.Phone)}"
+                //                   + $"\n {linkFacebook}";
+                //}
 
                 var shipper = _customerService.GetCustomerById(shipment.CustomerId);
                 var shipperInfo = string.Empty;
@@ -2188,6 +2192,8 @@ namespace Nop.Services.ExportImport
 
                 foreach (var shipmentItem in shipment.ShipmentManualItems)
                 {
+
+
                     var exportShipmentModel = new ShipmentExportModel()
                     {
                         ShipmentId = shipment.Id.ToString(),
@@ -2206,15 +2212,21 @@ namespace Nop.Services.ExportImport
                         TotalShippingFeeStr = _priceFormatter.FormatPrice(0),
                         CustomerPhone = string.Empty,
                         CustomerFacebookUrl = string.Empty,
-                        CustomerName = string.Empty
+                        CustomerName = string.Empty,
+                        CustomerAddress = string.IsNullOrEmpty(shipment.Address) == false ? shipment.Address : customerAddress?.Address1,
+                        CustomerStateProvince = string.IsNullOrEmpty(shipment.Province) == false ? shipment.Province : customerAddress?.City,
+                        CustomerDistrict = string.IsNullOrEmpty(shipment.District) == false ? shipment.District : customerAddress?.District,
+                        CustomerWard = string.IsNullOrEmpty(shipment.Ward) == false ? shipment.Ward : customerAddress?.Ward,
                     };
 
                     if (customerOrder != null)
                     {
                         exportShipmentModel.CustomerName = customerOrder.GetFullName();
-                        exportShipmentModel.CustomerPhone = customerOrder.GetAttribute<string>(SystemCustomerAttributeNames.Phone);
-                        exportShipmentModel.CustomerFacebookUrl = customerOrder.GetAttribute<string>(SystemCustomerAttributeNames.LinkFacebook1);
+                        exportShipmentModel.CustomerPhone = customerOrder.Phone;
+                        exportShipmentModel.CustomerFacebookUrl = customerOrder.LinkFacebook1;
                     }
+
+
 
                     var orderItem = _orderService.GetOrderItemById(shipmentItem.OrderItemId);
                     if (orderItem != null)
@@ -2231,7 +2243,7 @@ namespace Nop.Services.ExportImport
                 }
             }
 
-            return ExportToXlsx(orderItemProperties, listItem);
+            return ExportToXlsxNonCsv(orderItemProperties, listItem);
         }
 
         /// <summary>
