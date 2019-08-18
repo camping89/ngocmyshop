@@ -49,6 +49,8 @@ namespace Nop.Web.Areas.Admin.Models.Orders
         [NopResourceDisplayName("Admin.Orders.Shelf.Fields.ShelfCode")]
         public string ShelfCode { get; set; }
 
+        [NopResourceDisplayName("Admin.Orders.Shelf.Fields.InActive")]
+        public bool InActive { get; set; }
 
         [NopResourceDisplayName("Admin.ShelfOrderItem.IsActive")]
         public bool? ShelfOrderItemIsActive { get; set; }

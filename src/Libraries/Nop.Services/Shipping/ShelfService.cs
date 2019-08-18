@@ -35,9 +35,9 @@ namespace Nop.Services.Shipping
             bool? shelfOrderItemIsActive = true,
             bool isShelfEmpty = false, bool isEmptyAssignedShelf = false,
             bool? isCustomerNotified = null, string shelfCode = null,
-            int? shelfNoteId = null, bool? isPackageItemProcessedDatetime = null)
+            int? shelfNoteId = null, bool? isPackageItemProcessedDatetime = null, bool inActive = false)
         {
-            var query = _shelfRepository.Table;
+            var query = _shelfRepository.Table.Where(_ => _.InActive == inActive);
 
             if (string.IsNullOrEmpty(shelfCode) == false)
             {
@@ -129,17 +129,17 @@ namespace Nop.Services.Shipping
             return shelfList;
         }
 
-       public IPagedList<Shelf> GetAllShelfByStore(int customerId = 0,
-            DateTime? assignedFromUtc = null, DateTime? assignedToUtc = null,
-            DateTime? assignedOrderItemFromUtc = null, DateTime? assignedOrderItemToUtc = null,
-            DateTime? shippedFromUtc = null, DateTime? shippedToUtc = null,
-            int pageIndex = 0, int pageSize = int.MaxValue,
-            bool? shelfOrderItemIsActive = true,
-            bool isShelfEmpty = false, bool isEmptyAssignedShelf = false,
-            bool? isCustomerNotified = null, string shelfCode = null,
-            int? shelfNoteId = null, bool? isPackageItemProcessedDatetime = null)
+        public IPagedList<Shelf> GetAllShelfByStore(int customerId = 0,
+             DateTime? assignedFromUtc = null, DateTime? assignedToUtc = null,
+             DateTime? assignedOrderItemFromUtc = null, DateTime? assignedOrderItemToUtc = null,
+             DateTime? shippedFromUtc = null, DateTime? shippedToUtc = null,
+             int pageIndex = 0, int pageSize = int.MaxValue,
+             bool? shelfOrderItemIsActive = true,
+             bool isShelfEmpty = false, bool isEmptyAssignedShelf = false,
+             bool? isCustomerNotified = null, string shelfCode = null,
+             int? shelfNoteId = null, bool? isPackageItemProcessedDatetime = null)
         {
-            
+
             var shelfList = new PagedList<Shelf>(new List<Shelf>(), pageIndex, pageSize);
             return shelfList;
         }

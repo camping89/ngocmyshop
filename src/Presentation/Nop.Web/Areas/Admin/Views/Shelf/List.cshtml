@@ -29,6 +29,14 @@
                 <i class="fa fa-plus-square"></i>
                 @T("Admin.Common.AddNew")
             </a>*@
+        <button type="button" class="btn btn-success" id="btn-set-active-shelf-selected">
+            <i class="fa fa-save"></i>
+            @T("Admin.Common.SetActiveShelfSelected")
+        </button>
+        <button type="button" class="btn btn-danger" id="btn-set-inactive-shelf-selected">
+            <i class="fa fa-trash"></i>
+            @T("Admin.Common.SetInActiveShelfSelected")
+        </button>
         @await Component.InvokeAsync("AdminWidget", new { widgetZone = "admin_shelf_list_buttons" })
     </div>
 </div>
@@ -51,57 +59,57 @@
                                 </div>
                                 <script>
 
-                                $(document).ready(function() {
-                                    $("#CustomerNameOrPhone").autocomplete({
-                                        delay: 800,
-                                        source: function(request, response) {
+                                    $(document).ready(function() {
+                                        $("#CustomerNameOrPhone").autocomplete({
+                                            delay: 800,
+                                            source: function(request, response) {
 
-                                            var postData = {
-                                                searchTerm: request.term
-                                            };
-                                            addAntiForgeryToken(postData);
+                                                var postData = {
+                                                    searchTerm: request.term
+                                                };
+                                                addAntiForgeryToken(postData);
 
-                                            $.ajax({
-                                                cache: false,
-                                                type: "POST",
-                                                url: "@(Url.Action("CustomerSearchPhoneAndFullName", "Customer"))",
-                                                data: postData,
-                                                complete: function(result) {
-                                                    response($.map(result.responseJSON.Data,
-                                                        function(item) {
-                                                            return {
-                                                                label: item.FullName,
-                                                                value: item.Id
-                                                            }
-                                                        }));
-                                                },
-                                                error: function(xhr, ajaxOptions, thrownError) {
-                                                    alert(thrownError);
-                                                },
-                                                traditional: true
-                                            });
-                                        },
-                                        minLength: 2,
-                                        select: function(event, ui) {
-                                            $('#CustomerId').val(ui.item.value);
-                                            this.value = ui.item.label;
-                                            //setTimeout(function() {
+                                                $.ajax({
+                                                    cache: false,
+                                                    type: "POST",
+                                                    url: "@(Url.Action("CustomerSearchPhoneAndFullName", "Customer"))",
+                                                    data: postData,
+                                                    complete: function(result) {
+                                                        response($.map(result.responseJSON.Data,
+                                                            function(item) {
+                                                                return {
+                                                                    label: item.FullName,
+                                                                    value: item.Id
+                                                                }
+                                                            }));
+                                                    },
+                                                    error: function(xhr, ajaxOptions, thrownError) {
+                                                        alert(thrownError);
+                                                    },
+                                                    traditional: true
+                                                });
+                                            },
+                                            minLength: 2,
+                                            select: function(event, ui) {
+                                                $('#CustomerId').val(ui.item.value);
+                                                this.value = ui.item.label;
+                                                //setTimeout(function() {
 
-                                            //},500);
-                                            return false;
-                                        },
-                                        focus: function(event, ui) {
-                                            event.preventDefault();
-                                            this.value = ui.item.label;
-                                        },
-                                        search: function(e, u) {
-                                            $(this).addClass('ajaxprocessing');
-                                        },
-                                        response: function(event, ui) {
-                                            $(this).removeClass('ajaxprocessing');
-                                        }
+                                                //},500);
+                                                return false;
+                                            },
+                                            focus: function(event, ui) {
+                                                event.preventDefault();
+                                                this.value = ui.item.label;
+                                            },
+                                            search: function(e, u) {
+                                                $(this).addClass('ajaxprocessing');
+                                            },
+                                            response: function(event, ui) {
+                                                $(this).removeClass('ajaxprocessing');
+                                            }
+                                        });
                                     });
-                                });
 
                                 </script>
 
@@ -160,7 +168,14 @@
                                     <nop-editor asp-for="IsEmptyAssignedShelf" />
                                 </div>
                             </div>
-
+                            <div class="form-group">
+                                <div class="col-md-4">
+                                    <nop-label asp-for="InActive" />
+                                </div>
+                                <div class="col-md-8">
+                                    <nop-editor asp-for="InActive" />
+                                </div>
+                            </div>
                         </div>
                         <div class="col-md-6">
 
@@ -342,11 +357,20 @@
                                     confirmation: "@T("Admin.Common.DeleteConfirmation")",
                                     mode: "inline"
                                 },
+                                dataBound: onDataBound,
                                 //details grid
                                 detailInit: detailInit,
                                 scrollable: false,
                                 columns: [
                                     {
+                                        field: "Id",
+                                        headerTemplate: "<input id='mastercheckboxShelf' type='checkbox'/>",
+                                        headerAttributes: { style: "text-align:center" },
+                                        attributes: { style: "text-align:center" },
+                                        template:
+                                            "<div style='display:block;padding: 27px 40%;' onclick='setCheckedShelf(#=Id#);'><input onclick='setCheckedShelf(#=Id#);' id='ckbShelf#=Id#' type='checkbox' value='#=Id#' class='checkboxGroupsShelf'/></div>",
+                                        width: 50
+                                    },{
                                         field: "ShelfCode",
                                         title: "@T("Admin.Shelf.Fields.ShelfCode")",
                                         width: 100
@@ -841,13 +865,13 @@
 
                                         },{
                                             field: "AssignedShelfDate",
-                                        title: "@T("Admin.ShelfOrderItem.Fields.AssignedShelfDate")",
-                                        width: 100,
+                                            title: "@T("Admin.ShelfOrderItem.Fields.AssignedShelfDate")",
+                                            width: 100,
                                             template: "# if (AssignedShelfDate != null) { #" +
-                                            "<p>#= kendo.toString(kendo.parseDate(AssignedShelfDate, 'yyyy-MM-dd'), 'dd/MM/yyyy') #</p>" +
-                                            "#} else {#" +
-                                            "<p></p>" +
-                                            "# } #"
+                                                "<p>#= kendo.toString(kendo.parseDate(AssignedShelfDate, 'yyyy-MM-dd'), 'dd/MM/yyyy') #</p>" +
+                                                "#} else {#" +
+                                                "<p></p>" +
+                                                "# } #"
                                         },
                                         @*{
                                             field: "PackageItemProcessedDatetime",
@@ -939,6 +963,9 @@
 
                         //========================Function extend========================//
 
+
+
+
                         function setChecked(ckbId) {
                             var status = $('#ckb' + ckbId).is(':checked');
                             if (status) {
@@ -947,6 +974,16 @@
                                 status = true;
                             }
                             $('#ckb' + ckbId).attr('checked', status);
+                        }
+
+                        function setCheckedShelf(ckbId) {
+                            var status = $('#ckbShelf' + ckbId).is(':checked');
+                            if (status) {
+                                status = false;
+                            } else {
+                                status = true;
+                            }
+                            $('#ckbShelf' + ckbId).attr('checked', status);
                         }
 
                         //function shipOrderItemsSelected(shelfId) {
@@ -1004,6 +1041,7 @@
                                 $('#@Html.IdFor(model => model.ShelfOrderItemIsActive)').val('True');
 
                                 $('#@Html.IdFor(model => model.IsShelfEmpty)').prop('checked', false);
+                                $('#@Html.IdFor(model => model.InActive)').prop('checked', false);
                                 $('#@Html.IdFor(model => model.IsEmptyAssignedShelf)').prop('checked', false);
                                 $('#@Html.IdFor(model => model.ShipTodayFilter)').prop('checked', false);
                                 $('#@Html.IdFor(model => model.IsCustomerNotified)').val(0);
@@ -1011,6 +1049,33 @@
                                 $('#CustomerNameOrPhone').val('');
                                 //$('#@Html.IdFor(model => model.IsPackageItemProcessedDatetime)').val(0);
                                 $("#search-shelf").click();
+                            });
+
+                            $('#mastercheckboxShelf').click(function() {
+                                $('.checkboxGroupsShelf').attr('checked', $(this).is(':checked')).change();
+                            });
+
+
+                            //wire up checkboxes.
+                            $('#shelf-grid').on('change', '[id!=mastercheckboxShelf][class=checkboxGroupsShelf]', function(e) {
+                                var $check = $(this);
+                                if ($check.is(":checked") == true) {
+                                    var checked = jQuery.inArray($check.val(), selectedIds);
+                                    if (checked == -1) {
+                                        //add id to selectedIds.
+                                        selectedIds.push($check.val());
+                                    }
+                                } else {
+                                    var checked = jQuery.inArray($check.val(), selectedIds);
+                                    if (checked > -1) {
+                                        //remove id from selectedIds.
+                                        selectedIds = $.grep(selectedIds, function(item, index) {
+                                            return item != $check.val();
+                                        });
+                                    }
+                                }
+                                updateMasterCheckbox();
+
                             });
 
 
@@ -1041,10 +1106,31 @@
                                 IsEmptyAssignedShelf: $('#@Html.IdFor(model => model.IsEmptyAssignedShelf)').is(":checked"),
                                 IsCustomerNotified: $('#@Html.IdFor(model => model.IsCustomerNotified)').val(),
                                 ShelfNoteId: $('#@Html.IdFor(model => model.ShelfNoteId)').val(),
+                                InActive: $('#@Html.IdFor(model => model.InActive)').is(":checked"),
                                 //IsPackageItemProcessedDatetime: $('#@Html.IdFor(model => model.IsPackageItemProcessedDatetime)').val()
                             };
                             addAntiForgeryToken(data);
                             return data;
+                        }
+
+                        function onDataBound(e) {
+                            //this.expandRow(this.tbody.find("tr.k-master-row").first());
+                            $(
+                                '#shelf-grid [id!=mastercheckboxShelf][class=checkboxGroupsShelf]').each(function() {
+                                var currentId = $(this).val();
+                                var checked = jQuery.inArray(currentId, selectedIds);
+                                //set checked based on if current checkbox's value is in selectedIds.
+                                $(this).attr('checked', checked > -1);
+                            });
+
+                            updateMasterCheckbox();
+                        }
+
+                        function updateMasterCheckbox() {
+                            var numChkBoxes = $('#shelf-grid [id!=mastercheckboxShelf][class=checkboxGroupsShelf]').length;
+                            var numChkBoxesChecked = $('#shelf-grid [id!=mastercheckboxShelf][class=checkboxGroupsShelf]:checked').length;
+                            $('#mastercheckboxShelf').attr('checked', numChkBoxes == numChkBoxesChecked && numChkBoxes > 0);
+
                         }
                     </script>
                 </div>
@@ -1052,3 +1138,75 @@
         </div>
     </div>
 </div>
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+        //set active shelf
+        $('#btn-set-active-shelf-selected').click(function (e) {
+            e.preventDefault();
+            var postData = { shelfIds: selectedIds};
+            addAntiForgeryToken(postData);
+            $.ajax({
+                cache: false,
+                type: "POST",
+                url: "@Url.Action("SetActiveShelfs", "Shelf")",
+                data: postData,
+                complete: function(data) {
+                    var jsonData = data.responseJSON;
+                    if (jsonData.Result === false) {
+                        alert(jsonData.Message);
+                        return;
+                    }
+                    selectedIds = [];
+
+                    //reload grid
+                    var grid = $('#shelf-grid').data('kendoGrid');
+                    grid.dataSource.read();
+
+                    $('.checkboxGroupsShelf').attr('checked', false);
+                    $('#mastercheckboxShelf').attr('checked', false);
+                },
+                error: function(xhr, ajaxOptions, thrownError) {
+                    alert(thrownError);
+                },
+                traditional: true
+            });
+            return false;
+        });
+
+        //set inactive shelf
+        $('#btn-set-inactive-shelf-selected').click(function (e) {
+            e.preventDefault();
+            var postData = { shelfIds: selectedIds};
+            addAntiForgeryToken(postData);
+            $.ajax({
+                cache: false,
+                type: "POST",
+                url: "@Url.Action("SetInActiveShelfs", "Shelf")",
+                data: postData,
+                complete: function(data) {
+                    var jsonData = data.responseJSON;
+                    if (jsonData.Result === false) {
+                        alert(jsonData.Message);
+                        return;
+                    }
+                    selectedIds = [];
+
+                    //reload grid
+                    var grid = $('#shelf-grid').data('kendoGrid');
+                    grid.dataSource.read();
+
+                    $('.checkboxGroupsShelf').attr('checked', false);
+                    $('#mastercheckboxShelf').attr('checked', false);
+                },
+                error: function(xhr, ajaxOptions, thrownError) {
+                    alert(thrownError);
+                },
+                traditional: true
+            });
+            return false;
+        });
+    });
+</script>

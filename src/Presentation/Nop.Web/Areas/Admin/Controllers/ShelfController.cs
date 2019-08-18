@@ -127,7 +127,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 shelfCode: model.ShelfCode,
                 isCustomerNotified: model.IsCustomerNotified,
                 shelfNoteId: model.ShelfNoteId,
-                isPackageItemProcessedDatetime: model.IsPackageItemProcessedDatetime);
+                isPackageItemProcessedDatetime: model.IsPackageItemProcessedDatetime, inActive: model.InActive);
             var gridModel = new DataSourceResult
             {
                 Data =
@@ -217,6 +217,12 @@ namespace Nop.Web.Areas.Admin.Controllers
         [HttpPost]
         public IActionResult CreateAjax(ShelfModel model)
         {
+            var shelf = _shelfService.GetShelfByCode(model.ShelfCode);
+            if (shelf != null)
+            {
+                return Json(new { errors = _localizationService.GetResource("ShelfExist.Message") });
+            }
+
             var entity = model.ToEntity();
 
             if (string.IsNullOrEmpty(model.AssignedDate) == false)
@@ -341,13 +347,47 @@ namespace Nop.Web.Areas.Admin.Controllers
                 }
 
                 var shelf = _shelfService.GetShelfById(model.Id);
-                _shelfService.DeleteShelf(model.Id);
-
+                if (shelf != null)
+                {
+                    shelf.InActive = true;
+                    _shelfService.UpdateShelf(shelf);
+                }
                 _customerActivityService.InsertActivity("DeleteShelf", _localizationService.GetResource("activitylog.removeshelf"), shelf.ShelfCode);
 
                 return Json(new { Success = true });
             }
             return Json(new { Success = false });
+        }
+
+        [HttpPost]
+        public IActionResult SetInActiveShelfs(ICollection<int> shelfIds)
+        {
+            foreach (var shelfId in shelfIds)
+            {
+                var shelf = _shelfService.GetShelfById(shelfId);
+                if (shelf != null)
+                {
+                    shelf.InActive = true;
+                    _shelfService.UpdateShelf(shelf);
+                }
+            }
+            return Json(new { Success = true });
+        }
+
+
+        [HttpPost]
+        public IActionResult SetActiveShelfs(ICollection<int> shelfIds)
+        {
+            foreach (var shelfId in shelfIds)
+            {
+                var shelf = _shelfService.GetShelfById(shelfId);
+                if (shelf != null)
+                {
+                    shelf.InActive = false;
+                    _shelfService.UpdateShelf(shelf);
+                }
+            }
+            return Json(new { Success = true });
         }
 
 
