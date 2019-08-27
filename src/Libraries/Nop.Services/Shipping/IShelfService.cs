@@ -33,12 +33,15 @@ namespace Nop.Services.Shipping
 
         List<Shelf> GetAllShelfAvailable(int customerId = 0, string shelfCode = null);
         void UpdateShelf(Shelf shelf);
+        void UpdateShelfs(IEnumerable<Shelf> shelfs);
         void InsertShelf(Shelf shelf);
         Shelf GetShelfById(int id);
         Shelf GetShelfByCode(string shelfCode);
         void DeleteShelfOrderItem(int shelfOrderItemId);
         IPagedList<ShelfOrderItem> GetAllShelfOrderItem(int shelfId = 0, int customerId = 0, DateTime? assignedFromUtc = null, DateTime? assignedToUtc = null,
             int pageIndex = 0, int pageSize = int.MaxValue, bool? shelfOrderItemIsActive = null);
+
+        List<int> GetOrderItemIdsByShelf(int shelfId, bool? shelfOrderItemIsActive = null);
 
         void UpdateShelfOrderItem(ShelfOrderItem shelfOrderItem);
         void InsertShelfOrderItem(ShelfOrderItem shelfOrderItem);

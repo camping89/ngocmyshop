@@ -2448,7 +2448,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 PrepareOrderDetailsModel(model, order);
                 return View(model);
             }
-            catch (Exception exc)
+            catch (Exception)
             {
                 //error
                 var model = new OrderModel();
@@ -4621,7 +4621,9 @@ namespace Nop.Web.Areas.Admin.Controllers
             var orderItems = new List<OrderItem>();
             if (shelf.CustomerId.HasValue)
             {
-                orderItems = _shelfService.GetAllShelfOrderItem(shelfId, customerId: shelf.CustomerId.Value, shelfOrderItemIsActive: isActive).Where(_ => _.OrderItem != null).Select(_ => _.OrderItem).ToList();
+                var orderItemIds = _shelfService.GetOrderItemIdsByShelf(shelfId, isActive);
+                orderItems = _orderService.GetOrderItemsByIds(orderItemIds.ToArray()).ToList();
+                //orderItems = _shelfService.GetAllShelfOrderItem(shelfId, customerId: shelf.CustomerId.Value, shelfOrderItemIsActive: isActive).Where(_ => _.OrderItem != null).Select(_ => _.OrderItem).ToList();
             }
             var resultDatas = PrepareOrderItemsModelBasic(orderItems);
             var gridModel = new DataSourceResult

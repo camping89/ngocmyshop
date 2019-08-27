@@ -864,9 +864,9 @@ namespace Nop.Web.Areas.Admin.Controllers
                 }
                 shelf.Total = total;
                 shelf.TotalWithoutDeposit = totalWithoutDeposit;
-                _shelfService.UpdateShelf(shelf);
             }
 
+            _shelfService.UpdateShelfs(shelfs);
             return new NullJsonResult();
         }
 

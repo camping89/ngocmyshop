@@ -2576,7 +2576,7 @@ namespace Nop.Web.Areas.Admin.Controllers
 
                 }
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 //ignore
             }

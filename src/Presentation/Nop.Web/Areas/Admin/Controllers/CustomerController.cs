@@ -1038,6 +1038,21 @@ namespace Nop.Web.Areas.Admin.Controllers
 
                 _customerService.InsertCustomer(customer);
 
+
+                //customer roles
+                foreach (var customerRole in newCustomerRoles)
+                {
+                    //ensure that the current customer cannot add to "Administrators" system role if he's not an admin himself
+                    if (customerRole.SystemName == SystemCustomerRoleNames.Administrators &&
+                        !_workContext.CurrentCustomer.IsAdmin())
+                        continue;
+
+                    customer.CustomerRoles.Add(customerRole);
+                }
+                _customerService.UpdateCustomer(customer);
+
+
+
                 //Create Address Default
                 var addressCustomer = new Address
                 {
@@ -1134,19 +1149,6 @@ namespace Nop.Web.Areas.Admin.Controllers
                             ErrorNotification(changePassError);
                     }
                 }
-
-                //customer roles
-                foreach (var customerRole in newCustomerRoles)
-                {
-                    //ensure that the current customer cannot add to "Administrators" system role if he's not an admin himself
-                    if (customerRole.SystemName == SystemCustomerRoleNames.Administrators &&
-                        !_workContext.CurrentCustomer.IsAdmin())
-                        continue;
-
-                    customer.CustomerRoles.Add(customerRole);
-                }
-                _customerService.UpdateCustomer(customer);
-
 
                 //ensure that a customer with a vendor associated is not in "Administrators" role
                 //otherwise, he won't have access to other functionality in admin area

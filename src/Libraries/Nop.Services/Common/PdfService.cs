@@ -1979,7 +1979,7 @@ namespace Nop.Services.Common
                 if (shipmentManualItem != null)
                 {
                     var shelfOrderItem = _shelfService.GetShelfOrderItemByOrderItemId(shipmentManualItem.OrderItemId);
-                    if (shelfOrderItem!= null && shelfOrderItem.Shelf != null)
+                    if (shelfOrderItem != null && shelfOrderItem.Shelf != null)
                     {
                         shelfCode = shelfOrderItem.Shelf.ShelfCode;
                     }
@@ -2422,9 +2422,9 @@ namespace Nop.Services.Common
             var lang = _workContext.WorkingLanguage;
 
 
-            var productsTable = new PdfPTable(11) { WidthPercentage = 100f };
+            var productsTable = new PdfPTable(12) { WidthPercentage = 100f };
 
-            productsTable.SetWidths(new[] { 10, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9 });
+            productsTable.SetWidths(new[] { 9, 9, 9, 9, 8, 8, 8, 8, 8, 8, 8, 8 });
 
             //var cell = GetPdfCell("PDFPackagingSlip.BagId", lang, font);
             //cell.BackgroundColor = BaseColor.LIGHT_GRAY;
@@ -2432,6 +2432,11 @@ namespace Nop.Services.Common
             //productsTable.AddCell(cell);
 
             var cell = GetPdfCell("PDFPackagingSlip.CustomerName", lang, font);
+            cell.BackgroundColor = BaseColor.LIGHT_GRAY;
+            cell.HorizontalAlignment = Element.ALIGN_CENTER;
+            productsTable.AddCell(cell);
+
+            cell = GetPdfCell("PDFPackagingSlip.CustomerPhone", lang, font);
             cell.BackgroundColor = BaseColor.LIGHT_GRAY;
             cell.HorizontalAlignment = Element.ALIGN_CENTER;
             productsTable.AddCell(cell);
@@ -2592,7 +2597,11 @@ namespace Nop.Services.Common
                 //cell.HorizontalAlignment = Element.ALIGN_CENTER;
                 //productsTable.AddCell(cell);
 
-                cell = GetPdfCell(exportShipmentModel.CustomerName + "\n" + exportShipmentModel.CustomerPhone, font);
+                cell = GetPdfCell(exportShipmentModel.CustomerName, font);
+                cell.HorizontalAlignment = Element.ALIGN_CENTER;
+                productsTable.AddCell(cell);
+
+                cell = GetPdfCell(exportShipmentModel.CustomerPhone, font);
                 cell.HorizontalAlignment = Element.ALIGN_CENTER;
                 productsTable.AddCell(cell);
 

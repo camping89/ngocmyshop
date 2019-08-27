@@ -3,6 +3,7 @@ using Nop.Core.Data;
 using Nop.Core.Domain.Shipping;
 using System;
 using System.Collections.Generic;
+using System.Data.Entity;
 using System.Linq;
 
 namespace Nop.Services.Shipping
@@ -163,6 +164,13 @@ namespace Nop.Services.Shipping
                 _shelfRepository.Update(shelf);
             }
         }
+        public void UpdateShelfs(IEnumerable<Shelf> shelfs)
+        {
+            if (shelfs != null)
+            {
+                _shelfRepository.Update(shelfs);
+            }
+        }
 
         public void InsertShelf(Shelf shelf)
         {
@@ -226,6 +234,21 @@ namespace Nop.Services.Shipping
             return shelfOrderItems;
         }
 
+        public List<int> GetOrderItemIdsByShelf(int shelfId, bool? shelfOrderItemIsActive = null)
+        {
+            var query = _shelfOrderItemRepository.Table.AsNoTracking();
+            if (shelfId > 0)
+            {
+                query = query.Where(_ => _.ShelfId == shelfId);
+            }
+
+            if (shelfOrderItemIsActive.HasValue)
+            {
+                query = query.Where(_ => _.IsActived == shelfOrderItemIsActive);
+            }
+            query = query.OrderByDescending(_ => _.AssignedDate);
+            return query.Select(_ => _.OrderItemId).ToList();
+        }
         public void UpdateShelfOrderItem(ShelfOrderItem shelfOrderItem)
         {
             if (shelfOrderItem != null)
