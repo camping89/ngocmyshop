@@ -1008,8 +1008,8 @@
                                     start.setHours(0, 0, 0, 0);
                                     var end = new Date();
                                     end.setHours(23, 59, 59, 999);
-                                    var startDate = kendo.toString(kendo.parseDate(start), 'dd/MM/yyyy HH:mm tt');
-                                    var endDate = kendo.toString(kendo.parseDate(end), 'dd/MM/yyyy HH:mm tt');
+                                    var startDate = kendo.toString(kendo.parseDate(start), 'dd/MM/yyyy');
+                                    var endDate = kendo.toString(kendo.parseDate(end), 'dd/MM/yyyy');
                                     $('#@Html.IdFor(model => model.ShippedFromDate)').val(startDate);
                                     $('#@Html.IdFor(model => model.ShippedToDate)').val(endDate);
                                 } else {
@@ -1083,14 +1083,14 @@
 
 
                         function additionalData() {
-                            var assignedFromDate = kendo.toString(kendo.parseDate($('#@Html.IdFor(model => model.AssignedFromDate)').val(), 'dd/MM/yyyy HH:mm tt'), 'MM/dd/yyyy HH:mm tt');
-                            var assignedToDate = kendo.toString(kendo.parseDate($('#@Html.IdFor(model => model.AssignedToDate)').val(), 'dd/MM/yyyy HH:mm tt'), 'MM/dd/yyyy HH:mm tt');
+                            var assignedFromDate = kendo.toString(kendo.parseDate($('#@Html.IdFor(model => model.AssignedFromDate)').val(), 'dd/MM/yyyy'), 'MM/dd/yyyy');
+                            var assignedToDate = kendo.toString(kendo.parseDate($('#@Html.IdFor(model => model.AssignedToDate)').val(), 'dd/MM/yyyy'), 'MM/dd/yyyy');
 
-                            var assignedOrderItemFromDate = kendo.toString(kendo.parseDate($('#@Html.IdFor(model => model.AssignedOrderItemFromDate)').val(), 'dd/MM/yyyy HH:mm tt'), 'MM/dd/yyyy HH:mm tt');
-                            var assignedOrderItemToDate = kendo.toString(kendo.parseDate($('#@Html.IdFor(model => model.AssignedOrderItemToDate)').val(), 'dd/MM/yyyy HH:mm tt'), 'MM/dd/yyyy HH:mm tt');
+                            var assignedOrderItemFromDate = kendo.toString(kendo.parseDate($('#@Html.IdFor(model => model.AssignedOrderItemFromDate)').val(), 'dd/MM/yyyy'), 'MM/dd/yyyy');
+                            var assignedOrderItemToDate = kendo.toString(kendo.parseDate($('#@Html.IdFor(model => model.AssignedOrderItemToDate)').val(), 'dd/MM/yyyy'), 'MM/dd/yyyy');
 
-                            var shippedFromDate = kendo.toString(kendo.parseDate($('#@Html.IdFor(model => model.ShippedFromDate)').val(), 'dd/MM/yyyy HH:mm tt'), 'MM/dd/yyyy HH:mm tt');
-                            var shippedToDate = kendo.toString(kendo.parseDate($('#@Html.IdFor(model => model.ShippedToDate)').val(),'dd/MM/yyyy HH:mm tt'), 'MM/dd/yyyy HH:mm tt');
+                            var shippedFromDate = kendo.toString(kendo.parseDate($('#@Html.IdFor(model => model.ShippedFromDate)').val(), 'dd/MM/yyyy'), 'MM/dd/yyyy');
+                            var shippedToDate = kendo.toString(kendo.parseDate($('#@Html.IdFor(model => model.ShippedToDate)').val(),'dd/MM/yyyy'), 'MM/dd/yyyy');
 
                             var data = {
                                 CustomerId: $('#@Html.IdFor(model => model.CustomerId)').val(),

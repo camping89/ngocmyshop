@@ -212,7 +212,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 var shelfOrderItems = _shelfService.GetOrderItemIdsByShelf(shelfId, isActive, shelf.CustomerId.Value);
                 //orderItems = _orderService.GetOrderItemsByIds(orderItemIds.ToArray()).ToList();
                 //orderItems = _shelfService.GetAllShelfOrderItem(shelfId, customerId: shelf.CustomerId.Value, shelfOrderItemIsActive: isActive).Where(_ => _.OrderItem != null).Select(_ => _.OrderItem).ToList();
-                resultDatas = shelfOrderItems.Select(shelfOrderItem => { return PrepareOrderItemInShelfModel(shelfOrderItem); }).ToList();
+                resultDatas = shelfOrderItems.OrderBy(_ => _.AssignedDate).Select(PrepareOrderItemInShelfModel).ToList();
             }
 
             var gridModel = new DataSourceResult
@@ -381,12 +381,19 @@ namespace Nop.Web.Areas.Admin.Controllers
         {
             var entity = _shelfService.GetShelfById(model.Id);
             var shelfOrderItems = _shelfService.GetAllShelfOrderItem(entity.Id);
-            if ((entity.CustomerId != model.CustomerId || model.CustomerId == 0) && shelfOrderItems.Any(_ => _.IsActived) == false)
+            if ((entity.CustomerId != model.CustomerId || model.CustomerId == 0) && shelfOrderItems.Any(_ => _.IsActived && _.CustomerId == entity.CustomerId) == false)
             {
                 entity = model.ToEntity(entity);
                 entity.ShippedDate = null;
                 entity.UpdatedNoteDate = null;
-                entity.AssignedDate = DateTime.Now;
+                if (model.CustomerId != 0)
+                {
+                    entity.AssignedDate = DateTime.Now;
+                }
+                else
+                {
+                    entity.AssignedDate = null;
+                }
             }
             else
             {
@@ -395,6 +402,14 @@ namespace Nop.Web.Areas.Admin.Controllers
                 if (string.IsNullOrEmpty(model.AssignedDate) == false)
                 {
                     entity.AssignedDate = StringExtensions.StringToDateTime(model.AssignedDate);
+                }
+                else
+                {
+                    var shefOrderItem = entity.ShelfOrderItems.Where(_ => _.IsActived && _.CustomerId == entity.CustomerId).OrderBy(_ => _.AssignedDate).FirstOrDefault();
+                    if (shefOrderItem != null)
+                    {
+                        entity.AssignedDate = shefOrderItem.AssignedDate;
+                    }
                 }
 
                 if (string.IsNullOrEmpty(model.ShippedDate) == false)
@@ -776,6 +791,12 @@ namespace Nop.Web.Areas.Admin.Controllers
                 var shelf = _shelfService.GetShelfByCode(shelfCode);
                 if (shelf != null)
                 {
+                    var shelfOrderItem = shelf.ShelfOrderItems.Where(_ => _.CustomerId == shelf.CustomerId && _.IsActived).OrderBy(s => s.AssignedDate).FirstOrDefault();
+                    if (shelfOrderItem != null)
+                    {
+                        shelf.AssignedDate = shelfOrderItem.AssignedDate;
+                        _shelfService.UpdateShelf(shelf);
+                    }
                     UpdateTotalShelf(shelf.Id);
                 }
                 _customerActivityService.InsertActivity("DeleteShipmentManual", _localizationService.GetResource("activitylog.DeleteShipmentManual"), shipmentManual.Id);

@@ -3965,7 +3965,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             model.Address.CountryRequired = _addressSettings.CountryEnabled; //country is required when enabled
             model.Address.StateProvinceEnabled = _addressSettings.StateProvinceEnabled;
             model.Address.CityEnabled = _addressSettings.CityEnabled;
-            
+
             model.Address.CityRequired = _addressSettings.CityRequired;
             model.Address.StreetAddressEnabled = _addressSettings.StreetAddressEnabled;
             model.Address.StreetAddressRequired = _addressSettings.StreetAddressRequired;
@@ -4415,9 +4415,10 @@ namespace Nop.Web.Areas.Admin.Controllers
 
                 if (shelf != null)
                 {
-                    if (shelf.CustomerId == null || shelf.CustomerId == 0 || shelf.CustomerId == customerId || (shelf.CustomerId != customerId && shelf.ShelfOrderItems.Any(_ => _.IsActived) == false))
+                    if (shelf.CustomerId == null || shelf.CustomerId == 0 || shelf.CustomerId == customerId || (shelf.CustomerId != customerId && shelf.ShelfOrderItems.Any(_ => _.IsActived && _.CustomerId == customerId) == false))
                     {
-                        shelf.AssignedDate = DateTime.UtcNow;
+                        var shelfOrderItemFirst = shelf.ShelfOrderItems.Where(_ => _.IsActived && _.CustomerId == customerId).OrderBy(_ => _.AssignedDate).FirstOrDefault();
+                        shelf.AssignedDate = shelfOrderItemFirst == null ? DateTime.UtcNow : shelfOrderItemFirst.AssignedDate;
                         shelf.CustomerId = customerId;
                         shelf.IsCustomerNotified = false;
                         shelf.ShelfNoteStatus = ShelfNoteStatus.NoReply;
