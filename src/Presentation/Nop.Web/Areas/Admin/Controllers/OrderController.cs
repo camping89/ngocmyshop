@@ -688,7 +688,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 ProductId = orderItem.ProductId,
                 Quantity = orderItem.Quantity,
                 ProductName = orderItem.Product.Name,
-                Sku = orderItem.Product.FormatSku(orderItem.AttributesXml, _productAttributeParser),
+                Sku = orderItem.Product.Sku,
                 TotalWithoutWeightCost = _priceFormatter.FormatPrice((orderItem.PriceInclTax - orderItem.WeightCost), true,
                         primaryStoreCurrency, _workContext.WorkingLanguage, true, true),
                 UnitPriceBase = _priceFormatter.FormatPrice((orderItem.UnitPriceUsd), true,
@@ -1976,11 +1976,11 @@ namespace Nop.Web.Areas.Admin.Controllers
                         //ShippingStatusId = x.ShippingStatusId,
                         //CustomerEmail = x.BillingAddress.Email,
                         CustomerFullName = $"{x.Customer.GetFullName()}",
-                        CustomerAddress = customerAddress != null ? customerAddress.Address1 : "Chưa xác định",
+                        CustomerAddress = customerAddress != null ? customerAddress.Address1 : string.Empty,
                         CustomerPhone = x.Customer.Phone,
-                        CustomerDistrict = customerAddress != null ? customerAddress.District : "Chưa xác định",
-                        CustomerCity = customerAddress != null ? customerAddress.City : "Chưa xác định",
-                        CustomerWard = customerAddress != null ? customerAddress.Ward : "Chưa xác định",
+                        CustomerDistrict = customerAddress != null ? customerAddress.District : string.Empty,
+                        CustomerCity = customerAddress != null ? customerAddress.City : string.Empty,
+                        CustomerWard = customerAddress != null ? customerAddress.Ward : string.Empty,
                         CustomerLinkFacebook = linkFacebook,
                         CustomerShortLinkFacebook = shortLink,
                         CreatedOn = _dateTimeHelper.ConvertToUserTime(x.CreatedOnUtc, DateTimeKind.Utc),
@@ -1990,21 +1990,6 @@ namespace Nop.Web.Areas.Admin.Controllers
                         AdminNote = x.AdminNote ?? string.Empty,
                         OrderTotalWithoutWeightCost = _priceFormatter.FormatPrice(x.OrderTotal - x.WeightCost, true, false)
                     };
-
-                    if (string.IsNullOrEmpty(orderModel.CustomerDistrict))
-                    {
-                        orderModel.CustomerDistrict = "Chưa xác định";
-                    }
-
-                    if (string.IsNullOrEmpty(orderModel.CustomerCity))
-                    {
-                        orderModel.CustomerCity = "Chưa xác định";
-                    }
-
-                    if (string.IsNullOrEmpty(orderModel.CustomerWard))
-                    {
-                        orderModel.CustomerWard = "Chưa xác định";
-                    }
 
                     //PrepareOrderDetailsModel(orderModel, x);
                     //if (orderModel.Items.Count > 0)
@@ -3980,10 +3965,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             model.Address.CountryRequired = _addressSettings.CountryEnabled; //country is required when enabled
             model.Address.StateProvinceEnabled = _addressSettings.StateProvinceEnabled;
             model.Address.CityEnabled = _addressSettings.CityEnabled;
-            if (string.IsNullOrEmpty(model.Address.City))
-            {
-                model.Address.City = "Chưa xác định";
-            }
+            
             model.Address.CityRequired = _addressSettings.CityRequired;
             model.Address.StreetAddressEnabled = _addressSettings.StreetAddressEnabled;
             model.Address.StreetAddressRequired = _addressSettings.StreetAddressRequired;
@@ -4271,14 +4253,15 @@ namespace Nop.Web.Areas.Admin.Controllers
                 decimal totalWithoutDeposit = 0;
                 if (shelf.ShelfOrderItems != null)
                 {
-                    foreach (var shelfOrderItem in shelf.ShelfOrderItems.Where(_ => _.OrderItem != null && _.IsActived))
+                    var shelfOrderItems = shelf.ShelfOrderItems.Where(_ => _.OrderItem != null && _.IsActived && _.CustomerId == shelf.CustomerId).ToList();
+                    foreach (var shelfOrderItem in shelfOrderItems)
                     {
                         var itemTotal = DecimalExtensions.RoundCustom(shelfOrderItem.OrderItem.PriceInclTax / 1000) * 1000;
                         total += itemTotal;
                         totalWithoutDeposit += itemTotal - DecimalExtensions.RoundCustom(shelfOrderItem.OrderItem.Deposit / 1000) * 1000;
                     }
 
-                    shelf.HasOrderItem = shelf.ShelfOrderItems.Any();
+                    shelf.HasOrderItem = shelfOrderItems.Any();
                 }
                 shelf.Total = total;
                 shelf.TotalWithoutDeposit = totalWithoutDeposit;
@@ -4611,33 +4594,33 @@ namespace Nop.Web.Areas.Admin.Controllers
             return Json(gridModel);
         }
 
-        [HttpPost]
-        public virtual IActionResult OrderItemsByShelfId(int shelfId, bool? isActive, DataSourceRequest command)
-        {
+        //[HttpPost]
+        //public virtual IActionResult OrderItemsByShelfId(int shelfId, bool? isActive, DataSourceRequest command)
+        //{
 
-            if (!_permissionService.Authorize(StandardPermissionProvider.ManageOrders))
-                return AccessDeniedKendoGridJson();
-            var shelf = _shelfService.GetShelfById(shelfId);
-            var orderItems = new List<OrderItem>();
-            if (shelf.CustomerId.HasValue)
-            {
-                var orderItemIds = _shelfService.GetOrderItemIdsByShelf(shelfId, isActive);
-                orderItems = _orderService.GetOrderItemsByIds(orderItemIds.ToArray()).ToList();
-                //orderItems = _shelfService.GetAllShelfOrderItem(shelfId, customerId: shelf.CustomerId.Value, shelfOrderItemIsActive: isActive).Where(_ => _.OrderItem != null).Select(_ => _.OrderItem).ToList();
-            }
-            var resultDatas = PrepareOrderItemsModelBasic(orderItems);
-            var gridModel = new DataSourceResult
-            {
-                Data = resultDatas,
-                Total = resultDatas.Count
-            };
-            gridModel.ExtraData = new OrderAggreratorModel
-            {
-                aggregatortotal = _priceFormatter.FormatPrice(resultDatas.Sum(_ => _.SubTotalInclTaxValue), true, false)
-            };
+        //    if (!_permissionService.Authorize(StandardPermissionProvider.ManageOrders))
+        //        return AccessDeniedKendoGridJson();
+        //    var shelf = _shelfService.GetShelfById(shelfId);
+        //    var orderItems = new List<OrderItem>();
+        //    if (shelf.CustomerId.HasValue)
+        //    {
+        //        var orderItemIds = _shelfService.GetOrderItemIdsByShelf(shelfId, isActive);
+        //        orderItems = _orderService.GetOrderItemsByIds(orderItemIds.Select(_=>_.OrderItemId).ToArray()).ToList();
+        //        //orderItems = _shelfService.GetAllShelfOrderItem(shelfId, customerId: shelf.CustomerId.Value, shelfOrderItemIsActive: isActive).Where(_ => _.OrderItem != null).Select(_ => _.OrderItem).ToList();
+        //    }
+        //    var resultDatas = PrepareOrderItemsModelBasic(orderItems);
+        //    var gridModel = new DataSourceResult
+        //    {
+        //        Data = resultDatas,
+        //        Total = resultDatas.Count
+        //    };
+        //    gridModel.ExtraData = new OrderAggreratorModel
+        //    {
+        //        aggregatortotal = _priceFormatter.FormatPrice(resultDatas.Sum(_ => _.SubTotalInclTaxValue), true, false)
+        //    };
 
-            return Json(gridModel);
-        }
+        //    return Json(gridModel);
+        //}
 
         public virtual IActionResult AddShipment(int orderId, int orderItemId = 0)
         {
@@ -6902,6 +6885,8 @@ namespace Nop.Web.Areas.Admin.Controllers
 
                     orderItemModel.AttributeInfo = orderItem.AttributeDescription ?? string.Empty;
 
+                    var shipmentItem = _shipmentManualService.GetShipmentManualItemByOrderItemId(orderItem.Id);
+                    orderItemModel.ExistShipment = shipmentItem != null;
                     return orderItemModel;
                 }),
                 Total = orderItems.TotalCount,

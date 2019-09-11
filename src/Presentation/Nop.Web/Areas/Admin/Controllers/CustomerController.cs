@@ -550,13 +550,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                     model.StreetAddress = customer.GetAttribute<string>(SystemCustomerAttributeNames.StreetAddress);
                     model.StreetAddress2 = customer.GetAttribute<string>(SystemCustomerAttributeNames.StreetAddress2);
                     model.ZipPostalCode = customer.GetAttribute<string>(SystemCustomerAttributeNames.ZipPostalCode);
-
                     model.City = customer.GetAttribute<string>(SystemCustomerAttributeNames.City);
-                    if (string.IsNullOrEmpty(model.City))
-                    {
-                        model.City = "Chưa xác định";
-                    }
-
                     model.CountryId = customer.GetAttribute<int>(SystemCustomerAttributeNames.CountryId);
                     model.StateProvinceId = customer.GetAttribute<int>(SystemCustomerAttributeNames.StateProvinceId);
                     model.Phone = customer.GetAttribute<string>(SystemCustomerAttributeNames.Phone);
@@ -748,10 +742,6 @@ namespace Nop.Web.Areas.Admin.Controllers
 
             model.Address.AvailableCities = SelectListHelper.GetStateProvinceSelectListItems(_stateProvinceService, model.Address.District);
 
-            if (string.IsNullOrEmpty(model.Address.City))
-            {
-                model.Address.City = "Chưa xác định";
-            }
             //countries
             model.Address.AvailableCountries.Add(new SelectListItem { Text = _localizationService.GetResource("Admin.Address.SelectCountry"), Value = "0" });
             foreach (var c in _countryService.GetAllCountries(showHidden: true))

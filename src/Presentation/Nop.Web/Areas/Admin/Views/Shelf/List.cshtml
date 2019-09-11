@@ -533,12 +533,12 @@
                                                     console.log("Details for: " + data.Id);
                                                     //shipOrderItemsSelected(data.Id);
 
-                                                    var shelfOrderItemIs = $("#grid-shelf-items" + data.Id +" input.checkboxGroups" + data.Id +":checkbox:checked").map(function(){
+                                                    var shelfOrderItemIds = $("#grid-shelf-items" + data.Id +" input.checkboxGroups" + data.Id +":checkbox:checked").map(function(){
                                                         return $(this).val();
                                                     }).get();
-                                                    console.log(shelfOrderItemIs);
-                                                    if (shelfOrderItemIs.length > 0) {
-                                                        var postData = { shelfId: data.Id, orderItemIds: shelfOrderItemIs, customerId: data.CustomerId };
+                                                    console.log(shelfOrderItemIds);
+                                                    if (shelfOrderItemIds.length > 0) {
+                                                        var postData = { shelfId: data.Id, orderItemIds: shelfOrderItemIds, customerId: data.CustomerId };
                                                         addAntiForgeryToken(postData);
                                                         $.ajax({
                                                             cache: false,
@@ -731,7 +731,7 @@
                                         //type: "json",
                                         transport: {
                                             read: {
-                                                url: '@Html.Raw(Url.Action("OrderItemsByShelfId", "Order"))',
+                                                url: '@Html.Raw(Url.Action("OrderItemsByShelfId", "Shelf"))',
                                                 type: "POST",
                                                 dataType: "json",
                                                 data: addAntiForgeryToken(postData)
@@ -829,15 +829,15 @@
                                             title: "@T("Admin.Orders.Products.TotalWithoutWeightCost")",
                                             width: 100
                                         }, {
-                                            field: "Deposit",
+                                            field: "DepositStr",
                                             title: "@T("Admin.Orders.Products.Deposit")",
                                             width: 70,
                                             template: '#= DepositStr #'
                                         }, {
-                                            field: "WeightCostDec",
+                                            field: "WeightCost",
                                             title: "@T("Admin.Orders.Products.WeightCost")",
                                             width: 100,
-                                            template: "# if (WeightCostDec > 0) { #" +
+                                            template: "# if (WeightCost != null) { #" +
                                                 "#=WeightCost#" +
                                                 "#} else {#" +
                                                 "<p>@(T("orderitem.includeweightcost.false"))</p>" +
@@ -854,11 +854,11 @@
                                             title: "@T("Admin.OrderItem.Note")",
                                             width: 100
                                         }, {
-                                            field: "PackageOrderId",
+                                            field: "PackageOrderCode",
                                             title: "@T("Admin.Orders.Products.PackageOrderId")",
                                             width: 100,
-                                            template: "# if (PackageOrder != null) { #" +
-                                                "<p>#=PackageOrder.PackageCode#</p>" +
+                                            template: "# if (PackageOrderCode != null) { #" +
+                                                "<p>#=PackageOrderCode#</p>" +
                                                 "#} else {#" +
                                                 "<p></p>" +
                                                 "# } #"
@@ -879,7 +879,7 @@
                                             width: 100
                                         },*@
                                         {
-                                            field: "ShelfOrderItem.IsActive",
+                                            field: "ShelfOrderItemIsActive",
                                             title: "@T("Admin.ShelfOrderItem.IsActive")",
                                             template: "# if (ShelfOrderItemIsActive) { #" +
                                                 "@T("Admin.ShelfOrderItem.IsActive.True")" +

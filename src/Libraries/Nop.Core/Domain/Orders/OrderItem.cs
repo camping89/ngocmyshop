@@ -1,8 +1,8 @@
 using Nop.Core.Domain.Catalog;
 using Nop.Core.Domain.Customers;
+using Nop.Core.Domain.Shipping;
 using System;
 using System.Collections.Generic;
-using Nop.Core.Domain.Shipping;
 
 namespace Nop.Core.Domain.Orders
 {
@@ -155,6 +155,8 @@ namespace Nop.Core.Domain.Orders
         public int? ShelfId { get; set; }
         public string ShelfCode { get; set; }
         public int? ShelfOrderItemId { get; set; }
+
+
         public virtual ShelfOrderItem ShelfOrderItem { get; set; }
 
         public OrderItemStatus OrderItemStatus

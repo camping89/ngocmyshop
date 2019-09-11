@@ -54,30 +54,6 @@
 
     <!-- We copy the \Logs directory -->
     <Content Include="Logs\**" CopyToPublishDirectory="PreserveNewest" />
-    <Compile Remove="Controllers\BackInStockSubscriptionController.cs" />
-    <Compile Remove="Controllers\BackwardCompatibility1XController.cs" />
-    <Compile Remove="Controllers\BackwardCompatibility2XController.cs" />
-    <Compile Remove="Controllers\BlogController.cs" />
-    <Compile Remove="Controllers\BoardsController.cs" />
-    <Compile Remove="Controllers\CatalogController.cs" />
-    <Compile Remove="Controllers\CheckoutController.cs" />
-    <Compile Remove="Controllers\CommonController.cs" />
-    <Compile Remove="Controllers\CountryController.cs" />
-    <Compile Remove="Controllers\DownloadController.cs" />
-    <Compile Remove="Controllers\InstallController.cs" />
-    <Compile Remove="Controllers\KeepAliveController.cs" />
-    <Compile Remove="Controllers\NewsController.cs" />
-    <Compile Remove="Controllers\NewsletterController.cs" />
-    <Compile Remove="Controllers\OrderController.cs" />
-    <Compile Remove="Controllers\PollController.cs" />
-    <Compile Remove="Controllers\PrivateMessagesController.cs" />
-    <Compile Remove="Controllers\ProductController.cs" />
-    <Compile Remove="Controllers\ProfileController.cs" />
-    <Compile Remove="Controllers\ReturnRequestController.cs" />
-    <Compile Remove="Controllers\ScheduleTaskController.cs" />
-    <Compile Remove="Controllers\ShoppingCartController.cs" />
-    <Compile Remove="Controllers\TopicController.cs" />
-    <Compile Remove="Controllers\VendorController.cs" />
     <None Remove="Themes\DefaultClean\Content\css\styles - Copy.rtl.css" />
     <None Remove="Themes\DefaultClean\Content\css\stylesWEB.css" />
     <None Include="wwwroot\chosen_v1.8.7\chosen.jquery.js" />

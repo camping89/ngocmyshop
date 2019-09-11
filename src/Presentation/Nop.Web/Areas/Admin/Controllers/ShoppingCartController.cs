@@ -726,7 +726,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                     ErrorNotification(exc, false);
                 }
                 modelResult.ShoppingCartModel = _shoppingCartModelFactory.PrepareShoppingCartModel(shoppingCartModel, cart, customer: customer);
-                modelResult.CustomerFullName = $"<strong>{customer.GetFullName()}</strong> - Phone: <strong>{customer.GetAttribute<string>(SystemCustomerAttributeNames.Phone)}</strong> - Facebook: <strong>{customer.GetAttribute<string>(SystemCustomerAttributeNames.LinkFacebook1)}</strong>";
+               
                 var customerAddress = customer.Addresses.OrderByDescending(_ => _.CreatedOnUtc).FirstOrDefault();
                 if (customerAddress != null)
                 {
@@ -734,6 +734,15 @@ namespace Nop.Web.Areas.Admin.Controllers
                     modelResult.CustomerWard = customerAddress.Ward;
                     modelResult.CustomerDistrict = customerAddress.District;
                     modelResult.CustomerCity = customerAddress.City;
+
+                    modelResult.CustomerFullName = $"<strong>{customer.GetFullName()}</strong> - Phone: <strong>{customer.GetAttribute<string>(SystemCustomerAttributeNames.Phone)}</strong> - Facebook: <strong>{customer.GetAttribute<string>(SystemCustomerAttributeNames.LinkFacebook1)}</strong>";
+                }
+                else
+                {
+                    // return error message and block the creation process
+                    ModelState.AddModelError("CustomerAddressNotExist",_localizationService.GetResource("CreateOrder.ErrorMessage.CustomerAddressNotExist"));
+                    customerId = 0;
+                    modelResult.CustomerId = customerId;
                 }
             }
             //categories

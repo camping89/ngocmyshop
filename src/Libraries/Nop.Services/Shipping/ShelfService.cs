@@ -234,9 +234,13 @@ namespace Nop.Services.Shipping
             return shelfOrderItems;
         }
 
-        public List<int> GetOrderItemIdsByShelf(int shelfId, bool? shelfOrderItemIsActive = null)
+        public List<ShelfOrderItem> GetOrderItemIdsByShelf(int shelfId, bool? shelfOrderItemIsActive = null, int customerId = 0)
         {
             var query = _shelfOrderItemRepository.Table.AsNoTracking();
+            if (customerId > 0 && shelfOrderItemIsActive.HasValue && shelfOrderItemIsActive == true)
+            {
+                query = query.Where(_ => _.CustomerId == customerId);
+            }
             if (shelfId > 0)
             {
                 query = query.Where(_ => _.ShelfId == shelfId);
@@ -247,7 +251,7 @@ namespace Nop.Services.Shipping
                 query = query.Where(_ => _.IsActived == shelfOrderItemIsActive);
             }
             query = query.OrderByDescending(_ => _.AssignedDate);
-            return query.Select(_ => _.OrderItemId).ToList();
+            return query.ToList();
         }
         public void UpdateShelfOrderItem(ShelfOrderItem shelfOrderItem)
         {

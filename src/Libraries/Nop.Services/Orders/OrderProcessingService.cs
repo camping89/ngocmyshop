@@ -20,6 +20,7 @@ using Nop.Services.Discounts;
 using Nop.Services.Events;
 using Nop.Services.Localization;
 using Nop.Services.Logging;
+using Nop.Services.Media;
 using Nop.Services.Messages;
 using Nop.Services.Payments;
 using Nop.Services.Security;
@@ -82,6 +83,7 @@ namespace Nop.Services.Orders
         private readonly LocalizationSettings _localizationSettings;
         private readonly CurrencySettings _currencySettings;
         private readonly ICustomNumberFormatter _customNumberFormatter;
+        private readonly IPictureService _pictureService;
 
         #endregion
 
@@ -171,7 +173,7 @@ namespace Nop.Services.Orders
             TaxSettings taxSettings,
             LocalizationSettings localizationSettings,
             CurrencySettings currencySettings,
-            ICustomNumberFormatter customNumberFormatter, IShipmentManualService shipmentManualService)
+            ICustomNumberFormatter customNumberFormatter, IShipmentManualService shipmentManualService, IPictureService pictureService)
         {
             this._orderService = orderService;
             this._webHelper = webHelper;
@@ -216,6 +218,7 @@ namespace Nop.Services.Orders
             this._currencySettings = currencySettings;
             this._customNumberFormatter = customNumberFormatter;
             _shipmentManualService = shipmentManualService;
+            _pictureService = pictureService;
         }
 
         #endregion
@@ -1279,7 +1282,7 @@ namespace Nop.Services.Orders
 
                 //var itemWeight = _shippingService.GetShoppingCartItemWeight(sc);
                 var itemWeight = sc.Product.Weight;
-
+                
                 //save order item
                 var orderItem = new OrderItem
                 {

@@ -312,6 +312,7 @@
                                                             ItemWeight: { editable: true, type: "string" },
                                                             SubTotalInclTax: { editable: false, type: "string" },
                                                             IsOrderCheckout: { editable: true, type: "boolean" },
+                                                            ExistShipment: { editable: false, type: "boolean" },
                                                             ShelfId: { editable: true, type: "number" },
                                                             ShelfCode: { editable: true, type: "string" },
                                                             Note: { editable: true, type: "string" },
@@ -410,11 +411,12 @@
                                                     title: "@T("Admin.Orders.ShelfOrderItemId")",
                                                     width: 50,
                                                     hidden: true
-                                                    //template: "# if (ShelfOrderItemId != 0) { #" +
-                                                    //    "#= ShelfOrderItemId #" +
-                                                    //    "#} else {#" +
-                                                    //    "<p></p>" +
-                                                    //    "# } #"
+                                                },
+                                                {
+                                                    field: "ExistShipment",
+                                                    title: "@T("Admin.Orders.ExistShipment")",
+                                                    width: 50,
+                                                    hidden: true
                                                 },
                                                 {
                                                     field: "CustomerInfo",
@@ -737,8 +739,7 @@
 
 
                                         function editPackageOrderId(container, options) {
-                                            $(
-                                                    '<input id="PackageOrderCode" class="k-input k-textbox" data-text-field="PackageOrderCode" data-value-field="' +
+                                            $('<input id="PackageOrderCode" class="k-input k-textbox" data-text-field="PackageOrderCode" data-value-field="' +
                                                     options.field +
                                                     '" data-bind="value:' +
                                                     options.field +
@@ -832,7 +833,21 @@
                                         }*@
 
                                         function editShelfOrderId(container, options) {
-                                            var orderItemId = options.model.Id;
+
+                                            if (options.model.ExistShipment) {
+                                                var element = $('<input readonly name="' +
+                                                    options.field +
+                                                    '" class="k-input k-textbox" data-text-field="' +
+                                                    options.field +
+                                                    '" data-value-field="' +
+                                                    options.field +
+                                                    '" data-bind="value:' +
+                                                    options.field +
+                                                    '" />');
+
+                                                element.appendTo(container);
+                                            } else {
+                                                var orderItemId = options.model.Id;
                                             if (options.model.ShelfId === 0) {
                                                 options.model.ShelfCode = 'Chọn ngăn';
                                             }
@@ -929,6 +944,8 @@
                                                 }
 
                                             });
+                                            }
+                                            
 
                                         }
                                     });

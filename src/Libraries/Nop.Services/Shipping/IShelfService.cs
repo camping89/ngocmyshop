@@ -41,7 +41,7 @@ namespace Nop.Services.Shipping
         IPagedList<ShelfOrderItem> GetAllShelfOrderItem(int shelfId = 0, int customerId = 0, DateTime? assignedFromUtc = null, DateTime? assignedToUtc = null,
             int pageIndex = 0, int pageSize = int.MaxValue, bool? shelfOrderItemIsActive = null);
 
-        List<int> GetOrderItemIdsByShelf(int shelfId, bool? shelfOrderItemIsActive = null);
+        List<ShelfOrderItem> GetOrderItemIdsByShelf(int shelfId, bool? shelfOrderItemIsActive = null, int customerId = 0);
 
         void UpdateShelfOrderItem(ShelfOrderItem shelfOrderItem);
         void InsertShelfOrderItem(ShelfOrderItem shelfOrderItem);
