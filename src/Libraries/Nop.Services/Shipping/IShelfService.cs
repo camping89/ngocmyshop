@@ -18,7 +18,7 @@ namespace Nop.Services.Shipping
             bool isShelfEmpty = false, bool isEmptyAssignedShelf = false,
             bool? isCustomerNotified = null,
             string shelfCode = null, int? shelfNoteId = null,
-            bool? isPackageItemProcessedDatetime = null, bool inActive = false);
+            bool? isPackageItemProcessedDatetime = null, bool inActive = false, bool isAscSortedAssignedDate = false);
 
         IPagedList<Shelf> GetAllShelfByStore(int customerId = 0,
             DateTime? assignedFromUtc = null, DateTime? assignedToUtc = null,

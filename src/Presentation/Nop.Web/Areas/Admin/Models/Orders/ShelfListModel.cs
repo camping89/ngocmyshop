@@ -73,6 +73,9 @@ namespace Nop.Web.Areas.Admin.Models.Orders
         [NopResourceDisplayName("Admin.ShelfOrderItem.IsPackageItemProcessedDatetime")]
         public bool? IsPackageItemProcessedDatetime { get; set; }
 
+        [NopResourceDisplayName("Admin.ShelfOrderItem.IsAscSortedAssignedDate")]
+        public bool IsAscSortedAssignedDate { get; set; }
+
         public List<SelectListItem> PackageItemProcessedDatetimeStatus { get; set; }
         public List<SelectListItem> ShelfOrderItemsStatus { get; set; }
         public List<SelectListItem> CustomerNotifiedStatus { get; set; }

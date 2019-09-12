@@ -36,7 +36,7 @@ namespace Nop.Services.Shipping
             bool? shelfOrderItemIsActive = true,
             bool isShelfEmpty = false, bool isEmptyAssignedShelf = false,
             bool? isCustomerNotified = null, string shelfCode = null,
-            int? shelfNoteId = null, bool? isPackageItemProcessedDatetime = null, bool inActive = false)
+            int? shelfNoteId = null, bool? isPackageItemProcessedDatetime = null, bool inActive = false, bool isAscSortedAssignedDate = false)
         {
             var query = _shelfRepository.Table.Where(_ => _.InActive == inActive);
 
@@ -125,7 +125,17 @@ namespace Nop.Services.Shipping
             {
                 query = query.Where(_ => _.ShelfOrderItems.Count == 0 && _.CustomerId != null && _.CustomerId > 0);
             }
-            query = query.OrderBy(_ => _.ShelfCode);
+
+            if (isAscSortedAssignedDate)
+            {
+                query = query.Where(_ => _.AssignedDate != null).OrderBy(_ => _.AssignedDate);
+            }
+            else
+            {
+                query = query.OrderBy(_ => _.ShelfCode);
+            }
+
+
             var shelfList = new PagedList<Shelf>(query, pageIndex, pageSize);
             return shelfList;
         }

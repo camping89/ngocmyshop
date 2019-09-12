@@ -305,7 +305,7 @@ namespace Nop.Services.Orders
 
             //query = query.Where(o => o.BillingAddress != null && (!string.IsNullOrEmpty(o.BillingAddress.LastName) && o.BillingAddress.LastName.Contains(billingLastName)) || !string.IsNullOrEmpty(o.BillingAddress.FirstName) && o.BillingAddress.FirstName.Contains(billingLastName));
             if (!string.IsNullOrEmpty(billingPhone))
-                query = query.Where(o => o.BillingAddress != null && !string.IsNullOrEmpty(o.BillingAddress.PhoneNumber) && o.BillingAddress.PhoneNumber.Contains(billingPhone));
+                query = query.Where(o => o.Customer != null && o.Customer.Phone.Contains(billingPhone));
             if (!string.IsNullOrEmpty(orderNotes))
                 if (!string.IsNullOrEmpty(orderNotes))
                     query = query.Where(o => o.OrderNotes.Any(on => on.Note.Contains(orderNotes)));
@@ -473,7 +473,7 @@ namespace Nop.Services.Orders
             DateTime? startDate = null, DateTime? endDate = null,
             string customerPhone = null, string packageOrderCode = null,
             int vendorId = 0, bool? isSetPackageOrderId = null,
-            bool? isSetShelfId = null, int orderItemStatusId = -1, bool? isPackageItemProcessedDatetime = null, bool? isOrderCheckout = null, bool isWeightCostZero = false,string productSku = null)
+            bool? isSetShelfId = null, int orderItemStatusId = -1, bool? isPackageItemProcessedDatetime = null, bool? isOrderCheckout = null, bool isWeightCostZero = false, string productSku = null)
         {
             var query = from orderItem in _orderItemRepository.Table
                         join o in _orderRepository.Table on orderItem.OrderId equals o.Id
@@ -482,9 +482,9 @@ namespace Nop.Services.Orders
             if (string.IsNullOrEmpty(productSku) == false)
             {
                 query = from orderItem in query
-                    join p in _productRepository.Table on orderItem.ProductId equals p.Id
-                    where p.Sku == productSku
-                    select orderItem;
+                        join p in _productRepository.Table on orderItem.ProductId equals p.Id
+                        where p.Sku == productSku
+                        select orderItem;
             }
             if (isWeightCostZero)
             {

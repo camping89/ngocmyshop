@@ -136,7 +136,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 shelfCode: model.ShelfCode,
                 isCustomerNotified: model.IsCustomerNotified,
                 shelfNoteId: model.ShelfNoteId,
-                isPackageItemProcessedDatetime: model.IsPackageItemProcessedDatetime, inActive: model.InActive);
+                isPackageItemProcessedDatetime: model.IsPackageItemProcessedDatetime, inActive: model.InActive, isAscSortedAssignedDate: model.IsAscSortedAssignedDate);
             var gridModel = new DataSourceResult
             {
                 Data =
