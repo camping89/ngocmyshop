@@ -62,12 +62,6 @@ namespace Nop.Services.Shipping
             }
 
 
-            if (assignedOrderItemFromUtc != null && assignedOrderItemToUtc != null)
-            {
-                var subQuery = _shelfOrderItemRepository.Table;
-                var shelfIds = subQuery.Where(_ => _.AssignedDate >= assignedOrderItemFromUtc && _.AssignedDate <= assignedOrderItemToUtc).Select(s => s.ShelfId).Distinct().ToList();
-                query = query.Where(_ => shelfIds.Contains(_.Id));
-            }
 
             if (shippedFromUtc != null)
             {
@@ -93,32 +87,50 @@ namespace Nop.Services.Shipping
             {
                 if (isPackageItemProcessedDatetime.Value)
                 {
-                    var shelfOrderItems = _shelfOrderItemRepository.Table.Where(s => s.OrderItem.PackageItemProcessedDatetime != null).Select(_ => _.ShelfId).Distinct().ToList();
-                    query = query.Where(_ => shelfOrderItems.Contains(_.Id));
+                    //var shelfOrderItems = _shelfOrderItemRepository.Table.Where(s => s.OrderItem.PackageItemProcessedDatetime != null).Select(_ => _.ShelfId).Distinct().ToList();
+                    //query = query.Where(_ => shelfOrderItems.Contains(_.Id));
+                    query = query.Where(_ => _.ShelfOrderItems.Any(soi => soi.CustomerId == _.CustomerId && soi.OrderItem.PackageItemProcessedDatetime != null));
                 }
                 else
                 {
-                    var shelfOrderItems = _shelfOrderItemRepository.Table.Where(s => s.OrderItem.PackageItemProcessedDatetime == null).Select(_ => _.ShelfId).Distinct().ToList();
-                    query = query.Where(_ => shelfOrderItems.Contains(_.Id));
+                    //var shelfOrderItems = _shelfOrderItemRepository.Table.Where(s => s.OrderItem.PackageItemProcessedDatetime == null).Select(_ => _.ShelfId).Distinct().ToList();
+                    //query = query.Where(_ => shelfOrderItems.Contains(_.Id));
+                    query = query.Where(_ => _.ShelfOrderItems.Any(soi => soi.CustomerId == _.CustomerId && soi.OrderItem.PackageItemProcessedDatetime == null));
                 }
             }
 
             if (shelfOrderItemIsActive != null && shelfOrderItemIsActive == true)
             {
-                var shelfOrderItems = _shelfOrderItemRepository.Table.Where(s => s.IsActived).Select(_ => _.ShelfId).Distinct().ToList();
-                query = query.Where(_ => shelfOrderItems.Contains(_.Id));
+                //var shelfOrderItems = _shelfOrderItemRepository.Table.Where(s => s.IsActived).Select(_ => _.ShelfId).Distinct().ToList();
+                //query = query.Where(_ => shelfOrderItems.Contains(_.Id));
+                query = query.Where(_ => _.ShelfOrderItems.Any(soi => soi.IsActived && soi.CustomerId == _.CustomerId));
             }
             else if (shelfOrderItemIsActive != null && shelfOrderItemIsActive == false)
             {
-                var shelfOrderItems = _shelfOrderItemRepository.Table.Where(s => s.IsActived == false).Select(_ => _.ShelfId).Distinct().ToList();
-                query = query.Where(_ => shelfOrderItems.Contains(_.Id));
+                //var shelfOrderItems = _shelfOrderItemRepository.Table.Where(s => s.IsActived == false).Select(_ => _.ShelfId).Distinct().ToList();
+                //query = query.Where(_ => shelfOrderItems.Contains(_.Id));
+
+                query = query.Where(_ => _.ShelfOrderItems.Any(soi => soi.IsActived == false && soi.CustomerId == _.CustomerId));
             }
+
+            if (assignedOrderItemFromUtc != null && assignedOrderItemToUtc != null)
+            {
+                //var subQuery = _shelfOrderItemRepository.Table;
+                //var shelfIds = subQuery.Where(_ => _.AssignedDate >= assignedOrderItemFromUtc && _.AssignedDate <= assignedOrderItemToUtc).Select(s => s.ShelfId).Distinct().ToList();
+                //query = query.Where(_ => shelfIds.Contains(_.Id));
+
+                query = query.Where(_ => _.ShelfOrderItems.Any(soi => soi.CustomerId == _.CustomerId &&
+                                                                      (soi.AssignedDate >= assignedOrderItemFromUtc && soi.AssignedDate <= assignedOrderItemToUtc)
+                                                                      && (shelfOrderItemIsActive == null || soi.IsActived == shelfOrderItemIsActive)));
+            }
+
 
 
             if (isShelfEmpty)
             {
-                var shelfOrderItems = _shelfOrderItemRepository.Table.Where(s => s.IsActived).Select(_ => _.ShelfId).Distinct().ToList();
-                query = query.Where(_ => _.CustomerId == null || _.CustomerId == 0 || shelfOrderItems.Contains(_.Id) == false);
+                //var shelfOrderItems = _shelfOrderItemRepository.Table.Where(s => s.IsActived).Select(_ => _.ShelfId).Distinct().ToList();
+                // query = query.Where(_ => _.CustomerId == null || _.CustomerId == 0 || shelfOrderItems.Contains(_.Id) == false);
+                query = query.Where(_ => _.CustomerId == null || _.CustomerId == 0 || _.ShelfOrderItems.All(soi => soi.CustomerId == _.CustomerId && soi.IsActived == false));
             }
 
             if (isEmptyAssignedShelf)
