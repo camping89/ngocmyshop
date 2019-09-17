@@ -4275,7 +4275,7 @@ namespace Nop.Web.Areas.Admin.Controllers
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageOrders))
                 return AccessDeniedView();
-            if (string.IsNullOrEmpty(orderItemModel.ShelfCode) == false && orderItemModel.ShelfCode.ToLower().Equals("chọn ngăn"))
+            if (!string.IsNullOrEmpty(orderItemModel.ShelfCode) && orderItemModel.ShelfCode.ToLower().Equals(_localizationService.GetResource("shelf.edit.chooseself")))
             {
                 orderItemModel.ShelfCode = string.Empty;
             }

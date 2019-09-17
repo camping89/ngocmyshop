@@ -534,15 +534,14 @@ namespace Nop.Web.Areas.Admin.Controllers
         public IActionResult GetShelfAvailable(int orderItemId = 0)
         {
             var shelfCode = Request.Query.FirstOrDefault(_ => _.Key.Contains("filter[filters][0][value]")).Value;
-            var orderItem = _orderService.GetOrderItemById(orderItemId);
-            var customerId = orderItem != null ? orderItem.Order.CustomerId : 0;
-            var shelfAvailable = _shelfService.GetAllShelfAvailable(customerId, shelfCode: shelfCode).Select(x => new
+
+            var availableShelf = _shelfService.GetAvailableShelf(shelfCode: shelfCode).Select(x => new
             {
                 ShelfId = x.Id,
                 ShelfCode = x.ShelfCode
             }).ToList();
-            shelfAvailable.Insert(0, new { ShelfId = 0, ShelfCode = "Chọn ngăn" });
-            return Json(shelfAvailable);
+            availableShelf.Insert(0, new { ShelfId = 0, ShelfCode = _localizationService.GetResource("shelf.edit.chooseself") });
+            return Json(availableShelf);
         }
 
         [HttpPost]
@@ -589,7 +588,7 @@ namespace Nop.Web.Areas.Admin.Controllers
 
             if (shelfsList.Count > 0)
             {
-                shelfsList.Add(new { ShelfCode = "Chọn ngăn", ShelfId = 0, });
+                shelfsList.Add(new { ShelfCode = _localizationService.GetResource("shelf.edit.chooseself"), ShelfId = 0, });
                 return Json(new { Exist = true, Shelfs = shelfsList });
             }
             else
@@ -913,6 +912,9 @@ namespace Nop.Web.Areas.Admin.Controllers
                 var shelfOrderItem = _shelfService.GetShelfOrderItemByOrderItemId(orderItemId);
                 if (shelfOrderItem != null && shelfOrderItem.Shelf != null)
                 {
+                    shelfOrderItem.IsActived = true;
+                    _shelfService.UpdateShelfOrderItem(shelfOrderItem);
+
                     UpdateTotalShelfWithCode(shelfOrderItem.Shelf.ShelfCode);
                 }
             }

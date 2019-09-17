@@ -849,13 +849,13 @@
                                             } else {
                                                 var orderItemId = options.model.Id;
                                             if (options.model.ShelfId === 0) {
-                                                options.model.ShelfCode = 'Chọn ngăn';
+                                                options.model.ShelfCode = '@T("shelf.edit.chooseself")';
                                             }
                                             var dataModel = { orderItemId: orderItemId };
                                             var existShelf = false;
                                             var postData = { orderItemId: orderItemId };
                                             var $dropDown = $(
-                                                    '<input class="ShelfCode" data-text-field="ShelfCode" placeholder="Chọn ngăn" data-value-field="' +
+                                                    '<input class="ShelfCode" data-text-field="ShelfCode" placeholder="@T("shelf.edit.chooseself")" data-value-field="' +
                                                     options.field +
                                                     '" data-bind="value:ShelfCode" />')
                                                 .appendTo(container);
@@ -945,7 +945,7 @@
 
                                             });
                                             }
-                                            
+
 
                                         }
                                     });

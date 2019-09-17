@@ -31,7 +31,7 @@ namespace Nop.Services.Shipping
             string shelfCode = null, int? shelfNoteId = null,
             bool? isPackageItemProcessedDatetime = null);
 
-        List<Shelf> GetAllShelfAvailable(int customerId = 0, string shelfCode = null);
+        List<Shelf> GetAvailableShelf(string shelfCode = null);
         void UpdateShelf(Shelf shelf);
         void UpdateShelfs(IEnumerable<Shelf> shelfs);
         void InsertShelf(Shelf shelf);

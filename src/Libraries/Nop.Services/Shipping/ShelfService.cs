@@ -168,21 +168,21 @@ namespace Nop.Services.Shipping
             return shelfList;
         }
 
-        public List<Shelf> GetAllShelfAvailable(int customerId = 0, string shelfCode = null)
+        public List<Shelf> GetAvailableShelf(string shelfCode = null)
         {
-            //var shelfOrderItems = _shelfOrderItemRepository.Table.Where(s => s.IsActived && (customerId == 0 || s.CustomerId != customerId) && s.).Select(_ => _.ShelfId).Distinct().ToList();
+            var hasShipmentShelf = _shipmentRepository.Table.Where(_ => _.DeliveryDateUtc == null).Select(_ => _.ShelfCode.ToLower()).Distinct();
+            var availableShelf = _shelfRepository.Table.Where(s => !hasShipmentShelf.Contains(s.ShelfCode) && s.ShelfOrderItems.All(_ => !_.IsActived));
 
-            var shelfCodeInShipments = _shipmentRepository.Table.Where(_ => _.DeliveryDateUtc == null).Select(_ => _.ShelfCode.ToLower()).Distinct().ToList();
-            var query = _shelfRepository.Table.Where(_ => _.ShelfOrderItems.Any(soi => soi.CustomerId == _.CustomerId && soi.IsActived) == false);
-            if (string.IsNullOrEmpty(shelfCode) == false)
+
+            if (!string.IsNullOrEmpty(shelfCode))
             {
                 shelfCode = shelfCode.TrimStart().TrimEnd().Trim().ToLowerInvariant();
-                query = query.Where(_ => _.ShelfCode.ToLower().Contains(shelfCode));
+                availableShelf = availableShelf.Where(_ => _.ShelfCode.ToLower().Contains(shelfCode));
             }
 
-            query = query.Where(_ => shelfCodeInShipments.Contains(_.ShelfCode) == false);
-            return query.OrderBy(_ => _.ShelfCode).ToList();
+            return availableShelf.OrderBy(_ => _.ShelfCode).ToList();
         }
+
         public void UpdateShelf(Shelf shelf)
         {
             if (shelf != null)
