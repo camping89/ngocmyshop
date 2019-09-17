@@ -12,11 +12,12 @@ namespace Nop.Services.Shipping
     {
         private readonly IRepository<Shelf> _shelfRepository;
         private readonly IRepository<ShelfOrderItem> _shelfOrderItemRepository;
-
-        public ShelfService(IRepository<Shelf> shelfRepository, IRepository<ShelfOrderItem> shelfOrderItemRepository)
+        private readonly IRepository<ShipmentManual> _shipmentRepository;
+        public ShelfService(IRepository<Shelf> shelfRepository, IRepository<ShelfOrderItem> shelfOrderItemRepository, IRepository<ShipmentManual> shipmentRepository)
         {
             _shelfRepository = shelfRepository;
             _shelfOrderItemRepository = shelfOrderItemRepository;
+            _shipmentRepository = shipmentRepository;
         }
 
         public void DeleteShelf(int shelfId)
@@ -169,14 +170,17 @@ namespace Nop.Services.Shipping
 
         public List<Shelf> GetAllShelfAvailable(int customerId = 0, string shelfCode = null)
         {
-            var shelfOrderItems = _shelfOrderItemRepository.Table.Where(s => s.IsActived && (customerId == 0 || s.CustomerId != customerId)).Select(_ => _.ShelfId).Distinct().ToList();
-            var query = _shelfRepository.Table;
+            //var shelfOrderItems = _shelfOrderItemRepository.Table.Where(s => s.IsActived && (customerId == 0 || s.CustomerId != customerId) && s.).Select(_ => _.ShelfId).Distinct().ToList();
+
+            var shelfCodeInShipments = _shipmentRepository.Table.Where(_ => _.DeliveryDateUtc == null).Select(_ => _.ShelfCode.ToLower()).Distinct().ToList();
+            var query = _shelfRepository.Table.Where(_ => _.ShelfOrderItems.Any(soi => soi.CustomerId == _.CustomerId && soi.IsActived) == false);
             if (string.IsNullOrEmpty(shelfCode) == false)
             {
                 shelfCode = shelfCode.TrimStart().TrimEnd().Trim().ToLowerInvariant();
                 query = query.Where(_ => _.ShelfCode.ToLower().Contains(shelfCode));
             }
-            query = query.Where(_ => shelfOrderItems.Contains(_.Id) == false);
+
+            query = query.Where(_ => shelfCodeInShipments.Contains(_.ShelfCode) == false);
             return query.OrderBy(_ => _.ShelfCode).ToList();
         }
         public void UpdateShelf(Shelf shelf)
