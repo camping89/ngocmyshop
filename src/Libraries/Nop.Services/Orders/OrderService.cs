@@ -473,18 +473,19 @@ namespace Nop.Services.Orders
             DateTime? startDate = null, DateTime? endDate = null,
             string customerPhone = null, string packageOrderCode = null,
             int vendorId = 0, bool? isSetPackageOrderId = null,
-            bool? isSetShelfId = null, int orderItemStatusId = -1, bool? isPackageItemProcessedDatetime = null, bool? isOrderCheckout = null, bool isWeightCostZero = false, string productSku = null)
+            bool? hasShelf = null, int orderItemStatusId = -1, bool? isPackageItemProcessedDatetime = null, bool? isOrderCheckout = null, bool isWeightCostZero = false, string productSku = null)
         {
-            var query = from orderItem in _orderItemRepository.Table
-                        join o in _orderRepository.Table on orderItem.OrderId equals o.Id
-                        where !o.Deleted
-                        select orderItem;
+            var query = from oi in _orderItemRepository.Table
+                join o in _orderRepository.Table on oi.OrderId equals o.Id
+                where !o.Deleted
+                select oi;
+
             if (string.IsNullOrEmpty(productSku) == false)
             {
-                query = from orderItem in query
-                        join p in _productRepository.Table on orderItem.ProductId equals p.Id
+                query = from item in query
+                        join p in _productRepository.Table on item.ProductId equals p.Id
                         where p.Sku == productSku
-                        select orderItem;
+                        select item;
             }
             if (isWeightCostZero)
             {
@@ -528,7 +529,8 @@ namespace Nop.Services.Orders
                 }
             }
 
-            if (isSetShelfId.HasValue)
+            // TODO Huy: need to merge order item and shelf order item to one entity later
+            if (hasShelf.HasValue)
             {
                 //var shelfOrderItemIds = _shelfOrderItemRepository.Table.Select(_ => _.OrderItemId).ToList();
                 //if (isSetShelfId.Value)
@@ -539,7 +541,8 @@ namespace Nop.Services.Orders
                 //{
                 //    query = query.Where(_ => shelfOrderItemIds.Contains(_.Id) == false);
                 //}
-                query = query.Where(_ => _.ShelfCode != null);
+
+                //query = hasShelf.Value ? query.Where(_ => _.ShelfOrderItem !=  null) : query.Where(_ => _.ShelfOrderItem ==  null);
             }
 
             if (isPackageItemProcessedDatetime.HasValue)
@@ -580,26 +583,25 @@ namespace Nop.Services.Orders
             switch (orderBy)
             {
                 case OrderSortingEnum.CreatedOnAsc:
-                    query = query.OrderBy(o => o.Order.CreatedOnUtc);
+                    query = query.OrderBy(i => i.Order.CreatedOnUtc);
                     break;
                 case OrderSortingEnum.CreatedOnDesc:
-                    query = query.OrderByDescending(o => o.Order.CreatedOnUtc);
+                    query = query.OrderByDescending(i => i.Order.CreatedOnUtc);
                     break;
                 case OrderSortingEnum.StatusAsc:
-                    query = query.OrderBy(o => o.Order.OrderStatusId);
+                    query = query.OrderBy(i => i.Order.OrderStatusId);
                     break;
                 case OrderSortingEnum.StatusDesc:
-                    query = query.OrderByDescending(o => o.Order.OrderStatusId);
+                    query = query.OrderByDescending(i => i.Order.OrderStatusId);
                     break;
                 case OrderSortingEnum.TotalAsc:
-                    query = query.OrderBy(o => o.Order.OrderTotal);
+                    query = query.OrderBy(i => i.Order.OrderTotal);
                     break;
                 case OrderSortingEnum.TotalDesc:
-                    query = query.OrderByDescending(o => o.Order.OrderTotal);
+                    query = query.OrderByDescending(i => i.Order.OrderTotal);
                     break;
             }
 
-            //var results = new PagedList<OrderItem>(query, pageIndex, pageSize) { TotalIds = query.Select(_ => _.Id).ToList() };
             var results = new PagedList<OrderItem>(query, pageIndex, pageSize);
             return results;
         }
@@ -626,6 +628,16 @@ namespace Nop.Services.Orders
 
             //event notification
             _eventPublisher.EntityUpdated(orderItem);
+        }
+
+        public IList<OrderItem> GetUnassignedOrderItems(int customerId)
+        {
+            var query = from oi in _orderItemRepository.Table.Where(_ => _.PackageItemProcessedDatetime.HasValue && _.PackageItemProcessedDatetime.Value < DateTime.Now)
+                from o in _orderRepository.Table.Where(_ => _.Id == oi.OrderId && !_.Deleted && _.CustomerId == customerId)
+                from soi in _shelfOrderItemRepository.Table.Where(_ => _.OrderItemId == oi.Id).DefaultIfEmpty()
+                select new {oi, soi};
+
+            return query.Where(_ => _.soi == null).Select(_ => _.oi).ToList();
         }
 
         #endregion

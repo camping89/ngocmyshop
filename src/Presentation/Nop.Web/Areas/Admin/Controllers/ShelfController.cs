@@ -26,12 +26,11 @@ using Nop.Web.Framework.Mvc.Filters;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Dynamic;
 using StringExtensions = Nop.Web.Extensions.StringExtensions;
 
 namespace Nop.Web.Areas.Admin.Controllers
 {
-    public partial class ShelfController : BaseAdminController
+    public class ShelfController : BaseAdminController
     {
         private readonly ICustomerService _customerService;
         private readonly IShelfService _shelfService;
@@ -136,7 +135,10 @@ namespace Nop.Web.Areas.Admin.Controllers
                 shelfCode: model.ShelfCode,
                 isCustomerNotified: model.IsCustomerNotified,
                 shelfNoteId: model.ShelfNoteId,
-                isPackageItemProcessedDatetime: model.IsPackageItemProcessedDatetime, inActive: model.InActive, isAscSortedAssignedDate: model.IsAscSortedAssignedDate);
+                isPackageItemProcessedDatetime: model.IsPackageItemProcessedDatetime,
+                inActive: model.InActive, 
+                isAscSortedAssignedDate: model.IsAscSortedAssignedDate,
+                customerPhone: model.CustomerPhone);
             var gridModel = new DataSourceResult
             {
                 Data =
@@ -206,24 +208,17 @@ namespace Nop.Web.Areas.Admin.Controllers
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageOrders))
                 return AccessDeniedKendoGridJson();
             var shelf = _shelfService.GetShelfById(shelfId);
-            var resultDatas = new List<OrderItemInShelfModel>();
+            var model = new List<OrderItemInShelfModel>();
             if (shelf.CustomerId.HasValue)
             {
-                var shelfOrderItems = _shelfService.GetOrderItemIdsByShelf(shelfId, isActive, shelf.CustomerId.Value);
-                //orderItems = _orderService.GetOrderItemsByIds(orderItemIds.ToArray()).ToList();
-                //orderItems = _shelfService.GetAllShelfOrderItem(shelfId, customerId: shelf.CustomerId.Value, shelfOrderItemIsActive: isActive).Where(_ => _.OrderItem != null).Select(_ => _.OrderItem).ToList();
-                resultDatas = shelfOrderItems.OrderBy(_ => _.AssignedDate).Select(PrepareOrderItemInShelfModel).ToList();
+                var shelfOrderItems = _shelfService.GetOrderItemIdsByShelf(shelfId, isActive);
+                model = shelfOrderItems.OrderBy(_ => _.AssignedDate).Select(PrepareOrderItemInShelfModel).ToList();
             }
 
             var gridModel = new DataSourceResult
             {
-                Data = resultDatas,
-                //Total = orderItems.Count
+                Data = model,
             };
-            //gridModel.ExtraData = new OrderAggreratorModel
-            //{
-            //    aggregatortotal = _priceFormatter.FormatPrice(resultDatas.Sum(_ => _.SubTotalInclTaxValue), true, false)
-            //};
 
             return Json(gridModel);
         }
@@ -237,7 +232,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             //picture
             var orderItemPicture =
                 orderItem.Product.GetProductPicture(orderItem.AttributesXml, _pictureService, _productAttributeParser);
-            var pictureThumbnailUrl = _pictureService.GetPictureUrl(orderItemPicture, 150, true);
+            var pictureThumbnailUrl = _pictureService.GetPictureUrl(orderItemPicture, 150);
 
             var model = new OrderItemInShelfModel
             {
@@ -429,7 +424,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             }
 
             _shelfService.UpdateShelf(entity);
-            UpdateTotalShelf(entity.Id);
+            UpdateShelfTotalAmount(entity.Id.ToString());
             _customerActivityService.InsertActivity("UpdateShelf", _localizationService.GetResource("activitylog.updateshelf"), model.ShelfCode);
             return Json(new { Success = true });
         }
@@ -451,8 +446,8 @@ namespace Nop.Web.Areas.Admin.Controllers
                 {
                     shelf.InActive = true;
                     _shelfService.UpdateShelf(shelf);
+                    _customerActivityService.InsertActivity("DeleteShelf", _localizationService.GetResource("activitylog.removeshelf"), shelf.ShelfCode);
                 }
-                _customerActivityService.InsertActivity("DeleteShelf", _localizationService.GetResource("activitylog.removeshelf"), shelf.ShelfCode);
 
                 return Json(new { Success = true });
             }
@@ -553,11 +548,10 @@ namespace Nop.Web.Areas.Admin.Controllers
             {
 
                 var shelf = _shelfService.GetShelfById(shelfOrderItem.ShelfId);
-                var orderitemId = shelfOrderItem.OrderItemId;
                 _shelfService.DeleteShelfOrderItem(shelfOrderItemId);
                 if (shelf != null)
                 {
-                    _customerActivityService.InsertActivity("EditShelf", _localizationService.GetResource("activitylog.removeshelforderitem"), orderitemId, shelf.ShelfCode);
+                    _customerActivityService.InsertActivity("EditShelf", _localizationService.GetResource("activitylog.removeshelforderitem"), shelfOrderItem.OrderItemId, shelf.ShelfCode);
                     var shelfItems = _shelfService.GetAllShelfOrderItem(shelfOrderItem.ShelfId, shelfOrderItem.CustomerId, shelfOrderItemIsActive: true).ToList();
                     if (shelfItems.Count == 0)
                     {
@@ -567,14 +561,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                     }
                 }
 
-                //reset shelf assign for order item
-                var orderItem = _orderService.GetOrderItemById(orderitemId);
-                orderItem.ShelfCode = string.Empty;
-                orderItem.ShelfOrderItemId = null;
-                orderItem.ShelfId = null;
-                _orderService.UpdateOrderItem(orderItem);
-
-                UpdateTotalShelf(shelfOrderItem.ShelfId);
+                UpdateShelfTotalAmount(shelfOrderItem.ShelfId.ToString());
             }
 
             return new NullJsonResult();
@@ -584,7 +571,12 @@ namespace Nop.Web.Areas.Admin.Controllers
         public IActionResult GetCustShelf(int orderItemId)
         {
             var orderItem = _orderService.GetOrderItemById(orderItemId);
-            var shelfsList = _shelfService.GetAllShelf(orderItem.Order.CustomerId).OrderByDescending(s => s.AssignedDate).Take(1).Select(_ => new { ShelfCode = _.ShelfCode, ShelfId = _.Id }).ToList();
+            var shelfsList = _shelfService
+                .GetAllShelf(orderItem.Order.CustomerId)
+                .OrderByDescending(s => s.AssignedDate)
+                .Take(1)
+                .Select(_ => new {_.ShelfCode, ShelfId = _.Id })
+                .ToList();
 
             if (shelfsList.Count > 0)
             {
@@ -610,7 +602,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 CreateShipment(shelf, shelfOrderItems.Select(_ => _.OrderItemId).ToList(), customerId);
             }
 
-            UpdateTotalShelf(shelfId);
+            UpdateShelfTotalAmount(shelfId.ToString());
 
             return Json(new { Success = true });
         }
@@ -624,7 +616,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 CreateShipment(shelf, orderItemIds, customerId);
             }
 
-            UpdateTotalShelf(shelfId);
+            UpdateShelfTotalAmount(shelfId.ToString());
             return Json(new { Success = true });
         }
 
@@ -796,7 +788,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                         shelf.AssignedDate = shelfOrderItem.AssignedDate;
                         _shelfService.UpdateShelf(shelf);
                     }
-                    UpdateTotalShelf(shelf.Id);
+                    UpdateShelfTotalAmount(shelf.Id.ToString());
                 }
                 _customerActivityService.InsertActivity("DeleteShipmentManual", _localizationService.GetResource("activitylog.DeleteShipmentManual"), shipmentManual.Id);
                 _shipmentManualService.DeleteShipmentManual(shipmentManual);
@@ -805,46 +797,14 @@ namespace Nop.Web.Areas.Admin.Controllers
             return Json(new { Success = true });
         }
 
-        private void UpdateTotalShelf(int shelfId)
+        private void UpdateShelfTotalAmount(string shelfIdOrCode)
         {
-            var shelf = _shelfService.GetShelfById(shelfId);
-            UpdateShelfTotal(shelf);
-            //if (shelf != null)
-            //{
-            //    decimal total = 0;
-            //    decimal totalWithoutDeposit = 0;
-            //    if (shelf.ShelfOrderItems != null)
-            //    {
-            //        foreach (var shelfOrderItem in shelf.ShelfOrderItems.Where(_ => _.OrderItem != null && _.IsActived))
-            //        {
-            //            var itemTotal = DecimalExtensions.RoundCustom(shelfOrderItem.OrderItem.PriceInclTax / 1000) * 1000;
-            //            total += itemTotal;
-            //            totalWithoutDeposit += itemTotal - DecimalExtensions.RoundCustom(shelfOrderItem.OrderItem.Deposit / 1000) * 1000;
-            //        }
+            var shelf = _shelfService.GetShelfById(shelfIdOrCode.ToIntODefault());
+            if (shelf == null)
+            {
+                shelf = _shelfService.GetShelfByCode(shelfIdOrCode);
+            }
 
-            //        shelf.HasOrderItem = shelf.ShelfOrderItems.Any();
-            //    }
-            //    shelf.Total = total;
-            //    shelf.TotalWithoutDeposit = totalWithoutDeposit;
-            //    _shelfService.UpdateShelf(shelf);
-            //}
-        }
-
-
-        public ActionResult UpdateTotalShelfByCode(string shelfCode)
-        {
-            UpdateTotalShelfWithCode(shelfCode);
-            return new NullJsonResult();
-        }
-
-        private void UpdateTotalShelfWithCode(string shelfCode)
-        {
-            var shelf = _shelfService.GetShelfByCode(shelfCode);
-            UpdateShelfTotal(shelf);
-        }
-
-        private void UpdateShelfTotal(Shelf shelf)
-        {
             if (shelf != null)
             {
                 decimal total = 0;
@@ -865,6 +825,13 @@ namespace Nop.Web.Areas.Admin.Controllers
                 shelf.TotalWithoutDeposit = totalWithoutDeposit;
                 _shelfService.UpdateShelf(shelf);
             }
+        }
+
+
+        public ActionResult UpdateTotalShelfByCode(string shelfCode)
+        {
+            UpdateShelfTotalAmount(shelfCode);
+            return new NullJsonResult();
         }
 
         [HttpPost]
@@ -915,7 +882,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                     shelfOrderItem.IsActived = true;
                     _shelfService.UpdateShelfOrderItem(shelfOrderItem);
 
-                    UpdateTotalShelfWithCode(shelfOrderItem.Shelf.ShelfCode);
+                    UpdateShelfTotalAmount(shelfOrderItem.Shelf.ShelfCode);
                 }
             }
 
@@ -968,8 +935,8 @@ namespace Nop.Web.Areas.Admin.Controllers
 
         public IActionResult UpdateTotalShelfs()
         {
-            var shelfs = _shelfService.GetAllShelf(shelfOrderItemIsActive: true);
-            foreach (var shelf in shelfs)
+            var shelves = _shelfService.GetAllShelf();
+            foreach (var shelf in shelves)
             {
                 if (shelf != null)
                 {
@@ -992,22 +959,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 }
             }
 
-            _shelfService.UpdateShelfs(shelfs);
-            return new NullJsonResult();
-        }
-
-        public IActionResult UpdateShelfToOrdeItem()
-        {
-            var shelfOrderItems = _shelfService.GetAllShelfOrderItem();
-            foreach (var shelfOrderItem in shelfOrderItems)
-            {
-                var orderItem = shelfOrderItem.OrderItem;
-                orderItem.ShelfId = shelfOrderItem.ShelfId;
-                orderItem.ShelfCode = shelfOrderItem.Shelf.ShelfCode;
-                orderItem.ShelfOrderItemId = shelfOrderItem.Id;
-                _orderService.UpdateOrderItem(orderItem);
-            }
-
+            _shelfService.UpdateShelfs(shelves);
             return new NullJsonResult();
         }
 

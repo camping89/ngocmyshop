@@ -10,7 +10,7 @@ INSERT INTO #LetterTmp (Letter)
 go
 DECLARE @cnt INT = 1;
 
-WHILE @cnt < 6
+WHILE @cnt <= 3
 BEGIN
 	DECLARE @i INT = 0;
 	DECLARE @count int = 0;
@@ -28,10 +28,10 @@ BEGIN
 			FETCH NEXT 1 ROWS ONLY  
 			SET @i = @i + 1;
 			set @j = 100;
-			while @j <= 700
+			while @j <= 900
 			begin 
 				set @e = 0;
-				WHILE @e < 31
+				WHILE @e <= 99
 				BEGIN
 					set @code = @j + @e;
 					IF NOT EXISTS(SELECT * FROM dbo.Shelf WHERE ShelfCode = CONCAT(@cnt,@letterItem,@code))
@@ -46,7 +46,11 @@ BEGIN
 								ShippedDate,
 								IsCustomerNotified,
 								ShelfNoteId,
-								UpdatedNoteDate
+								UpdatedNoteDate,
+								Total,
+								HasOrderItem,
+								TotalWithoutDeposit,
+								InActive
 							)
 							VALUES
 							(   CONCAT(@cnt,@letterItem,@code),       -- ShelfCode - nvarchar(50)
@@ -55,7 +59,11 @@ BEGIN
 								NULL, -- ShippedDate - datetime
 								0,      -- IsCustomerNotified - bit
 								0,         -- ShelfNoteId - int
-								NULL  -- UpdatedNoteDate - datetime
+								NULL,  -- UpdatedNoteDate - datetime
+								0, -- total
+								0, -- hasorderitem
+								0, --total deposit
+								0 -- inactive
 								)
 				   END
 						

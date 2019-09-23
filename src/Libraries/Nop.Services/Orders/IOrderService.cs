@@ -136,7 +136,7 @@ namespace Nop.Services.Orders
             DateTime? startDate = null, DateTime? endDate = null,
             string customerPhone = null, string packageOrderCode = null,
             int vendorId = 0, bool? isSetPackageOrderId = null,
-            bool? isSetShelfId = null, int orderItemStatusId = -1,
+            bool? hasShelf = null, int orderItemStatusId = -1,
             bool? isPackageItemProcessedDatetime = null, bool? isOrderCheckout = null, bool isWeightCostZero = false,string productSku = null);
 
         /// <summary>
@@ -145,6 +145,8 @@ namespace Nop.Services.Orders
         /// <param name="orderItem">The order item</param>
         void DeleteOrderItem(OrderItem orderItem);
         void UpdateOrderItem(OrderItem orderItem);
+
+        IList<OrderItem> GetUnassignedOrderItems(int customerId);
 
         #endregion
 

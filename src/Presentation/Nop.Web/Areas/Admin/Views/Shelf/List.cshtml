@@ -29,14 +29,14 @@
                 <i class="fa fa-plus-square"></i>
                 @T("Admin.Common.AddNew")
             </a>*@
-        <button type="button" class="btn btn-success" id="btn-set-active-shelf-selected">
+        @*<button type="button" class="btn btn-success" id="btn-set-active-shelf-selected">
             <i class="fa fa-save"></i>
             @T("Admin.Common.SetActiveShelfSelected")
         </button>
         <button type="button" class="btn btn-danger" id="btn-set-inactive-shelf-selected">
             <i class="fa fa-trash"></i>
             @T("Admin.Common.SetInActiveShelfSelected")
-        </button>
+        </button>*@
         @await Component.InvokeAsync("AdminWidget", new { widgetZone = "admin_shelf_list_buttons" })
     </div>
 </div>
@@ -115,20 +115,30 @@
 
                             </div>
 
-                            <div class="form-group">
+                            <div class="form-group advanced-setting">
                                 <div class="col-md-4">
-                                    <nop-label asp-for="ShelfOrderItemIsActive" />
+                                    <nop-label asp-for="CustomerPhone" />
                                 </div>
                                 <div class="col-md-8">
-                                    <nop-select asp-for="ShelfOrderItemIsActive" asp-items="Model.ShelfOrderItemsStatus" />
+                                    <nop-editor asp-for="CustomerPhone" />
                                 </div>
                             </div>
+
                             <div class="form-group advanced-setting">
                                 <div class="col-md-4">
                                     <nop-label asp-for="ShelfCode" />
                                 </div>
                                 <div class="col-md-8">
                                     <nop-editor asp-for="ShelfCode" />
+                                </div>
+                            </div>
+
+                            <div class="form-group display-none">
+                                <div class="col-md-4">
+                                    <nop-label asp-for="ShelfOrderItemIsActive" />
+                                </div>
+                                <div class="col-md-8">
+                                    <nop-select asp-for="ShelfOrderItemIsActive" asp-items="Model.ShelfOrderItemsStatus" />
                                 </div>
                             </div>
 
@@ -160,22 +170,22 @@
                                 </div>
                             </div>
 
-                            <div class="form-group">
+                            @*<div class="form-group">
                                 <div class="col-md-4">
                                     <nop-label asp-for="IsEmptyAssignedShelf" />
                                 </div>
                                 <div class="col-md-8">
                                     <nop-editor asp-for="IsEmptyAssignedShelf" />
                                 </div>
-                            </div>
-                            <div class="form-group">
+                            </div>*@
+                            @*<div class="form-group">
                                 <div class="col-md-4">
                                     <nop-label asp-for="InActive" />
                                 </div>
                                 <div class="col-md-8">
                                     <nop-editor asp-for="InActive" />
                                 </div>
-                            </div>
+                            </div>*@
                         </div>
                         <div class="col-md-6">
 
@@ -352,10 +362,10 @@
                                     serverSorting: true
                                 },
                                 toolbar: [
-                                    {
+                                    @*{
                                         name: "create",
                                         text: "@T("Admin.Common.AddNew")"
-                                    }
+                                    }*@
                                 ],
                                 pageable: {
                                     refresh: true,
@@ -382,6 +392,7 @@
                                     },{
                                         field: "ShelfCode",
                                         title: "@T("Admin.Shelf.Fields.ShelfCode")",
+                                        template: "<p>#=ShelfCode#</p>" + "<p>(#=Id#)</p>",
                                         width: 100
                                     }, {
                                         field: "CustomerId",
@@ -1038,8 +1049,9 @@
                             });
 
                             $("#clear-filter").click(function() {
-                                $('#@Html.IdFor(model => model.CustomerId)').val(0);
+                                $('#@Html.IdFor(model => model.CustomerId)').val('');
                                 $('#@Html.IdFor(model => model.CustomerId)').trigger("chosen:updated");
+                                $('#@Html.IdFor(model => model.CustomerPhone)').val('');
                                 $('#@Html.IdFor(model => model.AssignedFromDate)').val('');
                                 $('#@Html.IdFor(model => model.AssignedToDate)').val('');
                                 $('#@Html.IdFor(model => model.AssignedOrderItemFromDate)').val('');
@@ -1050,12 +1062,12 @@
                                 $('#@Html.IdFor(model => model.ShelfOrderItemIsActive)').val('True');
 
                                 $('#@Html.IdFor(model => model.IsShelfEmpty)').prop('checked', false);
-                                $('#@Html.IdFor(model => model.InActive)').prop('checked', false);
-                                $('#@Html.IdFor(model => model.IsEmptyAssignedShelf)').prop('checked', false);
+                                //$('#@Html.IdFor(model => model.InActive)').prop('checked', false);
+                                //$('#@Html.IdFor(model => model.IsEmptyAssignedShelf)').prop('checked', false);
                                 $('#@Html.IdFor(model => model.ShipTodayFilter)').prop('checked', false);
                                 $('#@Html.IdFor(model => model.IsAscSortedAssignedDate)').prop('checked', false);
-                                $('#@Html.IdFor(model => model.IsCustomerNotified)').val(0);
-                                $('#@Html.IdFor(model => model.ShelfNoteId)').val(0);
+                                $('#@Html.IdFor(model => model.IsCustomerNotified)').val("");
+                                $('#@Html.IdFor(model => model.ShelfNoteId)').val("");
                                 $('#CustomerNameOrPhone').val('');
                                 //$('#@Html.IdFor(model => model.IsPackageItemProcessedDatetime)').val(0);
                                 $("#search-shelf").click();
@@ -1104,6 +1116,7 @@
 
                             var data = {
                                 CustomerId: $('#@Html.IdFor(model => model.CustomerId)').val(),
+                                CustomerPhone: $('#@Html.IdFor(model => model.CustomerPhone)').val(),
                                 AssignedFromDate: assignedFromDate,
                                 AssignedToDate: assignedToDate,
                                 AssignedOrderItemFromDate: assignedOrderItemFromDate,
@@ -1113,10 +1126,10 @@
                                 ShelfCode: $('#@Html.IdFor(model => model.ShelfCode)').val(),
                                 ShelfOrderItemIsActive: $('#@Html.IdFor(model => model.ShelfOrderItemIsActive)').val(),
                                 IsShelfEmpty: $('#@Html.IdFor(model => model.IsShelfEmpty)').is(":checked"),
-                                IsEmptyAssignedShelf: $('#@Html.IdFor(model => model.IsEmptyAssignedShelf)').is(":checked"),
+                                //IsEmptyAssignedShelf: $('#@Html.IdFor(model => model.IsEmptyAssignedShelf)').is(":checked"),
                                 IsCustomerNotified: $('#@Html.IdFor(model => model.IsCustomerNotified)').val(),
                                 ShelfNoteId: $('#@Html.IdFor(model => model.ShelfNoteId)').val(),
-                                InActive: $('#@Html.IdFor(model => model.InActive)').is(":checked"),
+                                //InActive: $('#@Html.IdFor(model => model.InActive)').is(":checked"),
                                 IsAscSortedAssignedDate: $('#@Html.IdFor(model => model.IsAscSortedAssignedDate)').is(":checked")
                                 //IsPackageItemProcessedDatetime: $('#@Html.IdFor(model => model.IsPackageItemProcessedDatetime)').val()
                             };

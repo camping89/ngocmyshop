@@ -62,7 +62,7 @@ namespace Nop.Web.Areas.Admin.Models.Orders
         public List<SelectListItem> IsSetPackageOrderIdStatus { get; set; }
 
         [NopResourceDisplayName("Admin.OrderItem.ExportVendor.Fields.IsShelfAssigned")]
-        public bool? IsShelfAssigned { get; set; }
+        public bool? HasShelf { get; set; }
         public List<SelectListItem> IsSetShelfIdStatus { get; set; }
 
         [NopResourceDisplayName("Admin.Orders.List.StartDate")]
@@ -147,8 +147,8 @@ namespace Nop.Web.Areas.Admin.Models.Orders
 
         public string ShelfCode { get; set; }
 
-        public int ShelfId { get; set; }
-        public int ShelfOrderItemId { get; set; }
+        //public int ShelfId { get; set; }
+        //public int ShelfOrderItemId { get; set; }
         public decimal ItemWeight { get; set; }
         public string TotalWithoutWeightCost { get; set; }
         public decimal UnitWeightCost { get; set; }

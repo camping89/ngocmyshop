@@ -4214,10 +4214,11 @@ namespace Nop.Web.Areas.Admin.Controllers
 
             UpdateTotalShipmentManual(orderItem.Id);
 
-            if (orderItem.ShelfId.HasValue && orderItem.ShelfId > 0)
+            var soi = _shelfService.GetShelfOrderItemByOrderItemId(orderItem.Id);
+            if (soi != null)
             {
-                UpdateTotalShelf(orderItem.ShelfId.Value);
-            }
+                UpdateShelfTotalAmount(soi.ShelfId);
+            }   
             //UpdateShelfOrderItem(orderItem, orderItemModel.ShelfCode, order.CustomerId);
 
             return new NullJsonResult();
@@ -4244,7 +4245,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             }
         }
 
-        private void UpdateTotalShelf(int shelfId)
+        private void UpdateShelfTotalAmount(int shelfId)
         {
             var shelf = _shelfService.GetShelfById(shelfId);
             if (shelf != null)
@@ -4427,18 +4428,14 @@ namespace Nop.Web.Areas.Admin.Controllers
                             shelf.ShippedDate = null;
                             shelf.UpdatedNoteDate = null;
                         }
-                        UpdateTotalShelf(shelf.Id);
+                        UpdateShelfTotalAmount(shelf.Id);
 
                         var shelfOrderItem = _shelfService.GetShelfOrderItemByOrderItemId(orderItem.Id);
                         if (shelfOrderItem != null)
                         {
                             shelfOrderItem.ShelfId = shelf.Id;
                             _shelfService.UpdateShelfOrderItem(shelfOrderItem);
-
-                            orderItem.ShelfCode = shelfCode;
-                            orderItem.ShelfOrderItemId = shelfOrderItem.Id;
-                            orderItem.ShelfId = shelf.Id;
-                            _orderService.UpdateOrderItem(orderItem);
+                            
                         }
                         else
                         {
@@ -4452,32 +4449,23 @@ namespace Nop.Web.Areas.Admin.Controllers
                             };
                             _shelfService.InsertShelfOrderItem(newShelfOrderItem);
 
-                            orderItem.ShelfCode = shelfCode;
-                            orderItem.ShelfOrderItemId = newShelfOrderItem.Id;
-                            orderItem.ShelfId = shelf.Id;
-                            _orderService.UpdateOrderItem(orderItem);
 
-                            var listOrderItems = GetOrderItemsUnAssignShelfByCustomer(customerId);
-                            foreach (var orderItemUnAssign in listOrderItems)
+                            // reassign all other order items of the same customer
+                            var unassignedOrderItems = _orderService.GetUnassignedOrderItems(customerId);
+                            foreach (var item in unassignedOrderItems)
                             {
-                                if (orderItemUnAssign.PackageItemProcessedDatetime != null)
+                                if (item.PackageItemProcessedDatetime != null)
                                 {
-                                    if (_shelfService.GetShelfOrderItemByOrderItemId(orderItemUnAssign.Id) == null)
+                                    if (_shelfService.GetShelfOrderItemByOrderItemId(item.Id) == null)
                                     {
                                         _shelfService.InsertShelfOrderItem(new ShelfOrderItem
                                         {
-                                            OrderItemId = orderItemUnAssign.Id,
+                                            OrderItemId = item.Id,
                                             ShelfId = shelf.Id,
                                             CustomerId = customerId,
                                             AssignedDate = DateTime.UtcNow,
                                             IsActived = true
                                         });
-
-                                        orderItemUnAssign.ShelfCode = shelfCode;
-                                        orderItemUnAssign.ShelfOrderItemId = newShelfOrderItem.Id;
-                                        orderItemUnAssign.ShelfId = shelf.Id;
-                                        _orderService.UpdateOrderItem(orderItemUnAssign);
-
                                     }
                                 }
                             }
@@ -4487,7 +4475,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                             _customerActivityService.InsertActivity("EditShelf", _localizationService.GetResource("activitylog.updateshelforderitemvendorcheckout"), orderItem.Id, shelf.ShelfCode);
                         }
 
-                        UpdateTotalShelf(shelf.Id);
+                        UpdateShelfTotalAmount(shelf.Id);
                     }
                     else
                     {
@@ -4508,40 +4496,15 @@ namespace Nop.Web.Areas.Admin.Controllers
                 {
                     var shelfId = sheflOrderItem.ShelfId;
                     _shelfService.DeleteShelfOrderItem(sheflOrderItem.Id);
-
-                    orderItem.ShelfCode = null;
-                    orderItem.ShelfOrderItemId = null;
-                    orderItem.ShelfId = null;
-                    _orderService.UpdateOrderItem(orderItem);
-
-                    UpdateTotalShelf(shelfId);
+                    
+                    UpdateShelfTotalAmount(shelfId);
                 }
             }
 
             return errorStr;
         }
 
-
-
-        private List<OrderItem> GetOrderItemsUnAssignShelfByCustomer(int customerId)
-        {
-            var shelfOrderItemIds = _shelfService.GetAllShelfOrderItem(customerId: customerId).Select(_ => _.OrderItemId).Distinct().ToList();
-            var orders = _orderService.SearchOrders(customerId: customerId);
-            var listOrderItems = new List<OrderItem>();
-            foreach (var order in orders)
-            {
-                foreach (var orderItem in order.OrderItems)
-                {
-                    if (shelfOrderItemIds.All(_ => _.Equals(orderItem.Id)) == false)
-                    {
-                        listOrderItems.Add(orderItem);
-                    }
-                }
-            }
-
-            return listOrderItems;
-        }
-
+        
         [HttpPost]
         public virtual IActionResult ShipmentsItemsByShipmentId(int shipmentId, DataSourceRequest command)
         {
@@ -6780,7 +6743,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 startDate: model.StartDate, endDate: model.EndDate,
                 customerPhone: model.CustomerPhone, packageOrderCode: model.PackageOrderCode,
                 vendorId: model.VendorId, isSetPackageOrderId: model.IsSetPackageOrderId,
-                isSetShelfId: model.IsShelfAssigned, orderItemStatusId: model.OrderItemStatusId,
+                hasShelf: model.HasShelf, orderItemStatusId: model.OrderItemStatusId,
                 isPackageItemProcessedDatetime: model.IsPackageItemProcessedDatetime, isOrderCheckout: model.IsOrderCheckout, isWeightCostZero: model.IsWeightCostZero, productSku: model.ProductSku);
 
             var vendors = _vendorService.GetAllVendors();
@@ -6852,11 +6815,10 @@ namespace Nop.Web.Areas.Admin.Controllers
                         orderItemModel.PackageOrderCode = orderItem.PackageOrder?.PackageCode;
                     }
 
-                    if (orderItem.ShelfId != null)
+                    var shelfOrderItem = _shelfService.GetShelfOrderItemByOrderItemId(orderItemModel.Id);
+                    if (shelfOrderItem != null)
                     {
-                        orderItemModel.ShelfCode = orderItem.ShelfCode;
-                        orderItemModel.ShelfId = orderItem.ShelfId.Value;
-                        orderItemModel.ShelfOrderItemId = orderItem.ShelfOrderItemId ?? 0;
+                        orderItemModel.ShelfCode = shelfOrderItem.Shelf.ShelfCode;
                     }
 
                     if (orderItem.AssignedByCustomer != null)
