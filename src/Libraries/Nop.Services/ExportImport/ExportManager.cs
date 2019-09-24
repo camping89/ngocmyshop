@@ -1938,108 +1938,111 @@ namespace Nop.Services.ExportImport
             foreach (var orderItem in orderItems)
             {
                 var customerOrder = _customerService.GetCustomerById(orderItem.Order.CustomerId);
-                var customerInfo = string.Empty;
-                if (customerOrder != null)
-                {
-                    var linkFacebook = customerOrder.GetAttribute<string>(SystemCustomerAttributeNames.LinkFacebook1);
-
-                    customerInfo = customerOrder.GetFullName()
-                                   + $" - Phone: {customerOrder.Phone}"
-                                   + $" - Facebook: {linkFacebook}";
-                }
-
-                var assignedByUser = string.Empty;
-                if (orderItem.AssignedByCustomer != null)
-                {
-                    assignedByUser = orderItem.AssignedByCustomer.GetFullName() + $" - Phone: {orderItem.AssignedByCustomer.Phone}";
-                }
-                var vendor = _vendorService.GetVendorById(orderItem.Product.VendorId);
-                //var currency = _currencyService.GetCurrencyById(orderItem.CurrencyId);
-                var orderItemStatus = string.Empty;
-                if (orderItem.OrderItemStatus == OrderItemStatus.Available)
-                {
-                    orderItemStatus = _localizationService.GetResource("Admin.Orders.OrderItem.Available");
-                }
-                if (orderItem.OrderItemStatus == OrderItemStatus.OutOfStock)
-                {
-                    orderItemStatus = _localizationService.GetResource("Admin.Orders.OrderItem.OutOfStock");
-                }
-                if (orderItem.OrderItemStatus == OrderItemStatus.OtherReason)
-                {
-                    orderItemStatus = _localizationService.GetResource("Admin.Orders.OrderItem.OtherReason");
-                }
-                if (orderItem.OrderItemStatus == OrderItemStatus.PriceChanged)
-                {
-                    orderItemStatus = _localizationService.GetResource("Admin.Orders.OrderItem.PriceChanged");
-                }
-
-                var currencyProduct = _currencyService.GetCurrencyById(orderItem.Product.CurrencyId);
-                var shelfOrderItem = _shelfService.GetShelfOrderItemByOrderItemId(orderItem.Id);
-                //picture
-                var orderItemPicture =
-                    orderItem.Product.GetProductPicture(orderItem.AttributesXml, _pictureService, _productAttributeParser);
-                var exportVendorInvoiceModel = new ExportVendorInvoiceItemModel()
-                {
-                    OrderItemId = $"{orderItem.OrderId}.{orderItem.Id}",
-                    CustomerInfo = customerInfo,
-                    AssignedByUser = assignedByUser,
-                    ProductInfo = orderItem.Product.GetLocalized(x => x.Name, _workContext.WorkingLanguage.Id),
-                    //ProductAttributeInfo = HtmlHelper.ConvertHtmlToPlainTextOneLine(orderItem.AttributeDescription, true, true),
-                    ProductImage = orderItemPicture != null ? GetPicture(orderItemPicture) : null,
-                    OrderDate = orderItem.Order.CreatedOnUtc.ToString("g"),
-                    VendorName = vendor != null ? vendor.Name : string.Empty,
-                    VendorProductUrl = orderItem.Product.VendorProductUrl,
-                    Sku = orderItem.Product.Sku,
-                    Quantity = orderItem.Quantity,
-                    TotalWithoutWeightCost = (orderItem.PriceExclTax - (orderItem.WeightCost * orderItem.Quantity)),
-                    WeightCost = orderItem.WeightCost,
-                    Weight = orderItem.Product.Weight,
-                    UnitWeightCost = orderItem.UnitWeightCost != null ? orderItem.UnitWeightCost.Value : 0,
-                    TotalCost = orderItem.PriceExclTax,
-                    ShelfCode = shelfOrderItem?.Shelf?.ShelfCode,
-                    PackageOrderCode = orderItem.PackageOrder != null ? $"{orderItem.PackageOrder.PackageCode}" : string.Empty,
-                    PackageItemProcessedDatetime = orderItem.PackageItemProcessedDatetime?.ToString("g"),
-                    IsOrderCheckout = orderItem.IsOrderCheckout ? "Đã xuất" : "Chưa xuất",
-                    OrderItemStatus = orderItemStatus,
-                    CurrencyCode = currencyProduct.CurrencyCode,
-                    BaseUnitPrice = orderItem.UnitPriceUsd,
-                    OrderingFee = orderItem.OrderingFee,
-                    ExchangeRate = orderItem.ExchangeRate,
-                    SaleOff = orderItem.SaleOffPercent,
-                    ETA = orderItem.EstimatedTimeArrival?.ToString("dd/MM/yyyy"),
-                    Note = orderItem.Note
-                };
-                AttributesXml productAttributeValues = XmlToObject(orderItem.AttributesXml, typeof(AttributesXml));
-                if (productAttributeValues != null)
-                {
-
-                    foreach (var orderItemAttributeXml in productAttributeValues.ProductAttribute)
+                    var customerInfo = string.Empty;
+                    if (customerOrder != null)
                     {
-                        //Color
-                        var productAttributeMapping = _productAttributeService.GetProductAttributeMappingById(orderItemAttributeXml.ID.ToIntODefault());
-                        if (productAttributeMapping.ProductAttributeId.Equals(ProductAttributeEnum.Color.ToInt()))
+                        var linkFacebook = customerOrder.GetAttribute<string>(SystemCustomerAttributeNames.LinkFacebook1);
+
+                        customerInfo = customerOrder.GetFullName()
+                                       + $" - Phone: {customerOrder.Phone}"
+                                       + $" - Facebook: {linkFacebook}";
+                    }
+
+                    var assignedByUser = string.Empty;
+                    if (orderItem.AssignedByCustomer != null)
+                    {
+                        assignedByUser = orderItem.AssignedByCustomer.GetFullName() + $" - Phone: {orderItem.AssignedByCustomer.Phone}";
+                    }
+                    var vendor = _vendorService.GetVendorById(orderItem.Product.VendorId);
+                    //var currency = _currencyService.GetCurrencyById(orderItem.CurrencyId);
+                    var orderItemStatus = string.Empty;
+                    if (orderItem.OrderItemStatus == OrderItemStatus.Available)
+                    {
+                        orderItemStatus = _localizationService.GetResource("Admin.Orders.OrderItem.Available");
+                    }
+                    if (orderItem.OrderItemStatus == OrderItemStatus.OutOfStock)
+                    {
+                        orderItemStatus = _localizationService.GetResource("Admin.Orders.OrderItem.OutOfStock");
+                    }
+                    if (orderItem.OrderItemStatus == OrderItemStatus.OtherReason)
+                    {
+                        orderItemStatus = _localizationService.GetResource("Admin.Orders.OrderItem.OtherReason");
+                    }
+                    if (orderItem.OrderItemStatus == OrderItemStatus.PriceChanged)
+                    {
+                        orderItemStatus = _localizationService.GetResource("Admin.Orders.OrderItem.PriceChanged");
+                    }
+
+                    var currencyProduct = _currencyService.GetCurrencyById(orderItem.Product.CurrencyId);
+                    var shelfOrderItem = _shelfService.GetShelfOrderItemByOrderItemId(orderItem.Id);
+                    //picture
+                    var orderItemPicture =
+                        orderItem.Product.GetProductPicture(orderItem.AttributesXml, _pictureService, _productAttributeParser);
+                    var exportVendorInvoiceModel = new ExportVendorInvoiceItemModel()
+                    {
+                        OrderItemId = $"{orderItem.OrderId}.{orderItem.Id}",
+                        CustomerInfo = customerInfo,
+                        AssignedByUser = assignedByUser,
+                        ProductInfo = orderItem.Product.GetLocalized(x => x.Name, _workContext.WorkingLanguage.Id),
+                        //ProductAttributeInfo = HtmlHelper.ConvertHtmlToPlainTextOneLine(orderItem.AttributeDescription, true, true),
+                        ProductImage = orderItemPicture != null ? GetPicture(orderItemPicture) : string.Empty,
+                        OrderDate = orderItem.Order.CreatedOnUtc.ToString("g"),
+                        VendorName = vendor != null ? vendor.Name : string.Empty,
+                        VendorProductUrl = orderItem.Product.VendorProductUrl,
+                        Sku = orderItem.Product.Sku,
+                        Quantity = orderItem.Quantity,
+                        TotalWithoutWeightCost = (orderItem.PriceExclTax - (orderItem.WeightCost * orderItem.Quantity)),
+                        WeightCost = orderItem.WeightCost,
+                        Weight = orderItem.Product.Weight,
+                        UnitWeightCost = orderItem.UnitWeightCost != null ? orderItem.UnitWeightCost.Value : 0,
+                        TotalCost = orderItem.PriceExclTax,
+                        ShelfCode = shelfOrderItem?.Shelf?.ShelfCode,
+                        PackageOrderCode = orderItem.PackageOrder != null ? $"{orderItem.PackageOrder.PackageCode}" : string.Empty,
+                        PackageItemProcessedDatetime = orderItem.PackageItemProcessedDatetime?.ToString("g"),
+                        IsOrderCheckout = orderItem.IsOrderCheckout ? "Đã xuất" : "Chưa xuất",
+                        OrderItemStatus = orderItemStatus,
+                        CurrencyCode = currencyProduct.CurrencyCode,
+                        BaseUnitPrice = orderItem.UnitPriceUsd,
+                        OrderingFee = orderItem.OrderingFee,
+                        ExchangeRate = orderItem.ExchangeRate,
+                        SaleOff = orderItem.SaleOffPercent,
+                        ETA = orderItem.EstimatedTimeArrival?.ToString("dd/MM/yyyy"),
+                        Note = orderItem.Note
+                    };
+                    AttributesXml productAttributeValues = XmlToObject(orderItem.AttributesXml, typeof(AttributesXml));
+                    if (productAttributeValues != null)
+                    {
+
+                        foreach (var orderItemAttributeXml in productAttributeValues.ProductAttribute)
                         {
-                            var productAttributeVl = _productAttributeService.GetProductAttributeValueById(orderItemAttributeXml.ProductAttributeValue.Value.ToIntODefault());
-                            if (productAttributeVl != null)
+                            //Color
+                            var productAttributeMapping = _productAttributeService.GetProductAttributeMappingById(orderItemAttributeXml.ID.ToIntODefault());
+                            if (productAttributeMapping != null)
                             {
-                                exportVendorInvoiceModel.ProductColor = productAttributeVl.Name;
-                            }
-                        }
-                        //Size
-                        if (productAttributeMapping.ProductAttributeId.Equals(ProductAttributeEnum.Size.ToInt()))
-                        {
-                            var productAttributeVl = _productAttributeService.GetProductAttributeValueById(orderItemAttributeXml.ProductAttributeValue.Value.ToIntODefault());
-                            if (productAttributeVl != null)
-                            {
-                                exportVendorInvoiceModel.ProductSize = productAttributeVl.Name;
+                                if (productAttributeMapping.ProductAttributeId.Equals(ProductAttributeEnum.Color.ToInt()))
+                                {
+                                    var productAttributeVl = _productAttributeService.GetProductAttributeValueById(orderItemAttributeXml.ProductAttributeValue.Value.ToIntODefault());
+                                    if (productAttributeVl != null)
+                                    {
+                                        exportVendorInvoiceModel.ProductColor = productAttributeVl.Name;
+                                    }
+                                }
+                                //Size
+                                if (productAttributeMapping.ProductAttributeId.Equals(ProductAttributeEnum.Size.ToInt()))
+                                {
+                                    var productAttributeVl = _productAttributeService.GetProductAttributeValueById(orderItemAttributeXml.ProductAttributeValue.Value.ToIntODefault());
+                                    if (productAttributeVl != null)
+                                    {
+                                        exportVendorInvoiceModel.ProductSize = productAttributeVl.Name;
+                                    }
+                                }
                             }
                         }
                     }
-                }
-                //exportVendorInvoiceModel.ProductInfo += "\n " + HtmlHelper.ConvertHtmlToPlainText(orderItem.AttributeDescription, true, true);
-                exportVendorInvoiceModel.Sku = orderItem.Product.FormatSku(orderItem.AttributesXml, _productAttributeParser);
+                    //exportVendorInvoiceModel.ProductInfo += "\n " + HtmlHelper.ConvertHtmlToPlainText(orderItem.AttributeDescription, true, true);
+                    exportVendorInvoiceModel.Sku = orderItem.Product.FormatSku(orderItem.AttributesXml, _productAttributeParser);
 
-                listItem.Add(exportVendorInvoiceModel);
+                    listItem.Add(exportVendorInvoiceModel);
             }
 
             return ExportToXlsxNonCsv(orderItemProperties, listItem);

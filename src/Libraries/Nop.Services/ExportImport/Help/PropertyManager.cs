@@ -139,11 +139,19 @@ namespace Nop.Services.ExportImport.Help
                 }
                 else if(prop.IsImage)
                 {
-                    Image logo = Image.FromFile(prop.GetProperty(CurrentObject).ToString());
-                    // Add picture in Excel cell.
-                    var picture = worksheet.Drawings.AddPicture(row.ToString(), logo);
-                    picture.SetSize(75, 100);
-                    picture.SetPosition(row-1, 10, prop.PropertyOrderPosition-1, 10);
+                    try
+                    {
+                        Image logo = Image.FromFile(prop.GetProperty(CurrentObject).ToString());
+                        // Add picture in Excel cell.
+                        var picture = worksheet.Drawings.AddPicture(row.ToString(), logo);
+                        picture.SetSize(75, 100);
+                        picture.SetPosition(row-1, 10, prop.PropertyOrderPosition-1, 10);
+                    }
+                    catch (Exception e)
+                    {
+                        //ignore
+                        cell.Value = "Load image failed.";
+                    }
                 }
                 else
                 {
