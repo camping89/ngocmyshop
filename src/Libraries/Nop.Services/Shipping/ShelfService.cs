@@ -183,9 +183,10 @@ namespace Nop.Services.Shipping
 
         public List<Shelf> GetAvailableShelf(string shelfCode = null)
         {
-            var hasShipmentShelf = _shipmentRepository.Table.Where(_ => _.DeliveryDateUtc == null).Select(_ => _.ShelfCode.ToLower()).Distinct();
+            var hasShipmentShelf = _shipmentRepository.Table.Where(_ => _.DeliveryDateUtc == null).Select(_ => _.ShelfCode.ToLower()).Distinct().ToList();
             var availableShelf = _shelfRepository.Table.Where(s => !hasShipmentShelf.Contains(s.ShelfCode) && s.ShelfOrderItems.All(_ => !_.IsActived));
 
+            var x = hasShipmentShelf.Contains("1a203");
 
             if (!string.IsNullOrEmpty(shelfCode))
             {

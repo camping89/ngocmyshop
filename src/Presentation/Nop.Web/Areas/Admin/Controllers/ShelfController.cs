@@ -265,6 +265,9 @@ namespace Nop.Web.Areas.Admin.Controllers
             {
                 model.VendorName = vendor.Name;
             }
+
+            var shipmentItem = _shipmentManualService.GetShipmentManualItemByOrderItemId(orderItem.Id);
+            model.ExistShipment = shipmentItem != null;
             return model;
         }
 
@@ -549,17 +552,17 @@ namespace Nop.Web.Areas.Admin.Controllers
 
                 var shelf = _shelfService.GetShelfById(shelfOrderItem.ShelfId);
                 _shelfService.DeleteShelfOrderItem(shelfOrderItemId);
-                if (shelf != null)
-                {
-                    _customerActivityService.InsertActivity("EditShelf", _localizationService.GetResource("activitylog.removeshelforderitem"), shelfOrderItem.OrderItemId, shelf.ShelfCode);
-                    var shelfItems = _shelfService.GetAllShelfOrderItem(shelfOrderItem.ShelfId, shelfOrderItem.CustomerId, shelfOrderItemIsActive: true).ToList();
-                    if (shelfItems.Count == 0)
-                    {
-                        shelf.AssignedDate = null;
-                        shelf.CustomerId = null;
-                        _shelfService.UpdateShelf(shelf);
-                    }
-                }
+                //if (shelf != null)
+                //{
+                //    _customerActivityService.InsertActivity("EditShelf", _localizationService.GetResource("activitylog.removeshelforderitem"), shelfOrderItem.OrderItemId, shelf.ShelfCode);
+                //    var shelfItems = _shelfService.GetAllShelfOrderItem(shelfOrderItem.ShelfId, shelfOrderItemIsActive: true).ToList();
+                //    if (shelfItems.Count == 0)
+                //    {
+                //        shelf.AssignedDate = null;
+                //        shelf.CustomerId = null;
+                //        _shelfService.UpdateShelf(shelf);
+                //    }
+                //}
 
                 UpdateShelfTotalAmount(shelfOrderItem.ShelfId.ToString());
             }
@@ -992,47 +995,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             }
             return new NullJsonResult();
         }
-
-
-        //public IActionResult CreateAuto()
-        //{
-        //    var shelfItems = _shelfService.GetAllShelfOrderItem();
-        //    foreach (var shelfItem in shelfItems)
-        //    {
-        //        _shelfService.DeleteShelfOrderItem(shelfItem.Id);
-        //    }
-
-        //    var shelfs = _shelfService.GetAllShelf().Select(_ => _.Id);
-        //    foreach (var shelf in shelfs)
-        //    {
-        //        _shelfService.DeleteShelf(shelf);
-        //    }
-
-        //    var listLetter = new List<string> { "A", "B", "C", "D", "E", "F", "G", "H", "I", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "V", "X", "Y", "Z" };
-        //    var listResult = new List<string>();
-        //    for (int i = 1; i < 6; i++)
-        //    {
-        //        foreach (var letter in listLetter)
-        //        {
-        //            for (int j = 101; j < 1000; j++)
-        //            {
-        //                if (j != 200 && j != 300 && j != 400 && j != 500 && j != 600 && j != 700 && j != 800 && j != 900)
-        //                {
-        //                    listResult.Add($"{i}{letter}{j}");
-        //                }
-        //            }
-        //        }
-        //    }
-
-        //    var count = listResult.Count;
-
-        //    foreach (var item in listResult)
-        //    {
-        //        _shelfService.InsertShelf(new Shelf() { ShelfCode = item, ShelfNoteStatus = ShelfNoteStatus.NoReply });
-        //    }
-
-        //    return Json(true);
-        //}
+        
         #endregion
     }
 }

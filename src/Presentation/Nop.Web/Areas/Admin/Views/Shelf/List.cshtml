@@ -323,9 +323,9 @@
                                         model: {
                                             id: "Id",
                                             fields: {
-                                                ShelfCode: { validation: { required: true }, type: "string" },
+                                                ShelfCode: { validation: { required: true }, editable: false, type: "string" },
                                                 CustomerId: { type: "number", editable: true },
-                                                AssignedDate: { editable: true, type: "date", nullable: true },
+                                                AssignedDate: { editable: false, type: "date", nullable: true },
                                                 ShippedDate: { editable: true, type: "date", nullable: true },
                                                 UpdatedNoteDate: { editable: true, type: "date", nullable: true },
                                                 CustomerFullName: { editable: false, type: "string" },
@@ -388,7 +388,8 @@
                                         attributes: { style: "text-align:center" },
                                         template:
                                             "<div style='display:block;padding: 27px 40%;' onclick='setCheckedShelf(#=Id#);'><input onclick='setCheckedShelf(#=Id#);' id='ckbShelf#=Id#' type='checkbox' value='#=Id#' class='checkboxGroupsShelf'/></div>",
-                                        width: 50
+                                        width: 50,
+                                        editor: hideOnEditor
                                     },{
                                         field: "ShelfCode",
                                         title: "@T("Admin.Shelf.Fields.ShelfCode")",
@@ -634,6 +635,13 @@
                                     grid.collapseRow(this);
                                 });
                             });
+
+                            function hideOnEditor(container, options) {
+                                container.prevObject.find("div[data-container-for='" + options.field + "']")
+                                    .hide();
+                                container.prevObject.find("label[for='" + options.field + "']").parent()
+                                    .hide();
+                            }
 
                             function editCustomerId(container, options) {
 
@@ -913,7 +921,10 @@
                                                 {
                                                     name: "destroy",
                                                     text: "@T("Admin.Common.Delete")",
-                                                    template: '<a class="btn btn-danger k-button-icontext k-grid-delete" href="" >@T("Admin.Common.Delete")</a>'
+                                                    template: '<a class="btn btn-danger k-button-icontext k-grid-delete" href="" >@T("Admin.Common.Delete")</a>',
+                                                    visible: function(dataItem) {
+                                                        return dataItem.ExistShipment === false;
+                                                    }
                                                 },
                                                 @if (Model.IsAdmin)
                                                 {

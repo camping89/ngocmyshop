@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Nop.Web.Areas.Admin.Models.Shelfs
 {
@@ -38,5 +35,7 @@ namespace Nop.Web.Areas.Admin.Models.Shelfs
         public string PackageOrderCode { get; set; }
 
         public DateTime? AssignedShelfDate { get; set; }
+
+        public bool ExistShipment { get; set; }
     }
 }
