@@ -529,17 +529,17 @@ namespace Nop.Services.Orders
             // TODO Huy: need to merge order item and shelf order item to one entity later
             if (hasShelf.HasValue)
             {
-                //var shelfOrderItemIds = _shelfOrderItemRepository.Table.Select(_ => _.OrderItemId).ToList();
+                //var orderItemIds = _orderItemRepository.Table.Select(_ => _.OrderItemId).ToList();
                 //if (isSetShelfId.Value)
                 //{
-                //    query = query.Where(_ => shelfOrderItemIds.Contains(_.Id));
+                //    query = query.Where(_ => orderItemIds.Contains(_.Id));
                 //}
                 //else
                 //{
-                //    query = query.Where(_ => shelfOrderItemIds.Contains(_.Id) == false);
+                //    query = query.Where(_ => orderItemIds.Contains(_.Id) == false);
                 //}
 
-                //query = hasShelf.Value ? query.Where(_ => _.ShelfOrderItem !=  null) : query.Where(_ => _.ShelfOrderItem ==  null);
+                //query = hasShelf.Value ? query.Where(_ => _.OrderItem !=  null) : query.Where(_ => _.OrderItem ==  null);
             }
 
             if (isPackageItemProcessedDatetime.HasValue)

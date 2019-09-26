@@ -29,9 +29,9 @@ namespace Nop.Services.Shipping
         #region Ctor
 
         public ShipmentManualService(IRepository<ShipmentManual> shipmentManualRepository,
-            IRepository<OrderItem> orderItemRepository, 
-            IRepository<GenericAttribute> gaRepository, 
-            IRepository<ShipmentManualItem> shipmentManualItemRepository, 
+            IRepository<OrderItem> orderItemRepository,
+            IRepository<GenericAttribute> gaRepository,
+            IRepository<ShipmentManualItem> shipmentManualItemRepository,
             IRepository<Shelf> shelfRepository)
         {
             this._shipmentManualRepository = shipmentManualRepository;
@@ -163,20 +163,6 @@ namespace Nop.Services.Shipping
                         select s;
             }
 
-            //if (shelfCode.IsNotNullOrEmpty())
-            //{
-            //    shelfCode = shelfCode.ToUpper();
-            //    var orderItemIds = new List<int>();
-            //    var shelf = _shelfRepository.TableNoTracking.FirstOrDefault(_ => _.ShelfCode != null && _.ShelfCode == shelfCode);
-            //    if (shelf != null)
-            //    {
-            //        orderItemIds = _shelfOrderItemRepository.TableNoTracking.Where(_ => _.ShelfId == shelf.Id).Select(s => s.OrderItemId).ToList();
-            //    }
-
-            //    query = from s in query
-            //        where s.ShipmentManualItems.Any(_ => orderItemIds.Contains(_.OrderItemId))
-            //        select s;
-            //}
             if (shelfCode.IsNotNullOrEmpty())
             {
                 shelfCode = shelfCode.ToUpper();
@@ -281,7 +267,7 @@ namespace Nop.Services.Shipping
             if (orderItemId == 0)
                 return null;
 
-            return _shipmentManualItemRepository.Table.FirstOrDefault(_=>_.OrderItemId == orderItemId);
+            return _shipmentManualItemRepository.Table.FirstOrDefault(_ => _.OrderItemId == orderItemId);
         }
 
         public void InsertShipmentManualItem(ShipmentManualItem shipmentManualItem)

@@ -14,244 +14,246 @@
     Html.SetActiveMenuItemSystemName("Export order");
 }
 <style>
-    .k-hierarchy-cell:hover, .k-hierarchy-cell:focus { cursor: pointer; }
+    .k-hierarchy-cell:hover, .k-hierarchy-cell:focus {
+        cursor: pointer;
+    }
 </style>
 
 
 <form asp-controller="Order" asp-action="OrderItemsVendorCheckout" method="post">
-<div class="content-header clearfix">
+    <div class="content-header clearfix">
 
-    <h1 class="pull-left">
-        @T("Admin.Orders.Exports")
-    </h1>
+        <h1 class="pull-left">
+            @T("Admin.Orders.Exports")
+        </h1>
 
-    <div class="pull-right">
-        <button type="button" id="apply-packageorderid-selected" class="btn bg-olive" data-toggle="modal" data-target="#apply-packageorderid-window">
-            @T("Admin.Orders.Shipments.ApplyPackageOrderId")
-        </button>
-        <button type="button" id="apply-processed-datetime-selected" class="btn bg-aqua" data-toggle="modal" data-target="#apply-processed-datetime-window">
-            <i class="fa fa-calendar"></i>
-            @T("Admin.Orders.Shipments.ApplyProcessedDatetime")
-        </button>
-        @*<button type="button" id="apply-eta-selected" class="btn bg-fuchsia" data-toggle="modal" data-target="#apply-eta-window">
+        <div class="pull-right">
+            <button type="button" id="apply-packageorderid-selected" class="btn bg-olive" data-toggle="modal" data-target="#apply-packageorderid-window">
+                @T("Admin.Orders.Shipments.ApplyPackageOrderId")
+            </button>
+            <button type="button" id="apply-processed-datetime-selected" class="btn bg-aqua" data-toggle="modal" data-target="#apply-processed-datetime-window">
+                <i class="fa fa-calendar"></i>
+                @T("Admin.Orders.Shipments.ApplyProcessedDatetime")
+            </button>
+            @*<button type="button" id="apply-eta-selected" class="btn bg-fuchsia" data-toggle="modal" data-target="#apply-eta-window">
                     <i class="fa fa-calendar"></i>
                     @T("Admin.Orders.Shipments.ApplyEstimatedTimeArrival")
                 </button>*@
 
-        <button type="button" id="assign-by-selected" class="btn bg-orange" data-toggle="modal" data-target="#assign-by-new-customer-window">
-            @T("Admin.Orders.Shipments.AssignByCustomerSelected")
-        </button>
-
-        <button type="button" class="btn btn-primary" id="btn-set-isordercheckout-selected">
-            <i class="fa fa-save"></i>
-            @T("Admin.Common.SetIsOrderCheckoutSelected")
-        </button>
-        <div class="btn-group">
-
-            <button type="button" class="btn btn-success">
-                <i class="fa fa-download"></i>
-                @T("Admin.Common.Export")
+            <button type="button" id="assign-by-selected" class="btn bg-orange" data-toggle="modal" data-target="#assign-by-new-customer-window">
+                @T("Admin.Orders.Shipments.AssignByCustomerSelected")
             </button>
-            <button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
-                <span class="caret"></span>
-                <span class="sr-only">&nbsp;</span>
+
+            <button type="button" class="btn btn-primary" id="btn-set-isordercheckout-selected">
+                <i class="fa fa-save"></i>
+                @T("Admin.Common.SetIsOrderCheckoutSelected")
             </button>
-            <ul class="dropdown-menu" role="menu">
+            <div class="btn-group">
 
-                <li>
-                    <button type="button" id="exportpdf-invoice-vendor-selected">
-                        <i class="fa fa-file-pdf-o"></i>
-                        @T("Admin.Common.ExportToPdf.OrderItems.Selected")
-                    </button>
-                </li>
-                <li>
-                    <button type="submit" name="exportpdf-orderbasic-all">
-                        <i class="fa fa-file-pdf-o"></i>
-                        @T("Admin.Common.ExportToPdf.OrderItems.All")
-                    </button>
-                </li>
-                <li class="divider"></li>
-                <li>
-                    <button type="button" id="exportexcel-invoice-vendor-selected">
-                        <i class="fa fa-file-excel-o"></i>
-                        @T("Admin.Common.ExportToExcel.OrderItems.Selected")
-                    </button>
-                </li>
-                <li>
-                    <button type="submit" name="exportexcel-orderbasic-all">
-                        <i class="fa fa-file-excel-o"></i>
-                        @T("Admin.Common.ExportToExcel.OrderItems.All")
-                    </button>
-                </li>
-            </ul>
-        </div>
-
-        @await Component.InvokeAsync("AdminWidget", new {widgetZone = "admin_order_list_buttons"})
-    </div>
-</div>
-<div class="content">
-<div class="form-horizontal">
-<div class="panel-group">
-<div class="panel panel-default panel-search">
-    <div class="panel-body">
-        <div class="row">
-            <div class="col-md-6">
-                <div class="form-group">
-                    <div class="col-md-4">
-                        <nop-label asp-for="OrderId"/>
-                    </div>
-                    <div class="col-md-8">
-                        <input asp-for="OrderId" type="text" class="form-control text-box single-line"/>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <div class="col-md-4">
-                        <nop-label asp-for="OrderItemId"/>
-                    </div>
-                    <div class="col-md-8">
-                        <input asp-for="OrderItemId" type="text" class="form-control text-box single-line"/>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <div class="col-md-4">
-                        <nop-label asp-for="ProductSku"/>
-                    </div>
-                    <div class="col-md-8">
-                        <nop-editor asp-for="ProductSku"/>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <div class="col-md-4">
-                        <nop-label asp-for="VendorProductUrl"/>
-                    </div>
-                    <div class="col-md-8">
-                        <nop-editor asp-for="VendorProductUrl"/>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <div class="col-md-4">
-                        <nop-label asp-for="VendorId"/>
-                    </div>
-                    <div class="col-md-8">
-                        <nop-select asp-for="VendorId" asp-items="Model.VendorItems"/>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <div class="col-md-4">
-                        <nop-label asp-for="PackageOrderCode"/>
-                    </div>
-                    <div class="col-md-8">
-                        <nop-editor asp-for="PackageOrderCode"/>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <div class="col-md-4">
-                        <nop-label asp-for="IsSetPackageOrderId"/>
-                    </div>
-                    <div class="col-md-8">
-                        <nop-select asp-for="IsSetPackageOrderId" asp-items="Model.IsSetPackageOrderIdStatus"/>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <div class="col-md-4">
-                        <nop-label asp-for="IsWeightCostZero"/>
-                    </div>
-                    <div class="col-md-8">
-                        <nop-editor asp-for="IsWeightCostZero"/>
-                    </div>
-                </div>
-
-            </div>
-            <div class="col-md-6">
-                <div class="form-group display-none">
-                    <div class="col-md-4">
-                        <nop-label asp-for="HasShelf"/>
-                    </div>
-                    <div class="col-md-8">
-                        <nop-select asp-for="HasShelf" asp-items="Model.IsSetShelfIdStatus"/>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <div class="col-md-4">
-                        <nop-label asp-for="CustomerPhone"/>
-                    </div>
-                    <div class="col-md-8">
-                        <nop-editor asp-for="CustomerPhone"/>
-                    </div>
-                </div>
-                <div class="form-group advanced-setting">
-                    <div class="col-md-4">
-                        <nop-label asp-for="StartDate"/>
-                    </div>
-                    <div class="col-md-8">
-                        <nop-editor asp-for="StartDate"/>
-                    </div>
-                </div>
-                <div class="form-group advanced-setting">
-                    <div class="col-md-4">
-                        <nop-label asp-for="EndDate"/>
-                    </div>
-                    <div class="col-md-8">
-                        <nop-editor asp-for="EndDate"/>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <div class="col-md-4">
-                        <nop-label asp-for="TodayFilter"/>
-                    </div>
-                    <div class="col-md-8">
-                        <nop-editor asp-for="TodayFilter"/>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <div class="col-md-4">
-                        <nop-label asp-for="IsPackageItemProcessedDatetime"/>
-                    </div>
-                    <div class="col-md-8">
-                        <nop-select asp-for="IsPackageItemProcessedDatetime" asp-items="Model.PackageItemProcessedDatetimeStatus"/>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <div class="col-md-4">
-                        <nop-label asp-for="IsOrderCheckout"/>
-                    </div>
-                    <div class="col-md-8">
-                        <nop-select asp-for="IsOrderCheckout" asp-items="Model.IsOrderCheckoutStatusItems"/>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-md-7 col-md-offset-5">
-                <button type="button" id="search-orders" class="btn btn-primary btn-search">
-                    <i class="fa fa-search"></i>
-                    @T("Admin.Common.Search")
+                <button type="button" class="btn btn-success">
+                    <i class="fa fa-download"></i>
+                    @T("Admin.Common.Export")
                 </button>
-                <button type="button" id="clear-filter" class="btn btn-danger btn-search">
-                    <i class="fa fa-recycle"></i>
-                    @T("Admin.Common.ClearFilter")
+                <button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+                    <span class="caret"></span>
+                    <span class="sr-only">&nbsp;</span>
                 </button>
+                <ul class="dropdown-menu" role="menu">
+
+                    <li>
+                        <button type="button" id="exportpdf-invoice-vendor-selected">
+                            <i class="fa fa-file-pdf-o"></i>
+                            @T("Admin.Common.ExportToPdf.OrderItems.Selected")
+                        </button>
+                    </li>
+                    <li>
+                        <button type="submit" name="exportpdf-orderbasic-all">
+                            <i class="fa fa-file-pdf-o"></i>
+                            @T("Admin.Common.ExportToPdf.OrderItems.All")
+                        </button>
+                    </li>
+                    <li class="divider"></li>
+                    <li>
+                        <button type="button" id="exportexcel-invoice-vendor-selected">
+                            <i class="fa fa-file-excel-o"></i>
+                            @T("Admin.Common.ExportToExcel.OrderItems.Selected")
+                        </button>
+                    </li>
+                    <li>
+                        <button type="submit" name="exportexcel-orderbasic-all">
+                            <i class="fa fa-file-excel-o"></i>
+                            @T("Admin.Common.ExportToExcel.OrderItems.All")
+                        </button>
+                    </li>
+                </ul>
             </div>
+
+            @await Component.InvokeAsync("AdminWidget", new { widgetZone = "admin_order_list_buttons" })
         </div>
     </div>
-</div>
+    <div class="content">
+        <div class="form-horizontal">
+            <div class="panel-group">
+                <div class="panel panel-default panel-search">
+                    <div class="panel-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <nop-label asp-for="OrderId" />
+                                    </div>
+                                    <div class="col-md-8">
+                                        <input asp-for="OrderId" type="text" class="form-control text-box single-line" />
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <nop-label asp-for="OrderItemId" />
+                                    </div>
+                                    <div class="col-md-8">
+                                        <input asp-for="OrderItemId" type="text" class="form-control text-box single-line" />
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <nop-label asp-for="ProductSku" />
+                                    </div>
+                                    <div class="col-md-8">
+                                        <nop-editor asp-for="ProductSku" />
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <nop-label asp-for="VendorProductUrl" />
+                                    </div>
+                                    <div class="col-md-8">
+                                        <nop-editor asp-for="VendorProductUrl" />
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <nop-label asp-for="VendorId" />
+                                    </div>
+                                    <div class="col-md-8">
+                                        <nop-select asp-for="VendorId" asp-items="Model.VendorItems" />
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <nop-label asp-for="PackageOrderCode" />
+                                    </div>
+                                    <div class="col-md-8">
+                                        <nop-editor asp-for="PackageOrderCode" />
+                                    </div>
+                                </div>
 
-<div class="panel panel-default">
-    <div class="panel-body">
-        <div class="form-group">
-            <div class="col-md-12">
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <nop-label asp-for="IsSetPackageOrderId" />
+                                    </div>
+                                    <div class="col-md-8">
+                                        <nop-select asp-for="IsSetPackageOrderId" asp-items="Model.IsSetPackageOrderIdStatus" />
+                                    </div>
+                                </div>
 
-                <div id="dummyScrollWrapper" style="margin-left: 2px; margin-right: 17px; overflow-x: scroll;">
-                    <div id="dummyScroll" style="height: 20px;">
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <nop-label asp-for="IsWeightCostZero" />
+                                    </div>
+                                    <div class="col-md-8">
+                                        <nop-editor asp-for="IsWeightCostZero" />
+                                    </div>
+                                </div>
+
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group display-none">
+                                    <div class="col-md-4">
+                                        <nop-label asp-for="HasShelf" />
+                                    </div>
+                                    <div class="col-md-8">
+                                        <nop-select asp-for="HasShelf" asp-items="Model.IsSetShelfIdStatus" />
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <nop-label asp-for="CustomerPhone" />
+                                    </div>
+                                    <div class="col-md-8">
+                                        <nop-editor asp-for="CustomerPhone" />
+                                    </div>
+                                </div>
+                                <div class="form-group advanced-setting">
+                                    <div class="col-md-4">
+                                        <nop-label asp-for="StartDate" />
+                                    </div>
+                                    <div class="col-md-8">
+                                        <nop-editor asp-for="StartDate" />
+                                    </div>
+                                </div>
+                                <div class="form-group advanced-setting">
+                                    <div class="col-md-4">
+                                        <nop-label asp-for="EndDate" />
+                                    </div>
+                                    <div class="col-md-8">
+                                        <nop-editor asp-for="EndDate" />
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <nop-label asp-for="TodayFilter" />
+                                    </div>
+                                    <div class="col-md-8">
+                                        <nop-editor asp-for="TodayFilter" />
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <nop-label asp-for="IsPackageItemProcessedDatetime" />
+                                    </div>
+                                    <div class="col-md-8">
+                                        <nop-select asp-for="IsPackageItemProcessedDatetime" asp-items="Model.PackageItemProcessedDatetimeStatus" />
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <nop-label asp-for="IsOrderCheckout" />
+                                    </div>
+                                    <div class="col-md-8">
+                                        <nop-select asp-for="IsOrderCheckout" asp-items="Model.IsOrderCheckoutStatusItems" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-7 col-md-offset-5">
+                                <button type="button" id="search-orders" class="btn btn-primary btn-search">
+                                    <i class="fa fa-search"></i>
+                                    @T("Admin.Common.Search")
+                                </button>
+                                <button type="button" id="clear-filter" class="btn btn-danger btn-search">
+                                    <i class="fa fa-recycle"></i>
+                                    @T("Admin.Common.ClearFilter")
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <div id="order-items-grid"></div>
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        <div class="form-group">
+                            <div class="col-md-12">
 
-                <script>
+                                <div id="dummyScrollWrapper" style="margin-left: 2px; margin-right: 17px; overflow-x: scroll;">
+                                    <div id="dummyScroll" style="height: 20px;">
+                                    </div>
+                                </div>
+
+                                <div id="order-items-grid"></div>
+
+                                <script>
                     $(function() {
                         $("#order-items-grid").kendoGrid({
                             dataSource: {
@@ -279,7 +281,6 @@
                                             OrderId: { editable: false, type: "number" },
                                             Quantity: { editable: false, type: "number" },
                                             PackageId: { editable: false, type: "string" },
-                                            ShelfOrderItemId: { editable: false, type: "string" },
                                             AssignedByCustomerId: { editable: true, type: "number" },
                                             CustomerAssignShelfInfo: {
                                                 editable: false,
@@ -391,7 +392,7 @@
 
                                 }, {
                                     field: "OrderId",
-                                    title: "@T("Admin.Orders.ShelfOrderItemId")",
+                                    title: "@T("Admin.Orders.OrderItemId")",
                                     width: 120,
                                     template: "#=OrderId#.#=Id#"
                                 }, {
@@ -405,12 +406,6 @@
                                         "#} else {#" +
                                         "<p></p>" +
                                         "# } #"
-                                },
-                                {
-                                    field: "ShelfOrderItemId",
-                                    title: "@T("Admin.Orders.ShelfOrderItemId")",
-                                    width: 50,
-                                    hidden: true
                                 },
                                 {
                                     field: "ExistShipment",
@@ -943,8 +938,8 @@
                         }
                         $('#ckb' + ckbId).attr('checked', status).change();
                     }
-                </script>
-                <script type="text/javascript">
+                                </script>
+                                <script type="text/javascript">
 
 
                     var selectedIds = [];
@@ -1094,20 +1089,20 @@
                         $('#mastercheckbox').attr('checked',
                             numChkBoxes == numChkBoxesChecked && numChkBoxes > 0);
                     }
-                </script>
+                                </script>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
             </div>
         </div>
-
     </div>
-</div>
-</div>
-</div>
-</div>
 </form>
 
 @*set is order checkout selectedids*@
 <form asp-controller="Order" asp-action="SetIsOrderCheckoutSelected" method="post" id="set-isordercheckout-selected-form">
-    <input type="hidden" id="selectedIds" name="selectedIds" value=""/>
+    <input type="hidden" id="selectedIds" name="selectedIds" value="" />
 </form>
 
 <script type="text/javascript">
@@ -1152,12 +1147,12 @@
 
 @*export selected (XML). We don't use GET approach because it's limited to 2K-4K chars and won't work for large number of entities*@
 <form asp-controller="Order" asp-action="ExportXmlSelected" method="post" id="export-xml-selected-form">
-    <input type="hidden" id="selectedIds" name="selectedIds" value=""/>
+    <input type="hidden" id="selectedIds" name="selectedIds" value="" />
 </form>
 
 <script type="text/javascript">
-    $(document).ready(function() {
-        $('#exportxml-selected').click(function(e) {
+    $(document).ready(function () {
+        $('#exportxml-selected').click(function (e) {
             e.preventDefault();
             var ids = selectedIds.join(",");
             $('#export-xml-selected-form #selectedIds').val(ids);
@@ -1168,12 +1163,12 @@
 </script>
 
 <form asp-controller="Order" asp-action="ExportExcelVendorInvoiceOrderItemsSelected" method="post" id="exportexcel-invoice-vendor-selected-form">
-    <input type="hidden" id="selectedIds" name="selectedIds" value=""/>
+    <input type="hidden" id="selectedIds" name="selectedIds" value="" />
 </form>
 
 <script type="text/javascript">
-    $(document).ready(function() {
-        $('#exportexcel-invoice-vendor-selected').click(function(e) {
+    $(document).ready(function () {
+        $('#exportexcel-invoice-vendor-selected').click(function (e) {
             e.preventDefault();
             var ids = selectedIds.join(",");
             $('#exportexcel-invoice-vendor-selected-form #selectedIds').val(ids);
@@ -1185,12 +1180,12 @@
 
 
 <form asp-controller="Order" asp-action="ExportPdfVendorInvoiceOrderItemsSelected" method="post" id="exportpdf-invoice-vendor-selected-form">
-    <input type="hidden" id="selectedIds" name="selectedIds" value=""/>
+    <input type="hidden" id="selectedIds" name="selectedIds" value="" />
 </form>
 
 <script type="text/javascript">
-    $(document).ready(function() {
-        $('#exportpdf-invoice-vendor-selected').click(function(e) {
+    $(document).ready(function () {
+        $('#exportpdf-invoice-vendor-selected').click(function (e) {
             e.preventDefault();
             var ids = selectedIds.join(",");
             $('#exportpdf-invoice-vendor-selected-form #selectedIds').val(ids);
@@ -1215,10 +1210,10 @@
                     <div class="modal-body">
                         <div class="form-group">
                             <div class="col-md-4">
-                                <nop-label asp-for="PackageOrderCodeNew"/>
+                                <nop-label asp-for="PackageOrderCodeNew" />
                             </div>
                             <div class="col-md-4">
-                                <nop-editor asp-for="PackageOrderCodeNew"/>
+                                <nop-editor asp-for="PackageOrderCodeNew" />
                             </div>
                             <div class="col-md-4">
                                 <button type="button" class="btn btn-success" id="generatePackageCode">@T("Admin.Common.GeneratePackageCode")</button>
@@ -1310,10 +1305,10 @@
                     <div class="modal-body">
                         <div class="form-group">
                             <div class="col-md-4">
-                                <nop-label asp-for="PackageItemProcessedDatetimeNew"/>
+                                <nop-label asp-for="PackageItemProcessedDatetimeNew" />
                             </div>
                             <div class="col-md-8">
-                                <nop-editor asp-for="PackageItemProcessedDatetimeNew"/>
+                                <nop-editor asp-for="PackageItemProcessedDatetimeNew" />
                             </div>
                         </div>
                     </div>
@@ -1382,10 +1377,10 @@
                     <div class="modal-body">
                         <div class="form-group">
                             <div class="col-md-4">
-                                <nop-label asp-for="EstimatedTimeArrivalNew"/>
+                                <nop-label asp-for="EstimatedTimeArrivalNew" />
                             </div>
                             <div class="col-md-8">
-                                <nop-editor asp-for="EstimatedTimeArrivalNew"/>
+                                <nop-editor asp-for="EstimatedTimeArrivalNew" />
                             </div>
                         </div>
                     </div>
@@ -1452,10 +1447,10 @@
                     <div class="modal-body">
                         <div class="form-group">
                             <div class="col-md-4">
-                                <nop-label asp-for="AssignedByStaffId"/>
+                                <nop-label asp-for="AssignedByStaffId" />
                             </div>
                             <div class="col-md-8">
-                                <nop-select asp-for="AssignedByStaffId" asp-items="Model.AvailableStaffs"/>
+                                <nop-select asp-for="AssignedByStaffId" asp-items="Model.AvailableStaffs" />
                             </div>
                         </div>
                     </div>

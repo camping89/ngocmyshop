@@ -72,7 +72,7 @@ namespace Nop.Web.Areas.Admin.Controllers
         public IActionResult List()
         {
             var shelfListModel = new ShelfListModel();
-            shelfListModel.ShelfOrderItemsStatus.AddRange(new List<SelectListItem>()
+            shelfListModel.OrderItemsStatus.AddRange(new List<SelectListItem>()
             {
                 new SelectListItem { Value = "", Text = _localizationService.GetResource("Admin.Common.All")},
                 new SelectListItem() {Value = "True",Text = _localizationService.GetResource("Admin.OrderItem.IsActive.True"), Selected = true},
@@ -129,11 +129,10 @@ namespace Nop.Web.Areas.Admin.Controllers
                 model.ShippedFromDate,
                 model.ShippedToDate,
                 command.Page - 1, command.PageSize,
-                shelfOrderItemIsActive: model.ShelfOrderItemIsActive,
                 isShelfEmpty: model.IsShelfEmpty,
                 isCustomerNotified: model.IsCustomerNotified,
                 shelfCode: model.ShelfCode,
-                shelfNoteId: model.ShelfNoteId, 
+                shelfNoteId: model.ShelfNoteId,
                 isAscSortedAssignedDate: model.IsAscSortedAssignedDate,
                 customerPhone: model.CustomerPhone);
             var gridModel = new DataSourceResult
@@ -182,12 +181,7 @@ namespace Nop.Web.Areas.Admin.Controllers
 
                     m.Total = _priceFormatter.FormatPrice(x.Total, true, false);
                     m.TotalWithoutDeposit = _priceFormatter.FormatPrice(x.TotalWithoutDeposit, true, false);
-                    //var orderItems = _shelfService.GetAllShelfOrderItem(x.Id, shelfOrderItemIsActive: true).Where(_ => _.OrderItem != null).Select(_ => _.OrderItem).ToList();
-                    //foreach (var orderItem in orderItems)
-                    //{
-                    //    orderItem.PriceInclTax = DecimalExtensions.RoundCustom(orderItem.PriceInclTax / 1000) * 1000;
-                    //}
-                    //m.Total = _priceFormatter.FormatPrice(orderItems.Sum(_ => _.PriceInclTax), true, false);
+
                     return m;
                 }),
                 Total = shelfs.TotalCount
@@ -208,8 +202,8 @@ namespace Nop.Web.Areas.Admin.Controllers
             var model = new List<OrderItemInShelfModel>();
             if (shelf.CustomerId.HasValue)
             {
-                var shelfOrderItems = _shelfService.GetShelfOrderItems(shelfId);
-                model = shelfOrderItems.OrderBy(_ => _.ShelfAssignedDate).Select(PrepareOrderItemInShelfModel).ToList();
+                var orderItems = _shelfService.GetOrderItems(shelfId);
+                model = orderItems.OrderBy(_ => _.ShelfAssignedDate).Select(PrepareOrderItemInShelfModel).ToList();
             }
 
             var gridModel = new DataSourceResult
@@ -497,7 +491,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 .GetShelves(orderItem.Order.CustomerId)
                 .OrderByDescending(s => s.AssignedDate)
                 .Take(1)
-                .Select(_ => new {_.ShelfCode, ShelfId = _.Id })
+                .Select(_ => new { _.ShelfCode, ShelfId = _.Id })
                 .ToList();
 
             if (shelfsList.Count > 0)
@@ -516,7 +510,7 @@ namespace Nop.Web.Areas.Admin.Controllers
         [HttpPost]
         public IActionResult CreateShipAll(int shelfId, int customerId)
         {
-            var orderItems = _shelfService.GetShelfOrderItems(shelfId);
+            var orderItems = _shelfService.GetOrderItems(shelfId);
             var shelf = _shelfService.GetShelfById(shelfId);
             if (orderItems.Count > 0 && shelf != null)
             {
@@ -691,15 +685,15 @@ namespace Nop.Web.Areas.Admin.Controllers
                 decimal totalWithoutDeposit = 0;
                 if (shelf.OrderItems != null)
                 {
-                    var shelfOrderItems = shelf.OrderItems.Where(_ =>  _.DeliveryDateUtc == null).ToList();
-                    foreach (var shelfOrderItem in shelfOrderItems)
+                    var orderItems = shelf.OrderItems.Where(_ => _.DeliveryDateUtc == null).ToList();
+                    foreach (var item in orderItems)
                     {
-                        var itemTotal = DecimalExtensions.RoundCustom(shelfOrderItem.PriceInclTax / 1000) * 1000;
+                        var itemTotal = DecimalExtensions.RoundCustom(item.PriceInclTax / 1000) * 1000;
                         total += itemTotal;
-                        totalWithoutDeposit += itemTotal - DecimalExtensions.RoundCustom(shelfOrderItem.Deposit / 1000) * 1000;
+                        totalWithoutDeposit += itemTotal - DecimalExtensions.RoundCustom(item.Deposit / 1000) * 1000;
                     }
 
-                    shelf.HasOrderItem = shelfOrderItems.Any();
+                    shelf.HasOrderItem = orderItems.Any();
                 }
                 shelf.Total = total;
                 shelf.TotalWithoutDeposit = totalWithoutDeposit;
@@ -783,7 +777,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             }
         }
 
-        public IActionResult UpdateTotalShelfs()
+        public IActionResult UpdateShelvesTotal()
         {
             var shelves = _shelfService.GetShelves();
             foreach (var shelf in shelves)
@@ -794,15 +788,15 @@ namespace Nop.Web.Areas.Admin.Controllers
                     decimal totalWithoutDeposit = 0;
                     if (shelf.OrderItems != null)
                     {
-                        var shelfOrderItems = shelf.OrderItems.Where(_ => _.DeliveryDateUtc == null).ToList();
-                        foreach (var shelfOrderItem in shelfOrderItems)
+                        var orderItems = shelf.OrderItems.Where(_ => _.DeliveryDateUtc == null).ToList();
+                        foreach (var item in orderItems)
                         {
-                            var itemTotal = DecimalExtensions.RoundCustom(shelfOrderItem.PriceInclTax / 1000) * 1000;
+                            var itemTotal = DecimalExtensions.RoundCustom(item.PriceInclTax / 1000) * 1000;
                             total += itemTotal;
-                            totalWithoutDeposit += itemTotal - DecimalExtensions.RoundCustom(shelfOrderItem.Deposit / 1000) * 1000;
+                            totalWithoutDeposit += itemTotal - DecimalExtensions.RoundCustom(item.Deposit / 1000) * 1000;
                         }
 
-                        shelf.HasOrderItem = shelfOrderItems.Any();
+                        shelf.HasOrderItem = orderItems.Any();
                     }
                     shelf.Total = total;
                     shelf.TotalWithoutDeposit = totalWithoutDeposit;
@@ -838,7 +832,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             }
             return new NullJsonResult();
         }
-        
+
         #endregion
     }
 }

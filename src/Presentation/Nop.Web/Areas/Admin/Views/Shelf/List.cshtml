@@ -30,13 +30,13 @@
                 @T("Admin.Common.AddNew")
             </a>*@
         @*<button type="button" class="btn btn-success" id="btn-set-active-shelf-selected">
-            <i class="fa fa-save"></i>
-            @T("Admin.Common.SetActiveShelfSelected")
-        </button>
-        <button type="button" class="btn btn-danger" id="btn-set-inactive-shelf-selected">
-            <i class="fa fa-trash"></i>
-            @T("Admin.Common.SetInActiveShelfSelected")
-        </button>*@
+                <i class="fa fa-save"></i>
+                @T("Admin.Common.SetActiveShelfSelected")
+            </button>
+            <button type="button" class="btn btn-danger" id="btn-set-inactive-shelf-selected">
+                <i class="fa fa-trash"></i>
+                @T("Admin.Common.SetInActiveShelfSelected")
+            </button>*@
         @await Component.InvokeAsync("AdminWidget", new { widgetZone = "admin_shelf_list_buttons" })
     </div>
 </div>
@@ -138,7 +138,7 @@
                                     <nop-label asp-for="ShelfOrderItemIsActive" />
                                 </div>
                                 <div class="col-md-8">
-                                    <nop-select asp-for="ShelfOrderItemIsActive" asp-items="Model.ShelfOrderItemsStatus" />
+                                    <nop-select asp-for="ShelfOrderItemIsActive" asp-items="Model.OrderItemsStatus" />
                                 </div>
                             </div>
 
@@ -462,8 +462,8 @@
                                             },*@
                                             {
                                                 name: "shipall",
-                                                text: "@T("Admin.ShelfOrderItem.ShipAll")",
-                                                template: '<a role="button" href="javascript:void(0);" class="btn btn-success k-button-icontext k-grid-shipall">@T("Admin.ShelfOrderItem.ShipAll")</a>',
+                                                text: "@T("Admin.OrderItem.ShipAll")",
+                                                template: '<a role="button" href="javascript:void(0);" class="btn btn-success k-button-icontext k-grid-shipall">@T("Admin.OrderItem.ShipAll")</a>',
                                                 click: function(e) {
 
                                                     e.preventDefault();
@@ -514,8 +514,8 @@
                                             },
                                             {
                                                 name: "shipselected",
-                                                text: "@T("Admin.ShelfOrderItem.ShipSelected")",
-                                                template: '<a role="button" href="javascript:void(0);" class="btn btn-primary k-button-icontext k-grid-shipselected">@T("Admin.ShelfOrderItem.ShipSelected")</a>',
+                                                text: "@T("Admin.OrderItem.ShipSelected")",
+                                                template: '<a role="button" href="javascript:void(0);" class="btn btn-primary k-button-icontext k-grid-shipselected">@T("Admin.OrderItem.ShipSelected")</a>',
                                                 click: function(e) {
                                                     e.preventDefault();
                                                     var r = confirm("@T("Admin.Common.CreateConfirmation")");
@@ -531,7 +531,7 @@
                                                     var shelfOrderItemIds = $("#grid-shelf-items" + data.Id +" input.checkboxGroups" + data.Id +":checkbox:checked").map(function(){
                                                         return $(this).val();
                                                     }).get();
-                                                    console.log(shelfOrderItemIds);
+
                                                     if (shelfOrderItemIds.length > 0) {
                                                         var postData = { shelfId: data.Id, orderItemIds: shelfOrderItemIds, customerId: data.CustomerId };
                                                         addAntiForgeryToken(postData);
@@ -806,7 +806,7 @@
                                         },
                                         {
                                             field: "Id",
-                                            title: "@T("Admin.Orders.ShelfOrderItemId")",
+                                            title: "@T("Admin.Orders.OrderItemId")",
                                             width: 50,
                                             template: '<p>#=OrderId#.#=Id#</p>'
                                         }, {
@@ -867,7 +867,7 @@
 
                                         },{
                                             field: "AssignedShelfDate",
-                                            title: "@T("Admin.ShelfOrderItem.Fields.AssignedShelfDate")",
+                                            title: "@T("Admin.OrderItem.Fields.AssignedShelfDate")",
                                             width: 100,
                                             template: "# if (AssignedShelfDate != null) { #" +
                                                 "<p>#= kendo.toString(kendo.parseDate(AssignedShelfDate, 'yyyy-MM-dd'), 'dd/MM/yyyy') #</p>" +
@@ -882,11 +882,11 @@
                                         },*@
                                         {
                                             field: "ShelfOrderItemIsActive",
-                                            title: "@T("Admin.ShelfOrderItem.IsActive")",
+                                            title: "@T("Admin.OrderItem.IsActive")",
                                             template: "# if (ShelfOrderItemIsActive) { #" +
-                                                "@T("Admin.ShelfOrderItem.IsActive.True")" +
+                                                "@T("Admin.OrderItem.IsActive.True")" +
                                                 "#} else {#" +
-                                                "@T("Admin.ShelfOrderItem.IsActive.False")" +
+                                                "@T("Admin.OrderItem.IsActive.False")" +
                                                 "# } #"
 
                                         },
@@ -905,8 +905,8 @@
                                                     <text>
                                                         {
                                                             name: "setitemactive",
-                                                            text: "@T("Admin.ShelfOrderItem.ShipSelected")",
-                                                            template: '<a role="button" href="javascript:void(0);" class="btn btn-primary k-button-icontext k-grid-setitemactive">@T("Admin.ShelfOrderItem.SetItemActiveOrInActive")</a>',
+                                                            text: "@T("Admin.OrderItem.ShipSelected")",
+                                                            template: '<a role="button" href="javascript:void(0);" class="btn btn-primary k-button-icontext k-grid-setitemactive">@T("Admin.OrderItem.SetItemActiveOrInActive")</a>',
                                                             click: function(e) {
                                                                 e.preventDefault();
 

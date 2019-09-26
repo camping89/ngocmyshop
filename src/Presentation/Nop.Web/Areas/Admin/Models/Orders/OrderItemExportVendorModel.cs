@@ -146,9 +146,6 @@ namespace Nop.Web.Areas.Admin.Models.Orders
         //public string PrimaryStoreCurrencyCode { get; set; }
 
         public string ShelfCode { get; set; }
-
-        //public int ShelfId { get; set; }
-        //public int ShelfOrderItemId { get; set; }
         public decimal ItemWeight { get; set; }
         public string TotalWithoutWeightCost { get; set; }
         public decimal UnitWeightCost { get; set; }

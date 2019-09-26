@@ -325,12 +325,54 @@ namespace Nop.Web.Areas.Admin.Controllers
                     case AttributeControlType.RadioList:
                     case AttributeControlType.ColorSquares:
                     case AttributeControlType.ImageSquares:
-                    {
-                        var ctrlAttributes = form[controlId];
-                        if (!StringValues.IsNullOrEmpty(ctrlAttributes))
                         {
-                            var selectedAttributeId = int.Parse(ctrlAttributes);
-                            if (selectedAttributeId > 0)
+                            var ctrlAttributes = form[controlId];
+                            if (!StringValues.IsNullOrEmpty(ctrlAttributes))
+                            {
+                                var selectedAttributeId = int.Parse(ctrlAttributes);
+                                if (selectedAttributeId > 0)
+                                {
+                                    //get quantity entered by customer
+                                    var quantity = 1;
+                                    var quantityStr = form[$"product_attribute_{attribute.Id}_{selectedAttributeId}_qty"];
+                                    if (!StringValues.IsNullOrEmpty(quantityStr) && (!int.TryParse(quantityStr, out quantity) || quantity < 1))
+                                        errors.Add(_localizationService.GetResource("ShoppingCart.QuantityShouldPositive"));
+
+                                    attributesXml = _productAttributeParser.AddProductAttribute(attributesXml,
+                                        attribute, selectedAttributeId.ToString(), quantity > 1 ? (int?)quantity : null);
+                                }
+                            }
+                        }
+                        break;
+                    case AttributeControlType.Checkboxes:
+                        {
+                            var ctrlAttributes = form[controlId];
+                            if (!StringValues.IsNullOrEmpty(ctrlAttributes))
+                                foreach (var item in ctrlAttributes.ToString().Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
+                                {
+                                    var selectedAttributeId = int.Parse(item);
+                                    if (selectedAttributeId > 0)
+                                    {
+                                        //get quantity entered by customer
+                                        var quantity = 1;
+                                        var quantityStr = form[$"product_attribute_{attribute.Id}_{item}_qty"];
+                                        if (!StringValues.IsNullOrEmpty(quantityStr) && (!int.TryParse(quantityStr, out quantity) || quantity < 1))
+                                            errors.Add(_localizationService.GetResource("ShoppingCart.QuantityShouldPositive"));
+
+                                        attributesXml = _productAttributeParser.AddProductAttribute(attributesXml,
+                                            attribute, selectedAttributeId.ToString(), quantity > 1 ? (int?)quantity : null);
+                                    }
+                                }
+                        }
+                        break;
+                    case AttributeControlType.ReadonlyCheckboxes:
+                        {
+                            //load read-only (already server-side selected) values
+                            var attributeValues = _productAttributeService.GetProductAttributeValues(attribute.Id);
+                            foreach (var selectedAttributeId in attributeValues
+                                .Where(v => v.IsPreSelected)
+                                .Select(v => v.Id)
+                                .ToList())
                             {
                                 //get quantity entered by customer
                                 var quantity = 1;
@@ -339,91 +381,49 @@ namespace Nop.Web.Areas.Admin.Controllers
                                     errors.Add(_localizationService.GetResource("ShoppingCart.QuantityShouldPositive"));
 
                                 attributesXml = _productAttributeParser.AddProductAttribute(attributesXml,
-                                    attribute, selectedAttributeId.ToString(), quantity > 1 ? (int?) quantity : null);
+                                    attribute, selectedAttributeId.ToString(), quantity > 1 ? (int?)quantity : null);
                             }
                         }
-                    }
-                        break;
-                    case AttributeControlType.Checkboxes:
-                    {
-                        var ctrlAttributes = form[controlId];
-                        if (!StringValues.IsNullOrEmpty(ctrlAttributes))
-                            foreach (var item in ctrlAttributes.ToString().Split(new[] {','}, StringSplitOptions.RemoveEmptyEntries))
-                            {
-                                var selectedAttributeId = int.Parse(item);
-                                if (selectedAttributeId > 0)
-                                {
-                                    //get quantity entered by customer
-                                    var quantity = 1;
-                                    var quantityStr = form[$"product_attribute_{attribute.Id}_{item}_qty"];
-                                    if (!StringValues.IsNullOrEmpty(quantityStr) && (!int.TryParse(quantityStr, out quantity) || quantity < 1))
-                                        errors.Add(_localizationService.GetResource("ShoppingCart.QuantityShouldPositive"));
-
-                                    attributesXml = _productAttributeParser.AddProductAttribute(attributesXml,
-                                        attribute, selectedAttributeId.ToString(), quantity > 1 ? (int?) quantity : null);
-                                }
-                            }
-                    }
-                        break;
-                    case AttributeControlType.ReadonlyCheckboxes:
-                    {
-                        //load read-only (already server-side selected) values
-                        var attributeValues = _productAttributeService.GetProductAttributeValues(attribute.Id);
-                        foreach (var selectedAttributeId in attributeValues
-                            .Where(v => v.IsPreSelected)
-                            .Select(v => v.Id)
-                            .ToList())
-                        {
-                            //get quantity entered by customer
-                            var quantity = 1;
-                            var quantityStr = form[$"product_attribute_{attribute.Id}_{selectedAttributeId}_qty"];
-                            if (!StringValues.IsNullOrEmpty(quantityStr) && (!int.TryParse(quantityStr, out quantity) || quantity < 1))
-                                errors.Add(_localizationService.GetResource("ShoppingCart.QuantityShouldPositive"));
-
-                            attributesXml = _productAttributeParser.AddProductAttribute(attributesXml,
-                                attribute, selectedAttributeId.ToString(), quantity > 1 ? (int?) quantity : null);
-                        }
-                    }
                         break;
                     case AttributeControlType.TextBox:
                     case AttributeControlType.MultilineTextbox:
-                    {
-                        var ctrlAttributes = form[controlId];
-                        if (!StringValues.IsNullOrEmpty(ctrlAttributes))
                         {
-                            var enteredText = ctrlAttributes.ToString().Trim();
-                            attributesXml = _productAttributeParser.AddProductAttribute(attributesXml,
-                                attribute, enteredText);
+                            var ctrlAttributes = form[controlId];
+                            if (!StringValues.IsNullOrEmpty(ctrlAttributes))
+                            {
+                                var enteredText = ctrlAttributes.ToString().Trim();
+                                attributesXml = _productAttributeParser.AddProductAttribute(attributesXml,
+                                    attribute, enteredText);
+                            }
                         }
-                    }
                         break;
                     case AttributeControlType.Datepicker:
-                    {
-                        var day = form[controlId + "_day"];
-                        var month = form[controlId + "_month"];
-                        var year = form[controlId + "_year"];
-                        DateTime? selectedDate = null;
-                        try
                         {
-                            selectedDate = new DateTime(int.Parse(year), int.Parse(month), int.Parse(day));
-                        }
-                        catch
-                        {
-                        }
+                            var day = form[controlId + "_day"];
+                            var month = form[controlId + "_month"];
+                            var year = form[controlId + "_year"];
+                            DateTime? selectedDate = null;
+                            try
+                            {
+                                selectedDate = new DateTime(int.Parse(year), int.Parse(month), int.Parse(day));
+                            }
+                            catch
+                            {
+                            }
 
-                        if (selectedDate.HasValue)
-                            attributesXml = _productAttributeParser.AddProductAttribute(attributesXml,
-                                attribute, selectedDate.Value.ToString("D"));
-                    }
+                            if (selectedDate.HasValue)
+                                attributesXml = _productAttributeParser.AddProductAttribute(attributesXml,
+                                    attribute, selectedDate.Value.ToString("D"));
+                        }
                         break;
                     case AttributeControlType.FileUpload:
-                    {
-                        Guid.TryParse(form[controlId], out var downloadGuid);
-                        var download = _downloadService.GetDownloadByGuid(downloadGuid);
-                        if (download != null)
-                            attributesXml = _productAttributeParser.AddProductAttribute(attributesXml,
-                                attribute, download.DownloadGuid.ToString());
-                    }
+                        {
+                            Guid.TryParse(form[controlId], out var downloadGuid);
+                            var download = _downloadService.GetDownloadByGuid(downloadGuid);
+                            if (download != null)
+                                attributesXml = _productAttributeParser.AddProductAttribute(attributesXml,
+                                    attribute, download.DownloadGuid.ToString());
+                        }
                         break;
                 }
             }
@@ -1190,7 +1190,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 };
                 if (!string.IsNullOrEmpty(attribute.ValidationFileAllowedExtensions))
                     attributeModel.AllowedFileExtensions = attribute.ValidationFileAllowedExtensions
-                        .Split(new[] {','}, StringSplitOptions.RemoveEmptyEntries)
+                        .Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
                         .ToList();
 
                 if (attribute.ShouldHaveValues())
@@ -1466,16 +1466,6 @@ namespace Nop.Web.Areas.Admin.Controllers
 
             shipment.TotalShippingFee = DecimalExtensions.RoundCustom(shipment.TotalShippingFee / 1000) * 1000;
 
-            //var shelfCode = string.Empty;
-            //var shipmentManualItem = shipment.ShipmentManualItems.Where(_ => _.OrderItem != null).FirstOrDefault();
-            //if (shipmentManualItem != null)
-            //{
-            //    var shelfOrderItem = _shelfService.GetShelfOrderItemByOrderItemId(shipmentManualItem.OrderItemId);
-            //    if (shelfOrderItem != null && shelfOrderItem.Shelf != null)
-            //    {
-            //        shelfCode = shelfOrderItem.Shelf.ShelfCode;
-            //    }
-            //}
 
             var customerAddress = shipment.Customer.Addresses.OrderByDescending(_ => _.CreatedOnUtc).FirstOrDefault();
 
@@ -1620,7 +1610,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 AvailableOrderStatuses = OrderStatus.Confirmed.ToSelectList(false).ToList()
             };
             model.AvailableOrderStatuses.Insert(0, new SelectListItem
-                {Text = _localizationService.GetResource("Admin.Common.All"), Value = "0", Selected = true});
+            { Text = _localizationService.GetResource("Admin.Common.All"), Value = "0", Selected = true });
             if (orderStatusIds != null && orderStatusIds.Any())
             {
                 foreach (var item in model.AvailableOrderStatuses.Where(os => orderStatusIds.Contains(os.Value)))
@@ -1631,7 +1621,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             //payment statuses
             model.AvailablePaymentStatuses = PaymentStatus.Pending.ToSelectList(false).ToList();
             model.AvailablePaymentStatuses.Insert(0, new SelectListItem
-                {Text = _localizationService.GetResource("Admin.Common.All"), Value = "0", Selected = true});
+            { Text = _localizationService.GetResource("Admin.Common.All"), Value = "0", Selected = true });
             if (paymentStatusIds != null && paymentStatusIds.Any())
             {
                 foreach (var item in model.AvailablePaymentStatuses.Where(ps => paymentStatusIds.Contains(ps.Value)))
@@ -1642,7 +1632,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             //shipping statuses
             model.AvailableShippingStatuses = ShippingStatus.NotYetShipped.ToSelectList(false).ToList();
             model.AvailableShippingStatuses.Insert(0, new SelectListItem
-                {Text = _localizationService.GetResource("Admin.Common.All"), Value = "0", Selected = true});
+            { Text = _localizationService.GetResource("Admin.Common.All"), Value = "0", Selected = true });
             if (shippingStatusIds != null && shippingStatusIds.Any())
             {
                 foreach (var item in model.AvailableShippingStatuses.Where(ss => shippingStatusIds.Contains(ss.Value)))
@@ -1651,29 +1641,29 @@ namespace Nop.Web.Areas.Admin.Controllers
             }
 
             //stores
-            model.AvailableStores.Add(new SelectListItem {Text = _localizationService.GetResource("Admin.Common.All"), Value = "0"});
+            model.AvailableStores.Add(new SelectListItem { Text = _localizationService.GetResource("Admin.Common.All"), Value = "0" });
             foreach (var s in _storeService.GetAllStores())
-                model.AvailableStores.Add(new SelectListItem {Text = s.Name, Value = s.Id.ToString()});
+                model.AvailableStores.Add(new SelectListItem { Text = s.Name, Value = s.Id.ToString() });
 
             //vendors
-            model.AvailableVendors.Add(new SelectListItem {Text = _localizationService.GetResource("Admin.Common.All"), Value = "0"});
+            model.AvailableVendors.Add(new SelectListItem { Text = _localizationService.GetResource("Admin.Common.All"), Value = "0" });
             var vendors = SelectListHelper.GetVendorList(_vendorService, _cacheManager, true);
             foreach (var v in vendors)
                 model.AvailableVendors.Add(v);
 
             //warehouses
-            model.AvailableWarehouses.Add(new SelectListItem {Text = _localizationService.GetResource("Admin.Common.All"), Value = "0"});
+            model.AvailableWarehouses.Add(new SelectListItem { Text = _localizationService.GetResource("Admin.Common.All"), Value = "0" });
             foreach (var w in _shippingService.GetAllWarehouses())
-                model.AvailableWarehouses.Add(new SelectListItem {Text = w.Name, Value = w.Id.ToString()});
+                model.AvailableWarehouses.Add(new SelectListItem { Text = w.Name, Value = w.Id.ToString() });
 
             //payment methods
-            model.AvailablePaymentMethods.Add(new SelectListItem {Text = _localizationService.GetResource("Admin.Common.All"), Value = ""});
+            model.AvailablePaymentMethods.Add(new SelectListItem { Text = _localizationService.GetResource("Admin.Common.All"), Value = "" });
             foreach (var pm in _paymentService.LoadAllPaymentMethods())
-                model.AvailablePaymentMethods.Add(new SelectListItem {Text = pm.PluginDescriptor.FriendlyName, Value = pm.PluginDescriptor.SystemName});
+                model.AvailablePaymentMethods.Add(new SelectListItem { Text = pm.PluginDescriptor.FriendlyName, Value = pm.PluginDescriptor.SystemName });
 
             //billing countries
-            foreach (var c in _countryService.GetAllCountriesForBilling(showHidden: true)) model.AvailableCountries.Add(new SelectListItem {Text = c.Name, Value = c.Id.ToString()});
-            model.AvailableCountries.Insert(0, new SelectListItem {Text = _localizationService.GetResource("Admin.Common.All"), Value = "0"});
+            foreach (var c in _countryService.GetAllCountriesForBilling(showHidden: true)) model.AvailableCountries.Add(new SelectListItem { Text = c.Name, Value = c.Id.ToString() });
+            model.AvailableCountries.Insert(0, new SelectListItem { Text = _localizationService.GetResource("Admin.Common.All"), Value = "0" });
 
             //a vendor should have access only to orders with his products
             model.IsLoggedInAsVendor = _workContext.CurrentVendor != null;
@@ -1692,11 +1682,11 @@ namespace Nop.Web.Areas.Admin.Controllers
 
             var startDateValue = model.StartDate == null
                 ? null
-                : (DateTime?) _dateTimeHelper.ConvertToUtcTime(model.StartDate.Value, _dateTimeHelper.CurrentTimeZone);
+                : (DateTime?)_dateTimeHelper.ConvertToUtcTime(model.StartDate.Value, _dateTimeHelper.CurrentTimeZone);
 
             var endDateValue = model.EndDate == null
                 ? null
-                : (DateTime?) _dateTimeHelper.ConvertToUtcTime(model.EndDate.Value, _dateTimeHelper.CurrentTimeZone).AddDays(1);
+                : (DateTime?)_dateTimeHelper.ConvertToUtcTime(model.EndDate.Value, _dateTimeHelper.CurrentTimeZone).AddDays(1);
 
             var orderStatusIds = model.OrderStatusIds != null && !model.OrderStatusIds.Contains(0)
                 ? model.OrderStatusIds.ToList()
@@ -1880,7 +1870,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             if (order == null)
                 return List();
 
-            return RedirectToAction("Edit", "Order", new {id = order.Id});
+            return RedirectToAction("Edit", "Order", new { id = order.Id });
         }
 
         public virtual IActionResult ProductSearchAutoComplete(string term)
@@ -1902,11 +1892,11 @@ namespace Nop.Web.Areas.Admin.Controllers
                 showHidden: true);
 
             var result = (from p in products
-                select new
-                {
-                    label = p.Name,
-                    productid = p.Id
-                }).ToList();
+                          select new
+                          {
+                              label = p.Name,
+                              productid = p.Id
+                          }).ToList();
             return Json(result);
         }
 
@@ -1924,11 +1914,11 @@ namespace Nop.Web.Areas.Admin.Controllers
 
             var startDateValue = model.StartDate == null
                 ? null
-                : (DateTime?) _dateTimeHelper.ConvertToUtcTime(model.StartDate.Value, _dateTimeHelper.CurrentTimeZone);
+                : (DateTime?)_dateTimeHelper.ConvertToUtcTime(model.StartDate.Value, _dateTimeHelper.CurrentTimeZone);
 
             var endDateValue = model.EndDate == null
                 ? null
-                : (DateTime?) _dateTimeHelper.ConvertToUtcTime(model.EndDate.Value, _dateTimeHelper.CurrentTimeZone).AddDays(1);
+                : (DateTime?)_dateTimeHelper.ConvertToUtcTime(model.EndDate.Value, _dateTimeHelper.CurrentTimeZone).AddDays(1);
 
             //a vendor should have access only to his products
             if (_workContext.CurrentVendor != null) model.VendorId = _workContext.CurrentVendor.Id;
@@ -1996,7 +1986,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             if (selectedIds != null)
             {
                 var ids = selectedIds
-                    .Split(new[] {','}, StringSplitOptions.RemoveEmptyEntries)
+                    .Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
                     .Select(x => Convert.ToInt32(x))
                     .ToArray();
                 orders.AddRange(_orderService.GetOrdersByIds(ids).Where(HasAccessToOrder));
@@ -2017,11 +2007,11 @@ namespace Nop.Web.Areas.Admin.Controllers
 
             var startDateValue = model.StartDate == null
                 ? null
-                : (DateTime?) _dateTimeHelper.ConvertToUtcTime(model.StartDate.Value, _dateTimeHelper.CurrentTimeZone);
+                : (DateTime?)_dateTimeHelper.ConvertToUtcTime(model.StartDate.Value, _dateTimeHelper.CurrentTimeZone);
 
             var endDateValue = model.EndDate == null
                 ? null
-                : (DateTime?) _dateTimeHelper.ConvertToUtcTime(model.EndDate.Value, _dateTimeHelper.CurrentTimeZone).AddDays(1);
+                : (DateTime?)_dateTimeHelper.ConvertToUtcTime(model.EndDate.Value, _dateTimeHelper.CurrentTimeZone).AddDays(1);
 
             //a vendor should have access only to his products
             if (_workContext.CurrentVendor != null) model.VendorId = _workContext.CurrentVendor.Id;
@@ -2087,7 +2077,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             if (selectedIds != null)
             {
                 var ids = selectedIds
-                    .Split(new[] {','}, StringSplitOptions.RemoveEmptyEntries)
+                    .Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
                     .Select(x => Convert.ToInt32(x))
                     .ToArray();
                 orders.AddRange(_orderService.GetOrdersByIds(ids).Where(HasAccessToOrder));
@@ -2115,7 +2105,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             if (selectedIds != null)
             {
                 var ids = selectedIds
-                    .Split(new[] {','}, StringSplitOptions.RemoveEmptyEntries)
+                    .Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
                     .Select(x => Convert.ToInt32(x))
                     .ToArray();
                 orders.AddRange(_orderService.GetOrdersByIds(ids).Where(HasAccessToOrder));
@@ -2146,11 +2136,11 @@ namespace Nop.Web.Areas.Admin.Controllers
 
             var startDateValue = model.StartDate == null
                 ? null
-                : (DateTime?) _dateTimeHelper.ConvertToUtcTime(model.StartDate.Value, _dateTimeHelper.CurrentTimeZone);
+                : (DateTime?)_dateTimeHelper.ConvertToUtcTime(model.StartDate.Value, _dateTimeHelper.CurrentTimeZone);
 
             var endDateValue = model.EndDate == null
                 ? null
-                : (DateTime?) _dateTimeHelper.ConvertToUtcTime(model.EndDate.Value, _dateTimeHelper.CurrentTimeZone).AddDays(1);
+                : (DateTime?)_dateTimeHelper.ConvertToUtcTime(model.EndDate.Value, _dateTimeHelper.CurrentTimeZone).AddDays(1);
 
             //a vendor should have access only to his products
             if (_workContext.CurrentVendor != null) model.VendorId = _workContext.CurrentVendor.Id;
@@ -2227,7 +2217,7 @@ namespace Nop.Web.Areas.Admin.Controllers
 
             //a vendor does not have access to this functionality
             if (_workContext.CurrentVendor != null)
-                return RedirectToAction("Edit", "Order", new {id});
+                return RedirectToAction("Edit", "Order", new { id });
 
             try
             {
@@ -2262,7 +2252,7 @@ namespace Nop.Web.Areas.Admin.Controllers
 
             //a vendor does not have access to this functionality
             if (_workContext.CurrentVendor != null)
-                return RedirectToAction("Edit", "Order", new {id});
+                return RedirectToAction("Edit", "Order", new { id });
 
             try
             {
@@ -2299,7 +2289,7 @@ namespace Nop.Web.Areas.Admin.Controllers
 
             //a vendor does not have access to this functionality
             if (_workContext.CurrentVendor != null)
-                return RedirectToAction("Edit", "Order", new {id});
+                return RedirectToAction("Edit", "Order", new { id });
 
             try
             {
@@ -2334,7 +2324,7 @@ namespace Nop.Web.Areas.Admin.Controllers
 
             //a vendor does not have access to this functionality
             if (_workContext.CurrentVendor != null)
-                return RedirectToAction("Edit", "Order", new {id});
+                return RedirectToAction("Edit", "Order", new { id });
 
             try
             {
@@ -2385,7 +2375,7 @@ namespace Nop.Web.Areas.Admin.Controllers
 
             //a vendor does not have access to this functionality
             if (_workContext.CurrentVendor != null)
-                return RedirectToAction("Edit", "Order", new {id});
+                return RedirectToAction("Edit", "Order", new { id });
 
             try
             {
@@ -2422,7 +2412,7 @@ namespace Nop.Web.Areas.Admin.Controllers
 
             //a vendor does not have access to this functionality
             if (_workContext.CurrentVendor != null)
-                return RedirectToAction("Edit", "Order", new {id});
+                return RedirectToAction("Edit", "Order", new { id });
 
             try
             {
@@ -2457,7 +2447,7 @@ namespace Nop.Web.Areas.Admin.Controllers
 
             //a vendor does not have access to this functionality
             if (_workContext.CurrentVendor != null)
-                return RedirectToAction("Edit", "Order", new {id});
+                return RedirectToAction("Edit", "Order", new { id });
 
             try
             {
@@ -2494,7 +2484,7 @@ namespace Nop.Web.Areas.Admin.Controllers
 
             //a vendor does not have access to this functionality
             if (_workContext.CurrentVendor != null)
-                return RedirectToAction("Edit", "Order", new {id});
+                return RedirectToAction("Edit", "Order", new { id });
 
             try
             {
@@ -2526,7 +2516,7 @@ namespace Nop.Web.Areas.Admin.Controllers
 
             //a vendor does not have access to this functionality
             if (_workContext.CurrentVendor != null)
-                return RedirectToAction("Edit", "Order", new {id});
+                return RedirectToAction("Edit", "Order", new { id });
 
             var model = new OrderModel();
             PrepareOrderDetailsModel(model, order);
@@ -2548,7 +2538,7 @@ namespace Nop.Web.Areas.Admin.Controllers
 
             //a vendor does not have access to this functionality
             if (_workContext.CurrentVendor != null)
-                return RedirectToAction("Edit", "Order", new {id});
+                return RedirectToAction("Edit", "Order", new { id });
 
             try
             {
@@ -2607,7 +2597,7 @@ namespace Nop.Web.Areas.Admin.Controllers
 
             //a vendor does not have access to this functionality
             if (_workContext.CurrentVendor != null)
-                return RedirectToAction("Edit", "Order", new {id});
+                return RedirectToAction("Edit", "Order", new { id });
 
             try
             {
@@ -2695,7 +2685,7 @@ namespace Nop.Web.Areas.Admin.Controllers
 
             //a vendor does not have access to this functionality
             if (_workContext.CurrentVendor != null)
-                return RedirectToAction("Edit", "Order", new {id});
+                return RedirectToAction("Edit", "Order", new { id });
 
             _orderProcessingService.DeleteOrder(order);
 
@@ -2740,11 +2730,11 @@ namespace Nop.Web.Areas.Admin.Controllers
 
             var startDateValue = model.StartDate == null
                 ? null
-                : (DateTime?) _dateTimeHelper.ConvertToUtcTime(model.StartDate.Value, _dateTimeHelper.CurrentTimeZone);
+                : (DateTime?)_dateTimeHelper.ConvertToUtcTime(model.StartDate.Value, _dateTimeHelper.CurrentTimeZone);
 
             var endDateValue = model.EndDate == null
                 ? null
-                : (DateTime?) _dateTimeHelper.ConvertToUtcTime(model.EndDate.Value, _dateTimeHelper.CurrentTimeZone).AddDays(1);
+                : (DateTime?)_dateTimeHelper.ConvertToUtcTime(model.EndDate.Value, _dateTimeHelper.CurrentTimeZone).AddDays(1);
 
             var orderStatusIds = model.OrderStatusIds != null && !model.OrderStatusIds.Contains(0)
                 ? model.OrderStatusIds.ToList()
@@ -2806,7 +2796,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             if (selectedIds != null)
             {
                 var ids = selectedIds
-                    .Split(new[] {','}, StringSplitOptions.RemoveEmptyEntries)
+                    .Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
                     .Select(x => Convert.ToInt32(x))
                     .ToArray();
                 orders.AddRange(_orderService.GetOrdersByIds(ids));
@@ -2848,7 +2838,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             if (selectedIds != null)
             {
                 var ids = selectedIds
-                    .Split(new[] {','}, StringSplitOptions.RemoveEmptyEntries)
+                    .Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
                     .Select(x => Convert.ToInt32(x))
                     .ToArray();
                 orders.AddRange(_orderService.GetOrdersByIds(ids));
@@ -2975,7 +2965,7 @@ namespace Nop.Web.Areas.Admin.Controllers
 
             //a vendor does not have access to this functionality
             if (_workContext.CurrentVendor != null)
-                return RedirectToAction("Edit", "Order", new {id});
+                return RedirectToAction("Edit", "Order", new { id });
 
             if (order.AllowStoringCreditCardNumber)
             {
@@ -3025,7 +3015,7 @@ namespace Nop.Web.Areas.Admin.Controllers
 
             //a vendor does not have access to this functionality
             if (_workContext.CurrentVendor != null)
-                return RedirectToAction("Edit", "Order", new {id});
+                return RedirectToAction("Edit", "Order", new { id });
 
             order.OrderSubtotalInclTax = model.OrderSubtotalInclTaxValue;
             order.OrderSubtotalExclTax = model.OrderSubtotalExclTaxValue;
@@ -3070,7 +3060,7 @@ namespace Nop.Web.Areas.Admin.Controllers
 
             //a vendor does not have access to this functionality
             if (_workContext.CurrentVendor != null)
-                return RedirectToAction("Edit", "Order", new {id});
+                return RedirectToAction("Edit", "Order", new { id });
 
             order.ShippingMethod = model.ShippingMethod;
             _orderService.UpdateOrder(order);
@@ -3109,7 +3099,7 @@ namespace Nop.Web.Areas.Admin.Controllers
 
             //a vendor does not have access to this functionality
             if (_workContext.CurrentVendor != null)
-                return RedirectToAction("Edit", "Order", new {id});
+                return RedirectToAction("Edit", "Order", new { id });
 
             //get order item identifier
             var orderItemId = 0;
@@ -3359,27 +3349,27 @@ namespace Nop.Web.Areas.Admin.Controllers
 
             //a vendor does not have access to this functionality
             if (_workContext.CurrentVendor != null)
-                return RedirectToAction("Edit", "Order", new {id = orderId});
+                return RedirectToAction("Edit", "Order", new { id = orderId });
 
             var model = new OrderModel.AddOrderProductModel
             {
                 OrderId = orderId
             };
             //categories
-            model.AvailableCategories.Add(new SelectListItem {Text = _localizationService.GetResource("Admin.Common.All"), Value = "0"});
+            model.AvailableCategories.Add(new SelectListItem { Text = _localizationService.GetResource("Admin.Common.All"), Value = "0" });
             var categories = SelectListHelper.GetCategoryList(_categoryService, _cacheManager, true);
             foreach (var c in categories)
                 model.AvailableCategories.Add(c);
 
             //manufacturers
-            model.AvailableManufacturers.Add(new SelectListItem {Text = _localizationService.GetResource("Admin.Common.All"), Value = "0"});
+            model.AvailableManufacturers.Add(new SelectListItem { Text = _localizationService.GetResource("Admin.Common.All"), Value = "0" });
             var manufacturers = SelectListHelper.GetManufacturerList(_manufacturerService, _cacheManager, true);
             foreach (var m in manufacturers)
                 model.AvailableManufacturers.Add(m);
 
             //product types
             model.AvailableProductTypes = ProductType.SimpleProduct.ToSelectList(false).ToList();
-            model.AvailableProductTypes.Insert(0, new SelectListItem {Text = _localizationService.GetResource("Admin.Common.All"), Value = "0"});
+            model.AvailableProductTypes.Insert(0, new SelectListItem { Text = _localizationService.GetResource("Admin.Common.All"), Value = "0" });
 
             return View(model);
         }
@@ -3395,9 +3385,9 @@ namespace Nop.Web.Areas.Admin.Controllers
                 return Content("");
 
             var gridModel = new DataSourceResult();
-            var products = _productService.SearchProducts(categoryIds: new List<int> {model.SearchCategoryId},
+            var products = _productService.SearchProducts(categoryIds: new List<int> { model.SearchCategoryId },
                 manufacturerId: model.SearchManufacturerId,
-                productType: model.SearchProductTypeId > 0 ? (ProductType?) model.SearchProductTypeId : null,
+                productType: model.SearchProductTypeId > 0 ? (ProductType?)model.SearchProductTypeId : null,
                 keywords: model.SearchProductName,
                 pageIndex: command.Page - 1,
                 pageSize: command.PageSize,
@@ -3429,7 +3419,7 @@ namespace Nop.Web.Areas.Admin.Controllers
 
             //a vendor does not have access to this functionality
             if (_workContext.CurrentVendor != null)
-                return RedirectToAction("Edit", "Order", new {id = orderId});
+                return RedirectToAction("Edit", "Order", new { id = orderId });
 
             var model = PrepareAddProductToOrderModel(orderId, productId);
             return View(model);
@@ -3443,7 +3433,7 @@ namespace Nop.Web.Areas.Admin.Controllers
 
             //a vendor does not have access to this functionality
             if (_workContext.CurrentVendor != null)
-                return RedirectToAction("Edit", "Order", new {id = orderId});
+                return RedirectToAction("Edit", "Order", new { id = orderId });
 
             var order = _orderService.GetOrderById(orderId);
             var product = _productService.GetProductById(productId);
@@ -3630,7 +3620,7 @@ namespace Nop.Web.Areas.Admin.Controllers
 
 
             //}
-            return RedirectToAction("Edit", "Order", new {id = order.Id});
+            return RedirectToAction("Edit", "Order", new { id = order.Id });
             //errors
             //var model = PrepareAddProductToOrderModel(order.Id, product.Id);
             ////model.Warnings.AddRange(warnings);
@@ -3655,7 +3645,7 @@ namespace Nop.Web.Areas.Admin.Controllers
 
             //a vendor does not have access to this functionality
             if (_workContext.CurrentVendor != null)
-                return RedirectToAction("Edit", "Order", new {id = orderId});
+                return RedirectToAction("Edit", "Order", new { id = orderId });
 
             var address = _addressService.GetAddressById(addressId);
             if (address == null)
@@ -3691,16 +3681,16 @@ namespace Nop.Web.Areas.Admin.Controllers
             model.Address.FaxRequired = _addressSettings.FaxRequired;
 
             //countries
-            model.Address.AvailableCountries.Add(new SelectListItem {Text = _localizationService.GetResource("Admin.Address.SelectCountry"), Value = "0"});
+            model.Address.AvailableCountries.Add(new SelectListItem { Text = _localizationService.GetResource("Admin.Address.SelectCountry"), Value = "0" });
             foreach (var c in _countryService.GetAllCountries(showHidden: true))
-                model.Address.AvailableCountries.Add(new SelectListItem {Text = c.Name, Value = c.Id.ToString(), Selected = c.Id == address.CountryId});
+                model.Address.AvailableCountries.Add(new SelectListItem { Text = c.Name, Value = c.Id.ToString(), Selected = c.Id == address.CountryId });
             //states
             var states = address.Country != null ? _stateProvinceService.GetStateProvincesByCountryId(address.Country.Id, showHidden: true).ToList() : new List<StateProvince>();
             if (states.Any())
                 foreach (var s in states)
-                    model.Address.AvailableStates.Add(new SelectListItem {Text = s.Name, Value = s.Id.ToString(), Selected = s.Id == address.StateProvinceId});
+                    model.Address.AvailableStates.Add(new SelectListItem { Text = s.Name, Value = s.Id.ToString(), Selected = s.Id == address.StateProvinceId });
             else
-                model.Address.AvailableStates.Add(new SelectListItem {Text = _localizationService.GetResource("Admin.Address.OtherNonUS"), Value = "0"});
+                model.Address.AvailableStates.Add(new SelectListItem { Text = _localizationService.GetResource("Admin.Address.OtherNonUS"), Value = "0" });
             //customer attribute services
             model.Address.PrepareCustomAddressAttributes(address, _addressAttributeService, _addressAttributeParser);
 
@@ -3720,7 +3710,7 @@ namespace Nop.Web.Areas.Admin.Controllers
 
             //a vendor does not have access to this functionality
             if (_workContext.CurrentVendor != null)
-                return RedirectToAction("Edit", "Order", new {id = order.Id});
+                return RedirectToAction("Edit", "Order", new { id = order.Id });
 
             var address = _addressService.GetAddressById(model.Address.Id);
             if (address == null)
@@ -3747,7 +3737,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 _orderService.UpdateOrder(order);
                 LogEditOrder(order.Id);
 
-                return RedirectToAction("AddressEdit", new {addressId = model.Address.Id, orderId = model.OrderId});
+                return RedirectToAction("AddressEdit", new { addressId = model.Address.Id, orderId = model.OrderId });
             }
 
             //If we got this far, something failed, redisplay form
@@ -3778,16 +3768,16 @@ namespace Nop.Web.Areas.Admin.Controllers
             model.Address.FaxEnabled = _addressSettings.FaxEnabled;
             model.Address.FaxRequired = _addressSettings.FaxRequired;
             //countries
-            model.Address.AvailableCountries.Add(new SelectListItem {Text = _localizationService.GetResource("Admin.Address.SelectCountry"), Value = "0"});
+            model.Address.AvailableCountries.Add(new SelectListItem { Text = _localizationService.GetResource("Admin.Address.SelectCountry"), Value = "0" });
             foreach (var c in _countryService.GetAllCountries(showHidden: true))
-                model.Address.AvailableCountries.Add(new SelectListItem {Text = c.Name, Value = c.Id.ToString(), Selected = c.Id == address.CountryId});
+                model.Address.AvailableCountries.Add(new SelectListItem { Text = c.Name, Value = c.Id.ToString(), Selected = c.Id == address.CountryId });
             //states
             var states = address.Country != null ? _stateProvinceService.GetStateProvincesByCountryId(address.Country.Id, showHidden: true).ToList() : new List<StateProvince>();
             if (states.Any())
                 foreach (var s in states)
-                    model.Address.AvailableStates.Add(new SelectListItem {Text = s.Name, Value = s.Id.ToString(), Selected = s.Id == address.StateProvinceId});
+                    model.Address.AvailableStates.Add(new SelectListItem { Text = s.Name, Value = s.Id.ToString(), Selected = s.Id == address.StateProvinceId });
             else
-                model.Address.AvailableStates.Add(new SelectListItem {Text = _localizationService.GetResource("Admin.Address.OtherNonUS"), Value = "0"});
+                model.Address.AvailableStates.Add(new SelectListItem { Text = _localizationService.GetResource("Admin.Address.OtherNonUS"), Value = "0" });
             //customer attribute services
             model.Address.PrepareCustomAddressAttributes(address, _addressAttributeService, _addressAttributeParser);
 
@@ -3805,23 +3795,23 @@ namespace Nop.Web.Areas.Admin.Controllers
 
             var model = new ShipmentListModel();
             //countries
-            model.AvailableCountries.Add(new SelectListItem {Text = "*", Value = "0"});
+            model.AvailableCountries.Add(new SelectListItem { Text = "*", Value = "0" });
             foreach (var c in _countryService.GetAllCountries(showHidden: true))
-                model.AvailableCountries.Add(new SelectListItem {Text = c.Name, Value = c.Id.ToString()});
+                model.AvailableCountries.Add(new SelectListItem { Text = c.Name, Value = c.Id.ToString() });
             //states
-            model.AvailableStates.Add(new SelectListItem {Text = "*", Value = "0"});
+            model.AvailableStates.Add(new SelectListItem { Text = "*", Value = "0" });
 
             //warehouses
-            model.AvailableWarehouses.Add(new SelectListItem {Text = _localizationService.GetResource("Admin.Common.All"), Value = "0"});
+            model.AvailableWarehouses.Add(new SelectListItem { Text = _localizationService.GetResource("Admin.Common.All"), Value = "0" });
             foreach (var w in _shippingService.GetAllWarehouses())
-                model.AvailableWarehouses.Add(new SelectListItem {Text = w.Name, Value = w.Id.ToString()});
+                model.AvailableWarehouses.Add(new SelectListItem { Text = w.Name, Value = w.Id.ToString() });
 
             //customer info
-            model.AvailableShippers.Add(new SelectListItem {Text = _localizationService.GetResource("Admin.Common.All"), Value = "0"});
+            model.AvailableShippers.Add(new SelectListItem { Text = _localizationService.GetResource("Admin.Common.All"), Value = "0" });
 
             var customers = _customerService.GetAllCustomers().Where(_ => string.IsNullOrEmpty(_.GetFullName()) == false);
             foreach (var w in customers)
-                model.AvailableShippers.Add(new SelectListItem {Text = w.GetFullName(), Value = w.Id.ToString()});
+                model.AvailableShippers.Add(new SelectListItem { Text = w.GetFullName(), Value = w.Id.ToString() });
 
             return View(model);
         }
@@ -3834,11 +3824,11 @@ namespace Nop.Web.Areas.Admin.Controllers
 
             var startDateValue = model.StartDate == null
                 ? null
-                : (DateTime?) _dateTimeHelper.ConvertToUtcTime(model.StartDate.Value, _dateTimeHelper.CurrentTimeZone);
+                : (DateTime?)_dateTimeHelper.ConvertToUtcTime(model.StartDate.Value, _dateTimeHelper.CurrentTimeZone);
 
             var endDateValue = model.EndDate == null
                 ? null
-                : (DateTime?) _dateTimeHelper.ConvertToUtcTime(model.EndDate.Value, _dateTimeHelper.CurrentTimeZone).AddDays(1);
+                : (DateTime?)_dateTimeHelper.ConvertToUtcTime(model.EndDate.Value, _dateTimeHelper.CurrentTimeZone).AddDays(1);
 
             //a vendor should have access only to his products
             var vendorId = 0;
@@ -4035,15 +4025,15 @@ namespace Nop.Web.Areas.Admin.Controllers
                 decimal totalWithoutDeposit = 0;
                 if (shelf.OrderItems != null)
                 {
-                    var shelfOrderItems = shelf.OrderItems.Where(orderItem => orderItem.DeliveryDateUtc == null).ToList();
-                    foreach (var shelfOrderItem in shelfOrderItems)
+                    var orderItems = shelf.OrderItems.Where(orderItem => orderItem.DeliveryDateUtc == null).ToList();
+                    foreach (var item in orderItems)
                     {
-                        var itemTotal = DecimalExtensions.RoundCustom(shelfOrderItem.PriceInclTax / 1000) * 1000;
+                        var itemTotal = DecimalExtensions.RoundCustom(item.PriceInclTax / 1000) * 1000;
                         total += itemTotal;
-                        totalWithoutDeposit += itemTotal - DecimalExtensions.RoundCustom(shelfOrderItem.Deposit / 1000) * 1000;
+                        totalWithoutDeposit += itemTotal - DecimalExtensions.RoundCustom(item.Deposit / 1000) * 1000;
                     }
 
-                    shelf.HasOrderItem = shelfOrderItems.Any();
+                    shelf.HasOrderItem = orderItems.Any();
                 }
 
                 shelf.Total = total;
@@ -4064,7 +4054,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             if (orderItemModel.ShelfCode.IsNotNullOrEmpty()
                 && orderItemModel.PackageItemProcessedDatetime.IsNullOrEmpty()
             )
-                return Json(new {errors = _localizationService.GetResource("Admin.OrderVendorCheckout.ValidateAssignShelf")});
+                return Json(new { errors = _localizationService.GetResource("Admin.OrderVendorCheckout.ValidateAssignShelf") });
 
             var order = _orderService.GetOrderById(orderItemModel.OrderId);
             if (order == null)
@@ -4153,12 +4143,12 @@ namespace Nop.Web.Areas.Admin.Controllers
 
             UpdateTotalShipmentManual(orderItem.Id);
 
-            var errorMess = UpdateShelfOrderItem(orderItem, orderItemModel.ShelfCode, order.CustomerId);
-            if (errorMess.IsNotNullOrEmpty()) return Json(new {errors = errorMess});
+            var errorMess = UpdateOrderItem(orderItem, orderItemModel.ShelfCode, order.CustomerId);
+            if (errorMess.IsNotNullOrEmpty()) return Json(new { errors = errorMess });
             return new NullJsonResult();
         }
 
-        private string UpdateShelfOrderItem(OrderItem orderItem, string shelfCode, int customerId)
+        private string UpdateOrderItem(OrderItem orderItem, string shelfCode, int customerId)
         {
             var errorStr = string.Empty;
             if (shelfCode.IsNotNullOrEmpty())
@@ -4197,7 +4187,7 @@ namespace Nop.Web.Areas.Admin.Controllers
 
                         shelf.ShippedDate = null;
 
-                        _customerActivityService.InsertActivity("EditShelf", _localizationService.GetResource("activitylog.updateshelforderitemvendorcheckout"), orderItem.Id, shelf.ShelfCode);
+                        _customerActivityService.InsertActivity("EditShelf", _localizationService.GetResource("activitylog.updateorderitemvendorcheckout"), orderItem.Id, shelf.ShelfCode);
 
 
                         UpdateShelfTotalAmount(shelf.Id);
@@ -4214,7 +4204,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                     return errorStr;
                 }
             }
-            
+
             return errorStr;
         }
 
@@ -4272,34 +4262,6 @@ namespace Nop.Web.Areas.Admin.Controllers
 
             return Json(gridModel);
         }
-
-        //[HttpPost]
-        //public virtual IActionResult OrderItemsByShelfId(int shelfId, bool? isActive, DataSourceRequest command)
-        //{
-
-        //    if (!_permissionService.Authorize(StandardPermissionProvider.ManageOrders))
-        //        return AccessDeniedKendoGridJson();
-        //    var shelf = _shelfService.GetShelfById(shelfId);
-        //    var orderItems = new List<OrderItem>();
-        //    if (shelf.CustomerId.HasValue)
-        //    {
-        //        var orderItemIds = _shelfService.GetOrderItemIdsByShelf(shelfId, isActive);
-        //        orderItems = _orderService.GetOrderItemsByIds(orderItemIds.Select(_=>_.OrderItemId).ToArray()).ToList();
-        //        //orderItems = _shelfService.GetAllShelfOrderItem(shelfId, customerId: shelf.CustomerId.Value, shelfOrderItemIsActive: isActive).Where(_ => _.OrderItem != null).Select(_ => _.OrderItem).ToList();
-        //    }
-        //    var resultDatas = PrepareOrderItemsModelBasic(orderItems);
-        //    var gridModel = new DataSourceResult
-        //    {
-        //        Data = resultDatas,
-        //        Total = resultDatas.Count
-        //    };
-        //    gridModel.ExtraData = new OrderAggreratorModel
-        //    {
-        //        aggregatortotal = _priceFormatter.FormatPrice(resultDatas.Sum(_ => _.SubTotalInclTaxValue), true, false)
-        //    };
-
-        //    return Json(gridModel);
-        //}
 
         public virtual IActionResult AddShipment(int orderId, int orderItemId = 0)
         {
@@ -4560,12 +4522,12 @@ namespace Nop.Web.Areas.Admin.Controllers
 
                 SuccessNotification(_localizationService.GetResource("Admin.Orders.Shipments.Added"));
                 return continueEditing
-                    ? RedirectToAction("ShipmentDetails", new {id = shipment.Id})
-                    : RedirectToAction("Edit", new {id = orderId});
+                    ? RedirectToAction("ShipmentDetails", new { id = shipment.Id })
+                    : RedirectToAction("Edit", new { id = orderId });
             }
 
             ErrorNotification(_localizationService.GetResource("Admin.Orders.Shipments.NoProductsSelected"));
-            return RedirectToAction("AddShipment", new {orderId});
+            return RedirectToAction("AddShipment", new { orderId });
         }
 
         public virtual IActionResult ShipmentDetails(int id)
@@ -4601,7 +4563,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             }
 
             if (continueEditing)
-                return RedirectToAction("ShipmentDetails", new {model.Id});
+                return RedirectToAction("ShipmentDetails", new { model.Id });
 
             return RedirectToAction("ShipmentList");
         }
@@ -4646,7 +4608,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             LogEditOrder(order.Id);
 
             SuccessNotification(_localizationService.GetResource("Admin.Orders.Shipments.Deleted"));
-            return RedirectToAction("Edit", new {id = orderId});
+            return RedirectToAction("Edit", new { id = orderId });
         }
 
         [HttpPost]
@@ -4669,7 +4631,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             shipment.TrackingNumber = model.TrackingNumber;
             _shipmentService.UpdateShipment(shipment);
 
-            return RedirectToAction("ShipmentDetails", new {id = shipment.Id});
+            return RedirectToAction("ShipmentDetails", new { id = shipment.Id });
         }
 
         [HttpPost]
@@ -4692,7 +4654,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             shipment.BagId = model.BagId;
             _shipmentService.UpdateShipment(shipment);
 
-            return RedirectToAction("ShipmentDetails", new {id = shipment.Id});
+            return RedirectToAction("ShipmentDetails", new { id = shipment.Id });
         }
 
         [HttpPost]
@@ -4715,7 +4677,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             shipment.CustomerId = model.ShipperId;
             _shipmentService.UpdateShipment(shipment);
 
-            return RedirectToAction("ShipmentDetails", new {id = shipment.Id});
+            return RedirectToAction("ShipmentDetails", new { id = shipment.Id });
         }
 
         [HttpPost]
@@ -4738,7 +4700,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             shipment.AdminComment = model.AdminComment;
             _shipmentService.UpdateShipment(shipment);
 
-            return RedirectToAction("ShipmentDetails", new {id = shipment.Id});
+            return RedirectToAction("ShipmentDetails", new { id = shipment.Id });
         }
 
         [HttpPost]
@@ -4762,13 +4724,13 @@ namespace Nop.Web.Areas.Admin.Controllers
             {
                 _orderProcessingService.Ship(shipment, true);
                 LogEditOrder(shipment.OrderId);
-                return RedirectToAction("ShipmentDetails", new {id = shipment.Id});
+                return RedirectToAction("ShipmentDetails", new { id = shipment.Id });
             }
             catch (Exception exc)
             {
                 //error
                 ErrorNotification(exc, true);
-                return RedirectToAction("ShipmentDetails", new {id = shipment.Id});
+                return RedirectToAction("ShipmentDetails", new { id = shipment.Id });
             }
         }
 
@@ -4794,13 +4756,13 @@ namespace Nop.Web.Areas.Admin.Controllers
                 if (!model.ShippedDateUtc.HasValue) throw new Exception("Enter shipped date");
                 shipment.ShippedDateUtc = model.ShippedDateUtc;
                 _shipmentService.UpdateShipment(shipment);
-                return RedirectToAction("ShipmentDetails", new {id = shipment.Id});
+                return RedirectToAction("ShipmentDetails", new { id = shipment.Id });
             }
             catch (Exception exc)
             {
                 //error
                 ErrorNotification(exc, true);
-                return RedirectToAction("ShipmentDetails", new {id = shipment.Id});
+                return RedirectToAction("ShipmentDetails", new { id = shipment.Id });
             }
         }
 
@@ -4825,13 +4787,13 @@ namespace Nop.Web.Areas.Admin.Controllers
             {
                 _orderProcessingService.Deliver(shipment, true);
                 LogEditOrder(shipment.OrderId);
-                return RedirectToAction("ShipmentDetails", new {id = shipment.Id});
+                return RedirectToAction("ShipmentDetails", new { id = shipment.Id });
             }
             catch (Exception exc)
             {
                 //error
                 ErrorNotification(exc, true);
-                return RedirectToAction("ShipmentDetails", new {id = shipment.Id});
+                return RedirectToAction("ShipmentDetails", new { id = shipment.Id });
             }
         }
 
@@ -4857,7 +4819,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                         //ignore any exception
                     }
 
-            return Json(new {Result = true});
+            return Json(new { Result = true });
         }
 
 
@@ -4885,7 +4847,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                         //ignore any exception
                     }
 
-            return Json(new {Result = true});
+            return Json(new { Result = true });
         }
 
 
@@ -4911,7 +4873,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                         //ignore any exception
                     }
 
-            return Json(new {Result = true});
+            return Json(new { Result = true });
         }
 
 
@@ -4926,7 +4888,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             //a vendor should have access only to his products
             if (_workContext.CurrentVendor != null) shipments = shipments.Where(HasAccessToShipment).ToList();
 
-            if (_shipmentService.CheckExistTrackingNumber(trackingNumberNew)) return Json(new {Result = false, Message = "Số vận đơn đã được sử dụng."});
+            if (_shipmentService.CheckExistTrackingNumber(trackingNumberNew)) return Json(new { Result = false, Message = "Số vận đơn đã được sử dụng." });
 
             foreach (var shipment in shipments)
                 try
@@ -4939,7 +4901,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                     //ignore any exception
                 }
 
-            return Json(new {Result = true});
+            return Json(new { Result = true });
         }
 
 
@@ -4963,7 +4925,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                     //ignore any exception
                 }
 
-            return Json(new {Result = true});
+            return Json(new { Result = true });
         }
 
 
@@ -4987,7 +4949,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                     //ignore any exception
                 }
 
-            return Json(new {Result = true});
+            return Json(new { Result = true });
         }
 
 
@@ -5029,7 +4991,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             var orderItems = new List<OrderItem>();
             if (selectedIds != null) orderItems.AddRange(_orderService.GetOrderItemsByIds(selectedIds.ToArray()));
 
-            var packageOrder = new PackageOrder {PackageCode = packageOrderCodeNew, PackageName = packageOrderCodeNew};
+            var packageOrder = new PackageOrder { PackageCode = packageOrderCodeNew, PackageName = packageOrderCodeNew };
             _packageOrderService.Create(packageOrder);
 
             foreach (var orderItem in orderItems)
@@ -5047,7 +5009,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                     //ignore any exception
                 }
 
-            return Json(new {Result = true});
+            return Json(new { Result = true });
         }
 
 
@@ -5071,7 +5033,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                     //ignore any exception
                 }
 
-            return Json(new {Result = true});
+            return Json(new { Result = true });
         }
 
         [HttpPost]
@@ -5094,7 +5056,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                     //ignore any exception
                 }
 
-            return Json(new {Result = true});
+            return Json(new { Result = true });
         }
 
 
@@ -5120,13 +5082,13 @@ namespace Nop.Web.Areas.Admin.Controllers
                 if (!model.DeliveryDateUtc.HasValue) throw new Exception("Enter delivery date");
                 shipment.DeliveryDateUtc = model.DeliveryDateUtc;
                 _shipmentService.UpdateShipment(shipment);
-                return RedirectToAction("ShipmentDetails", new {id = shipment.Id});
+                return RedirectToAction("ShipmentDetails", new { id = shipment.Id });
             }
             catch (Exception exc)
             {
                 //error
                 ErrorNotification(exc, true);
-                return RedirectToAction("ShipmentDetails", new {id = shipment.Id});
+                return RedirectToAction("ShipmentDetails", new { id = shipment.Id });
             }
         }
 
@@ -5167,11 +5129,11 @@ namespace Nop.Web.Areas.Admin.Controllers
 
             var startDateValue = model.StartDate == null
                 ? null
-                : (DateTime?) _dateTimeHelper.ConvertToUtcTime(model.StartDate.Value, _dateTimeHelper.CurrentTimeZone);
+                : (DateTime?)_dateTimeHelper.ConvertToUtcTime(model.StartDate.Value, _dateTimeHelper.CurrentTimeZone);
 
             var endDateValue = model.EndDate == null
                 ? null
-                : (DateTime?) _dateTimeHelper.ConvertToUtcTime(model.EndDate.Value, _dateTimeHelper.CurrentTimeZone).AddDays(1);
+                : (DateTime?)_dateTimeHelper.ConvertToUtcTime(model.EndDate.Value, _dateTimeHelper.CurrentTimeZone).AddDays(1);
 
             //a vendor should have access only to his products
             var vendorId = 0;
@@ -5219,11 +5181,11 @@ namespace Nop.Web.Areas.Admin.Controllers
 
             var startDateValue = model.StartDate == null
                 ? null
-                : (DateTime?) _dateTimeHelper.ConvertToUtcTime(model.StartDate.Value, _dateTimeHelper.CurrentTimeZone);
+                : (DateTime?)_dateTimeHelper.ConvertToUtcTime(model.StartDate.Value, _dateTimeHelper.CurrentTimeZone);
 
             var endDateValue = model.EndDate == null
                 ? null
-                : (DateTime?) _dateTimeHelper.ConvertToUtcTime(model.EndDate.Value, _dateTimeHelper.CurrentTimeZone).AddDays(1);
+                : (DateTime?)_dateTimeHelper.ConvertToUtcTime(model.EndDate.Value, _dateTimeHelper.CurrentTimeZone).AddDays(1);
 
             //a vendor should have access only to his products
             var vendorId = 0;
@@ -5270,7 +5232,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             if (selectedIds != null)
             {
                 var ids = selectedIds
-                    .Split(new[] {','}, StringSplitOptions.RemoveEmptyEntries)
+                    .Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
                     .Select(x => Convert.ToInt32(x))
                     .ToArray();
                 shipments.AddRange(_shipmentService.GetShipmentsByIds(ids));
@@ -5309,7 +5271,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             if (selectedIds != null)
             {
                 var ids = selectedIds
-                    .Split(new[] {','}, StringSplitOptions.RemoveEmptyEntries)
+                    .Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
                     .Select(x => Convert.ToInt32(x))
                     .ToArray();
                 shipments.AddRange(_shipmentManualService.GetShipmentsManualByIds(ids));
@@ -5352,7 +5314,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             if (selectedIds != null)
             {
                 var ids = selectedIds
-                    .Split(new[] {','}, StringSplitOptions.RemoveEmptyEntries)
+                    .Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
                     .Select(x => Convert.ToInt32(x))
                     .ToArray();
                 shipments.AddRange(_shipmentManualService.GetShipmentsManualByIds(ids));
@@ -5385,7 +5347,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             if (selectedIds != null)
             {
                 var ids = selectedIds
-                    .Split(new[] {','}, StringSplitOptions.RemoveEmptyEntries)
+                    .Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
                     .Select(x => Convert.ToInt32(x))
                     .ToArray();
                 shipments.AddRange(_shipmentManualService.GetShipmentsManualByIds(ids));
@@ -5418,7 +5380,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             if (selectedIds != null)
             {
                 var ids = selectedIds
-                    .Split(new[] {','}, StringSplitOptions.RemoveEmptyEntries)
+                    .Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
                     .Select(x => Convert.ToInt32(x))
                     .ToArray();
                 shipments.AddRange(_shipmentManualService.GetShipmentsManualByIds(ids));
@@ -5465,7 +5427,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                     //ignore any exception
                 }
 
-            return Json(new {Result = true});
+            return Json(new { Result = true });
         }
 
         [HttpPost]
@@ -5487,7 +5449,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                     //ignore any exception
                 }
 
-            return Json(new {Result = true});
+            return Json(new { Result = true });
         }
 
 
@@ -5512,7 +5474,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                     //ignore any exception
                 }
 
-            return Json(new {Result = true});
+            return Json(new { Result = true });
         }
 
 
@@ -5535,7 +5497,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                     //ignore any exception
                 }
 
-            return Json(new {Result = true});
+            return Json(new { Result = true });
         }
 
         #endregion
@@ -5549,20 +5511,20 @@ namespace Nop.Web.Areas.Admin.Controllers
 
             var model = new ShipmentListModel();
             //countries
-            model.AvailableCountries.Add(new SelectListItem {Text = "*", Value = "0"});
+            model.AvailableCountries.Add(new SelectListItem { Text = "*", Value = "0" });
             foreach (var c in _countryService.GetAllCountries(showHidden: true))
-                model.AvailableCountries.Add(new SelectListItem {Text = c.Name, Value = c.Id.ToString()});
+                model.AvailableCountries.Add(new SelectListItem { Text = c.Name, Value = c.Id.ToString() });
             //states
-            model.AvailableStates.Add(new SelectListItem {Text = "*", Value = "0"});
+            model.AvailableStates.Add(new SelectListItem { Text = "*", Value = "0" });
 
             //customer info
-            model.AvailableShippers.Add(new SelectListItem {Text = _localizationService.GetResource("Admin.Common.All"), Value = "0"});
-            var customers = _customerService.GetAllCustomers(customerRoleIds: new[] {CustomerRoleEnum.Shipper.ToInt()}).Where(_ => string.IsNullOrEmpty(_.GetFullName()) == false);
+            model.AvailableShippers.Add(new SelectListItem { Text = _localizationService.GetResource("Admin.Common.All"), Value = "0" });
+            var customers = _customerService.GetAllCustomers(customerRoleIds: new[] { CustomerRoleEnum.Shipper.ToInt() }).Where(_ => string.IsNullOrEmpty(_.GetFullName()) == false);
             foreach (var w in customers)
-                model.AvailableShippers.Add(new SelectListItem {Text = w.GetFullName(), Value = w.Id.ToString()});
+                model.AvailableShippers.Add(new SelectListItem { Text = w.GetFullName(), Value = w.Id.ToString() });
 
             model.AvailableShippersForSearch = model.AvailableShippers;
-            model.AvailableShippersForSearch.Insert(1, new SelectListItem {Text = _localizationService.GetResource("Admin.Shipment.NotSetShipper"), Value = "-1"});
+            model.AvailableShippersForSearch.Insert(1, new SelectListItem { Text = _localizationService.GetResource("Admin.Shipment.NotSetShipper"), Value = "-1" });
 
             model.AvailableCities = SelectListHelper.GetStateProvinceSelectListItems(_stateProvinceService, "Đà Nẵng");
 
@@ -5672,11 +5634,11 @@ namespace Nop.Web.Areas.Admin.Controllers
 
             var order = _orderService.GetOrderById(orderId);
             if (order == null)
-                return Json(new {Result = false});
+                return Json(new { Result = false });
 
             //a vendor does not have access to this functionality
             if (_workContext.CurrentVendor != null)
-                return Json(new {Result = false});
+                return Json(new { Result = false });
 
             var orderNote = new OrderNote
             {
@@ -5693,7 +5655,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 _workflowMessageService.SendNewOrderNoteAddedCustomerNotification(
                     orderNote, _workContext.WorkingLanguage.Id);
 
-            return Json(new {Result = true});
+            return Json(new { Result = true });
         }
 
         public virtual IActionResult OrderAdminNoteAdd(int orderId, string adminNote)
@@ -5703,10 +5665,10 @@ namespace Nop.Web.Areas.Admin.Controllers
 
             var order = _orderService.GetOrderById(orderId);
             if (order == null)
-                return Json(new {Result = false});
+                return Json(new { Result = false });
             order.AdminNote = adminNote;
             _orderService.UpdateOrder(order);
-            return Json(new {Result = true});
+            return Json(new { Result = true });
         }
 
         [HttpPost]
@@ -5721,7 +5683,7 @@ namespace Nop.Web.Areas.Admin.Controllers
 
             //a vendor does not have access to this functionality
             if (_workContext.CurrentVendor != null)
-                return RedirectToAction("Edit", "Order", new {id = orderId});
+                return RedirectToAction("Edit", "Order", new { id = orderId });
 
             var orderNote = order.OrderNotes.FirstOrDefault(on => on.Id == id);
             if (orderNote == null)
@@ -5771,37 +5733,37 @@ namespace Nop.Web.Areas.Admin.Controllers
             };
 
             //stores
-            model.AvailableStores.Add(new SelectListItem {Text = _localizationService.GetResource("Admin.Common.All"), Value = "0"});
+            model.AvailableStores.Add(new SelectListItem { Text = _localizationService.GetResource("Admin.Common.All"), Value = "0" });
             foreach (var s in _storeService.GetAllStores())
-                model.AvailableStores.Add(new SelectListItem {Text = s.Name, Value = s.Id.ToString()});
+                model.AvailableStores.Add(new SelectListItem { Text = s.Name, Value = s.Id.ToString() });
 
             //order statuses
             model.AvailableOrderStatuses = OrderStatus.Confirmed.ToSelectList(false).ToList();
-            model.AvailableOrderStatuses.Insert(0, new SelectListItem {Text = _localizationService.GetResource("Admin.Common.All"), Value = "0"});
+            model.AvailableOrderStatuses.Insert(0, new SelectListItem { Text = _localizationService.GetResource("Admin.Common.All"), Value = "0" });
 
             //payment statuses
             model.AvailablePaymentStatuses = PaymentStatus.Pending.ToSelectList(false).ToList();
-            model.AvailablePaymentStatuses.Insert(0, new SelectListItem {Text = _localizationService.GetResource("Admin.Common.All"), Value = "0"});
+            model.AvailablePaymentStatuses.Insert(0, new SelectListItem { Text = _localizationService.GetResource("Admin.Common.All"), Value = "0" });
 
             //categories
-            model.AvailableCategories.Add(new SelectListItem {Text = _localizationService.GetResource("Admin.Common.All"), Value = "0"});
+            model.AvailableCategories.Add(new SelectListItem { Text = _localizationService.GetResource("Admin.Common.All"), Value = "0" });
             var categories = SelectListHelper.GetCategoryList(_categoryService, _cacheManager, true);
             foreach (var c in categories)
                 model.AvailableCategories.Add(c);
 
             //manufacturers
-            model.AvailableManufacturers.Add(new SelectListItem {Text = _localizationService.GetResource("Admin.Common.All"), Value = "0"});
+            model.AvailableManufacturers.Add(new SelectListItem { Text = _localizationService.GetResource("Admin.Common.All"), Value = "0" });
             var manufacturers = SelectListHelper.GetManufacturerList(_manufacturerService, _cacheManager, true);
             foreach (var m in manufacturers)
                 model.AvailableManufacturers.Add(m);
 
             //billing countries
             foreach (var c in _countryService.GetAllCountriesForBilling(showHidden: true))
-                model.AvailableCountries.Add(new SelectListItem {Text = c.Name, Value = c.Id.ToString()});
-            model.AvailableCountries.Insert(0, new SelectListItem {Text = _localizationService.GetResource("Admin.Common.All"), Value = "0"});
+                model.AvailableCountries.Add(new SelectListItem { Text = c.Name, Value = c.Id.ToString() });
+            model.AvailableCountries.Insert(0, new SelectListItem { Text = _localizationService.GetResource("Admin.Common.All"), Value = "0" });
 
             //vendors
-            model.AvailableVendors.Add(new SelectListItem {Text = _localizationService.GetResource("Admin.Common.All"), Value = "0"});
+            model.AvailableVendors.Add(new SelectListItem { Text = _localizationService.GetResource("Admin.Common.All"), Value = "0" });
             var vendors = SelectListHelper.GetVendorList(_vendorService, _cacheManager, true);
             foreach (var v in vendors)
                 model.AvailableVendors.Add(v);
@@ -5820,14 +5782,14 @@ namespace Nop.Web.Areas.Admin.Controllers
 
             var startDateValue = model.StartDate == null
                 ? null
-                : (DateTime?) _dateTimeHelper.ConvertToUtcTime(model.StartDate.Value, _dateTimeHelper.CurrentTimeZone);
+                : (DateTime?)_dateTimeHelper.ConvertToUtcTime(model.StartDate.Value, _dateTimeHelper.CurrentTimeZone);
 
             var endDateValue = model.EndDate == null
                 ? null
-                : (DateTime?) _dateTimeHelper.ConvertToUtcTime(model.EndDate.Value, _dateTimeHelper.CurrentTimeZone).AddDays(1);
+                : (DateTime?)_dateTimeHelper.ConvertToUtcTime(model.EndDate.Value, _dateTimeHelper.CurrentTimeZone).AddDays(1);
 
-            var orderStatus = model.OrderStatusId > 0 ? (OrderStatus?) model.OrderStatusId : null;
-            var paymentStatus = model.PaymentStatusId > 0 ? (PaymentStatus?) model.PaymentStatusId : null;
+            var orderStatus = model.OrderStatusId > 0 ? (OrderStatus?)model.OrderStatusId : null;
+            var paymentStatus = model.PaymentStatusId > 0 ? (PaymentStatus?)model.PaymentStatusId : null;
 
             var items = _orderReportService.BestSellersReport(
                 createdFromUtc: startDateValue,
@@ -5876,24 +5838,24 @@ namespace Nop.Web.Areas.Admin.Controllers
             };
 
             //categories
-            model.AvailableCategories.Add(new SelectListItem {Text = _localizationService.GetResource("Admin.Common.All"), Value = "0"});
+            model.AvailableCategories.Add(new SelectListItem { Text = _localizationService.GetResource("Admin.Common.All"), Value = "0" });
             var categories = SelectListHelper.GetCategoryList(_categoryService, _cacheManager, true);
             foreach (var c in categories)
                 model.AvailableCategories.Add(c);
 
             //manufacturers
-            model.AvailableManufacturers.Add(new SelectListItem {Text = _localizationService.GetResource("Admin.Common.All"), Value = "0"});
+            model.AvailableManufacturers.Add(new SelectListItem { Text = _localizationService.GetResource("Admin.Common.All"), Value = "0" });
             var manufacturers = SelectListHelper.GetManufacturerList(_manufacturerService, _cacheManager, true);
             foreach (var m in manufacturers)
                 model.AvailableManufacturers.Add(m);
 
             //stores
-            model.AvailableStores.Add(new SelectListItem {Text = _localizationService.GetResource("Admin.Common.All"), Value = "0"});
+            model.AvailableStores.Add(new SelectListItem { Text = _localizationService.GetResource("Admin.Common.All"), Value = "0" });
             foreach (var s in _storeService.GetAllStores())
-                model.AvailableStores.Add(new SelectListItem {Text = s.Name, Value = s.Id.ToString()});
+                model.AvailableStores.Add(new SelectListItem { Text = s.Name, Value = s.Id.ToString() });
 
             //vendors
-            model.AvailableVendors.Add(new SelectListItem {Text = _localizationService.GetResource("Admin.Common.All"), Value = "0"});
+            model.AvailableVendors.Add(new SelectListItem { Text = _localizationService.GetResource("Admin.Common.All"), Value = "0" });
             var vendors = SelectListHelper.GetVendorList(_vendorService, _cacheManager, true);
             foreach (var v in vendors)
                 model.AvailableVendors.Add(v);
@@ -5912,11 +5874,11 @@ namespace Nop.Web.Areas.Admin.Controllers
 
             var startDateValue = model.StartDate == null
                 ? null
-                : (DateTime?) _dateTimeHelper.ConvertToUtcTime(model.StartDate.Value, _dateTimeHelper.CurrentTimeZone);
+                : (DateTime?)_dateTimeHelper.ConvertToUtcTime(model.StartDate.Value, _dateTimeHelper.CurrentTimeZone);
 
             var endDateValue = model.EndDate == null
                 ? null
-                : (DateTime?) _dateTimeHelper.ConvertToUtcTime(model.EndDate.Value, _dateTimeHelper.CurrentTimeZone).AddDays(1);
+                : (DateTime?)_dateTimeHelper.ConvertToUtcTime(model.EndDate.Value, _dateTimeHelper.CurrentTimeZone).AddDays(1);
 
             var items = _orderReportService.ProductsNeverSold(model.SearchVendorId,
                 model.SearchStoreId,
@@ -5987,8 +5949,8 @@ namespace Nop.Web.Areas.Admin.Controllers
 
             var model = new List<OrderIncompleteReportLineModel>();
             //not paid
-            var orderStatuses = Enum.GetValues(typeof(OrderStatus)).Cast<int>().Where(os => os != (int) OrderStatus.Cancelled).ToList();
-            var paymentStatuses = new List<int> {(int) PaymentStatus.Pending};
+            var orderStatuses = Enum.GetValues(typeof(OrderStatus)).Cast<int>().Where(os => os != (int)OrderStatus.Cancelled).ToList();
+            var paymentStatuses = new List<int> { (int)PaymentStatus.Pending };
             var psPending = _orderReportService.GetOrderAverageReportLine(psIds: paymentStatuses, osIds: orderStatuses);
             model.Add(new OrderIncompleteReportLineModel
             {
@@ -6002,7 +5964,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 })
             });
             //not shipped
-            var shippingStatuses = new List<int> {(int) ShippingStatus.NotYetShipped};
+            var shippingStatuses = new List<int> { (int)ShippingStatus.NotYetShipped };
             var ssPending = _orderReportService.GetOrderAverageReportLine(osIds: orderStatuses, ssIds: shippingStatuses);
             model.Add(new OrderIncompleteReportLineModel
             {
@@ -6016,14 +5978,14 @@ namespace Nop.Web.Areas.Admin.Controllers
                 })
             });
             //pending
-            orderStatuses = new List<int> {(int) OrderStatus.Confirmed};
+            orderStatuses = new List<int> { (int)OrderStatus.Confirmed };
             var osPending = _orderReportService.GetOrderAverageReportLine(osIds: orderStatuses);
             model.Add(new OrderIncompleteReportLineModel
             {
                 Item = _localizationService.GetResource("Admin.SalesReport.Incomplete.TotalIncompleteOrders"),
                 Count = osPending.CountOrders,
                 Total = _priceFormatter.FormatPrice(osPending.SumOrders, true, false),
-                ViewLink = Url.Action("List", "Order", new {orderStatusIds = string.Join(",", orderStatuses)})
+                ViewLink = Url.Action("List", "Order", new { orderStatusIds = string.Join(",", orderStatuses) })
             });
 
             var gridModel = new DataSourceResult
@@ -6045,11 +6007,11 @@ namespace Nop.Web.Areas.Admin.Controllers
                 //order statuses
                 AvailableOrderStatuses = OrderStatus.Confirmed.ToSelectList(false).ToList()
             };
-            model.AvailableOrderStatuses.Insert(0, new SelectListItem {Text = _localizationService.GetResource("Admin.Common.All"), Value = "0"});
+            model.AvailableOrderStatuses.Insert(0, new SelectListItem { Text = _localizationService.GetResource("Admin.Common.All"), Value = "0" });
 
             //payment statuses
             model.AvailablePaymentStatuses = PaymentStatus.Pending.ToSelectList(false).ToList();
-            model.AvailablePaymentStatuses.Insert(0, new SelectListItem {Text = _localizationService.GetResource("Admin.Common.All"), Value = "0"});
+            model.AvailablePaymentStatuses.Insert(0, new SelectListItem { Text = _localizationService.GetResource("Admin.Common.All"), Value = "0" });
 
             return View(model);
         }
@@ -6062,14 +6024,14 @@ namespace Nop.Web.Areas.Admin.Controllers
 
             var startDateValue = model.StartDate == null
                 ? null
-                : (DateTime?) _dateTimeHelper.ConvertToUtcTime(model.StartDate.Value, _dateTimeHelper.CurrentTimeZone);
+                : (DateTime?)_dateTimeHelper.ConvertToUtcTime(model.StartDate.Value, _dateTimeHelper.CurrentTimeZone);
 
             var endDateValue = model.EndDate == null
                 ? null
-                : (DateTime?) _dateTimeHelper.ConvertToUtcTime(model.EndDate.Value, _dateTimeHelper.CurrentTimeZone).AddDays(1);
+                : (DateTime?)_dateTimeHelper.ConvertToUtcTime(model.EndDate.Value, _dateTimeHelper.CurrentTimeZone).AddDays(1);
 
-            var orderStatus = model.OrderStatusId > 0 ? (OrderStatus?) model.OrderStatusId : null;
-            var paymentStatus = model.PaymentStatusId > 0 ? (PaymentStatus?) model.PaymentStatusId : null;
+            var orderStatus = model.OrderStatusId > 0 ? (OrderStatus?)model.OrderStatusId : null;
+            var paymentStatus = model.PaymentStatusId > 0 ? (PaymentStatus?)model.PaymentStatusId : null;
 
             var items = _orderReportService.GetCountryReport(
                 os: orderStatus,
@@ -6215,7 +6177,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                         //selected tab
                         SaveSelectedTabName();
 
-                        return RedirectToAction("EditPackageOrder", new {id = entity.Id});
+                        return RedirectToAction("EditPackageOrder", new { id = entity.Id });
                     }
 
                     return RedirectToAction("ListPackageOrder");
@@ -6258,7 +6220,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                         //selected tab
                         SaveSelectedTabName();
 
-                        return RedirectToAction("EditPackageOrder", new {id = entity.Id});
+                        return RedirectToAction("EditPackageOrder", new { id = entity.Id });
                     }
 
                     return RedirectToAction("ListPackageOrder");
@@ -6316,26 +6278,26 @@ namespace Nop.Web.Areas.Admin.Controllers
 
 
             //staffs
-            var staffs = _customerService.GetAllCustomers(customerRoleIds: new[] {CustomerRoleEnum.Employee.ToInt(), CustomerRoleEnum.Administrators.ToInt()});
-            foreach (var staff in staffs) model.AvailableStaffs.Add(new SelectListItem {Text = $"{staff.GetFullName()} - {staff.GetAttribute<string>(SystemCustomerAttributeNames.Phone)}", Value = staff.Id.ToString()});
-            model.AvailableStaffs.Insert(0, new SelectListItem {Text = _localizationService.GetResource("Admin.Common.All"), Value = "0"});
+            var staffs = _customerService.GetAllCustomers(customerRoleIds: new[] { CustomerRoleEnum.Employee.ToInt(), CustomerRoleEnum.Administrators.ToInt() });
+            foreach (var staff in staffs) model.AvailableStaffs.Add(new SelectListItem { Text = $"{staff.GetFullName()} - {staff.GetAttribute<string>(SystemCustomerAttributeNames.Phone)}", Value = staff.Id.ToString() });
+            model.AvailableStaffs.Insert(0, new SelectListItem { Text = _localizationService.GetResource("Admin.Common.All"), Value = "0" });
 
             //vendors 
             var vendors = _vendorService.GetAllVendors();
-            foreach (var vendor in vendors) model.VendorItems.Add(new SelectListItem {Text = vendor.Name, Value = vendor.Id.ToString()});
-            model.VendorItems.Insert(0, new SelectListItem {Text = _localizationService.GetResource("Admin.Common.All"), Value = "0"});
+            foreach (var vendor in vendors) model.VendorItems.Add(new SelectListItem { Text = vendor.Name, Value = vendor.Id.ToString() });
+            model.VendorItems.Insert(0, new SelectListItem { Text = _localizationService.GetResource("Admin.Common.All"), Value = "0" });
 
             model.PackageItemProcessedDatetimeStatus.AddRange(new List<SelectListItem>
             {
                 new SelectListItem {Value = "", Text = _localizationService.GetResource("Admin.Common.All"), Selected = true},
-                new SelectListItem {Value = "True", Text = _localizationService.GetResource("Admin.ShelfOrderItem.IsPackageItemProcessedDatetimeStatus.True")},
-                new SelectListItem {Value = "False", Text = _localizationService.GetResource("Admin.ShelfOrderItem.IsPackageItemProcessedDatetimeStatus.False")}
+                new SelectListItem {Value = "True", Text = _localizationService.GetResource("Admin.OrderItem.IsPackageItemProcessedDatetimeStatus.True")},
+                new SelectListItem {Value = "False", Text = _localizationService.GetResource("Admin.OrderItem.IsPackageItemProcessedDatetimeStatus.False")}
             });
 
             //Order item status
             model.OrderItemStatusId = -1;
             model.AvailableOrderStatus = OrderItemStatus.Available.ToSelectList(false).ToList();
-            model.AvailableOrderStatus.Insert(0, new SelectListItem {Text = _localizationService.GetResource("Admin.Common.All"), Value = "-1", Selected = true});
+            model.AvailableOrderStatus.Insert(0, new SelectListItem { Text = _localizationService.GetResource("Admin.Common.All"), Value = "-1", Selected = true });
 
             return View(model);
         }
@@ -6417,7 +6379,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                         Note = orderItem.Note
                     };
                     if (orderItemModel.PackageOrderId > 0) orderItemModel.PackageOrderCode = orderItem.PackageOrder?.PackageCode;
-                    
+
                     orderItemModel.ShelfCode = orderItem.Shelf.ShelfCode;
 
                     if (orderItem.AssignedByCustomer != null)
@@ -6519,7 +6481,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             if (selectedIds != null)
             {
                 var ids = selectedIds
-                    .Split(new[] {','}, StringSplitOptions.RemoveEmptyEntries)
+                    .Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
                     .Select(x => Convert.ToInt32(x))
                     .ToArray();
                 orderItems.AddRange(_orderService.GetOrderItemsByIds(ids));
@@ -6549,7 +6511,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             if (selectedIds != null)
             {
                 var ids = selectedIds
-                    .Split(new[] {','}, StringSplitOptions.RemoveEmptyEntries)
+                    .Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
                     .Select(x => Convert.ToInt32(x))
                     .ToArray();
                 var orderItems = _orderService.GetOrderItemsByIds(ids);
@@ -6562,7 +6524,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             }
 
             //return RedirectToAction("OrderItemsVendorCheckout");
-            return Json(new {Result = true});
+            return Json(new { Result = true });
         }
 
         [HttpPost]
@@ -6575,7 +6537,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             if (selectedIds != null)
             {
                 var ids = selectedIds
-                    .Split(new[] {','}, StringSplitOptions.RemoveEmptyEntries)
+                    .Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
                     .Select(x => Convert.ToInt32(x))
                     .ToArray();
                 orderItems.AddRange(_orderService.GetOrderItemsByIds(ids));
@@ -6623,7 +6585,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 PackageOrderId = p.Id,
                 PackageOrderName = $"{p.PackageCode}"
             }).ToList();
-            packageOrdersAvailble.Insert(0, new {PackageOrderId = 0, PackageOrderName = "Chọn mã kiện hàng"});
+            packageOrdersAvailble.Insert(0, new { PackageOrderId = 0, PackageOrderName = "Chọn mã kiện hàng" });
             return Json(packageOrdersAvailble);
         }
 
@@ -6632,7 +6594,7 @@ namespace Nop.Web.Areas.Admin.Controllers
         {
             var lastPackageId = _packageOrderService.GetPackageOrders(true).Max(_ => _.Id);
             var packageCode = StringExtensions.GetPackageCode(lastPackageId);
-            return Json(new {PackageCode = packageCode});
+            return Json(new { PackageCode = packageCode });
         }
 
         #endregion
