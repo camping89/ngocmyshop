@@ -22,7 +22,8 @@
 @{
     var rawUrl = webHelper.GetRawUrl(httpContextAccessor.HttpContext.Request);
 
-    var kendoVersion = "2014.1.318";
+    //var kendoVersion = "2014.1.318";
+    var kendoVersion = "2019.1.115";
     var supportRtl = workContext.WorkingLanguage.Rtl && !localizationSettings.IgnoreRtlPropertyForAdminArea;
 
     //CSS resources
@@ -54,6 +55,7 @@
 
     //scripts
     Html.AppendScriptParts($"~/lib/kendo/{kendoVersion}/kendo.web.min.js");
+    Html.AppendScriptParts($"~/lib/kendo/{kendoVersion}/kendo.all.min.js");
     Html.AppendScriptParts("~/js/admin.search.js");
     Html.AppendScriptParts("~/js/admin.navigation.js");
     Html.AppendScriptParts("~/js/admin.common.js");

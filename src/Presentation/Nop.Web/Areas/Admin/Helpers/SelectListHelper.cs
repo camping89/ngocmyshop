@@ -1,11 +1,13 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Mvc.Rendering;
+using Nop.Core.Caching;
+using Nop.Core.Extensions;
+using Nop.Services.Catalog;
+using Nop.Services.Directory;
+using Nop.Services.Vendors;
+using Nop.Web.Areas.Admin.Infrastructure.Cache;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Nop.Web.Areas.Admin.Infrastructure.Cache;
-using Nop.Core.Caching;
-using Nop.Services.Catalog;
-using Nop.Services.Vendors;
 
 namespace Nop.Web.Areas.Admin.Helpers
 {
@@ -132,6 +134,43 @@ namespace Nop.Web.Areas.Admin.Helpers
             }
 
             return result;
+        }
+
+        public static List<SelectListItem> GetStateProvinceSelectListItems(IStateProvinceService stateProvinceService, string selectedValue = null)
+        {
+            var items = new List<SelectListItem>();
+            //234 id VN
+            foreach (var province in stateProvinceService.GetStateProvincesByCountryId(234))
+            {
+                if (selectedValue != null && selectedValue.Equals(province.Name, StringComparison.InvariantCultureIgnoreCase))
+                {
+                    items.Add(new SelectListItem() { Selected = true, Text = province.Name, Value = province.Name });
+                }
+                else
+                {
+                    items.Add(new SelectListItem() { Text = province.Name, Value = province.Name });
+                }
+            }
+            items.Insert(0, new SelectListItem() { Value = "", Text = "---Tất cả---" });
+            return items;
+        }
+
+        public static List<SelectListItem> GetDistrictSelectListItems(IStateProvinceService stateProvinceService, string stateProvinceName = null)
+        {
+            var items = new List<SelectListItem>();
+            if (stateProvinceName.IsNotNullOrEmpty())
+            {
+                var stateProvince = stateProvinceService.GetStateProvinces().FirstOrDefault(_ => stateProvinceName != null && _.Name.Contains(stateProvinceName));
+                if (stateProvince != null)
+                {
+                    foreach (var district in stateProvinceService.GetDistricts(stateProvince.Id))
+                    {
+                        items.Add(new SelectListItem() { Text = district.Name, Value = district.Name });
+                    }
+                }
+            }
+            items.Insert(0, new SelectListItem() { Value = "", Text = "---Tất cả---", Selected = true });
+            return items;
         }
     }
 }

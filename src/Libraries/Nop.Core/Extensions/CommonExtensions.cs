@@ -1,4 +1,4 @@
-﻿ using System.Xml;
+﻿using System.Xml;
 
 namespace Nop.Core.Extensions
 {
@@ -16,7 +16,7 @@ namespace Nop.Core.Extensions
         public static bool IsNullOrDefault<T>(this T? value) where T : struct
         {
             return default(T).Equals(value.GetValueOrDefault());
-        }  
+        }
 
         /// <summary>
         /// Get element value

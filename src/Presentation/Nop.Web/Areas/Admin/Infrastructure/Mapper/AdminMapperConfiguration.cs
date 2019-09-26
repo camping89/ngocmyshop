@@ -1022,6 +1022,28 @@ namespace Nop.Web.Areas.Admin.Infrastructure.Mapper
             CreateMap<TopicTemplate, TopicTemplateModel>()
                 .ForMember(dest => dest.CustomProperties, mo => mo.Ignore());
             CreateMap<TopicTemplateModel, TopicTemplate>();
+            //Shelf
+            CreateMap<Shelf, ShelfModel>()
+                .ForMember(s => s.CustomerFullName, mo => mo.Ignore())
+                .ForMember(s => s.ShelfNoteStatus, mo => mo.Ignore())
+                .ForMember(s => s.HasOrderItem, mo => mo.Ignore())
+                .ForMember(s => s.Total, mo => mo.Ignore())
+                .ForMember(s => s.CustomerPhone, mo => mo.Ignore());
+            CreateMap<ShelfModel, Shelf>()
+                .ForMember(s => s.Customer, mo => mo.Ignore())
+                .ForMember(s => s.ShippedDate, mo => mo.Ignore())
+                .ForMember(s => s.UpdatedNoteDate, mo => mo.Ignore())
+                .ForMember(s => s.ShelfNoteStatus, mo => mo.Ignore())
+                .ForMember(s => s.AssignedDate, mo => mo.Ignore());
+            //ShelfOrderItem
+            CreateMap<ShelfOrderItem, ShelfOrderItemModel>()
+                .ForMember(s => s.CustomerModel, mo => mo.Ignore())
+                .ForMember(s => s.ShelfModel, mo => mo.Ignore())
+                .ForMember(s => s.OrderItemModel, mo => mo.Ignore());
+            CreateMap<ShelfOrderItemModel, ShelfOrderItem>()
+                .ForMember(s => s.Customer, mo => mo.Ignore())
+                .ForMember(s => s.Shelf, mo => mo.Ignore())
+                .ForMember(s => s.OrderItem, mo => mo.Ignore());
         }
 
         /// <summary>

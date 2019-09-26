@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Globalization;
-using System.Linq;
 using Nop.Core;
 using Nop.Core.Caching;
 using Nop.Core.Data;
@@ -19,6 +14,11 @@ using Nop.Core.Extensions;
 using Nop.Data;
 using Nop.Services.Common;
 using Nop.Services.Events;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
+using System.Linq;
 
 namespace Nop.Services.Customers
 {
@@ -48,6 +48,10 @@ namespace Nop.Services.Customers
         /// </summary>
         private const string CUSTOMERROLES_PATTERN_KEY = "Nop.customerrole.";
 
+
+        private const string CUSTOMERS_ALL_KEY = "Nop.customers.all";
+
+        private const string CUSTOMERS_PATTERN_KEY = "Nop.customers.";
         #endregion
 
         #region Fields
@@ -114,7 +118,7 @@ namespace Nop.Services.Customers
             IGenericAttributeService genericAttributeService,
             IDataProvider dataProvider,
             IDbContext dbContext,
-            IEventPublisher eventPublisher, 
+            IEventPublisher eventPublisher,
             CustomerSettings customerSettings,
             CommonSettings commonSettings)
         {
@@ -306,13 +310,14 @@ namespace Nop.Services.Customers
         public virtual IPagedList<Customer> GetAllCustomers(DateTime? createdFromUtc = null,
             DateTime? createdToUtc = null, int affiliateId = 0, int vendorId = 0,
             int[] customerRoleIds = null, string email = null, string linkFacebook = null, string username = null,
-            string firstName = null, string lastName = null,
+            string firstName = null, string lastName = null, string fullName = null,
             int dayOfBirth = 0, int monthOfBirth = 0,
             string company = null, string phone = null, string zipPostalCode = null,
             string ipAddress = null, bool loadOnlyWithShoppingCart = false, ShoppingCartType? sct = null,
             int pageIndex = 0, int pageSize = int.MaxValue)
         {
-            var query = _customerRepository.Table;
+            //var query = _customerRepository.Table.Where(_ => _.Username != null && _.Email != null);
+            var query = GetAllCustomersByCache();
             if (createdFromUtc.HasValue)
                 query = query.Where(c => createdFromUtc.Value <= c.CreatedOnUtc);
             if (createdToUtc.HasValue)
@@ -329,12 +334,13 @@ namespace Nop.Services.Customers
             //search by facebook
             if (!string.IsNullOrWhiteSpace(linkFacebook))
             {
-                query = query
-                    .Join(_gaRepository.Table, x => x.Id, y => y.EntityId, (x, y) => new { Customer = x, Attribute = y })
-                    .Where((z => z.Attribute.KeyGroup == "Customer" &&
-                                 (z.Attribute.Key == SystemCustomerAttributeNames.LinkFacebook1 || z.Attribute.Key == SystemCustomerAttributeNames.LinkFacebook2) &&
-                                 z.Attribute.Value.Contains(linkFacebook)))
-                    .Select(z => z.Customer);
+                //query = query
+                //    .Join(_gaRepository.Table, x => x.Id, y => y.EntityId, (x, y) => new { Customer = x, Attribute = y })
+                //    .Where((z => z.Attribute.KeyGroup == "Customer" &&
+                //                 (z.Attribute.Key == SystemCustomerAttributeNames.LinkFacebook1 || z.Attribute.Key == SystemCustomerAttributeNames.LinkFacebook2) &&
+                //                 z.Attribute.Value.Contains(linkFacebook)))
+                //    .Select(z => z.Customer);
+                query = query.Where(_ => _.LinkFacebook1.Contains(linkFacebook) || _.LinkFacebook2.Contains(linkFacebook));
             }
             if (!string.IsNullOrWhiteSpace(username))
                 query = query.Where(c => c.Username.Contains(username));
@@ -356,6 +362,11 @@ namespace Nop.Services.Customers
                         z.Attribute.Value.Contains(lastName)))
                     .Select(z => z.Customer);
             }
+
+            if (!string.IsNullOrEmpty(fullName))
+            {
+                query = query.Where(_ => _.FullName != null && _.FullName.Contains(fullName));
+            }
             //date of birth is stored as a string into database.
             //we also know that date of birth is stored in the following format YYYY-MM-DD (for example, 1983-02-18).
             //so let's search it as a string
@@ -365,7 +376,7 @@ namespace Nop.Services.Customers
                 var dateOfBirthStr = monthOfBirth.ToString("00", CultureInfo.InvariantCulture) + "-" + dayOfBirth.ToString("00", CultureInfo.InvariantCulture);
                 //EndsWith is not supported by SQL Server Compact
                 //so let's use the following workaround http://social.msdn.microsoft.com/Forums/is/sqlce/thread/0f810be1-2132-4c59-b9ae-8f7013c0cc00
-                
+
                 //we also cannot use Length function in SQL Server Compact (not supported in this context)
                 //z.Attribute.Value.Length - dateOfBirthStr.Length = 5
                 //dateOfBirthStr.Length = 5
@@ -382,7 +393,7 @@ namespace Nop.Services.Customers
                 var dateOfBirthStr = dayOfBirth.ToString("00", CultureInfo.InvariantCulture);
                 //EndsWith is not supported by SQL Server Compact
                 //so let's use the following workaround http://social.msdn.microsoft.com/Forums/is/sqlce/thread/0f810be1-2132-4c59-b9ae-8f7013c0cc00
-                
+
                 //we also cannot use Length function in SQL Server Compact (not supported in this context)
                 //z.Attribute.Value.Length - dateOfBirthStr.Length = 8
                 //dateOfBirthStr.Length = 2
@@ -438,7 +449,7 @@ namespace Nop.Services.Customers
             //search by IpAddress
             if (!string.IsNullOrWhiteSpace(ipAddress) && CommonHelper.IsValidIpAddress(ipAddress))
             {
-                    query = query.Where(w => w.LastIpAddress == ipAddress);
+                query = query.Where(w => w.LastIpAddress == ipAddress);
             }
 
             if (loadOnlyWithShoppingCart)
@@ -451,11 +462,73 @@ namespace Nop.Services.Customers
                     query.Where(c => c.ShoppingCartItems.Any(x => x.ShoppingCartTypeId == sctId)) :
                     query.Where(c => c.ShoppingCartItems.Any());
             }
-            
+
             query = query.OrderByDescending(c => c.CreatedOnUtc);
 
             var customers = new PagedList<Customer>(query, pageIndex, pageSize);
             return customers;
+        }
+
+        public IQueryable<Customer> GetAllCustomersByCache(int[] customerRoleIds = null)
+        {
+            var customers = _cacheManager.Get(CUSTOMERS_ALL_KEY, () =>
+            {
+                var query = _customerRepository.Table.Where(_ => _.Username != null && _.Email != null);
+                query = query.Where(c => !c.Deleted);
+                return query;
+            });
+
+            if (customerRoleIds != null && customerRoleIds.Length > 0)
+                customers = customers.Where(c => c.CustomerRoles.Select(cr => cr.Id).Intersect(customerRoleIds).Any());
+            return customers;
+        }
+
+        public List<Customer> SearchCustomersPhoneOrName(string phone = null, string fullName = null, int[] customerRoleIds = null)
+        {
+            var query = _customerRepository.Table.Where(_ => _.Deleted == false && (_.Username != null || _.Username != string.Empty));
+            if (customerRoleIds != null && customerRoleIds.Length > 0)
+                query = query.Where(c => c.CustomerRoles.Select(cr => cr.Id).Intersect(customerRoleIds).Any());
+
+            query = query.Where(_ => (string.IsNullOrEmpty(phone) == false && _.Phone.Contains(phone)) || (string.IsNullOrEmpty(fullName) == false && _.FullName.Contains(fullName)));
+            return query.OrderBy(_ => _.FullName).ToList();
+        }
+        public List<Customer> SearchCustomers(string phone = null, string email = null, string linkFacebook = null, string username = null,
+            string fullName = null)
+        {
+            var query = _customerRepository.Table.Where(_ => _.Deleted == false && (_.Username != null || _.Username != string.Empty));
+            if (!string.IsNullOrEmpty(email))
+            {
+                //query = query.Where(_ => _.Email != null && _.Email.ToUpperInvariant().Contains(email.ToUpperInvariant()));
+                query = query.Where(_ => _.Email != null && _.Email.Contains(email));
+            }
+
+            if (!string.IsNullOrEmpty(phone))
+            {
+                //query = query.Where(_ => _.Phone != null && _.Phone.ToUpperInvariant().Contains(phone.ToUpperInvariant()));
+                query = query.Where(_ => _.Phone != null && _.Phone.Contains(phone));
+            }
+
+            if (!string.IsNullOrEmpty(username))
+            {
+                //query = query.Where(_ => _.Username != null && _.Username.ToUpperInvariant().Contains(username.ToUpperInvariant()));
+                query = query.Where(_ => _.Username != null && _.Username.Contains(username));
+            }
+
+            if (!string.IsNullOrEmpty(fullName))
+            {
+                //query = query.Where(_ => _.FullName != null && _.FullName.ToUpperInvariant().Contains(fullName.ToUpperInvariant()));
+                query = query.Where(_ => _.FullName != null && _.FullName.Contains(fullName));
+            }
+
+            if (!string.IsNullOrEmpty(linkFacebook))
+            {
+                //query = query.Where(_ => _.LinkFacebook1 != null && _.LinkFacebook1.ToUpperInvariant().Contains(linkFacebook.ToUpperInvariant())
+                //                         || _.LinkFacebook2 != null && _.LinkFacebook2.ToUpperInvariant().Contains(linkFacebook.ToUpperInvariant()));
+                query = query.Where(_ => _.LinkFacebook1 != null && _.LinkFacebook1.Contains(linkFacebook)
+                                         || _.LinkFacebook2 != null && _.LinkFacebook2.Contains(linkFacebook));
+            }
+
+            return query.OrderBy(_ => _.FullName).ToList();
         }
 
         /// <summary>
@@ -474,7 +547,7 @@ namespace Nop.Services.Customers
             query = query.Where(c => !c.Deleted);
             if (customerRoleIds != null && customerRoleIds.Length > 0)
                 query = query.Where(c => c.CustomerRoles.Select(cr => cr.Id).Intersect(customerRoleIds).Any());
-            
+
             query = query.OrderByDescending(c => c.LastActivityDateUtc);
             var customers = new PagedList<Customer>(query, pageIndex, pageSize);
             return customers;
@@ -503,7 +576,6 @@ namespace Nop.Services.Customers
             }
 
             UpdateCustomer(customer);
-
             //event notification
             _eventPublisher.EntityDeleted(customer);
         }
@@ -517,7 +589,7 @@ namespace Nop.Services.Customers
         {
             if (customerId == 0)
                 return null;
-            
+
             return _customerRepository.GetById(customerId);
         }
 
@@ -545,7 +617,7 @@ namespace Nop.Services.Customers
             }
             return sortedCustomers;
         }
-        
+
         /// <summary>
         /// Gets a customer by GUID
         /// </summary>
@@ -617,7 +689,7 @@ namespace Nop.Services.Customers
             var customer = query.FirstOrDefault();
             return customer;
         }
-        
+
         /// <summary>
         /// Insert a guest customer
         /// </summary>
@@ -642,7 +714,7 @@ namespace Nop.Services.Customers
 
             return customer;
         }
-        
+
         /// <summary>
         /// Insert a customer
         /// </summary>
@@ -654,10 +726,11 @@ namespace Nop.Services.Customers
 
             _customerRepository.Insert(customer);
 
+            _cacheManager.RemoveByPattern(CUSTOMERS_PATTERN_KEY);
             //event notification
             _eventPublisher.EntityInserted(customer);
         }
-        
+
         /// <summary>
         /// Updates the customer
         /// </summary>
@@ -669,6 +742,8 @@ namespace Nop.Services.Customers
 
             _customerRepository.Update(customer);
 
+
+            _cacheManager.RemoveByPattern(CUSTOMERS_PATTERN_KEY);
             //event notification
             _eventPublisher.EntityUpdated(customer);
         }
@@ -690,7 +765,7 @@ namespace Nop.Services.Customers
         {
             if (customer == null)
                 throw new ArgumentNullException();
-            
+
             //clear entered coupon codes
             if (clearCouponCodes)
             {
@@ -723,7 +798,7 @@ namespace Nop.Services.Customers
             {
                 _genericAttributeService.SaveAttribute<string>(customer, SystemCustomerAttributeNames.SelectedPaymentMethod, null, storeId);
             }
-            
+
             UpdateCustomer(customer);
         }
 
@@ -747,8 +822,21 @@ namespace Nop.Services.Customers
             return DeleteGuestCustomersUseLinq(createdFromUtc, createdToUtc, onlyWithoutShoppingCart);
         }
 
+        public virtual int DeleteEmptyCustomers()
+        {
+            var query = _customerRepository.Table.Where(_ => _.Username == null && _.Email == null);
+            var count = 0;
+            foreach (var customer in query.ToList())
+            {
+                _customerRepository.Delete(customer);
+                count++;
+            }
+
+            return count;
+        }
+
         #endregion
-        
+
         #region Customer roles
 
         /// <summary>
@@ -824,7 +912,7 @@ namespace Nop.Services.Customers
                 return customerRoles;
             });
         }
-        
+
         /// <summary>
         /// Inserts a customer role
         /// </summary>
@@ -870,7 +958,7 @@ namespace Nop.Services.Customers
         /// <param name="passwordFormat">Password format; pass null to load all records</param>
         /// <param name="passwordsToReturn">Number of returning passwords; pass null to load all records</param>
         /// <returns>List of customer passwords</returns>
-        public virtual IList<CustomerPassword> GetCustomerPasswords(int? customerId = null, 
+        public virtual IList<CustomerPassword> GetCustomerPasswords(int? customerId = null,
             PasswordFormat? passwordFormat = null, int? passwordsToReturn = null)
         {
             var query = _customerPasswordRepository.Table;

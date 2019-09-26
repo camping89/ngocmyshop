@@ -1,8 +1,9 @@
-using System;
-using System.Collections.Generic;
 using Nop.Core;
 using Nop.Core.Domain.Customers;
 using Nop.Core.Domain.Orders;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Nop.Services.Customers
 {
@@ -40,12 +41,13 @@ namespace Nop.Services.Customers
         IPagedList<Customer> GetAllCustomers(DateTime? createdFromUtc = null,
             DateTime? createdToUtc = null, int affiliateId = 0, int vendorId = 0,
             int[] customerRoleIds = null, string email = null, string linkFacebook = null, string username = null,
-            string firstName = null, string lastName = null,
+            string firstName = null, string lastName = null, string fullName = null,
             int dayOfBirth = 0, int monthOfBirth = 0,
             string company = null, string phone = null, string zipPostalCode = null,
             string ipAddress = null, bool loadOnlyWithShoppingCart = false, ShoppingCartType? sct = null,
             int pageIndex = 0, int pageSize = int.MaxValue);
 
+        IQueryable<Customer> GetAllCustomersByCache(int[] customerRoleIds = null);
         /// <summary>
         /// Gets online customers
         /// </summary>
@@ -57,6 +59,11 @@ namespace Nop.Services.Customers
         IPagedList<Customer> GetOnlineCustomers(DateTime lastActivityFromUtc,
             int[] customerRoleIds, int pageIndex = 0, int pageSize = int.MaxValue);
 
+
+        List<Customer> SearchCustomersPhoneOrName(string phone = null, string fullName = null, int[] customerRoleIds = null);
+
+        List<Customer> SearchCustomers(string phone = null, string email = null, string linkFacebook = null, string username = null,
+            string fullName = null);
         /// <summary>
         /// Delete a customer
         /// </summary>
@@ -76,7 +83,7 @@ namespace Nop.Services.Customers
         /// <param name="customerIds">Customer identifiers</param>
         /// <returns>Customers</returns>
         IList<Customer> GetCustomersByIds(int[] customerIds);
-        
+
         /// <summary>
         /// Gets a customer by GUID
         /// </summary>
@@ -90,7 +97,7 @@ namespace Nop.Services.Customers
         /// <param name="email">Email</param>
         /// <returns>Customer</returns>
         Customer GetCustomerByEmail(string email);
-        
+
         /// <summary>
         /// Get customer by system role
         /// </summary>
@@ -122,7 +129,7 @@ namespace Nop.Services.Customers
         /// </summary>
         /// <param name="customer">Customer</param>
         void UpdateCustomer(Customer customer);
-        
+
         /// <summary>
         /// Reset data required for checkout
         /// </summary>
@@ -146,6 +153,7 @@ namespace Nop.Services.Customers
         /// <param name="onlyWithoutShoppingCart">A value indicating whether to delete customers only without shopping cart</param>
         /// <returns>Number of deleted customers</returns>
         int DeleteGuestCustomers(DateTime? createdFromUtc, DateTime? createdToUtc, bool onlyWithoutShoppingCart);
+        int DeleteEmptyCustomers();
 
         #endregion
 

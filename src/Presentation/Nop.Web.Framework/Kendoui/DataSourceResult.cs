@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using System.Collections.Generic;
 
 namespace Nop.Web.Framework.Kendoui
 {
@@ -7,6 +8,10 @@ namespace Nop.Web.Framework.Kendoui
     /// </summary>
     public class DataSourceResult
     {
+        public DataSourceResult()
+        {
+            TotalIds = new List<int>();
+        }
         /// <summary>
         /// Extra data
         /// </summary>
@@ -26,5 +31,7 @@ namespace Nop.Web.Framework.Kendoui
         /// Total records
         /// </summary>
         public int Total { get; set; }
+
+        public List<int> TotalIds { get; set; }
     }
 }

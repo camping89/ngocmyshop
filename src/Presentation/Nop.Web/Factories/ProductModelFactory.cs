@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using System.Net;
-using Microsoft.AspNetCore.Mvc.Rendering;
+﻿using Microsoft.AspNetCore.Mvc.Rendering;
 using Nop.Core;
 using Nop.Core.Caching;
 using Nop.Core.Domain.Catalog;
@@ -29,6 +24,11 @@ using Nop.Web.Infrastructure.Cache;
 using Nop.Web.Models.Catalog;
 using Nop.Web.Models.Common;
 using Nop.Web.Models.Media;
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
+using System.Net;
 
 namespace Nop.Web.Factories
 {
@@ -38,7 +38,7 @@ namespace Nop.Web.Factories
     public partial class ProductModelFactory : IProductModelFactory
     {
         #region Fields
-        
+
         private readonly ISpecificationAttributeService _specificationAttributeService;
         private readonly ICategoryService _categoryService;
         private readonly IManufacturerService _manufacturerService;
@@ -211,17 +211,17 @@ namespace Nop.Web.Factories
             switch (product.ProductType)
             {
                 case ProductType.GroupedProduct:
-                {
-                    //grouped product
-                    PrepareGroupedProductOverviewPriceModel(product, priceModel);
-                }
+                    {
+                        //grouped product
+                        PrepareGroupedProductOverviewPriceModel(product, priceModel);
+                    }
                     break;
                 case ProductType.SimpleProduct:
                 default:
-                {
-                    //simple product
-                    PrepareSimpleProductOverviewPriceModel(product, priceModel);
-                }
+                    {
+                        //simple product
+                        PrepareSimpleProductOverviewPriceModel(product, priceModel);
+                    }
                     break;
             }
 
@@ -578,6 +578,11 @@ namespace Nop.Web.Factories
                 if (product.CustomerEntersPrice)
                 {
                     model.CustomerEntersPrice = true;
+                    model.Price = _priceFormatter.FormatPrice(product.Price);
+                    model.BasePrice = product.UnitPriceUsd;
+                    model.PriceValue = product.Price;
+                    var currency = _currencyService.GetCurrencyById(product.CurrencyId);
+                    model.CurrencyCode = currency?.CurrencyCode;
                 }
                 else
                 {
@@ -619,8 +624,9 @@ namespace Nop.Web.Factories
                             _localizationService, _measureService, _currencyService, _workContext, _priceFormatter);
 
                         //currency code
-                        model.CurrencyCode = _workContext.WorkingCurrency.CurrencyCode;
-
+                        //model.CurrencyCode = _workContext.WorkingCurrency.CurrencyCode;
+                        var currency = _currencyService.GetCurrencyById(product.CurrencyId);
+                        model.CurrencyCode = currency?.CurrencyCode;
                         //rental
                         if (product.IsRental)
                         {
@@ -775,6 +781,9 @@ namespace Nop.Web.Factories
                         .ToList();
                 }
 
+                var currency = _currencyService.GetCurrencyById(product.CurrencyId);
+
+
                 if (attribute.ShouldHaveValues())
                 {
                     //values
@@ -804,6 +813,18 @@ namespace Nop.Web.Factories
                                 valueModel.PriceAdjustment = "-" + _priceFormatter.FormatPrice(-priceAdjustment, false, false);
 
                             valueModel.PriceAdjustmentValue = priceAdjustment;
+                        }
+
+                        //display base price if allowed
+                        if (_permissionService.Authorize(StandardPermissionProvider.DisplayPrices))
+                        {
+                            var attributeValueBasePriceAdjustment = _priceCalculationService.GetProductAttributeValueBasePriceAdjustment(attributeValue);
+                            if (attributeValueBasePriceAdjustment > decimal.Zero)
+                                valueModel.BasePriceAdjustment = "+" + _priceFormatter.FormatPrice(attributeValueBasePriceAdjustment, false, currency);
+                            else if (attributeValueBasePriceAdjustment < decimal.Zero)
+                                valueModel.BasePriceAdjustment = "-" + _priceFormatter.FormatPrice(-attributeValueBasePriceAdjustment, false, currency);
+
+                            valueModel.BasePriceAdjustmentValue = attributeValueBasePriceAdjustment;
                         }
 
                         //"image square" picture (with with "image squares" attribute type only)
@@ -1274,8 +1295,8 @@ namespace Nop.Web.Factories
             {
                 model.ProductTags = PrepareProductTagModels(product);
             }
-            
-           //pictures
+
+            //pictures
             model.DefaultPictureZoomEnabled = _mediaSettings.DefaultPictureZoomEnabled;
             model.DefaultPictureModel = PrepareProductDetailsPictureModel(product, isAssociatedProduct, out IList<PictureModel> allPictureModels);
             model.PictureModels = allPictureModels;
@@ -1313,7 +1334,7 @@ namespace Nop.Web.Factories
 
             //product attributes
             model.ProductAttributes = PrepareProductAttributeModels(product, updatecartitem);
-            
+
             //product specifications
             //do not prepare this model for the associated products. anyway it's not used
             if (!isAssociatedProduct)
@@ -1429,9 +1450,9 @@ namespace Nop.Web.Factories
                 pageIndex = page.Value - 1;
             }
 
-            var list = _productService.GetAllProductReviews(customerId: _workContext.CurrentCustomer.Id, 
-                approved: null, 
-                pageIndex: pageIndex, 
+            var list = _productService.GetAllProductReviews(customerId: _workContext.CurrentCustomer.Id,
+                approved: null,
+                pageIndex: pageIndex,
                 pageSize: pageSize);
 
             var productReviews = new List<CustomerProductReviewModel>();

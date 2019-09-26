@@ -185,6 +185,10 @@
                                     <i class="fa fa-search"></i>
                                     @T("Admin.Common.Search")
                                 </button>
+                                <button type="button" id="clear-filter" class="btn btn-danger btn-search">
+                                    <i class="fa fa-recycle"></i>
+                                    @T("Admin.Common.ClearFilter")
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -263,7 +267,7 @@
                                             title: "@T("Admin.Catalog.Products.Fields.UnitPriceBase")",
                                             width: 150,
                                             //if not a grouped product, then display
-                                            template: '# if(ProductTypeId != @((int) ProductType.GroupedProduct)) {# #: kendo.toString(UnitPriceUsd, "n0")# #}  #'
+                                            template: '# if(UnitPriceUsd > 0) {# #: kendo.toString(UnitPriceUsd, "n2")# #}else {# <p></p> #} #'
                                         },
                                         {
                                             field: "CurrencyMappedName",
@@ -274,35 +278,48 @@
                                             field: "OrderingFee",
                                             title: "@T("Admin.Catalog.Products.Fields.OrderingFee")",
                                             width: 100,
-                                            template: '# if(ProductTypeId != @((int) ProductType.GroupedProduct)) {# #: kendo.toString(OrderingFee, "n0")# #}  #'
+                                            template: '# if(OrderingFee > 0) {# #: kendo.toString(OrderingFee, "n0")# #}else {# <p></p> #} #'
                                         },
                                         {
                                             field: "WeightCost",
                                             title: "@T("Admin.Catalog.Products.Fields.WeightCost")",
                                             width: 100,
-                                            template: '# if(ProductTypeId != @((int) ProductType.GroupedProduct)) {# #: kendo.toString(WeightCost, "n0")# #}  #'
-                                        }, {
+                                            template: '# if(WeightCost > 0) {# #: kendo.toString(WeightCost, "n0")# #}else {# <p></p> #} #'
+                                        },
+                                        {
+                                            field: "SaleOffPercent",
+                                            title: "@T("Admin.Catalog.Products.Fields.SaleOffPercent")",
+                                            width: 100
+                                        },
+                                        {
+                                            field: "SaleOffPercent",
+                                            title: "@T("Admin.Catalog.Products.Fields.TotalDiscounted")",
+                                            width: 100,
+                                            template: '# if((Price*SaleOffPercent/100) > 0){# #: kendo.toString((Price*SaleOffPercent/100), "n0")# #}else {# <p></p> #} #'
+                                        },
+                                        {
                                             field: "Price",
                                             title: "@T("Admin.Catalog.Products.Fields.PriceVnd")",
                                             width: 150,
                                             //if not a grouped product, then display
-                                            template: '# if(ProductTypeId != @((int) ProductType.GroupedProduct)) {# #:kendo.toString(Price, "n0")# #}  #'
+                                            template: '# if(Price > 0) {# #:kendo.toString(Price, "n0")# #}else {# <p></p> #}  #'
                                         },
                                         {
                                             title: "@T("Admin.Catalog.Products.Fields.Total")",
                                             width: 100,
-                                            template: '# if(ProductTypeId != @((int) ProductType.GroupedProduct)) {# #: kendo.toString((WeightCost + Price + OrderingFee), "n0")# #}  #'
+                                            template: '# if((WeightCost + Price + OrderingFee) > 0) {# #: kendo.toString((WeightCost + Price + OrderingFee), "n0")# #}else {# <p></p> #}  #'
                                         },
-                                        @*{
+                                        {
                                             field: "StockQuantityStr",
                                             title: "@T("Admin.Catalog.Products.Fields.StockQuantity")",
                                             width: 100
-                                        }, {
+                                        },
+                                        @*{
                                             field: "ProductTypeName",
                                             title: "@T("Admin.Catalog.Products.Fields.ProductType")",
                                             width: 100
-                                        },
-                                        {
+                                        },*@
+                                        @*{
                                             field: "Published",
                                             title: "@T("Admin.Catalog.Products.Fields.Published")",
                                             width: 100,
@@ -341,6 +358,15 @@
                 selectedIds = [];
                 return false;
             });
+
+
+            $("#clear-filter").click(function() {
+                $('#@Html.IdFor(model => model.SearchProductName)').val('');
+                $('#@Html.IdFor(model => model.GoDirectlyToSku)').val('');
+                $("#search-products").click();
+            });
+
+
 
             $("#@Html.IdFor(model => model.SearchProductName)").keydown(function (event) {
                 if (event.keyCode === 13) {

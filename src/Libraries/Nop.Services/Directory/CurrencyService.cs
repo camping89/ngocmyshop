@@ -124,7 +124,7 @@ namespace Nop.Services.Directory
         /// <param name="currencyId">Currency identifier</param>
         /// <param name="loadCacheableCopy">A value indicating whether to load a copy that could be cached (workaround until Entity Framework supports 2-level caching)</param>
         /// <returns>Currency</returns>
-        public virtual Currency GetCurrencyById(int currencyId, bool loadCacheableCopy = true)
+        public virtual Currency GetCurrencyById(int currencyId, bool loadCacheableCopy = false)
         {
             //if (currencyId == 0)
             //    return null;
@@ -156,7 +156,7 @@ namespace Nop.Services.Directory
         /// <param name="currencyCode">Currency code</param>
         /// <param name="loadCacheableCopy">A value indicating whether to load a copy that could be cached (workaround until Entity Framework supports 2-level caching)</param>
         /// <returns>Currency</returns>
-        public virtual Currency GetCurrencyByCode(string currencyCode, bool loadCacheableCopy = true)
+        public virtual Currency GetCurrencyByCode(string currencyCode, bool loadCacheableCopy = false)
         {
             if (string.IsNullOrEmpty(currencyCode))
                 return null;

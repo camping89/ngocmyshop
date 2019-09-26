@@ -35,7 +35,6 @@ using Nop.Services.Tax;
 using Nop.Services.Vendors;
 using Nop.Web.Areas.Admin.Extensions;
 using Nop.Web.Areas.Admin.Helpers;
-using Nop.Web.Areas.Admin.Models.Common;
 using Nop.Web.Areas.Admin.Models.Customers;
 using Nop.Web.Areas.Admin.Models.ShoppingCart;
 using Nop.Web.Extensions;
@@ -50,6 +49,7 @@ using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Text;
+using AddressModel = Nop.Web.Areas.Admin.Models.Common.AddressModel;
 
 namespace Nop.Web.Areas.Admin.Controllers
 {
@@ -268,7 +268,7 @@ namespace Nop.Web.Areas.Admin.Controllers
 
         protected virtual CustomerModel PrepareCustomerModelForList(Customer customer)
         {
-            return new CustomerModel
+            var result = new CustomerModel
             {
                 Id = customer.Id,
                 Email = customer.IsRegistered() ? customer.Email : _localizationService.GetResource("Admin.Customers.Guest"),
@@ -284,6 +284,11 @@ namespace Nop.Web.Areas.Admin.Controllers
                 LinkFacebook1 = customer.GetAttribute<string>(SystemCustomerAttributeNames.LinkFacebook1),
                 LinkFacebook2 = customer.GetAttribute<string>(SystemCustomerAttributeNames.LinkFacebook2),
             };
+            if (string.IsNullOrEmpty(result.LinkFacebook1) == false)
+            {
+                result.LinkFacebook1 = result.LinkFacebook1.Split('/').LastOrDefault()?.Split('?').FirstOrDefault();
+            }
+            return result;
         }
 
         protected virtual string ValidateCustomerRoles(IList<CustomerRole> customerRoles)
@@ -722,6 +727,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             model.Address.CountryRequired = _addressSettings.CountryEnabled; //country is required when enabled
             model.Address.StateProvinceEnabled = _addressSettings.StateProvinceEnabled;
             model.Address.CityEnabled = _addressSettings.CityEnabled;
+
             model.Address.CityRequired = _addressSettings.CityRequired;
             model.Address.StreetAddressEnabled = _addressSettings.StreetAddressEnabled;
             model.Address.StreetAddressRequired = _addressSettings.StreetAddressRequired;
@@ -733,6 +739,9 @@ namespace Nop.Web.Areas.Admin.Controllers
             model.Address.PhoneRequired = _addressSettings.PhoneRequired;
             model.Address.FaxEnabled = _addressSettings.FaxEnabled;
             model.Address.FaxRequired = _addressSettings.FaxRequired;
+
+            model.Address.AvailableCities = SelectListHelper.GetStateProvinceSelectListItems(_stateProvinceService, model.Address.District);
+
             //countries
             model.Address.AvailableCountries.Add(new SelectListItem { Text = _localizationService.GetResource("Admin.Address.SelectCountry"), Value = "0" });
             foreach (var c in _countryService.GetAllCountries(showHidden: true))
@@ -760,6 +769,7 @@ namespace Nop.Web.Areas.Admin.Controllers
         #endregion
 
         #region Customers
+
 
         public virtual IActionResult Index()
         {
@@ -816,6 +826,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 username: model.SearchUsername,
                 firstName: model.SearchFirstName,
                 lastName: model.SearchLastName,
+                fullName: model.SearchFullName,
                 linkFacebook: model.SearchLinkFacebookUser,
                 dayOfBirth: searchDayOfBirth,
                 monthOfBirth: searchMonthOfBirth,
@@ -835,31 +846,73 @@ namespace Nop.Web.Areas.Admin.Controllers
             return Json(gridModel);
         }
 
+        [HttpGet]
+        public virtual IActionResult ReBuildCustomerData()
+        {
+            var customers = _customerService.GetAllCustomers();
+            var customerResult = customers.Select(PrepareCustomerModelForList).ToList();
+            foreach (var customer in customers)
+            {
+                var customerModel = customerResult.FirstOrDefault(_ => _.Id == customer.Id);
+                if (customerModel != null)
+                {
+                    customer.Phone = customerModel.Phone;
+                    customer.FullName = customerModel.FullName;
+                    customer.LinkFacebook1 = customerModel.LinkFacebook1;
+                    customer.LinkFacebook2 = customerModel.LinkFacebook2;
+
+                    _customerService.UpdateCustomer(customer);
+                }
+            }
+
+            return new NullJsonResult();
+        }
+
+        [HttpPost]
+        public virtual IActionResult CustomerSearchPhoneAndFullName(string searchTerm)
+        {
+            var customers = _customerService.SearchCustomersPhoneOrName(phone: searchTerm, fullName: searchTerm, new int[] { CustomerRoleEnum.Customer.ToInt(), CustomerRoleEnum.Registered.ToInt() });
+            var result = customers.Select(_ => new { Id = _.Id, Phone = _.Phone, FullName = _.FullName + " - " + _.Phone }).ToArray();
+            return Json(new { Data = result });
+        }
+
+        [HttpGet]
+        public virtual IActionResult CustomerFilterPhoneAndFullName()
+        {
+            var requestFilter = Request.Query.FirstOrDefault(_ => _.Key.Contains("filter[filters][0][value]")).Value;
+            var customers = _customerService.SearchCustomersPhoneOrName(phone: requestFilter, fullName: requestFilter, new int[] { CustomerRoleEnum.Customer.ToInt(), CustomerRoleEnum.Registered.ToInt() });
+            customers = customers.ToList();
+            customers.Insert(0, new Customer() { Id = 0, FullName = _localizationService.GetResource("Admin.Common.NotSetCustomer") });
+            var result = customers.Select(_ => new { CustomerId = _.Id, CustomerName = _.FullName + " - " + _.Phone }).ToArray();
+            return Json(result);
+        }
+
         [HttpPost]
         public virtual IActionResult CustomerSearch(string searchTerm)
         {
-            var customers = _customerService.GetAllCustomers();
-            var customerResult = customers.Select(PrepareCustomerModelForList);
-            var result = customerResult.Where(t => t.FullName.ToLowerInvariant().Contains(searchTerm.ToLowerInvariant())).Select(_ => new { Id = _.Id, Phone = _.Phone, FullName = _.FullName + " - " + _.Phone }).ToArray();
+            var customers = _customerService.SearchCustomers(fullName: searchTerm);
+            //var customerResult = customers.Select(PrepareCustomerModelForList);
+            var result = customers.Select(_ => new { Id = _.Id, Phone = _.Phone, FullName = _.FullName + " - " + _.Phone }).ToArray();
             return Json(new { Data = result });
         }
 
         [HttpPost]
         public virtual IActionResult CustomerSearchPhone(string searchTerm)
         {
-            var customers = _customerService.GetAllCustomers();
-            var customerResult = customers.Select(PrepareCustomerModelForList);
-            var result = customerResult.Where(t => !string.IsNullOrEmpty(t.Phone) && t.Phone.ToLowerInvariant().Contains(searchTerm.ToLowerInvariant())).Select(_ => new { Id = _.Id, Phone = _.Phone, FullName = _.FullName + " - " + _.Phone }).ToArray();
+            //var customers = _customerService.GetAllCustomers();
+            //var customerResult = customers.Select(PrepareCustomerModelForList);
+            var customers = _customerService.SearchCustomers(phone: searchTerm);
+            var result = customers.Select(_ => new { Id = _.Id, Phone = _.Phone, FullName = _.FullName + " - " + _.Phone }).ToArray();
             return Json(new { Data = result });
         }
 
         [HttpPost]
         public virtual IActionResult CustomerSearchFacebook(string searchTerm)
         {
-            var customers = _customerService.GetAllCustomers();
-            var customerResult = customers.Select(PrepareCustomerModelForList);
-            var result = customerResult.Where(t => (!string.IsNullOrEmpty(t.LinkFacebook1) && t.LinkFacebook1.ToLowerInvariant().Contains(searchTerm.ToLowerInvariant()))
-                                               || (!string.IsNullOrEmpty(t.LinkFacebook2) && t.LinkFacebook2.ToLowerInvariant().Contains(searchTerm.ToLowerInvariant()))).Select(_ => new { Id = _.Id, FullName = _.FullName + " - " + _.LinkFacebook1 }).ToArray();
+            //var customers = _customerService.GetAllCustomers();
+            //var customerResult = customers.Select(PrepareCustomerModelForList);
+            var customers = _customerService.SearchCustomers(linkFacebook: searchTerm);
+            var result = customers.Select(_ => new { Id = _.Id, FullName = _.FullName + " - " + _.LinkFacebook1 }).ToArray();
             return Json(new { Data = result });
         }
         public virtual IActionResult Create()
@@ -880,31 +933,47 @@ namespace Nop.Web.Areas.Admin.Controllers
         [FormValueRequired("save", "save-continue")]
         public virtual IActionResult Create(CustomerModel model, bool continueEditing)
         {
+
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageCustomers))
                 return AccessDeniedView();
+            if (!string.IsNullOrEmpty(model.Username))
+            {
+                model.Username = model.Username.Replace(" ", "").Trim();
+            }
             if (!string.IsNullOrEmpty(model.Phone))
             {
-                model.Username = model.Phone;
+                model.Phone = model.Phone.Replace(" ", "").Trim();
+                if (string.IsNullOrEmpty(model.Username))
+                {
+                    model.Username = model.Phone;
+                }
             }
-            //if (!string.IsNullOrWhiteSpace(model.Email))
-            //{
-            //    var cust2 = _customerService.GetCustomerByEmail(model.Email);
-            //    if (cust2 != null)
-            //        ModelState.AddModelError("", "Email is already registered");
-            //}
+            if (!string.IsNullOrWhiteSpace(model.Email))
+            {
+                var cust2 = _customerService.GetCustomerByEmail(model.Email);
+                if (cust2 != null)
+                    ModelState.AddModelError("", _localizationService.GetResource("Admin.Customers.Customers.Error.ExistingEmail"));
+            }
+
             if (!string.IsNullOrWhiteSpace(model.Username) & _customerSettings.UsernamesEnabled)
             {
                 var cust2 = _customerService.GetCustomerByUsername(model.Username);
                 if (cust2 != null)
-                    ModelState.AddModelError("", _localizationService.GetResource("Admin.Customers.Customers.Error.EmailAlreadyRegisted"));
+                    ModelState.AddModelError("", _localizationService.GetResource("Admin.Customers.Customers.Error.ExistingUsername"));
             }
             if (!string.IsNullOrEmpty(model.FullName))
             {
                 var customerFirstLastName = StringExtensions.GetFirstLastNameFromFullName(model.FullName);
                 model.FirstName = customerFirstLastName.FirstName;
                 model.LastName = customerFirstLastName.LastName;
-                model.Email = StringExtensions.GenerateEmailAddress(customerFirstLastName.FirstName, customerFirstLastName.LastName);
+                if (string.IsNullOrEmpty(model.Email))
+                {
+                    model.Email = StringExtensions.GenerateEmailAddress(customerFirstLastName.FirstName, customerFirstLastName.LastName);
+                }
             }
+
+
+
             //validate customer roles
             var allCustomerRoles = _customerService.GetAllCustomerRoles(true);
             var newCustomerRoles = new List<CustomerRole>();
@@ -951,7 +1020,28 @@ namespace Nop.Web.Areas.Admin.Controllers
                     LastActivityDateUtc = DateTime.UtcNow,
                     RegisteredInStoreId = _storeContext.CurrentStore.Id
                 };
+
+                customer.Phone = model.Phone;
+                customer.FullName = model.FullName;
+                customer.LinkFacebook1 = model.LinkFacebook1;
+                customer.LinkFacebook2 = model.LinkFacebook2;
+
                 _customerService.InsertCustomer(customer);
+
+
+                //customer roles
+                foreach (var customerRole in newCustomerRoles)
+                {
+                    //ensure that the current customer cannot add to "Administrators" system role if he's not an admin himself
+                    if (customerRole.SystemName == SystemCustomerRoleNames.Administrators &&
+                        !_workContext.CurrentCustomer.IsAdmin())
+                        continue;
+
+                    customer.CustomerRoles.Add(customerRole);
+                }
+                _customerService.UpdateCustomer(customer);
+
+
 
                 //Create Address Default
                 var addressCustomer = new Address
@@ -959,6 +1049,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                     FirstName = model.FirstName,
                     LastName = model.LastName,
                     Address1 = "Chưa xác định",
+                    City = "Chưa xác định",
                     PhoneNumber = model.Phone
                 };
                 _addressService.InsertAddress(addressCustomer);
@@ -1049,19 +1140,6 @@ namespace Nop.Web.Areas.Admin.Controllers
                     }
                 }
 
-                //customer roles
-                foreach (var customerRole in newCustomerRoles)
-                {
-                    //ensure that the current customer cannot add to "Administrators" system role if he's not an admin himself
-                    if (customerRole.SystemName == SystemCustomerRoleNames.Administrators &&
-                        !_workContext.CurrentCustomer.IsAdmin())
-                        continue;
-
-                    customer.CustomerRoles.Add(customerRole);
-                }
-                _customerService.UpdateCustomer(customer);
-
-
                 //ensure that a customer with a vendor associated is not in "Administrators" role
                 //otherwise, he won't have access to other functionality in admin area
                 if (customer.IsAdmin() && customer.VendorId > 0)
@@ -1127,6 +1205,15 @@ namespace Nop.Web.Areas.Admin.Controllers
 
             var customer = _customerService.GetCustomerById(model.Id);
 
+            if (!string.IsNullOrEmpty(model.Username))
+            {
+                model.Username = model.Username.Replace(" ", "").Trim();
+            }
+            if (!string.IsNullOrEmpty(model.Phone))
+            {
+                model.Phone = model.Phone.Replace(" ", "").Trim();
+                model.Username = model.Phone;
+            }
 
             if (!string.IsNullOrEmpty(model.FullName))
             {
@@ -1204,6 +1291,11 @@ namespace Nop.Web.Areas.Admin.Controllers
                             customer.Username = model.Username;
                         }
                     }
+
+                    customer.Phone = model.Phone;
+                    customer.FullName = model.FullName;
+                    customer.LinkFacebook1 = model.LinkFacebook1;
+                    customer.LinkFacebook2 = model.LinkFacebook2;
 
                     //VAT number
                     if (_taxSettings.EuVatEnabled)
@@ -1782,6 +1874,10 @@ namespace Nop.Web.Areas.Admin.Controllers
                         addressHtmlSb.AppendFormat("{0}<br />", WebUtility.HtmlEncode(model.Address1));
                     if (_addressSettings.StreetAddress2Enabled && !string.IsNullOrEmpty(model.Address2))
                         addressHtmlSb.AppendFormat("{0}<br />", WebUtility.HtmlEncode(model.Address2));
+                    if (_addressSettings.CityEnabled && !string.IsNullOrEmpty(model.Ward))
+                        addressHtmlSb.AppendFormat("{0},", WebUtility.HtmlEncode(model.Ward));
+                    if (_addressSettings.CityEnabled && !string.IsNullOrEmpty(model.District))
+                        addressHtmlSb.AppendFormat("{0},", WebUtility.HtmlEncode(model.District));
                     if (_addressSettings.CityEnabled && !string.IsNullOrEmpty(model.City))
                         addressHtmlSb.AppendFormat("{0},", WebUtility.HtmlEncode(model.City));
                     if (_addressSettings.StateProvinceEnabled && !string.IsNullOrEmpty(model.StateProvinceName))
@@ -1973,6 +2069,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                             OrderTotal = _priceFormatter.FormatPrice(order.OrderTotal, true, false),
                             StoreName = store != null ? store.Name : "Unknown",
                             CreatedOn = _dateTimeHelper.ConvertToUserTime(order.CreatedOnUtc, DateTimeKind.Utc),
+                            EstimatedTimeArrival = order.EstimatedTimeArrival,
                             CustomOrderNumber = order.CustomOrderNumber
                         };
                         return orderModel;

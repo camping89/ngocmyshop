@@ -1149,7 +1149,11 @@ namespace Nop.Services.Orders
                             break;
                     }
 
+
+
                     var now = DateTime.UtcNow;
+                    var basePriceAdjustment = _productAttributeParser.ParseProductAttributeValues(attributesXml).Sum(s => s.BasePriceAdjustment);
+
                     shoppingCartItem = new ShoppingCartItem
                     {
                         ShoppingCartType = shoppingCartType,
@@ -1163,7 +1167,7 @@ namespace Nop.Services.Orders
                         CreatedOnUtc = now,
                         UpdatedOnUtc = now,
                         CurrencyId = product.CurrencyId,
-                        UnitPriceUsd = product.UnitPriceUsd,
+                        UnitPriceUsd = product.UnitPriceUsd + basePriceAdjustment,
                         ExchangeRate = product.ExchangeRate,
                         WeightCost = product.WeightCost,
                         OrderingFee = product.OrderingFee,

@@ -1,18 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Primitives;
-using Nop.Web.Areas.Admin.Extensions;
-using Nop.Web.Areas.Admin.Models.Logging;
 using Nop.Services.Helpers;
 using Nop.Services.Localization;
 using Nop.Services.Logging;
 using Nop.Services.Security;
+using Nop.Web.Areas.Admin.Extensions;
+using Nop.Web.Areas.Admin.Models.Logging;
 using Nop.Web.Framework.Kendoui;
 using Nop.Web.Framework.Mvc;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Nop.Web.Areas.Admin.Controllers
 {
@@ -32,14 +32,14 @@ namespace Nop.Web.Areas.Admin.Controllers
         public ActivityLogController(ICustomerActivityService customerActivityService,
             IDateTimeHelper dateTimeHelper, ILocalizationService localizationService,
             IPermissionService permissionService)
-		{
+        {
             this._customerActivityService = customerActivityService;
             this._dateTimeHelper = dateTimeHelper;
             this._localizationService = localizationService;
             this._permissionService = permissionService;
-		}
+        }
 
-		#endregion 
+        #endregion
 
         #region Activity log types
 
@@ -66,9 +66,9 @@ namespace Nop.Web.Areas.Admin.Controllers
 
             var formKey = "checkbox_activity_types";
             var checkedActivityTypes = !StringValues.IsNullOrEmpty(form[formKey]) ?
-                form[formKey].ToString().Split(new [] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(x => Convert.ToInt32(x)).ToList() : 
+                form[formKey].ToString().Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(x => Convert.ToInt32(x)).ToList() :
                 new List<int>();
-            
+
             var activityTypes = _customerActivityService.GetAllActivityTypes();
             foreach (var activityType in activityTypes)
             {
@@ -119,7 +119,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             var endDateValue = (model.CreatedOnTo == null) ? null
                             : (DateTime?)_dateTimeHelper.ConvertToUtcTime(model.CreatedOnTo.Value, _dateTimeHelper.CurrentTimeZone).AddDays(1);
 
-            var activityLog = _customerActivityService.GetAllActivities(startDateValue, endDateValue,null, model.ActivityLogTypeId, command.Page - 1, command.PageSize, model.IpAddress);
+            var activityLog = _customerActivityService.GetAllActivities(startDateValue, endDateValue, null, model.ActivityLogTypeId, command.Page - 1, command.PageSize, model.IpAddress, model.SearchKeyword);
             var gridModel = new DataSourceResult
             {
                 Data = activityLog.Select(x =>
@@ -127,7 +127,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                     var m = x.ToModel();
                     m.CreatedOn = _dateTimeHelper.ConvertToUserTime(x.CreatedOnUtc, DateTimeKind.Utc);
                     return m;
-                    
+
                 }),
                 Total = activityLog.TotalCount
             };

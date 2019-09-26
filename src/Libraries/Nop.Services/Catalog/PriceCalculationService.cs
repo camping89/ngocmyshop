@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
 using Nop.Core;
 using Nop.Core.Caching;
 using Nop.Core.Domain.Catalog;
@@ -11,6 +7,10 @@ using Nop.Core.Domain.Orders;
 using Nop.Services.Catalog.Cache;
 using Nop.Services.Customers;
 using Nop.Services.Discounts;
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
 
 namespace Nop.Services.Catalog
 {
@@ -51,13 +51,13 @@ namespace Nop.Services.Catalog
         /// <param name="catalogSettings">Catalog settings</param>
         public PriceCalculationService(IWorkContext workContext,
             IStoreContext storeContext,
-            IDiscountService discountService, 
+            IDiscountService discountService,
             ICategoryService categoryService,
             IManufacturerService manufacturerService,
-            IProductAttributeParser productAttributeParser, 
+            IProductAttributeParser productAttributeParser,
             IProductService productService,
             IStaticCacheManager cacheManager,
-            ShoppingCartSettings shoppingCartSettings, 
+            ShoppingCartSettings shoppingCartSettings,
             CatalogSettings catalogSettings)
         {
             this._workContext = workContext;
@@ -71,7 +71,7 @@ namespace Nop.Services.Catalog
             this._shoppingCartSettings = shoppingCartSettings;
             this._catalogSettings = catalogSettings;
         }
-        
+
         #endregion
 
         #region Nested classes
@@ -331,9 +331,9 @@ namespace Nop.Services.Catalog
         /// <param name="discountAmount">Applied discount amount</param>
         /// <param name="appliedDiscounts">Applied discounts</param>
         /// <returns>Final price</returns>
-        public virtual decimal GetFinalPrice(Product product, 
+        public virtual decimal GetFinalPrice(Product product,
             Customer customer,
-            decimal additionalCharge, 
+            decimal additionalCharge,
             bool includeDiscounts,
             int quantity,
             out decimal discountAmount,
@@ -386,10 +386,10 @@ namespace Nop.Services.Catalog
         /// <param name="discountAmount">Applied discount amount</param>
         /// <param name="appliedDiscounts">Applied discounts</param>
         /// <returns>Final price</returns>
-        public virtual decimal GetFinalPrice(Product product, 
+        public virtual decimal GetFinalPrice(Product product,
             Customer customer,
             decimal? overriddenProductPrice,
-            decimal additionalCharge, 
+            decimal additionalCharge,
             bool includeDiscounts,
             int quantity,
             DateTime? rentalStartDate,
@@ -407,11 +407,11 @@ namespace Nop.Services.Catalog
                 product.Id,
                 overriddenProductPrice.HasValue ? overriddenProductPrice.Value.ToString(CultureInfo.InvariantCulture) : null,
                 additionalCharge.ToString(CultureInfo.InvariantCulture),
-                includeDiscounts, 
+                includeDiscounts,
                 quantity,
                 string.Join(",", customer.GetCustomerRoleIds()),
                 _storeContext.CurrentStore.Id);
-             var cacheTime = _catalogSettings.CacheProductPrices ? 60 : 0;
+            var cacheTime = _catalogSettings.CacheProductPrices ? 60 : 0;
             //we do not cache price for rental products
             //otherwise, it can cause memory leaks (to store all possible date period combinations)
             if (product.IsRental)
@@ -528,7 +528,7 @@ namespace Nop.Services.Catalog
         /// <param name="appliedDiscounts">Applied discounts</param>
         /// <returns>Shopping cart unit price (one item)</returns>
         public virtual decimal GetUnitPrice(Product product,
-            Customer customer, 
+            Customer customer,
             ShoppingCartType shoppingCartType,
             int quantity,
             string attributesXml,
@@ -609,8 +609,9 @@ namespace Nop.Services.Catalog
                         product.IsRental ? rentalEndDate : null,
                         out discountAmount, out appliedDiscounts);
                 }
+
             }
-            
+
             //rounding
             if (_shoppingCartSettings.RoundPricesDuringCalculation)
                 finalPrice = RoundingHelper.RoundPrice(finalPrice);
@@ -656,42 +657,45 @@ namespace Nop.Services.Catalog
                 out discountAmount, out appliedDiscounts);
 
             //discount
-            if (appliedDiscounts.Any())
-            {
-                //we can properly use "MaximumDiscountedQuantity" property only for one discount (not cumulative ones)
-                DiscountForCaching oneAndOnlyDiscount = null;
-                if (appliedDiscounts.Count == 1)
-                    oneAndOnlyDiscount = appliedDiscounts.First();
+            //if (appliedDiscounts.Any())
+            //{
+            //    //we can properly use "MaximumDiscountedQuantity" property only for one discount (not cumulative ones)
+            //    DiscountForCaching oneAndOnlyDiscount = null;
+            //    if (appliedDiscounts.Count == 1)
+            //        oneAndOnlyDiscount = appliedDiscounts.First();
 
-                if (oneAndOnlyDiscount != null &&
-                    oneAndOnlyDiscount.MaximumDiscountedQuantity.HasValue &&
-                    shoppingCartItem.Quantity > oneAndOnlyDiscount.MaximumDiscountedQuantity.Value)
-                {
-                    maximumDiscountQty = oneAndOnlyDiscount.MaximumDiscountedQuantity.Value;
-                    //we cannot apply discount for all shopping cart items
-                    var discountedQuantity = oneAndOnlyDiscount.MaximumDiscountedQuantity.Value;
-                    var discountedSubTotal = unitPrice * discountedQuantity;
-                    discountAmount = discountAmount * discountedQuantity;
+            //    if (oneAndOnlyDiscount != null &&
+            //        oneAndOnlyDiscount.MaximumDiscountedQuantity.HasValue &&
+            //        shoppingCartItem.Quantity > oneAndOnlyDiscount.MaximumDiscountedQuantity.Value)
+            //    {
+            //        maximumDiscountQty = oneAndOnlyDiscount.MaximumDiscountedQuantity.Value;
+            //        //we cannot apply discount for all shopping cart items
+            //        var discountedQuantity = oneAndOnlyDiscount.MaximumDiscountedQuantity.Value;
+            //        var discountedSubTotal = unitPrice * discountedQuantity;
+            //        discountAmount = discountAmount * discountedQuantity;
 
-                    var notDiscountedQuantity = shoppingCartItem.Quantity - discountedQuantity;
-                    var notDiscountedUnitPrice = GetUnitPrice(shoppingCartItem, false);
-                    var notDiscountedSubTotal = notDiscountedUnitPrice*notDiscountedQuantity;
+            //        var notDiscountedQuantity = shoppingCartItem.Quantity - discountedQuantity;
+            //        var notDiscountedUnitPrice = GetUnitPrice(shoppingCartItem, false);
+            //        var notDiscountedSubTotal = notDiscountedUnitPrice * notDiscountedQuantity;
 
-                    subTotal = discountedSubTotal + notDiscountedSubTotal;
-                }
-                else
-                {
-                    //discount is applied to all items (quantity)
-                    //calculate discount amount for all items
-                    discountAmount = discountAmount * shoppingCartItem.Quantity;
+            //        subTotal = discountedSubTotal + notDiscountedSubTotal;
+            //    }
+            //    else
+            //    {
+            //        //discount is applied to all items (quantity)
+            //        //calculate discount amount for all items
+            //        discountAmount = discountAmount * shoppingCartItem.Quantity;
 
-                    subTotal = unitPrice * shoppingCartItem.Quantity;
-                }
-            }
-            else
-            {
-                subTotal = unitPrice * shoppingCartItem.Quantity;
-            }
+            //        subTotal = unitPrice * shoppingCartItem.Quantity;
+            //    }
+            //}
+            //else
+            //{
+            //    subTotal = unitPrice * shoppingCartItem.Quantity;
+            //}
+
+            //subTotal += shoppingCartItem.OrderingFee;
+            subTotal = shoppingCartItem.CustomerEnteredPrice * shoppingCartItem.Quantity;
             return subTotal;
         }
 
@@ -751,6 +755,36 @@ namespace Nop.Services.Catalog
                     {
                         //simple attribute
                         adjustment = value.PriceAdjustment;
+                    }
+                    break;
+                case AttributeValueType.AssociatedToProduct:
+                    {
+                        //bundled product
+                        var associatedProduct = _productService.GetProductById(value.AssociatedProductId);
+                        if (associatedProduct != null)
+                        {
+                            adjustment = GetFinalPrice(associatedProduct, _workContext.CurrentCustomer, includeDiscounts: true) * value.Quantity;
+                        }
+                    }
+                    break;
+                default:
+                    break;
+            }
+
+            return adjustment;
+        }
+        public virtual decimal GetProductAttributeValueBasePriceAdjustment(ProductAttributeValue value)
+        {
+            if (value == null)
+                throw new ArgumentNullException(nameof(value));
+
+            var adjustment = decimal.Zero;
+            switch (value.AttributeValueType)
+            {
+                case AttributeValueType.Simple:
+                    {
+                        //simple attribute
+                        adjustment = value.BasePriceAdjustment;
                     }
                     break;
                 case AttributeValueType.AssociatedToProduct:

@@ -5,9 +5,10 @@
 @inject SeoSettings seoSettings
 @{
     Layout = "_AdminPopupLayout";
-
+    var title = !string.IsNullOrEmpty(Model.MetaTitle) ? Model.MetaTitle : Model.Name;
+    ViewBag.Title = title;
     //title
-    Html.AddTitleParts(!string.IsNullOrEmpty(Model.MetaTitle) ? Model.MetaTitle : Model.Name);
+    Html.AddTitleParts(title);
 }
 
 @if (ViewBag.RefreshPage == true)
@@ -46,12 +47,12 @@
 <form asp-controller="ShoppingCart" asp-action="AddProductToCart_Details" asp-route-shoppingCartTypeId="@((int) ShoppingCartType.ShoppingCart)" asp-route-activetab="tab-cart-info" asp-route-customerId="@Model.CustomerId" asp-route-productId="@Model.Id" asp-route-formId="@Context.Request.Query["formId"]" asp-route-btnId="@Context.Request.Query["btnId"]" method="post" id="product-details-form">
     <div class="content-header clearfix">
 
-        <div class="pull-right">
-            <button type="submit" name="save" class="btn bg-blue">
-                <i class="fa fa-shopping-cart"></i>
-                @addToCartText
-            </button>
-        </div>
+        @*<div class="pull-right">
+                <button type="submit" name="save" class="btn bg-blue">
+                    <i class="fa fa-shopping-cart"></i>
+                    @addToCartText
+                </button>
+            </div>*@
     </div>
     <div class="content">
         <div class="form-horizontal">
@@ -89,6 +90,12 @@
                                             @await Html.PartialAsync("_DeliveryInfo", Model)
                                             <!--sample download-->
                                             @await Html.PartialAsync("_DownloadSample", Model)*@
+
+                                        <div class="product-price">
+                                            <strong><span class="price-value-@Model.Id title14 color">@(Model.ProductPrice.Price)</span><span>@Model.ProductPrice.CurrencyCode</span></strong>
+                                            <input type="hidden" value="0" class="addtocart-adjust-@(Model.Id)" name="addtocart_@(Model.Id).adjustusd" />
+
+                                        </div>
                                         <!--attributes-->
                                         @{
                                             var dataDictAttributes = new ViewDataDictionary(ViewData);
@@ -109,11 +116,11 @@
                                         }
                                         <!--price & add to cart-->
                                         @{
-                                            var dataDictPrice = new ViewDataDictionary(ViewData);
-                                            dataDictPrice.TemplateInfo.HtmlFieldPrefix = $"price_{Model.Id}";
-                                            @await Html.PartialAsync("_ProductPrice", Model.ProductPrice, dataDictPrice)
+                                            @*var dataDictPrice = new ViewDataDictionary(ViewData);
+                                                dataDictPrice.TemplateInfo.HtmlFieldPrefix = $"price_{Model.Id}";
+                                                @await Html.PartialAsync("_ProductPrice", Model.ProductPrice, dataDictPrice)
 
-                                            @await Html.PartialAsync("_ProductTierPrices", Model.TierPrices)
+                                                @await Html.PartialAsync("_ProductTierPrices", Model.TierPrices)*@
 
                                             var dataDictAddToCart = new ViewDataDictionary(ViewData);
                                             dataDictAddToCart.TemplateInfo.HtmlFieldPrefix = $"addtocart_{Model.Id}";

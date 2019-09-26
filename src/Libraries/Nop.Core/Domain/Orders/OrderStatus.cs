@@ -31,4 +31,12 @@ namespace Nop.Core.Domain.Orders
         /// </summary>
         Cancelled = 40
     }
+
+    public enum OrderItemStatus
+    {
+        OutOfStock = 0,
+        Available = 1,
+        PriceChanged = 2,
+        OtherReason = 3
+    }
 }

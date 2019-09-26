@@ -1,0 +1,24 @@
+﻿@using Nop.Core.Domain.Catalog
+@model Nop.Web.Models.Catalog.ProductDetailsModel
+@if (!string.IsNullOrWhiteSpace(Model.StockAvailability) || Model.DisplayBackInStockSubscription)
+{
+    if (!string.IsNullOrWhiteSpace(Model.StockAvailability))
+    {
+        <span class="inout-stock in-stock">
+            @*@T("Products.Availability"):*@
+            @if (Model.ManageInventoryMethod != ManageInventoryMethod.ManageStockByAttributes)
+            {
+                <span id="stock-availability-value-@Model.Id"> <b>@Model.StockAvailability</b></span>
+            }
+            else
+            {
+                <span id="stock-availability-value-@Model.Id"> </span>
+            }
+        </span>
+        @*<div class="stock">
+                <span class="label">@T("Products.Availability"):</span>
+                <span class="value" id="stock-availability-value-@Model.Id">@Model.StockAvailability</span>
+            </div>*@
+    }
+    @*@await Html.PartialAsync("_BackInStockSubscription", Model)*@
+}

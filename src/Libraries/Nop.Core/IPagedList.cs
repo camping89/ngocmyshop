@@ -31,5 +31,7 @@ namespace Nop.Core
         /// Has next age
         /// </summary>
         bool HasNextPage { get; }
+
+        List<int> TotalIds { get; set; }
     }
 }

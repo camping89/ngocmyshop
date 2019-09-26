@@ -11,6 +11,7 @@ using Nop.Core.Domain.Media;
 using Nop.Core.Domain.Orders;
 using Nop.Core.Domain.Tax;
 using Nop.Core.Domain.Vendors;
+using Nop.Core.Extensions;
 using Nop.Services;
 using Nop.Services.Catalog;
 using Nop.Services.Common;
@@ -500,7 +501,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 throw new ArgumentNullException(nameof(product));
 
             model.ProductId = product.Id;
-            model.StockQuantity = 10000;
+            model.StockQuantity = 99999;
             model.NotifyAdminForQuantityBelow = 1;
 
             var attributes = _productAttributeService.GetProductAttributeMappingsByProductId(product.Id)
@@ -693,6 +694,10 @@ namespace Nop.Web.Areas.Admin.Controllers
                 });
             }
 
+            if (product == null)
+            {
+                model.ManageInventoryMethodId = ManageInventoryMethod.ManageStockByAttributes.ToInt();
+            }
             //warehouses
             var warehouses = _shippingService.GetAllWarehouses();
             model.AvailableWarehouses.Add(new SelectListItem
@@ -1333,6 +1338,20 @@ namespace Nop.Web.Areas.Admin.Controllers
             return List();
         }
 
+
+        public virtual IActionResult GetOrderingFee()
+        {
+            return Json(new
+            {
+                Data = new[]
+                {
+                    new {Value = 30000, Label = "30,000"},
+                    new {Value = 40000, Label = "40,000"},
+                    new {Value = 50000, Label = "50,000"},
+                    new {Value = 60000, Label = "60,000"},
+            }
+            });
+        }
         //create product
         public virtual IActionResult Create()
         {
@@ -1360,12 +1379,12 @@ namespace Nop.Web.Areas.Admin.Controllers
             model.CurrencySelectorModel = _commonModelFactory.PrepareCurrencySelectorModel();
             try
             {
-
+                model.CurrencyId = _settingService.GetSettingByKey("Product.DefaultCurrencyId", 3);
                 model.CurrencyCurrent = _currencyService.GetCurrencyById(_currencySettings.PrimaryStoreCurrencyId, false);
                 var primaryStoreCurrency = _currencyService.GetCurrencyById(_currencySettings.PrimaryStoreCurrencyId, false);
                 model.PrimaryExchangeCurrency = primaryStoreCurrency ?? throw new NopException("Primary store currency is not set");
-                model.ExchangeRate = (model.CurrencyCurrent.Rate / model.PrimaryExchangeCurrency.Rate);
-                model.CustomerEntersPrice = true;
+                model.ExchangeRate = primaryStoreCurrency.VndRate;
+                //model.CustomerEntersPrice = true;
                 model.UnitWeightCost = model.CurrencyCurrent.UnitWeightCost;
                 model.WeightCost = _settingService.GetSettingByKey("Product.WeightCostDefault", 0m);
                 model.WeightCostLabel = model.WeightCost;
@@ -1522,7 +1541,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 else
                 {
                     model.UnitWeightCost = model.CurrencyCurrent.UnitWeightCost;
-                    model.ExchangeRate = model.CurrencyCurrent.Rate / primaryStoreCurrency.Rate;
+                    model.ExchangeRate = primaryStoreCurrency.VndRate;
                 }
 
             }
@@ -2511,6 +2530,125 @@ namespace Nop.Web.Areas.Admin.Controllers
             return Json(new { Result = true });
         }
 
+        public virtual IActionResult ProductPicturesAddMulti(int[] pictureIds, string[] pictureUrls, int displayOrder,
+          string overrideAltAttribute, string overrideTitleAttribute,
+          int productId)
+        {
+
+            try
+            {
+                if (!_permissionService.Authorize(StandardPermissionProvider.ManageProducts))
+                    return AccessDeniedView();
+                var listPicids = InsertMultipleImageUrls(pictureUrls);
+                listPicids.AddRange(pictureIds);
+                if (pictureIds.Length == 0)
+                    throw new ArgumentException();
+
+                var product = _productService.GetProductById(productId);
+                if (product == null)
+                    throw new ArgumentException("No product found with the specified id");
+
+                //a vendor should have access only to his products
+                if (_workContext.CurrentVendor != null && product.VendorId != _workContext.CurrentVendor.Id)
+                    return RedirectToAction("List");
+
+                foreach (var pictureId in listPicids)
+                {
+                    var picture = _pictureService.GetPictureById(pictureId);
+                    if (picture == null)
+                        continue;
+
+                    _pictureService.UpdatePicture(picture.Id,
+                        _pictureService.LoadPictureBinary(picture),
+                        picture.MimeType,
+                        picture.SeoFilename,
+                        overrideAltAttribute,
+                        overrideTitleAttribute);
+
+                    _pictureService.SetSeoFilename(pictureId, _pictureService.GetPictureSeName(product.Name));
+
+                    _productService.InsertProductPicture(new ProductPicture
+                    {
+                        PictureId = pictureId,
+                        ProductId = productId,
+                        DisplayOrder = displayOrder,
+                    });
+
+                }
+            }
+            catch (Exception)
+            {
+                //ignore
+            }
+            return Json(new { Result = true });
+        }
+
+        private List<int> InsertMultipleImageUrls(string[] urls)
+        {
+
+            List<int> pictureIds = new List<int>();
+            if (urls != null)
+            {
+                foreach (var url in urls.Where(u => u.IsNotNullOrEmpty()).Distinct())
+                {
+                    var contentType = string.Empty;
+                    var fileBinary = GetFileViaHttp(url);
+                    var fileExtension = Path.GetExtension(url);
+                    if (!string.IsNullOrEmpty(fileExtension))
+                        fileExtension = fileExtension.ToLowerInvariant();
+
+                    //contentType is not always available 
+                    //that's why we manually update it here
+                    //http://www.sfsu.edu/training/mimetype.htm
+                    if (string.IsNullOrEmpty(contentType))
+                    {
+                        switch (fileExtension)
+                        {
+                            case ".bmp":
+                                contentType = MimeTypes.ImageBmp;
+                                break;
+                            case ".gif":
+                                contentType = MimeTypes.ImageGif;
+                                break;
+                            case ".jpeg":
+                            case ".jpg":
+                            case ".jpe":
+                            case ".jfif":
+                            case ".pjpeg":
+                            case ".pjp":
+                                contentType = MimeTypes.ImageJpeg;
+                                break;
+                            case ".png":
+                                contentType = MimeTypes.ImagePng;
+                                break;
+                            case ".tiff":
+                            case ".tif":
+                                contentType = MimeTypes.ImageTiff;
+                                break;
+                            default:
+                                contentType = MimeTypes.ImageJpeg;
+                                break;
+                        }
+                    }
+
+                    if (contentType.IsNullOrEmpty())
+                    {
+                        continue;
+                    }
+                    var picture = _pictureService.InsertPicture(fileBinary, contentType, null);
+                    pictureIds.Add(picture.Id);
+                }
+            }
+            return pictureIds;
+        }
+        private byte[] GetFileViaHttp(string url)
+        {
+            using (WebClient client = new WebClient())
+            {
+                byte[] body = client.DownloadData(url);
+                return body;
+            }
+        }
         [HttpPost]
         public virtual IActionResult ProductPictureList(DataSourceRequest command, int productId)
         {
@@ -3976,7 +4114,9 @@ namespace Nop.Web.Areas.Admin.Controllers
                         ColorSquaresRgb = x.ColorSquaresRgb,
                         ImageSquaresPictureId = x.ImageSquaresPictureId,
                         PriceAdjustment = x.PriceAdjustment,
+                        BasePriceAdjustment = x.BasePriceAdjustment,
                         PriceAdjustmentStr = x.AttributeValueType == AttributeValueType.Simple ? x.PriceAdjustment.ToString("G29") : "",
+                        BasePriceAdjustmentStr = x.AttributeValueType == AttributeValueType.Simple ? x.BasePriceAdjustment.ToString("G29") : "",
                         WeightAdjustment = x.WeightAdjustment,
                         WeightAdjustmentStr = x.AttributeValueType == AttributeValueType.Simple ? x.WeightAdjustment.ToString("G29") : "",
                         Cost = x.Cost,
@@ -4093,6 +4233,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                     ColorSquaresRgb = model.ColorSquaresRgb,
                     ImageSquaresPictureId = model.ImageSquaresPictureId,
                     PriceAdjustment = model.PriceAdjustment,
+                    BasePriceAdjustment = model.BasePriceAdjustment,
                     WeightAdjustment = model.WeightAdjustment,
                     Cost = model.Cost,
                     CustomerEntersQty = model.CustomerEntersQty,
@@ -4161,6 +4302,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 DisplayColorSquaresRgb = pav.ProductAttributeMapping.AttributeControlType == AttributeControlType.ColorSquares,
                 ImageSquaresPictureId = pav.ImageSquaresPictureId,
                 DisplayImageSquaresPicture = pav.ProductAttributeMapping.AttributeControlType == AttributeControlType.ImageSquares,
+                BasePriceAdjustment = pav.BasePriceAdjustment,
                 PriceAdjustment = pav.PriceAdjustment,
                 WeightAdjustment = pav.WeightAdjustment,
                 Cost = pav.Cost,
@@ -4237,6 +4379,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 pav.Name = model.Name;
                 pav.ColorSquaresRgb = model.ColorSquaresRgb;
                 pav.ImageSquaresPictureId = model.ImageSquaresPictureId;
+                pav.BasePriceAdjustment = model.BasePriceAdjustment;
                 pav.PriceAdjustment = model.PriceAdjustment;
                 pav.WeightAdjustment = model.WeightAdjustment;
                 pav.Cost = model.Cost;
@@ -4794,7 +4937,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 {
                     ProductId = product.Id,
                     AttributesXml = attributesXml,
-                    StockQuantity = 0,
+                    StockQuantity = 99999,
                     AllowOutOfStockOrders = false,
                     Sku = null,
                     ManufacturerPartNumber = null,

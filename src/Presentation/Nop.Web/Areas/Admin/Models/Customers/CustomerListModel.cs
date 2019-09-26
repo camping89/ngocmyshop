@@ -33,6 +33,9 @@ namespace Nop.Web.Areas.Admin.Models.Customers
         [NopResourceDisplayName("Admin.Customers.Customers.List.SearchLastName")]
         public string SearchLastName { get; set; }
 
+        [NopResourceDisplayName("Admin.Customers.Customers.List.SearchFullName")]
+        public string SearchFullName { get; set; }
+
         [NopResourceDisplayName("Admin.Customers.Customers.List.SearchDateOfBirth")]
         public string SearchDayOfBirth { get; set; }
         [NopResourceDisplayName("Admin.Customers.Customers.List.SearchDateOfBirth")]

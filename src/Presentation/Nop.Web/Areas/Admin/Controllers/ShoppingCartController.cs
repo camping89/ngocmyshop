@@ -10,6 +10,7 @@ using Nop.Core.Domain.Directory;
 using Nop.Core.Domain.Media;
 using Nop.Core.Domain.Orders;
 using Nop.Core.Domain.Vendors;
+using Nop.Core.Extensions;
 using Nop.Services;
 using Nop.Services.Catalog;
 using Nop.Services.Common;
@@ -649,12 +650,13 @@ namespace Nop.Web.Areas.Admin.Controllers
 
         protected virtual void SaveItem(ShoppingCartItem updatecartitem, List<string> addToCartWarnings, Product product,
            ShoppingCartType cartType, string attributes, decimal customerEnteredPriceConverted, DateTime? rentalStartDate,
-           DateTime? rentalEndDate, int quantity, Customer customer)
+           DateTime? rentalEndDate, int quantity, Customer customer, decimal adjustusdPrice = Decimal.Zero)
         {
             if (customer != null)
             {
                 if (updatecartitem == null)
                 {
+
                     //add to the cart
                     addToCartWarnings.AddRange(_shoppingCartService.AddToCart(customer,
                         product, cartType, _storeContext.CurrentStore.Id,
@@ -724,7 +726,24 @@ namespace Nop.Web.Areas.Admin.Controllers
                     ErrorNotification(exc, false);
                 }
                 modelResult.ShoppingCartModel = _shoppingCartModelFactory.PrepareShoppingCartModel(shoppingCartModel, cart, customer: customer);
-                modelResult.CustomerFullName = $"<strong>{customer.GetFullName()}</strong> - Phone: <strong>{customer.GetAttribute<string>(SystemCustomerAttributeNames.Phone)}</strong> - Facebook: <strong>{customer.GetAttribute<string>(SystemCustomerAttributeNames.LinkFacebook1)}</strong>";
+               
+                var customerAddress = customer.Addresses.OrderByDescending(_ => _.CreatedOnUtc).FirstOrDefault();
+                if (customerAddress != null)
+                {
+                    modelResult.CustomerAddress = customerAddress.Address1;
+                    modelResult.CustomerWard = customerAddress.Ward;
+                    modelResult.CustomerDistrict = customerAddress.District;
+                    modelResult.CustomerCity = customerAddress.City;
+
+                    modelResult.CustomerFullName = $"<strong>{customer.GetFullName()}</strong> - Phone: <strong>{customer.GetAttribute<string>(SystemCustomerAttributeNames.Phone)}</strong> - Facebook: <strong>{customer.GetAttribute<string>(SystemCustomerAttributeNames.LinkFacebook1)}</strong>";
+                }
+                else
+                {
+                    // return error message and block the creation process
+                    ModelState.AddModelError("CustomerAddressNotExist",_localizationService.GetResource("CreateOrder.ErrorMessage.CustomerAddressNotExist"));
+                    customerId = 0;
+                    modelResult.CustomerId = customerId;
+                }
             }
             //categories
             model.AvailableCategories.Add(new SelectListItem { Text = _localizationService.GetResource("Admin.Common.All"), Value = "0" });
@@ -772,6 +791,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 SaveSelectedTabName(activetab);
             }
 
+            modelResult.Customer = _customerService.GetCustomerById(customerId);
             ViewBag.CustomerId = customerId;
             return View(modelResult);
         }
@@ -970,6 +990,8 @@ namespace Nop.Web.Areas.Admin.Controllers
             //model
             var model = _productModelFactory.PrepareProductDetailsModel(product, updatecartitem, false);
             model.CustomerId = customerId;
+            model.MetaTitle = $"Thêm vào giỏ hàng - {customer.GetFullName()} - Sku: {product.Sku}";
+            ViewData["CustomerId"] = customerId;
             var productTemplateViewPath = _productModelFactory.PrepareProductTemplateViewPath(product);
             return View(productTemplateViewPath, model);
         }
@@ -1013,6 +1035,21 @@ namespace Nop.Web.Areas.Admin.Controllers
                     }
                 }
             }
+            var adjustusdPrice = decimal.Zero;
+            if (product.CustomerEntersPrice)
+            {
+                foreach (var formKey in form.Keys)
+                {
+                    if (formKey.Equals($"addtocart_{productId}.adjustusd", StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        if (decimal.TryParse(form[formKey], out decimal adjustusd))
+                        {
+                            adjustusdPrice = adjustusd;
+                        }
+                        break;
+                    }
+                }
+            }
 
             //quantity
             var quantity = 1;
@@ -1041,7 +1078,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 updatecartitem.ShoppingCartType;
 
             //product.CurrencyId;
-            SaveItem(updatecartitem, addToCartWarnings, product, cartType, attributes, customerEnteredPriceConverted, rentalStartDate, rentalEndDate, quantity, customer);
+            SaveItem(updatecartitem, addToCartWarnings, product, cartType, attributes, customerEnteredPriceConverted, rentalStartDate, rentalEndDate, quantity, customer, adjustusdPrice);
             //activity log
             _customerActivityService.InsertActivity("PublicStore.AddToShoppingCart",
                 _localizationService.GetResource("ActivityLog.PublicStore.AddToShoppingCart"), product.Name);
@@ -1054,6 +1091,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             //model
             var model = _productModelFactory.PrepareProductDetailsModel(product, updatecartitem, false);
             model.CustomerId = customerId;
+            ViewData["CustomerId"] = customerId;
             //return View(productTemplateViewPath,model);
             //return result
             return View(productTemplateViewPath, model);
@@ -1159,7 +1197,7 @@ namespace Nop.Web.Areas.Admin.Controllers
 
             //price
             var price = "";
-            if (_permissionService.Authorize(StandardPermissionProvider.DisplayPrices) && !product.CustomerEntersPrice)
+            if (_permissionService.Authorize(StandardPermissionProvider.DisplayPrices))
             {
                 //we do not calculate price of "customer enters price" option is enabled
                 List<DiscountForCaching> scDiscounts;
@@ -1169,14 +1207,27 @@ namespace Nop.Web.Areas.Admin.Controllers
                     1, attributeXml, 0,
                     rentalStartDate, rentalEndDate,
                     true, out decimal _, out scDiscounts);
-                var finalPriceWithDiscountBase = _taxService.GetProductPrice(product, finalPrice, out decimal _);
-                var finalPriceWithDiscount = _currencyService.ConvertFromPrimaryStoreCurrency(finalPriceWithDiscountBase, _workContext.WorkingCurrency);
-                price = _priceFormatter.FormatPrice(finalPriceWithDiscount);
+                //var finalPriceWithDiscountBase = _taxService.GetProductPrice(product, finalPrice, out decimal _);
+                //var finalPriceWithDiscount = _currencyService.ConvertFromPrimaryStoreCurrency(finalPriceWithDiscountBase, _workContext.WorkingCurrency);
+                //price = _priceFormatter.FormatPrice(finalPriceWithDiscount);
+                price = _priceFormatter.FormatPrice(finalPrice);
             }
+
+            //base price adjustment
+            var adjustBasePrice = decimal.Zero;
+            var attributeBaseValues = _productAttributeParser.ParseProductAttributeValues(attributeXml);
+            if (attributeBaseValues != null)
+            {
+                foreach (var attributeValue in attributeBaseValues)
+                {
+                    adjustBasePrice += _priceCalculationService.GetProductAttributeValueBasePriceAdjustment(attributeValue);
+                }
+            }
+
 
             //stock
             var stockAvailability = product.FormatStockMessage(attributeXml, _localizationService, _productAttributeParser, _dateRangeService);
-
+            var stockNumber = product.GetStockNumber(attributeXml, _productAttributeParser);
             //conditional attributes
             var enabledAttributeMappingIds = new List<int>();
             var disabledAttributeMappingIds = new List<int>();
@@ -1239,13 +1290,17 @@ namespace Nop.Web.Areas.Admin.Controllers
                     .All(associatedProduct => associatedProduct == null || !associatedProduct.IsShipEnabled || associatedProduct.IsFreeShipping);
             }
 
+            var sellingPrice = product.UnitPriceUsd + adjustBasePrice;
             return Json(new
             {
                 gtin,
                 mpn,
                 sku,
                 price,
+                adjustBasePrice,
+                sellingPrice,
                 stockAvailability,
+                stockNumber,
                 enabledattributemappingids = enabledAttributeMappingIds.ToArray(),
                 disabledattributemappingids = disabledAttributeMappingIds.ToArray(),
                 pictureFullSizeUrl,
@@ -1477,6 +1532,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             return RedirectToAction("CreateOrder", new { customerId = customerId, activetab = activetab });
         }
 
+
         [HttpPost, ActionName("AdminCart")]
         [FormValueRequired("updatecart")]
         public virtual IActionResult AdminUpdateCart(IFormCollection form, int customerId, string activetab)
@@ -1521,6 +1577,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                         if (formKey.Equals($"itemprice{sci.Id}", StringComparison.InvariantCultureIgnoreCase))
                         {
                             decimal.TryParse(form[formKey], out newPrice);
+                            newPrice = DecimalExtensions.RoundCustom(newPrice / 1000) * 1000;
                         }
                         if (formKey.Equals($"itempricebase{sci.Id}", StringComparison.InvariantCultureIgnoreCase))
                         {
@@ -1559,14 +1616,17 @@ namespace Nop.Web.Areas.Admin.Controllers
                 }
             }
 
-            //parse and save checkout attributes
-            ParseAndSaveCheckoutAttributes(cart, form, customer);
-
-            //updated cart
+            customer = _customerService.GetCustomerById(customerId);
             cart = customer.ShoppingCartItems
                 .Where(sci => sci.ShoppingCartType == ShoppingCartType.ShoppingCart)
                 .LimitPerStore(_storeContext.CurrentStore.Id)
                 .ToList();
+
+            //parse and save checkout attributes
+            ParseAndSaveCheckoutAttributes(cart, form, customer);
+
+            //updated cart
+
             var model = new Web.Models.ShoppingCart.ShoppingCartModel();
             model = _shoppingCartModelFactory.PrepareShoppingCartModel(model, cart, customer: customer);
             //update current warnings

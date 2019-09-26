@@ -33,6 +33,14 @@
                         <div class="col-md-6">
                             <div class="form-group">
                                 <div class="col-md-4">
+                                    <nop-label asp-for="SearchKeyword" />
+                                </div>
+                                <div class="col-md-8">
+                                    <nop-editor asp-for="SearchKeyword" />
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="col-md-4">
                                     <nop-label asp-for="CreatedOnFrom" />
                                 </div>
                                 <div class="col-md-8">
@@ -177,6 +185,7 @@
 
                         function additionalData() {
                             var data = {
+                                SearchKeyword: $('#@Html.IdFor(model => model.SearchKeyword)').val(),
                                 CreatedOnFrom: $('#@Html.IdFor(model => model.CreatedOnFrom)').val(),
                                 CreatedOnTo: $('#@Html.IdFor(model => model.CreatedOnTo)').val(),
                                 IpAddress: $('#@Html.IdFor(model => model.IpAddress)').val(),

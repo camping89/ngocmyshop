@@ -169,7 +169,6 @@
                                                     OrderId: { editable: false, type: "number" },
                                                     PackageId: { editable: true, type: "string" },
                                                     PackageOrderId: { editable: true, type: "string" },
-                                                    PackageItemCode: { editable: true, type: "string" },
                                                     PackageItemProcessedDatetime: { editable: true, type: "date" },
                                                     PictureThumbnailUrl: { editable: false, type: "string" },
                                                     ProductName: { editable: false, type: "string" },
@@ -243,18 +242,13 @@
                                                 "# } #"
 
                                         }, {
-                                            field: "PackageItemCode",
-                                            title: "@T("Admin.Orders.Products.PackageItemCode")",
-                                            width: 100
-                                            //template: '<>'
-                                        }, {
                                             field: "PackageItemProcessedDatetime",
                                             title: "@T("Admin.Orders.Products.PackageItemProcessedDatetime")",
                                             width: 150,
                                             //format: "{0:G}",
                                             //type: "date",
                                             editor: dateTimeEditorCustom,
-                                            template: "#= kendo.toString(kendo.parseDate(PackageItemProcessedDatetime, 'yyyy-MM-dd'), 'MM/dd/yyyy') #"
+                                            template: "#= kendo.toString(kendo.parseDate(PackageItemProcessedDatetime, 'yyyy-MM-dd'), 'dd/MM/yyyy') #"
                                         }, {
                                             command: {
                                                 name: "edit",
@@ -276,7 +270,8 @@
                                 $('<input data-text-field="' + options.field + '" data-value-field="' + options.field + '" data-bind="value:' + options.field + '" />')
                                     .appendTo(container)
                                     .kendoDatePicker({
-                                        value: kendo.toString(kendo.parseDate(options.model.PackageItemProcessedDatetime, 'yyyy-MM-dd'), 'MM/dd/yyyy')
+                                        value: kendo.toString(kendo.parseDate(options.model.PackageItemProcessedDatetime,'yyyy-MM-dd'),'dd/MM/yyyy'),
+                                        format: 'dd/MM/yyyy'
                                     });
                             }
                             function editPackageOrderId(container, options) {
@@ -291,7 +286,7 @@
                                         serverFiltering: true,
                                         transport: {
                                             read: {
-                                                url: "@Html.Raw(Url.Action("GetsPackageOrderAvailble", "Order"))",
+                                                url: "@Html.Raw(Url.Action("GetsPackageOrderAvailable", "Order"))",
                                                 type: "GET",
                                                 dataType: "json"
                                             }

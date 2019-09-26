@@ -40,7 +40,6 @@
                                                 OrderId: { editable: false, type: "number" },
                                                 PackageId: { editable: true, type: "string" },
                                                 PackageOrderId: { editable: true, type: "string" },
-                                                PackageItemCode: { editable: true, type: "string" },
                                                 PackageItemProcessedDatetime: { editable: true, type: "date" },
                                                 PictureThumbnailUrl: { editable: false, type: "string" },
                                                 ProductName: { editable: false, type: "string" },
@@ -91,8 +90,8 @@
                                         field: "ProductName",
                                         title: "@T("Admin.Orders.Products.ProductName")",
                                         template: 'Product name: #=ProductName#' +
-                                            '<p>#=AttributeInfo#</p>' +
-                                            '<p>#=RecurringInfo#</p>',
+                                            '<p>#=AttributeInfo#</p>',
+                                            //+'<p>#=RecurringInfo#</p>',
                                         width: 250
                                     }, {
                                         field: "TotalWithoutWeightCost",
@@ -125,15 +124,11 @@
                                         width: 100,
                                         editor: editPackageOrderId,
                                         template: "# if (PackageOrder != null) { #" +
-                                            "<p>#=PackageOrder.PackageCode# - #=PackageOrder.PackageName# </p>" +
+                                            "<p>#=PackageOrder.PackageCode#</p>" +
                                             "#} else {#" +
-                                            "<p>None</p>" +
+                                            "<p></p>" +
                                             "# } #"
 
-                                    }, {
-                                        field: "PackageItemCode",
-                                        title: "@T("Admin.Orders.Products.PackageItemCode")",
-                                        width: 100
                                     }, {
                                         field: "PackageItemProcessedDatetime",
                                         title: "@T("Admin.Orders.Products.PackageItemProcessedDatetime")",
@@ -142,7 +137,7 @@
                                         //type: "date",
                                         editor: dateTimeEditorCustom,
                                         template:
-                                            "#= kendo.toString(kendo.parseDate(PackageItemProcessedDatetime, 'yyyy-MM-dd'), 'MM/dd/yyyy') #"
+                                            "#= kendo.toString(kendo.parseDate(PackageItemProcessedDatetime, 'yyyy-MM-dd'), 'dd/MM/yyyy') #"
                                     }, {
                                         field: "IsOrderCheckout",
                                         title: "@T("Admin.Orders.Products.IsOrderCheckout")",
@@ -214,9 +209,8 @@
                                         '" />')
                                     .appendTo(container)
                                     .kendoDatePicker({
-                                        value: kendo.toString(
-                                            kendo.parseDate(options.model.PackageItemProcessedDatetime, 'yyyy-MM-dd'),
-                                            'MM/dd/yyyy')
+                                        value: kendo.toString(kendo.parseDate(options.model.PackageItemProcessedDatetime,'yyyy-MM-dd'),'dd/MM/yyyy'),
+                                        format: 'dd/MM/yyyy'
                                     });
                             }
 
@@ -236,7 +230,7 @@
                                             serverFiltering: true,
                                             transport: {
                                                 read: {
-                                                    url: "@Html.Raw(Url.Action("GetsPackageOrderAvailble", "Order"))",
+                                                    url: "@Html.Raw(Url.Action("GetsPackageOrderAvailable", "Order"))",
                                                     type: "GET",
                                                     dataType: "json"
                                                 }

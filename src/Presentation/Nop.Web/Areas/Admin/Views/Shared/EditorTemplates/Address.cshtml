@@ -117,7 +117,7 @@
             <nop-label asp-for="StateProvinceId" />
         </div>
         <div class="col-md-9">
-            <nop-select asp-for="StateProvinceId" asp-items="Model.AvailableStates" />
+            <nop-select asp-for="StateProvinceId" asp-items="Model.AvailableStates" asp-required="true" />
             <span asp-validation-for="StateProvinceId"></span>
         </div>
     </div>
@@ -129,11 +129,34 @@
             <nop-label asp-for="City" />
         </div>
         <div class="col-md-9">
-            <nop-editor asp-for="City" asp-required="@Model.CityRequired" />
+            <nop-select id="City" asp-for="City" asp-items="Model.AvailableCities" asp-required="true" />
             <span asp-validation-for="City"></span>
+            @*<nop-editor asp-for="City" asp-required="@Model.CityRequired" />
+                <span asp-validation-for="City"></span>*@
         </div>
     </div>
+    <div class="form-group">
+        <div class="col-md-3">
+            <nop-label asp-for="District" />
+        </div>
+        <div class="col-md-9">
+            <nop-select id="District" asp-for="District" asp-items="@(new List<SelectListItem>(){})" asp-required="true" />
+            <span asp-validation-for="District"></span>
+        </div>
+    </div>
+
 }
+
+<div class="form-group">
+    <div class="col-md-3">
+        <nop-label asp-for="Ward" />
+    </div>
+    <div class="col-md-9">
+        <nop-editor asp-for="Ward" />
+        <span asp-validation-for="Ward"></span>
+    </div>
+</div>
+
 @if (Model.StreetAddressEnabled)
 {
     <div class="form-group">
@@ -198,3 +221,61 @@
 {
     @await Html.PartialAsync("_AddressAttributes", Model.CustomAddressAttributes)
 }
+<script>
+    $(document).ready(function() {
+        LoadDistrict();
+
+        $('#City').change(function() {
+            var selectedItem = $(this).val();
+            var ddlDistrict = $("#District");
+            ddlDistrict.empty();
+            ddlDistrict.chosen('destroy');
+            $.ajax({
+                cache: false,
+                type: "GET",
+                url: "@(Url.Action("GetDistrictByStateProvinceName", "Country"))",
+                data: { "stateProvinceName": selectedItem},
+                success: function(data) {
+                    ddlDistrict.html('');
+                    $.each(data, function(id, option) {
+                        ddlDistrict.append($('<option></option>').val(option.Value).html(option.Text));
+                    });
+                    ddlDistrict.chosen({ search_contains: true });
+                },
+                error: function(xhr, ajaxOptions, thrownError) {
+                    alert('Failed to retrieve states.');
+                }
+            });
+        });
+
+    });
+
+    function LoadDistrict() {
+        var selectedItem = '@Html.Raw(Model.City)';
+        var ddlDistrict = $("#District");
+        ddlDistrict.empty();
+        ddlDistrict.chosen('destroy');
+        $.ajax({
+            cache: false,
+            type: "GET",
+            url: "@(Url.Action("GetDistrictByStateProvinceName", "Country"))",
+            data: { "stateProvinceName": selectedItem},
+            success: function(data) {
+                ddlDistrict.html('');
+                $.each(data, function(id, option) {
+
+                    if (option.Value === '@Html.Raw(Model.District)') {
+                        ddlDistrict.append($('<option selected="selected"></option>').val(option.Value).html(option.Text));
+                    } else {
+                        ddlDistrict.append($('<option></option>').val(option.Value).html(option.Text));
+                    }
+
+                });
+                ddlDistrict.chosen({ search_contains: true });
+            },
+            error: function(xhr, ajaxOptions, thrownError) {
+                alert('Failed to retrieve states.');
+            }
+        });
+    }
+</script>

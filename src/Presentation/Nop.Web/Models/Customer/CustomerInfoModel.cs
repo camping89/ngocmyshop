@@ -49,9 +49,9 @@ namespace Nop.Web.Models.Customer
         public string LastName { get; set; }
         [NopResourceDisplayName("Account.Fields.FullName")]
         public string FullName { get; set; }
-        [NopResourceDisplayName("Admin.Customers.Customers.Fields.LinkFacebook1")]
+        [NopResourceDisplayName("admin.customers.customers.fields.facebook1")]
         public string LinkFacebook1 { get; set; }
-        [NopResourceDisplayName("Admin.Customers.Customers.Fields.LinkFacebook2")]
+        [NopResourceDisplayName("admin.customers.customers.fields.facebook2")]
         public string LinkFacebook2 { get; set; }
         [NopResourceDisplayName("Admin.Customers.Customers.Fields.HashUserName")]
         public string HashUserName { get; set; }

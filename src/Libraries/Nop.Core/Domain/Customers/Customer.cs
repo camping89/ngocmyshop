@@ -1,7 +1,7 @@
-using System;
-using System.Collections.Generic;
 using Nop.Core.Domain.Common;
 using Nop.Core.Domain.Orders;
+using System;
+using System.Collections.Generic;
 
 namespace Nop.Core.Domain.Customers
 {
@@ -38,6 +38,10 @@ namespace Nop.Core.Domain.Customers
         /// Gets or sets the email
         /// </summary>
         public string Email { get; set; }
+        public string Phone { get; set; }
+        public string FullName { get; set; }
+        public string LinkFacebook1 { get; set; }
+        public string LinkFacebook2 { get; set; }
 
         /// <summary>
         /// Gets or sets the email that should be re-validated. Used in scenarios when a customer is already registered and wants to change an email address.

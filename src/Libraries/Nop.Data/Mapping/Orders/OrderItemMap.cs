@@ -36,6 +36,12 @@ namespace Nop.Data.Mapping.Orders
             this.HasRequired(orderItem => orderItem.PackageOrder)
                 .WithMany()
                 .HasForeignKey(orderItem => orderItem.PackageOrderId);
+
+            this.HasRequired(orderItem => orderItem.AssignedByCustomer)
+                .WithMany()
+                .HasForeignKey(orderItem => orderItem.AssignedByCustomerId);
+
+            this.Ignore(o => o.OrderItemStatus);
         }
     }
 }

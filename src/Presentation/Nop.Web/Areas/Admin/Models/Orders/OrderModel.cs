@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc.Rendering;
 using Nop.Core.Domain.Catalog;
+using Nop.Core.Domain.Customers;
 using Nop.Core.Domain.Directory;
 using Nop.Core.Domain.Shipping;
 using Nop.Core.Domain.Tax;
@@ -39,9 +40,23 @@ namespace Nop.Web.Areas.Admin.Models.Orders
         public string CustomerFullName { get; set; }
         [NopResourceDisplayName("Admin.Orders.Fields.CustomerPhone")]
         public string CustomerPhone { get; set; }
+        [NopResourceDisplayName("Admin.Orders.Fields.CustomerAddress")]
+        public string CustomerAddress { get; set; }
+        [NopResourceDisplayName("Admin.Orders.Fields.CustomerDistrict")]
+        public string CustomerDistrict { get; set; }
+        [NopResourceDisplayName("Admin.Orders.Fields.CustomerCity")]
+        public string CustomerCity { get; set; }
+        [NopResourceDisplayName("Admin.Orders.Fields.CustomerWard")]
+        public string CustomerWard { get; set; }
+        [NopResourceDisplayName("Admin.Orders.Fields.CustomerLinkFacebook")]
+        public string CustomerLinkFacebook { get; set; }
+        public string CustomerShortLinkFacebook { get; set; }
 
         [NopResourceDisplayName("Admin.Orders.Fields.CreatedOn")]
         public DateTime CreatedOn { get; set; }
+
+        [NopResourceDisplayName("Admin.Orders.Fields.EstimatedTimeArrival")]
+        public DateTime? EstimatedTimeArrival { get; set; }
         [NopResourceDisplayName("Admin.Orders.Fields.WeightCost")]
         public string WeightCost { get; set; }
         [NopResourceDisplayName("Admin.Orders.Fields.AdminNote")]
@@ -297,13 +312,50 @@ namespace Nop.Web.Areas.Admin.Models.Orders
         {
             public int OrderId { get; set; }
             public int Id { get; set; }
+            public int ProductId { get; set; }
+            public int Quantity { get; set; }
+            public string Sku { get; set; }
+            public string UnitPriceBase { get; set; }
+            public string ProductName { get; set; }
             public int PackageOrderId { get; set; }
-            public string PackageItemCode { get; set; }
+            public string PackageOrderCode { get; set; }
+            public PackageOrderModel PackageOrder { get; set; }
+            public string EstimatedTimeArrival { get; set; }
             public string PackageItemProcessedDatetime { get; set; }
             public bool IncludeWeightCost { get; set; }
             public bool IsOrderCheckout { get; set; }
+            public string WeightCost { get; set; }
             public decimal WeightCostDec { get; set; }
+            public decimal UnitWeightCost { get; set; }
             public decimal ItemWeight { get; set; }
+            public string TotalWithoutWeightCost { get; set; }
+
+            public string SubTotalInclTax { get; set; }
+            public string SubTotalExclTax { get; set; }
+            public decimal SubTotalInclTaxValue { get; set; }
+            public decimal SubTotalExclTaxValue { get; set; }
+
+
+            public string ShelfCode { get; set; }
+
+            public int ShelfId { get; set; }
+            public int ShelfOrderItemId { get; set; }
+            public bool ShelfOrderItemIsActive { get; set; }
+
+            public string AttributeInfo { get; set; }
+            public string PictureThumbnailUrl { get; set; }
+            public string DeliveryDateUtc { get; set; }
+
+            public string PrimaryStoreCurrencyCode { get; set; }
+            public decimal Deposit { get; set; }
+            public string DepositStr { get; set; }
+            public string OrderItemStatus { get; set; }
+            public int OrderItemStatusId { get; set; }
+            public string Note { get; set; }
+            public string VendorName { get; set; }
+            public int AssignedByCustomerId { get; set; }
+            public DateTime? AssignedShelfDate { get; set; }
+
         }
         public partial class OrderItemModel : BaseNopEntityModel
         {
@@ -354,13 +406,40 @@ namespace Nop.Web.Areas.Admin.Models.Orders
             public decimal WeightCostDec { get; set; }
             public string TotalWithoutWeightCost { get; set; }
             public int PackageOrderId { get; set; }
+            public string PackageOrderCode { get; set; }
 
             public PackageOrderModel PackageOrder { get; set; }
-            public string PackageItemCode { get; set; }
+
+
+            public int? AssignedByCustomerId { get; set; }
+            public Customer AssignedByCustomer { get; set; }
+            public string CustomerAssignShelfInfo { get; set; }
+            public DateTime? EstimatedTimeArrival { get; set; }
             public DateTime? PackageItemProcessedDatetime { get; set; }
 
             public bool IncludeWeightCost { get; set; }
             public bool IsOrderCheckout { get; set; }
+            public string PrimaryStoreCurrencyCode { get; set; }
+
+            public string ShelfCode { get; set; }
+
+            public int ShelfId { get; set; }
+            public int ShelfOrderItemId { get; set; }
+            public bool ShelfOrderItemIsActive { get; set; }
+
+            public DateTime? DeliveryDateUtc { get; set; }
+
+            public decimal Deposit { get; set; }
+            public string DepositStr { get; set; }
+
+
+            [NopResourceDisplayName("Admin.OrderItem.Status")]
+            public string OrderItemStatus { get; set; }
+            [NopResourceDisplayName("Admin.OrderItem.Status")]
+            public int OrderItemStatusId { get; set; }
+
+            [NopResourceDisplayName("Admin.OrderItem.Note")]
+            public string Note { get; set; }
 
             #region Nested Classes
 

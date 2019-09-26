@@ -76,7 +76,7 @@
                                     <nop-label asp-for="ImageUrl" />
                                 </div>
                                 <div class="col-md-2">
-                                    <img src="@Model.ImageUrl" width="100px" />
+                                    <img id="main-product-img-@Model.ProductId" src="@Model.ImageUrl" width="100px" />
                                 </div>
                             </div>
                             <div class="form-group">
@@ -85,6 +85,7 @@
                                 </div>
                                 <div class="col-md-2">
                                     <nop-editor asp-for="BaseUnitPrice" />
+                                    <input type="hidden" id="BaseUnitPriceHidden" value="@Model.BaseUnitPrice" />
                                 </div>
                             </div>
                             <div class="form-group">
@@ -133,6 +134,22 @@
                             </div>
                             <div class="form-group">
                                 <div class="col-md-3">
+                                    <nop-label asp-for="UnitPriceInclTax" />
+                                </div>
+                                <div class="col-md-2">
+                                    <input type="text" class="form-control" name="UnitPriceInclTax" id="UnitPriceInclTax" value="@Model.UnitPriceInclTax" />
+                                </div>
+                            </div>
+                            <div class="form-group display-none">
+                                <div class="col-md-3">
+                                    <nop-label asp-for="UnitPriceExclTax" />
+                                </div>
+                                <div class="col-md-2">
+                                    <input type="text" class="form-control" name="UnitPriceExclTax" id="UnitPriceExclTax" value="@Model.UnitPriceExclTax" />
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="col-md-3">
                                     <nop-label asp-for="Weight" />
                                 </div>
                                 <div class="col-md-2">
@@ -155,22 +172,7 @@
                                     <input type="text" class="form-control" name="Quantity" id="Quantity" value="@Model.Quantity" />
                                 </div>
                             </div>
-                            <div class="form-group">
-                                <div class="col-md-3">
-                                    <nop-label asp-for="UnitPriceInclTax" />
-                                </div>
-                                <div class="col-md-2">
-                                    <input type="text" class="form-control" name="UnitPriceInclTax" id="UnitPriceInclTax" value="@Model.UnitPriceInclTax" />
-                                </div>
-                            </div>
-                            <div class="form-group display-none">
-                                <div class="col-md-3">
-                                    <nop-label asp-for="UnitPriceExclTax" />
-                                </div>
-                                <div class="col-md-2">
-                                    <input type="text" class="form-control" name="UnitPriceExclTax" id="UnitPriceExclTax" value="@Model.UnitPriceExclTax" />
-                                </div>
-                            </div>
+                            <hr />
                             <div class="form-group">
                                 <div class="col-md-3">
                                     <nop-label asp-for="SubTotalInclTax" />
@@ -243,84 +245,87 @@
     </div>
 </form>
 <script>
-                                        $(document).ready(function() {
+    $(document).ready(function() {
 
-                                            $('#btnSubmit').on('click', function() {
-                                                $('#product-details-form input[type="text"],#product-details-form input[type="number"]').map(function () {
+        $('#btnSubmit').on('click', function() {
+            $('#product-details-form input[type="text"],#product-details-form input[type="number"]').map(function () {
 
-                                                    var convertData = this.value.toFloat();
-                                                    $(this).val(convertData);
-                                                });
-                                                $('#product-details-form').submit();
-                                            });
+                var convertData = this.value.toFloat();
+                $(this).val(convertData);
+            });
+            $('#product-details-form').submit();
+        });
 
-                                            calculatePrice();
-                                            formatCurrency();
-                                        });
+        calculatePrice();
+        formatCurrency();
+    });
 
-                                        function changeCurrency(data) {
-                                            var postData = {
-                                                currencyId: data
-                                            };
-                                            addAntiForgeryToken(postData);
+    function changeCurrency(data) {
+        var postData = {
+            currencyId: data
+        };
+        addAntiForgeryToken(postData);
 
-                                            $.ajax({
-                                                cache: false,
-                                                type: 'POST',
-                                                url: '@Url.Action("GetCurrencyById", "Currency")',
-                                                data: postData,
-                                                dataType: 'json',
-                                                success: function(data) {
-                                                    var currencyRate = (parseInt("@(Model.CurrencyCurrent.Rate)")/data.data.Rate).toFixed(4);
-                                                    if (data.data.Id === parseInt('@Model.CurrencyId')) {
-                                                        currencyRate = parseFloat('@Model.ExchangeRate');
-                                                    }
-                                                    $('#@Html.IdFor(model => model.ExchangeRate)').val(currencyRate);
-                                                    calculatePrice();
-                                                    formatCurrency();
-                                                },
-                                                failure: function() {
+        $.ajax({
+            cache: false,
+            type: 'POST',
+            url: '@Url.Action("GetCurrencyById", "Currency")',
+            data: postData,
+            dataType: 'json',
+            success: function(data) {
+                var currencyRate = (parseInt("@(Model.CurrencyCurrent.Rate)")/data.data.Rate).toFixed(4);
+                if (data.data.Id === parseInt('@Model.CurrencyId')) {
+                    currencyRate = parseFloat('@Model.ExchangeRate');
+                }
+                $('#@Html.IdFor(model => model.ExchangeRate)').val(currencyRate);
+                calculatePrice();
+                formatCurrency();
+            },
+            failure: function() {
 
-                                                }
-                                            });
-                                        }
+            }
+        });
+    }
 
-                                        function calculatePrice() {
-                                            var baseUnit = $('#@Html.IdFor(model => model.BaseUnitPrice)').val().toFloat();
-                                            var exchangeRate = $('#@Html.IdFor(model => model.ExchangeRate)').val().toFloat();
-                                            var feeship = $('#@Html.IdFor(model => model.OrderingFee)').val().toFloat();
-                                            var saleoff = $('#@Html.IdFor(model => model.SaleOffPercent)').val().toFloat();
-                                            var weightcost = $('#@Html.IdFor(model => model.WeightCost)').val().toFloat();
-                                            var quantity = $('#@Html.IdFor(model => model.Quantity)').val().toFloat();
+    function calculatePrice() {
+        var baseUnit = $('#@Html.IdFor(model => model.BaseUnitPrice)').val().toFloat();
+        var exchangeRate = $('#@Html.IdFor(model => model.ExchangeRate)').val().toFloat();
+        var feeship = $('#@Html.IdFor(model => model.OrderingFee)').val().toFloat();
+        var saleoff = $('#@Html.IdFor(model => model.SaleOffPercent)').val().toFloat();
+        var weightcost = $('#@Html.IdFor(model => model.WeightCost)').val().toFloat();
+        var quantity = $('#@Html.IdFor(model => model.Quantity)').val().toFloat();
 
-                                            var unitPriceVn = parseFloat((baseUnit * exchangeRate));
-                                            $('#@Html.IdFor(model => model.UnitPriceInclTax)').val(unitPriceVn);
-                                            $('#@Html.IdFor(model => model.UnitPriceExclTax)').val(unitPriceVn);
+        var unitPriceVn = parseFloat((baseUnit * exchangeRate));
+        $('#@Html.IdFor(model => model.UnitPriceInclTax)').val(unitPriceVn);
+        $('#@Html.IdFor(model => model.UnitPriceExclTax)').val(unitPriceVn);
 
-                                            if (weightcost > 0) {
-                                                var totalItem = parseFloat((parseFloat((baseUnit * exchangeRate * quantity) * (parseFloat((100 - saleoff)) / 100)) + parseFloat(feeship) + parseFloat(weightcost)));
+        @*if (weightcost > 0) {
+            var totalItem = parseFloat((parseFloat((baseUnit * exchangeRate * quantity) * (parseFloat((100 - saleoff)) / 100)) + parseFloat(feeship) + parseFloat(weightcost)));
 
-                                                $('#@Html.IdFor(model => model.SubTotalInclTax)').val(totalItem);
-                                                $('#@Html.IdFor(model => model.SubTotalExclTax)').val(totalItem);
-                                            } else {
-                                                $('#@Html.IdFor(model => model.SubTotalInclTax)').val(0);
-                                                $('#@Html.IdFor(model => model.SubTotalExclTax)').val(0);
-                                            }
+            $('#@Html.IdFor(model => model.SubTotalInclTax)').val(totalItem);
+            $('#@Html.IdFor(model => model.SubTotalExclTax)').val(totalItem);
+        } else {
+            $('#@Html.IdFor(model => model.SubTotalInclTax)').val(0);
+            $('#@Html.IdFor(model => model.SubTotalExclTax)').val(0);
+        }*@
+        var totalItem = parseFloat((parseFloat((baseUnit * exchangeRate * quantity) * (parseFloat((100 - saleoff)) / 100)) + parseFloat(feeship) + parseFloat(weightcost)));
 
-                                            formatCurrency();
-                                        }
+        $('#@Html.IdFor(model => model.SubTotalInclTax)').val(totalItem);
+        $('#@Html.IdFor(model => model.SubTotalExclTax)').val(totalItem);
+        formatCurrency();
+    }
 
-                                        function formatCurrency() {
-                                            $('#product-details-form input[type="text"],#product-details-form input[type="number"]').map(function () {
+    function formatCurrency() {
+        $('#product-details-form input[type="text"],#product-details-form input[type="number"]').map(function () {
 
-                                                var formatCurrency = this.value.toFloat().format();
-                                                $(this).val(formatCurrency);
-                                            });
-                                        }
+            var formatCurrency = this.value.toFloat().format();
+            $(this).val(formatCurrency);
+        });
+    }
 
-                                        $('#product-details-form input[type="text"],#product-details-form input[type="number"]').change(function() {
-                                            calculatePrice();
-                                        });
+    $('#product-details-form input[type="text"],#product-details-form input[type="number"]').change(function() {
+        calculatePrice();
+    });
 
 
 </script>

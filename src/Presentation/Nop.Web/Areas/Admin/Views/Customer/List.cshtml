@@ -73,6 +73,14 @@
                             <div class="col-md-5">
                                 <div class="form-group">
                                     <div class="col-md-4">
+                                        <nop-label asp-for="SearchFullName" />
+                                    </div>
+                                    <div class="col-md-8">
+                                        <nop-editor asp-for="SearchFullName" />
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-md-4">
                                         <nop-label asp-for="SearchLinkFacebookUser" />
                                     </div>
                                     <div class="col-md-8">
@@ -91,21 +99,21 @@
                                     </div>
                                 }
                                 @*<div class="form-group">
-                                    <div class="col-md-4">
-                                        <nop-label asp-for="SearchFirstName" />
+                                        <div class="col-md-4">
+                                            <nop-label asp-for="SearchFirstName" />
+                                        </div>
+                                        <div class="col-md-8">
+                                            <nop-editor asp-for="SearchFirstName" />
+                                        </div>
                                     </div>
-                                    <div class="col-md-8">
-                                        <nop-editor asp-for="SearchFirstName" />
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <div class="col-md-4">
-                                        <nop-label asp-for="SearchLastName" />
-                                    </div>
-                                    <div class="col-md-8">
-                                        <nop-editor asp-for="SearchLastName" />
-                                    </div>
-                                </div>*@
+                                    <div class="form-group">
+                                        <div class="col-md-4">
+                                            <nop-label asp-for="SearchLastName" />
+                                        </div>
+                                        <div class="col-md-8">
+                                            <nop-editor asp-for="SearchLastName" />
+                                        </div>
+                                    </div>*@
                                 @if (Model.DateOfBirthEnabled)
                                 {
                                     <div class="form-group">
@@ -137,7 +145,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                                }
+                                }
                             </div>
                             <div class="col-md-7">
                                 @if (Model.CompanyEnabled)
@@ -152,16 +160,16 @@
                                     </div>
                                 }
                                 @*@if (Model.PhoneEnabled)
-                                {
-                                    <div class="form-group">
-                                        <div class="col-md-4">
-                                            <nop-label asp-for="SearchPhone" />
+                                    {
+                                        <div class="form-group">
+                                            <div class="col-md-4">
+                                                <nop-label asp-for="SearchPhone" />
+                                            </div>
+                                            <div class="col-md-8">
+                                                <nop-editor asp-for="SearchPhone" />
+                                            </div>
                                         </div>
-                                        <div class="col-md-8">
-                                            <nop-editor asp-for="SearchPhone" />
-                                        </div>
-                                    </div>
-                                }*@
+                                    }*@
                                 @if (Model.ZipPostalCodeEnabled)
                                 {
                                     <div class="form-group">
@@ -174,13 +182,13 @@
                                     </div>
                                 }
                                 @*<div class="form-group">
-                                    <div class="col-md-4">
-                                        <nop-label asp-for="SearchIpAddress" />
-                                    </div>
-                                    <div class="col-md-8">
-                                        <nop-editor asp-for="SearchIpAddress" />
-                                    </div>
-                                </div>*@
+                                        <div class="col-md-4">
+                                            <nop-label asp-for="SearchIpAddress" />
+                                        </div>
+                                        <div class="col-md-8">
+                                            <nop-editor asp-for="SearchIpAddress" />
+                                        </div>
+                                    </div>*@
                                 <div class="form-group">
                                     <div class="col-md-4">
                                         <nop-label asp-for="SearchCustomerRoleIds" />
@@ -220,6 +228,10 @@
                                 <button type="button" id="search-customers" class="btn btn-primary btn-search">
                                     <i class="fa fa-search"></i>
                                     @T("Admin.Common.Search")
+                                </button>
+                                <button type="button" id="clear-filter" class="btn btn-danger btn-search">
+                                    <i class="fa fa-recycle"></i>
+                                    @T("Admin.Common.ClearFilter")
                                 </button>
                             </div>
                         </div>
@@ -273,10 +285,17 @@
                     attributes: { style: "text-align:center" },
                     template: "<input type='checkbox' value='#=Id#' class='checkboxGroups'/>",
                     width: 50
-                }, {
+                },
+                @*{
                     field: "Email",
                     title: "@T("Admin.Customers.Customers.Fields.Email")",
                     width: 200
+                },*@
+                {
+                    field: "LinkFacebook1",
+                    title: "@T("admin.customers.customers.fields.facebook")",
+                    width: 200,
+                    template: '<a target="_blank" href="#=LinkFacebook1#">#=LinkFacebook1#</a>'
                 },
                 @if (Model.UsernamesEnabled)
                 {
@@ -296,6 +315,15 @@
                     width: 200
                 },
 
+                @if (Model.PhoneEnabled)
+                {
+                    <text>{
+                    field: "Phone",
+                    title: "@T("Admin.Customers.Customers.Fields.Phone")",
+                    width: 200
+                },</text>
+                }
+
                 @if (Model.CompanyEnabled)
                 {
                     <text>{
@@ -305,14 +333,6 @@
                 },</text>
                 }
 
-                @if (Model.PhoneEnabled)
-                {
-                    <text>{
-                    field: "Phone",
-                    title: "@T("Admin.Customers.Customers.Fields.Phone")",
-                    width: 200
-                },</text>
-                }
 
                 @if (Model.ZipPostalCodeEnabled)
                 {
@@ -354,7 +374,7 @@
         });
     });
                         </script>
-                        
+
                         <script type="text/javascript">
     var selectedIds = [];
 
@@ -370,11 +390,22 @@
             return false;
         });
 
+        $("#clear-filter").click(function() {
+            $('#@Html.IdFor(model => model.SearchLinkFacebookUser)').val('');
+            //$('#@Html.IdFor(model => model.SearchCustomerRoleIds)').val(0);
+            $('#@Html.IdFor(model => model.SearchUsername)').val('');
+            $('#@Html.IdFor(model => model.SearchFullName)').val('');
+            $("#search-customers").click();
+        });
+
+
+
         $("".concat("#@Html.IdFor(model => model.SearchEmail),",
             "#@Html.IdFor(model => model.SearchUsername),",
             "#@Html.IdFor(model => model.SearchLinkFacebookUser),",
             "#@Html.IdFor(model => model.SearchFirstName),",
             "#@Html.IdFor(model => model.SearchLastName),",
+            "#@Html.IdFor(model => model.SearchFullName),",
             "#@Html.IdFor(model => model.SearchCompany),",
             "#@Html.IdFor(model => model.SearchPhone),",
             "#@Html.IdFor(model => model.SearchZipPostalCode),",
@@ -436,6 +467,7 @@
             SearchLinkFacebookUser: $('#@Html.IdFor(model => model.SearchLinkFacebookUser)').val(),
             SearchFirstName: $('#@Html.IdFor(model => model.SearchFirstName)').val(),
             SearchLastName: $('#@Html.IdFor(model => model.SearchLastName)').val(),
+            SearchFullName: $('#@Html.IdFor(model => model.SearchFullName)').val(),
             SearchDayOfBirth: $('#@Html.IdFor(model => model.SearchDayOfBirth)').val(),
             SearchMonthOfBirth: $('#@Html.IdFor(model => model.SearchMonthOfBirth)').val(),
             SearchCompany: $('#@Html.IdFor(model => model.SearchCompany)').val(),

@@ -9,6 +9,7 @@ namespace Nop.Services.Orders
         IPagedList<PackageOrder> SearchPackageOrders(string code, string name, int pageIndex = 0, int pageSize = int.MaxValue);
         IList<PackageOrder> GetPackageOrders(bool loadIsShipped = true);
         PackageOrder GetById(int id);
+        PackageOrder GetByCode(string code);
         void Create(PackageOrder entity);
         void Update(PackageOrder entity);
 

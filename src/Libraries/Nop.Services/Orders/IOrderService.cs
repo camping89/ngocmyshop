@@ -80,8 +80,8 @@ namespace Nop.Services.Orders
             int billingCountryId = 0, string paymentMethodSystemName = null,
             DateTime? createdFromUtc = null, DateTime? createdToUtc = null,
             List<int> osIds = null, List<int> psIds = null, List<int> ssIds = null, List<int> procIds = null,
-            string billingEmail = null, List<int> custIdsByLinkFace = null, string billingFullName = null, string billingPhone = null, string packageOrderItemCode = null,
-            string orderNotes = null, int pageIndex = 0, int pageSize = int.MaxValue, OrderSortingEnum orderBy = OrderSortingEnum.CreatedOnDesc, bool? isOrderCheckout = null);
+            string billingEmail = null, List<int> custIdsByLinkFace = null, string billingFullName = null, string billingPhone = null,
+            string orderNotes = null, int pageIndex = 0, int pageSize = int.MaxValue, OrderSortingEnum orderBy = OrderSortingEnum.CreatedOnDesc, string orderId = null);
 
         /// <summary>
         /// Inserts an order
@@ -130,13 +130,23 @@ namespace Nop.Services.Orders
 
         IList<OrderItem> GetOrderItemsByPackageId(int packageId);
 
-        IPagedList<OrderItem> GetOrderItemsVendorCheckout(string vendorProductUrl,int orderId = 0, int pageIndex = 0, int pageSize = int.MaxValue, OrderSortingEnum orderBy = OrderSortingEnum.CreatedOnDesc, bool? isOrderCheckout = null);
+        IPagedList<OrderItem> GetOrderItemsVendorCheckout(string vendorProductUrl, string orderId = null,
+            string orderItemId = null, int pageIndex = 0,
+            int pageSize = int.MaxValue, OrderSortingEnum orderBy = OrderSortingEnum.CreatedOnDesc,
+            DateTime? startDate = null, DateTime? endDate = null,
+            string customerPhone = null, string packageOrderCode = null,
+            int vendorId = 0, bool? isSetPackageOrderId = null,
+            bool? hasShelf = null, int orderItemStatusId = -1,
+            bool? isPackageItemProcessedDatetime = null, bool? isOrderCheckout = null, bool isWeightCostZero = false,string productSku = null);
 
         /// <summary>
         /// Delete an order item
         /// </summary>
         /// <param name="orderItem">The order item</param>
         void DeleteOrderItem(OrderItem orderItem);
+        void UpdateOrderItem(OrderItem orderItem);
+
+        IList<OrderItem> GetUnassignedOrderItems(int customerId);
 
         #endregion
 

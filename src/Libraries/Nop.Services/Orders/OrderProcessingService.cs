@@ -20,6 +20,7 @@ using Nop.Services.Discounts;
 using Nop.Services.Events;
 using Nop.Services.Localization;
 using Nop.Services.Logging;
+using Nop.Services.Media;
 using Nop.Services.Messages;
 using Nop.Services.Payments;
 using Nop.Services.Security;
@@ -73,7 +74,7 @@ namespace Nop.Services.Orders
         private readonly IGenericAttributeService _genericAttributeService;
         private readonly ICountryService _countryService;
         private readonly IStateProvinceService _stateProvinceService;
-
+        private readonly IShipmentManualService _shipmentManualService;
         private readonly ShippingSettings _shippingSettings;
         private readonly PaymentSettings _paymentSettings;
         private readonly RewardPointsSettings _rewardPointsSettings;
@@ -82,6 +83,7 @@ namespace Nop.Services.Orders
         private readonly LocalizationSettings _localizationSettings;
         private readonly CurrencySettings _currencySettings;
         private readonly ICustomNumberFormatter _customNumberFormatter;
+        private readonly IPictureService _pictureService;
 
         #endregion
 
@@ -171,7 +173,7 @@ namespace Nop.Services.Orders
             TaxSettings taxSettings,
             LocalizationSettings localizationSettings,
             CurrencySettings currencySettings,
-            ICustomNumberFormatter customNumberFormatter)
+            ICustomNumberFormatter customNumberFormatter, IShipmentManualService shipmentManualService, IPictureService pictureService)
         {
             this._orderService = orderService;
             this._webHelper = webHelper;
@@ -215,6 +217,8 @@ namespace Nop.Services.Orders
             this._localizationSettings = localizationSettings;
             this._currencySettings = currencySettings;
             this._customNumberFormatter = customNumberFormatter;
+            _shipmentManualService = shipmentManualService;
+            _pictureService = pictureService;
         }
 
         #endregion
@@ -444,33 +448,9 @@ namespace Nop.Services.Orders
             if (details.CustomerLanguage == null || !details.CustomerLanguage.Published)
                 details.CustomerLanguage = _workContext.WorkingLanguage;
 
-
-
-
-            //if (!CommonHelper.IsValidEmail(details.Customer.BillingAddress.Email))
-            //    throw new NopException("Email is not valid");
             var lastOrderCust = _orderService.GetLastOrderByCustomerId(customerId: details.Customer.Id);
 
-            if (lastOrderCust == null)
-            {
-                //billing address
-                if (details.Customer.BillingAddress == null)
-                //throw new NopException("Billing address is not provided");
-                {
-                    var addresCustomer = details.Customer.Addresses.LastOrDefault();
-                    details.BillingAddress = addresCustomer;
-                }
-                else
-                {
-                    details.BillingAddress = (Address)details.Customer.BillingAddress.Clone();
-                }
-            }
-            else
-            {
-                details.BillingAddress = lastOrderCust.BillingAddress;
-            }
-            //if (details.BillingAddress.Country != null && !details.BillingAddress.Country.AllowsBilling)
-            //    throw new NopException($"Country '{details.BillingAddress.Country.Name}' is not allowed for billing");
+            details.BillingAddress = details.Customer.Addresses.LastOrDefault();
 
             //payment method 
             if (lastOrderCust != null)
@@ -570,32 +550,7 @@ namespace Nop.Services.Orders
                 }
                 else
                 {
-                    //if (details.Customer.ShippingAddress == null)
-                    //    throw new NopException("Shipping address is not provided");
-
-                    //if (!CommonHelper.IsValidEmail(details.Customer.ShippingAddress.Email))
-                    //    throw new NopException("Email is not valid");
-
-                    //clone shipping address
-
-                    if (lastOrderCust == null)
-                    {
-                        if (details.Customer.ShippingAddress == null)
-                        {
-                            var addresCustomer = details.Customer.Addresses.LastOrDefault();
-                            details.ShippingAddress = addresCustomer;
-                        }
-                        else
-                        {
-                            details.ShippingAddress = (Address)details.Customer.ShippingAddress.Clone();
-                        }
-                    }
-                    else
-                    {
-                        details.ShippingAddress = lastOrderCust.ShippingAddress;
-                    }
-                    //if (details.ShippingAddress.Country != null && !details.ShippingAddress.Country.AllowsShipping)
-                    //    throw new NopException($"Country '{details.ShippingAddress.Country.Name}' is not allowed for shipping");
+                    details.ShippingAddress = details.BillingAddress;
                 }
 
 
@@ -863,6 +818,7 @@ namespace Nop.Services.Orders
                 CustomValuesXml = processPaymentRequest.SerializeCustomValues(),
                 VatNumber = details.VatNumber,
                 CreatedOnUtc = DateTime.UtcNow,
+                EstimatedTimeArrival = DateTime.UtcNow.AddDays(21),
                 CustomOrderNumber = string.Empty
             };
 
@@ -1326,7 +1282,7 @@ namespace Nop.Services.Orders
 
                 //var itemWeight = _shippingService.GetShoppingCartItemWeight(sc);
                 var itemWeight = sc.Product.Weight;
-
+                
                 //save order item
                 var orderItem = new OrderItem
                 {
@@ -2233,6 +2189,48 @@ namespace Nop.Services.Orders
             //check order status
             CheckOrderStatus(order);
         }
+        public virtual void ShipManual(ShipmentManual shipment, bool notifyCustomer)
+        {
+            if (shipment == null)
+                throw new ArgumentNullException(nameof(shipment));
+
+
+            if (shipment.ShippedDateUtc.HasValue)
+                throw new Exception("This shipment is already shipped");
+
+            shipment.ShippedDateUtc = DateTime.UtcNow;
+            _shipmentManualService.UpdateShipmentManual(shipment);
+
+            //process products with "Multiple warehouse" support enabled
+            foreach (var item in shipment.ShipmentManualItems)
+            {
+                var orderItem = _orderService.GetOrderItemById(item.OrderItemId);
+                _productService.BookReservedInventory(orderItem.Product, item.WarehouseId, -item.Quantity,
+                    string.Format(_localizationService.GetResource("Admin.StockQuantityHistory.Messages.Ship"), orderItem.Order.Id));
+
+                var order = _orderService.GetOrderById(orderItem.OrderId);
+
+                if (order != null)
+                {
+                    order.OrderCurrentSubtotal += orderItem.UnitPriceInclTax * item.Quantity;
+
+                    //check whether we have more items to ship
+                    if (order.HasItemsToAddToShipment() || order.HasItemsToShip())
+                        order.ShippingStatusId = (int)ShippingStatus.PartiallyShipped;
+                    else
+                        order.ShippingStatusId = (int)ShippingStatus.Shipped;
+                    _orderService.UpdateOrder(order);
+
+                    //add a note
+                    AddOrderNote(order, $"Shipment# {shipment.Id} has been sent");
+
+                    //check order status
+                    CheckOrderStatus(order);
+                }
+            }
+
+
+        }
 
         /// <summary>
         /// Marks a shipment as delivered
@@ -2279,6 +2277,47 @@ namespace Nop.Services.Orders
 
             //check order status
             CheckOrderStatus(order);
+        }
+
+        public virtual void DeliverManual(ShipmentManual shipment, bool notifyCustomer)
+        {
+            if (shipment == null)
+                throw new ArgumentNullException(nameof(shipment));
+
+            if (!shipment.ShippedDateUtc.HasValue)
+                throw new Exception("This shipment is not shipped yet");
+
+            if (shipment.DeliveryDateUtc.HasValue)
+                throw new Exception("This shipment is already delivered");
+
+            shipment.DeliveryDateUtc = DateTime.UtcNow;
+            _shipmentManualService.UpdateShipmentManual(shipment);
+
+            foreach (var shipmentManualItem in shipment.ShipmentManualItems)
+            {
+                var shipmentItem = _shipmentManualService.GetShipmentManualItemById(shipmentManualItem.Id);
+                shipmentItem.DeliveryDateUtc = DateTime.UtcNow;
+                _shipmentManualService.UpdateShipmentManualItem(shipmentManualItem);
+
+                var orderItem = _orderService.GetOrderItemById(shipmentItem.OrderItemId);
+                orderItem.DeliveryDateUtc = DateTime.UtcNow;
+                _orderService.UpdateOrderItem(orderItem);
+
+                var order = _orderService.GetOrderById(shipmentManualItem.OrderItem.OrderId);
+                if (order != null)
+                {
+                    if (!order.HasItemsToAddToShipment() && !order.HasItemsToShip() && !order.HasItemsToDeliver())
+                        order.ShippingStatusId = (int)ShippingStatus.Delivered;
+                    _orderService.UpdateOrder(order);
+
+                    //add a note
+                    AddOrderNote(order, $"Shipment# {shipment.Id} has been delivered");
+
+                    //check order status
+                    CheckOrderStatus(order);
+                }
+
+            }
         }
 
         /// <summary>

@@ -207,6 +207,23 @@ Number.prototype.format = function(n, x) {
     var str = this.toFixed(2);
     if (this > 0) {
         return str.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    } else if (this == 0) {
+        str = this.toFixed(0);
+        return str;
+    } else {
+        return str;
+    }
+};
+
+Number.prototype.formatFixed = function(n) {
+    //var re = '\\d(?=(\\d{' + (x || 3) + '})+' + (n > 0 ? '\\.' : '$') + ')';
+    //return this.toFixed(Math.max(0, ~~n)).replace(new RegExp(re, 'g'), '$&,');
+    var str = this.toFixed(n);
+    if (this > 0) {
+        return str.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    } else if (this == 0) {
+        str = this.toFixed(n);
+        return str;
     } else {
         return str;
     }
@@ -224,7 +241,7 @@ String.prototype.toInt = function() {
 }
 
 String.prototype.toFloat = function() {
-    if (this != null || this != "") {
+    if (this != null || this != "" || this != 0) {
         var c = this.replace(/,/g, "");
         var parseValue = parseFloat(c);
         if ($.isNumeric(parseValue) == false) {

@@ -25,6 +25,7 @@ using Nop.Services.Media;
 using Nop.Services.Messages;
 using Nop.Services.Orders;
 using Nop.Services.Seo;
+using Nop.Services.Shipping;
 using Nop.Services.Shipping.Date;
 using Nop.Services.Stores;
 using Nop.Services.Tax;
@@ -73,12 +74,12 @@ namespace Nop.Services.Tests.ExportImport
         private IProductAttributeParser _productAttributeParser;
         private IDateTimeHelper _dateTimeHelper;
         private IPackageOrderService _packageOrderService;
+        private IOrderService _orderService;
         [SetUp]
         public new void SetUp()
         {
             _pictureService = MockRepository.GenerateMock<IPictureService>();
             _authenticationService = MockRepository.GenerateMock<IAuthenticationService>();
-            _localizationService = MockRepository.GenerateMock<ILocalizationService>();
             _workContext = MockRepository.GenerateMock<IWorkContext>();
             _vendorService = MockRepository.GenerateMock<IVendorService>();
             _productTemplateService = MockRepository.GenerateMock<IProductTemplateService>();
@@ -105,11 +106,14 @@ namespace Nop.Services.Tests.ExportImport
             _productAttributeParser = MockRepository.GenerateMock<IProductAttributeParser>();
             _dateTimeHelper = MockRepository.GenerateMock<IDateTimeHelper>();
             _packageOrderService = MockRepository.GenerateMock<IPackageOrderService>();
+            _localizationService = MockRepository.GenerateMock<ILocalizationService>();
+            _orderService = MockRepository.GenerateMock<IOrderService>();
 
             var httpContextAccessor = MockRepository.GenerateMock<IHttpContextAccessor>();
             var nopEngine = MockRepository.GenerateMock<NopEngine>();
             var serviceProvider = MockRepository.GenerateMock<IServiceProvider>();
             var urlRecordService = MockRepository.GenerateMock<IUrlRecordService>();
+            var shelfService = MockRepository.GenerateMock<IShelfService>();
             var picture = new Picture
             {
                 Id = 1,
@@ -149,7 +153,14 @@ namespace Nop.Services.Tests.ExportImport
             serviceProvider.Expect(x => x.GetRequiredService(typeof(IHttpContextAccessor))).Return(httpContextAccessor);
 
             EngineContext.Replace(nopEngine);
-            _exportManager = new ExportManager(_categoryService, _manufacturerService, _customerService, _productAttributeService, _pictureService, _newsLetterSubscriptionService, _storeService, _workContext, _productEditorSettings, _vendorService, _productTemplateService, _dateRangeService, _taxCategoryService, _measureService, _catalogSettings, _genericAttributeService, _customerAttributeFormatter, _orderSettings, _specificationAttributeService, _priceFormatter, _languageService, _currencyService, _currencySettings, _productAttributeParser, _dateTimeHelper, _packageOrderService);
+            _exportManager = new ExportManager(_categoryService
+                , _manufacturerService
+                , _customerService
+                , _productAttributeService
+                , _pictureService
+                , _newsLetterSubscriptionService
+                , _storeService, _workContext, _productEditorSettings, _vendorService, _productTemplateService, _dateRangeService, _taxCategoryService, _measureService, _catalogSettings, _genericAttributeService, _customerAttributeFormatter, _orderSettings, _specificationAttributeService, _priceFormatter, _languageService, _currencyService, _currencySettings, _productAttributeParser, _dateTimeHelper, _packageOrderService
+                , _localizationService, _orderService, shelfService);
         }
 
         #region Utilities

@@ -72,7 +72,7 @@
                                             <div class="radio">
                                                 <label for="@(controlId)_@(attributeValue.Id)">
                                                     <input id="@(controlId)_@(attributeValue.Id)" type="radio" name="@(controlId)" value="@attributeValue.Id" checked="@attributeValue.IsPreSelected"
-                                                           @(attribute.Values.Any(value => value.CustomerEntersQty) ? Html.Raw($"onclick=\"showHideRadioQuantity('{controlId}')\"") : null)/>
+                                                           @(attribute.Values.Any(value => value.CustomerEntersQty) ? Html.Raw($"onclick=\"showHideRadioQuantity('{controlId}')\"") : null) />
                                                     @getAttributeValueName(attributeValue)
                                                 </label>
 
@@ -100,7 +100,7 @@
                                             <div class="checkbox">
                                                 <label for="@(controlId)_@(attributeValue.Id)">
                                                     <input id="@(controlId)_@(attributeValue.Id)" type="checkbox" name="@(controlId)" value="@attributeValue.Id" checked="@attributeValue.IsPreSelected" @(attribute.AttributeControlType == AttributeControlType.ReadonlyCheckboxes ? Html.Raw(" disabled=\"disabled\"") : null)
-                                                           @(attributeValue.CustomerEntersQty ? Html.Raw($"onchange=\"showHideCheckboxQuantity('{controlId}_{attributeValue.Id}')\"") : null)/>
+                                                           @(attributeValue.CustomerEntersQty ? Html.Raw($"onchange=\"showHideCheckboxQuantity('{controlId}_{attributeValue.Id}')\"") : null) />
                                                     @getAttributeValueName(attributeValue)
                                                 </label>
 
@@ -132,13 +132,11 @@
                                     break;
                                 case AttributeControlType.Datepicker:
                                     {
-                                        <nop-date-picker 
-                                            asp-day-name="@(controlId + "_day")" 
-                                            asp-month-name="@(controlId + "_month")" 
-                                            asp-year-name="@(controlId + "_year")"
-                                            asp-begin-year="@(DateTime.Now.Year)"
-                                            asp-end-year="@(DateTime.Now.Year + 1)"
-                                        />
+                                        <nop-date-picker asp-day-name="@(controlId + "_day")"
+                                                         asp-month-name="@(controlId + "_month")"
+                                                         asp-year-name="@(controlId + "_year")"
+                                                         asp-begin-year="@(DateTime.Now.Year)"
+                                                         asp-end-year="@(DateTime.Now.Year + 1)" />
                                     }
                                     break;
                                 case AttributeControlType.FileUpload:
@@ -229,9 +227,9 @@
                                                 <span id="@(controlId + "remove")" class="btn btn-default margin-t-5" style="display: none;">@T("Admin.Download.RemoveDownload")</span>
                                             </div>
                                         </div>
-        }
-        break;
-    }
+                                    }
+                                    break;
+                            }
                             <div class="input-group-btn">
                                 @if (attribute.IsRequired)
                                 {
@@ -241,7 +239,7 @@
                         </div>
                     </div>
                 </div>
-    }
+            }
 
             @*generate change event script*@
             @foreach (var attribute in Model)
@@ -292,6 +290,19 @@
                 data: $('#product-details-form').serialize(),
                 type: 'post',
                 success: function(data) {
+                   // pictureFullSizeUrl
+                    if (data.pictureDefaultSizeUrl) {
+                        $('#main-product-img-@productId').attr("src", data.pictureDefaultSizeUrl);
+                    }
+                    @*if (data.pictureFullSizeUrl) {
+                        $('#main-product-img-lightbox-anchor-@productId').attr("href", data.pictureFullSizeUrl);
+                    }*@
+                    if (data.adjustBasePrice !== null) {
+                        var basePrice = parseFloat($("#BaseUnitPriceHidden").val());
+                        basePrice += data.adjustBasePrice;
+                        $("#BaseUnitPrice").val(basePrice);
+                        $("#BaseUnitPrice").trigger('change');
+                    }
                     if (data.enabledattributemappingids) {
                         for (var i = 0; i < data.enabledattributemappingids.length; i++) {
                             $('#product_attribute_row_' + data.enabledattributemappingids[i]).show();
@@ -339,4 +350,4 @@
             };
         </script>
     </div>
-    }
+}

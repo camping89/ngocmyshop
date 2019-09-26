@@ -210,7 +210,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 Data = vendors.Select(x =>
                 {
                     var vendorModel = x.ToModel();
-                    PrepareVendorModel(vendorModel, x, false, false);
+                    //PrepareVendorModel(vendorModel, x, false, false);
                     return vendorModel;
                 }),
                 Total = vendors.TotalCount,

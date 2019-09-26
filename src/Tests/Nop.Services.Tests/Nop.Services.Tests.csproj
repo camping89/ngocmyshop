@@ -10,6 +10,7 @@
     				<RepositoryUrl>https://github.com/nopSolutions/nopCommerce</RepositoryUrl>
     				<RepositoryType>Git</RepositoryType>
     				<Description>The project contains a set of classes for testing of Nop.Services</Description>
+    				<LangVersion>7.2</LangVersion>
   			</PropertyGroup>
   			<ItemGroup>
   			  <ProjectReference Include="..\..\Libraries\Nop.Services\Nop.Services.csproj" />

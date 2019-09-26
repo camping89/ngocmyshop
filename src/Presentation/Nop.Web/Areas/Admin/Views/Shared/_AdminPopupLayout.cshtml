@@ -42,7 +42,7 @@
     Html.AppendScriptParts("~/lib/bootstrap/bootstrap.min.js");
     Html.AppendScriptParts("~/lib/bootstrap-touchspin/jquery.bootstrap-touchspin.min.js");
     Html.AppendScriptParts("~/lib/jquery-1.10.2.min.js");
-    
+
     Html.AppendScriptParts(ResourceLocation.Footer, "~/js/public.ajaxcart.js");
     Html.AppendScriptParts(ResourceLocation.Footer, "~/js/public.common.js");
     //page title
@@ -59,25 +59,26 @@
     eventPublisher.Publish(new PageRenderingEvent(this.Html));
 }
 <!DOCTYPE html>
-<html@(supportRtl ? Html.Raw(" dir=\"rtl\"") : null)>
-    <head>
-        <title>@adminPageTitle</title>
-        <meta http-equiv="Content-type" content="text/html;charset=UTF-8" />
-        @Html.NopHeadCustom()
-        @Html.NopCssFiles(this.Url, ResourceLocation.Head, false)
-        @Html.NopScripts(this.Url, ResourceLocation.Head, false)
-        <link href="~/css/admin/stylesweb.css" rel="stylesheet" />
-        <link href="~/css/admin/print.css" rel="stylesheet" />
-        <link href="~/css/admin/ie8.css" rel="stylesheet" />
-    </head>
-    <body class="hold-transition skin-blue sidebar-collapse">
-        <div class="wrapper">
-            <div class="content-wrapper">
-                @await Html.PartialAsync("~/Areas/Admin/Views/Shared/Notifications.cshtml")
-                @RenderBody()
-            </div>
+<html @(supportRtl ? Html.Raw(" dir=\"rtl\"") : null)>
+<head>
+    <title>@adminPageTitle</title>
+    <meta http-equiv="Content-type" content="text/html;charset=UTF-8" />
+    @Html.NopHeadCustom()
+    @Html.NopCssFiles(this.Url, ResourceLocation.Head, false)
+    @Html.NopScripts(this.Url, ResourceLocation.Head, false)
+    <link href="~/css/admin/stylesweb.css" rel="stylesheet" />
+    <link href="~/css/admin/print.css" rel="stylesheet" />
+    <link href="~/css/admin/ie8.css" rel="stylesheet" />
+</head>
+<body class="hold-transition skin-blue sidebar-collapse">
+    <div class="wrapper">
+        <div class="content-wrapper">
+            @await Html.PartialAsync("~/Areas/Admin/Views/Shared/Notifications.cshtml")
+            @RenderBody()
         </div>
-        @Html.NopCssFiles(this.Url, ResourceLocation.Footer)
-        @Html.NopScripts(this.Url, ResourceLocation.Footer)
-    </body>
-    </html>
+    </div>
+    @Html.NopCssFiles(this.Url, ResourceLocation.Footer)
+    @Html.NopScripts(this.Url, ResourceLocation.Footer)
+    @Html.NopInlineScripts(this.Url, ResourceLocation.Footer)
+</body>
+</html>

@@ -1,10 +1,10 @@
-using System;
-using System.Linq;
 using Nop.Core.Caching;
 using Nop.Core.Data;
 using Nop.Core.Domain.Common;
 using Nop.Services.Directory;
 using Nop.Services.Events;
+using System;
+using System.Linq;
 
 namespace Nop.Services.Common
 {
@@ -55,10 +55,10 @@ namespace Nop.Services.Common
         /// <param name="addressSettings">Address settings</param>
         public AddressService(ICacheManager cacheManager,
             IRepository<Address> addressRepository,
-            ICountryService countryService, 
+            ICountryService countryService,
             IStateProvinceService stateProvinceService,
             IAddressAttributeService addressAttributeService,
-            IEventPublisher eventPublisher, 
+            IEventPublisher eventPublisher,
             AddressSettings addressSettings)
         {
             this._cacheManager = cacheManager;
@@ -87,7 +87,7 @@ namespace Nop.Services.Common
 
             //cache
             _cacheManager.RemoveByPattern(ADDRESSES_PATTERN_KEY);
-
+            _cacheManager.RemoveByPattern(string.Format(ADDRESSES_BY_ID_KEY, address.Id));
             //event notification
             _eventPublisher.EntityDeleted(address);
         }
@@ -146,7 +146,7 @@ namespace Nop.Services.Common
         {
             if (address == null)
                 throw new ArgumentNullException(nameof(address));
-            
+
             address.CreatedOnUtc = DateTime.UtcNow;
 
             //some validation
@@ -187,7 +187,7 @@ namespace Nop.Services.Common
             //event notification
             _eventPublisher.EntityUpdated(address);
         }
-        
+
         /// <summary>
         /// Gets a value indicating whether address is valid (can be saved)
         /// </summary>
@@ -272,7 +272,7 @@ namespace Nop.Services.Common
 
             return true;
         }
-        
+
         #endregion
     }
 }

@@ -145,9 +145,17 @@ namespace Nop.Web.Framework.TagHelpers.Admin
                 var renderHtml = selectList.RenderHtmlContent();
                 if (multiple == false && Items != null && Items.Count() > 10)
                 {
+                    var extendSelected = string.Empty;
+                    if (Items.Any(_ => _.Selected))
+                    {
+                        var valueSelectedDefault = Items.FirstOrDefault(_ => _.Selected)?.Value;
+                        extendSelected = $"$('#{tagName}').val('{valueSelectedDefault}');" +
+                                         $"$('{tagName}').trigger('chosen:updated');";
+                    }
                     renderHtml += "<script type='text/javascript'>" +
                                   "$(function () {" +
-                                  $"$('#{tagName}').chosen();" +
+                                  $"$('#{tagName}')" + ".chosen({search_contains:true});" +
+                                  extendSelected +
                                   "});" +
                                   "</script>";
                 }

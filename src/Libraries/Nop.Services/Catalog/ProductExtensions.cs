@@ -17,6 +17,20 @@ namespace Nop.Services.Catalog
     {
         #region Utilities
 
+        public static int GetStockNumber(this Product product, string attributesXml, IProductAttributeParser productAttributeParser)
+        {
+            var stockNumber = 0;
+            if (product.ManageInventoryMethod == ManageInventoryMethod.ManageStockByAttributes)
+            {
+                var combination = productAttributeParser.FindProductAttributeCombination(product, attributesXml);
+                if (combination == null) return stockNumber;
+                return combination.StockQuantity;
+            }
+            else
+            {
+                return product.StockQuantity;
+            }
+        }
         private static string GeStockMessage(Product product, string attributesXml, ILocalizationService localizationService, IProductAttributeParser productAttributeParser, IDateRangeService dateRangeService)
         {
             if (!product.DisplayStockAvailability)

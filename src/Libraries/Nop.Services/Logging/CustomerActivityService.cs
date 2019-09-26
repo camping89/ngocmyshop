@@ -1,13 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using Nop.Core;
+﻿using Nop.Core;
 using Nop.Core.Caching;
 using Nop.Core.Data;
 using Nop.Core.Domain.Common;
 using Nop.Core.Domain.Customers;
 using Nop.Core.Domain.Logging;
+using Nop.Core.Extensions;
 using Nop.Data;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Nop.Services.Logging
 {
@@ -41,7 +42,7 @@ namespace Nop.Services.Logging
         private readonly IWebHelper _webHelper;
 
         #endregion
-        
+
         #region Ctor
 
         /// <summary>
@@ -161,7 +162,7 @@ namespace Nop.Services.Logging
             _activityLogTypeRepository.Update(activityLogType);
             _cacheManager.RemoveByPattern(ACTIVITYTYPE_PATTERN_KEY);
         }
-                
+
         /// <summary>
         /// Deletes an activity log type item
         /// </summary>
@@ -182,8 +183,8 @@ namespace Nop.Services.Logging
         public virtual IList<ActivityLogType> GetAllActivityTypes()
         {
             var query = from alt in _activityLogTypeRepository.Table
-                orderby alt.Name
-                select alt;
+                        orderby alt.Name
+                        select alt;
             var activityLogTypes = query.ToList();
             return activityLogTypes;
         }
@@ -248,7 +249,7 @@ namespace Nop.Services.Logging
 
             return activity;
         }
-        
+
         /// <summary>
         /// Deletes an activity log item
         /// </summary>
@@ -271,13 +272,14 @@ namespace Nop.Services.Logging
         /// <param name="pageIndex">Page index</param>
         /// <param name="pageSize">Page size</param>
         /// <param name="ipAddress">IP address; null or empty to load all activities</param>
+        /// <param name="searchKeyword"></param>
         /// <returns>Activity log items</returns>
         public virtual IPagedList<ActivityLog> GetAllActivities(DateTime? createdOnFrom = null,
             DateTime? createdOnTo = null, int? customerId = null, int activityLogTypeId = 0,
-            int pageIndex = 0, int pageSize = int.MaxValue, string ipAddress = null)
+            int pageIndex = 0, int pageSize = int.MaxValue, string ipAddress = null, string searchKeyword = null)
         {
             var query = _activityLogRepository.Table;
-            if(!string.IsNullOrEmpty(ipAddress))
+            if (!string.IsNullOrEmpty(ipAddress))
                 query = query.Where(al => al.IpAddress.Contains(ipAddress));
             if (createdOnFrom.HasValue)
                 query = query.Where(al => createdOnFrom.Value <= al.CreatedOnUtc);
@@ -287,13 +289,15 @@ namespace Nop.Services.Logging
                 query = query.Where(al => activityLogTypeId == al.ActivityLogTypeId);
             if (customerId.HasValue)
                 query = query.Where(al => customerId.Value == al.CustomerId);
+            if (searchKeyword.IsNotNullOrEmpty())
+                query = query.Where(al => al.Comment.Contains(searchKeyword));
 
             query = query.OrderByDescending(al => al.CreatedOnUtc);
 
             var activityLog = new PagedList<ActivityLog>(query, pageIndex, pageSize);
             return activityLog;
         }
-        
+
         /// <summary>
         /// Gets an activity log item
         /// </summary>

@@ -37,7 +37,6 @@
                                     $('#pnlEditPvUnitPrice@(item.Id)').show();
                                     $('#pnlEditPvQuantity@(item.Id)').show();
                                     $('#pnlEditPvPackageOrderId@(item.Id)').show();
-                                    $('#pnlEditPvPackageItemCode@(item.Id)').show();
                                     $('#pnlEditPvPackageItemProcessedDatetime@(item.Id)').show();
                                     $('#pnlEditPvPackageWeightCostDec@(item.Id)').show();
                                     $('#pnlEditPvDiscount@(item.Id)').show();
@@ -50,7 +49,6 @@
                                     $('#pnlEditPvUnitPrice@(item.Id)').hide();
                                     $('#pnlEditPvQuantity@(item.Id)').hide();
                                     $('#pnlEditPvPackageOrderId@(item.Id)').hide();
-                                    $('#pnlEditPvPackageItemCode@(item.Id)').hide();
                                     $('#pnlEditPvPackageItemProcessedDatetime@(item.Id)').hide();
                                     $('#pnlEditPvPackageWeightCostDec@(item.Id)').hide();
                                     $('#pnlEditPvDiscount@(item.Id)').hide();
@@ -107,9 +105,6 @@
                                 </th>
                                 <th>
                                     @T("Admin.Orders.Products.PackageOrderId")
-                                </th>
-                                <th>
-                                    @T("Admin.Orders.Products.PackageItemCode")
                                 </th>
                                 <th>
                                     @T("Admin.Orders.Products.PackageItemProcessedDatetime")
@@ -398,16 +393,7 @@
                                             </div>
                                         </div>
                                     </td>
-                                    <td style="width: 10%;">
-                                        <div>@item.PackageItemCode</div>
-                                        <div id="pnlEditPvPackageItemCode@(item.Id)">
-                                            <div class="form-group">
-                                                <div class="col-md-12">
-                                                    <input name="pvPackageItemCode@(item.Id)" type="text" value="@item.PackageItemCode" id="pvPackageItemCode@(item.Id)" class="form-control input-sm" />
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </td>
+                                    
                                     <td style="width: 10%;">
                                         <div>@item.PackageItemProcessedDatetime</div>
                                         <div id="pnlEditPvPackageItemProcessedDatetime@(item.Id)">

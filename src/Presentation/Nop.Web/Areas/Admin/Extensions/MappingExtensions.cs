@@ -87,6 +87,40 @@ namespace Nop.Web.Areas.Admin.Extensions
 
         #endregion
 
+        #region Shelf
+
+        public static ShelfModel ToModel(this Shelf entity)
+        {
+            return entity.MapTo<Shelf, ShelfModel>();
+        }
+
+        public static Shelf ToEntity(this ShelfModel model)
+        {
+            return model.MapTo<ShelfModel, Shelf>();
+        }
+
+        public static Shelf ToEntity(this ShelfModel model, Shelf destination)
+        {
+            return model.MapTo(destination);
+        }
+
+        public static ShelfOrderItemModel ToModel(this ShelfOrderItem entity)
+        {
+            return entity.MapTo<ShelfOrderItem, ShelfOrderItemModel>();
+        }
+
+        public static ShelfOrderItem ToEntity(this ShelfOrderItemModel model)
+        {
+            return model.MapTo<ShelfOrderItemModel, ShelfOrderItem>();
+        }
+
+        public static ShelfOrderItem ToEntity(this ShelfOrderItemModel model, ShelfOrderItem destination)
+        {
+            return model.MapTo(destination);
+        }
+
+        #endregion
+
         #region Manufacturer
 
         public static ManufacturerModel ToModel(this Manufacturer entity)

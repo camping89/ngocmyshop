@@ -57,6 +57,10 @@
                 <i class="fa fa-arrow-circle-left"></i>
                 <a asp-action="ShipmentList">@T("Admin.Orders.Shipments.BackToShipment")</a>
             </small>
+            <small>
+                <i class="fa fa-arrow-circle-left"></i>
+                <a asp-controller="Order" asp-action="Edit" asp-route-id="@Model.OrderId">@T("Admin.Orders.Shipments.BackToOrder")</a>
+            </small>
         </h1>
         <div class="pull-right">
             <button id="btnSave" type="submit" name="save" class="btn bg-blue">
@@ -87,13 +91,13 @@
                 <div class="panel panel-default">
                     <div class="panel-body">
                         <div class="form-group">
-                            <input type="hidden" name="CustomerId" id="CustomerId" class="form-control" value="@(Model.CustomerId > 0 ? Model.CustomerId.ToString() : string.Empty)" />
+                            <input type="hidden" name="ShipperId" id="ShipperId" class="form-control" value="@(Model.ShipperId > 0 ? Model.ShipperId.ToString() : string.Empty)" />
                             <div class="col-md-3">
-                                <nop-label asp-for="CustomerId" />
+                                <nop-label asp-for="ShipperId" />
                             </div>
                             <div class="col-md-9">
                                 <div class="input-group">
-                                    <input style="float: left;" type="text" name="CustomerName" id="CustomerName" class="form-control" placeholder="@(T("Admin.Common.PleaseInputSearchData"))" value="@Model.CustomerFullName" />
+                                    <input style="float: left;" type="text" name="ShipperName" id="ShipperName" class="form-control" placeholder="@(T("Admin.Common.PleaseInputSearchData"))" value="@Model.ShipperFullName" />
                                     <span class="input-group-btn">
                                         <button type="submit" name="setcustomershipment" class="btn btn-info">
                                             @T("Admin.Orders.Shipments.Customer.Button")
@@ -103,7 +107,7 @@
 
                                 <script>
                     $(document).ready(function() {
-                        $("#CustomerName").autocomplete({
+                        $("#ShipperName").autocomplete({
                             delay: 800,
                             source: function(request, response) {
 
@@ -134,7 +138,7 @@
                             },
                             minLength: 2,
                             select: function(event, ui) {
-                                $('#CustomerId').val(ui.item.value);
+                                $('#ShipperId').val(ui.item.value);
                                 this.value = ui.item.label;
                                 //setTimeout(function() {
 
@@ -182,6 +186,21 @@
                                 {
                                     <a href="@Model.TrackingNumberUrl" target="_blank" class="margin-l-10">@T("Admin.Orders.Shipments.TrackingNumber.ViewOnline")</a>
                                 }
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-md-3">
+                                <nop-label asp-for="BagId" />
+                            </div>
+                            <div class="col-md-9">
+                                <div class="input-group input-group-short pull-left">
+                                    <nop-editor asp-for="BagId" />
+                                    <span class="input-group-btn">
+                                        <button type="submit" name="setbagid" class="btn btn-info">
+                                            @T("Admin.Orders.Shipments.BagId.Button")
+                                        </button>
+                                    </span>
+                                </div>
                             </div>
                         </div>
                         <div class="form-group">
@@ -354,6 +373,9 @@
                                         <td style="width: 40%; text-align: left;">
                                             <div>
                                                 <em><a asp-controller="Product" asp-action="Edit" asp-route-id="@item.ProductId">@item.ProductName</a></em>
+                                                <p>
+                                                    <img height="70px" src="@item.ImageUrl" />
+                                                </p>
                                                 @if (!string.IsNullOrEmpty(item.AttributeInfo))
                                                 {
                                                     <p>

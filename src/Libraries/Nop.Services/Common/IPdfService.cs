@@ -1,8 +1,8 @@
-using System.Collections.Generic;
-using System.IO;
 using Nop.Core.Domain.Catalog;
 using Nop.Core.Domain.Orders;
 using Nop.Core.Domain.Shipping;
+using System.Collections.Generic;
+using System.IO;
 
 namespace Nop.Services.Common
 {
@@ -28,7 +28,8 @@ namespace Nop.Services.Common
         /// <param name="languageId">Language identifier; 0 to use a language used when placing an order</param>
         /// <param name="vendorId">Vendor identifier to limit products; 0 to to print all products. If specified, then totals won't be printed</param>
         void PrintOrdersToPdf(Stream stream, IList<Order> orders, int languageId = 0, int vendorId = 0);
-        
+        void PrintOrdersVendorCheckoutToPdf(Stream stream, IList<OrderItem> orderItems, int languageId = 0, int vendorId = 0);
+
         /// <summary>
         /// Print orders to PDF
         /// </summary>
@@ -45,7 +46,11 @@ namespace Nop.Services.Common
         /// <param name="shipments">Shipments</param>
         /// <param name="languageId">Language identifier; 0 to use a language used when placing an order</param>
         void PrintPackagingSlipsToPdf(Stream stream, IList<Shipment> shipments, int languageId = 0);
-        
+        void PrintPackagingSlipsItemsToPdf(Stream stream, IList<ShipmentManual> shipments, int languageId = 0);
+        void PrintShipmentsToPdf(Stream stream, List<ShipmentManual> shipmentManuals, int languageId = 0);
+
+        void PrintShipmentDetailsToPdf(Stream stream, ShipmentManual shipmentDetails, int languageId = 0, string shelfCode = null);
+
         /// <summary>
         /// Print products to PDF
         /// </summary>

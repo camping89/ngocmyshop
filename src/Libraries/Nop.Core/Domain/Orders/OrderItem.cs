@@ -1,4 +1,5 @@
 using Nop.Core.Domain.Catalog;
+using Nop.Core.Domain.Customers;
 using System;
 using System.Collections.Generic;
 
@@ -9,6 +10,10 @@ namespace Nop.Core.Domain.Orders
     /// </summary>
     public partial class OrderItem : BaseEntity
     {
+        public OrderItem()
+        {
+            OrderItemStatus = OrderItemStatus.Available;
+        }
         private ICollection<GiftCard> _associatedGiftCards;
 
         /// <summary>
@@ -113,17 +118,29 @@ namespace Nop.Core.Domain.Orders
         public decimal OrderingFee { get; set; }
         public double SaleOffPercent { get; set; }
         public int CurrencyId { get; set; }
+        public decimal? UnitWeightCost { get; set; }
         public decimal WeightCost { get; set; }
 
         public int? PackageOrderId { get; set; }
         public virtual PackageOrder PackageOrder { get; set; }
 
-        public string PackageItemCode { get; set; }
 
+        public int? AssignedByCustomerId { get; set; }
+        public virtual Customer AssignedByCustomer { get; set; }
+
+        public DateTime? EstimatedTimeArrival { get; set; }
         public DateTime? PackageItemProcessedDatetime { get; set; }
+
+        public DateTime? DeliveryDateUtc { get; set; }
+
 
         public bool IncludeWeightCost { get; set; }
         public bool IsOrderCheckout { get; set; }
+
+        public decimal Deposit { get; set; }
+
+        public string Note { get; set; }
+        public int OrderItemStatusId { get; set; }
         /// <summary>
         /// Gets the order
         /// </summary>
@@ -133,6 +150,25 @@ namespace Nop.Core.Domain.Orders
         /// Gets the product
         /// </summary>
         public virtual Product Product { get; set; }
+
+        //public int? ShelfId { get; set; }
+        //public string ShelfCode { get; set; }
+       // public int? ShelfOrderItemId { get; set; }
+
+
+        //public virtual ShelfOrderItem ShelfOrderItem { get; set; }
+
+        public OrderItemStatus OrderItemStatus
+        {
+            get
+            {
+                return (OrderItemStatus)OrderItemStatusId;
+            }
+            set
+            {
+                OrderItemStatusId = (int)value;
+            }
+        }
 
         /// <summary>
         /// Gets or sets the associated gift card

@@ -10,7 +10,8 @@
     <PackageLicenseUrl></PackageLicenseUrl> 
     <PackageProjectUrl></PackageProjectUrl> 
     <RepositoryUrl></RepositoryUrl> 
-    <RepositoryType></RepositoryType>
+    <RepositoryType></RepositoryType> 
+    <LangVersion>7.2</LangVersion>
   </PropertyGroup>
   
   <ItemGroup>

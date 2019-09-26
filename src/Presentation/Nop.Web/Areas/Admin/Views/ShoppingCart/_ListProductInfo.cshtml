@@ -152,7 +152,7 @@ else
                                             title: "@T("Admin.Catalog.Products.Fields.UnitPriceBase")",
                                             width: 150,
                                             //if not a grouped product, then display
-                                            template: '# if(ProductTypeId != @((int) ProductType.GroupedProduct)) {# #: kendo.toString(UnitPriceUsd, "n0")# #} #'
+                                            template: '# if(ProductTypeId != @((int) ProductType.GroupedProduct)) {# #: kendo.toString(UnitPriceUsd, "n2")# #} #'
                                         },
                                         {
                                             field: "CurrencyMappedName",
@@ -163,23 +163,23 @@ else
                                             field: "OrderingFee",
                                             title: "@T("Admin.Catalog.Products.Fields.OrderingFee")",
                                             width: 100,
-                                            template: '# if(ProductTypeId != @((int) ProductType.GroupedProduct)) {# #: kendo.toString(OrderingFee, "n0")# #} #'
+                                            template: '# if(ProductTypeId != @((int) ProductType.GroupedProduct)) {# #: kendo.toString(OrderingFee, "n2")# #} #'
                                         },{
                                             field: "WeightCost",
                                             title: "@T("Admin.Catalog.Products.Fields.WeightCost")",
                                             width: 100,
-                                            template: '# if(ProductTypeId != @((int) ProductType.GroupedProduct)) {# #: kendo.toString(WeightCost, "n0")# #}  #'
+                                            template: '# if(ProductTypeId != @((int) ProductType.GroupedProduct)) {# #: kendo.toString(WeightCost, "n2")# #}  #'
                                         }, {
                                             field: "Price",
                                             title: "@T("Admin.Catalog.Products.Fields.PriceVnd")",
                                             width: 150,
                                             //if not a grouped product, then display
-                                            template: '# if(ProductTypeId != @((int) ProductType.GroupedProduct)) {# #:kendo.toString(Price, "n0")# #}  #'
+                                            template: '# if(ProductTypeId != @((int) ProductType.GroupedProduct)) {# #:kendo.toString(Price, "n2")# #}  #'
                                         },
                                         {
                                             title: "@T("Admin.Catalog.Products.Fields.Total")",
                                             width: 100,
-                                            template: '# if(ProductTypeId != @((int) ProductType.GroupedProduct)) {# #: kendo.toString((WeightCost + Price + OrderingFee), "n0")# #}  #'
+                                            template: '# if(ProductTypeId != @((int) ProductType.GroupedProduct)) {# #: kendo.toString((WeightCost + Price + OrderingFee), "n2")# #}  #'
                                         }@*, {
                                             field: "StockQuantityStr",
                                             title: "@T("Admin.Catalog.Products.Fields.StockQuantity")",

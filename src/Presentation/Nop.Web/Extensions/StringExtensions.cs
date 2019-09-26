@@ -12,11 +12,42 @@ namespace Nop.Web.Extensions
         public static CustomerFirstLastName GetFirstLastNameFromFullName(string fullName)
         {
             var index = fullName.LastIndexOf(' ');
-            return new CustomerFirstLastName
+            if (index != -1)
             {
-                LastName = fullName.Substring(index + 1),
-                FirstName = fullName.Substring(0, index)
-            };
+                return new CustomerFirstLastName
+                {
+                    LastName = fullName.Substring(index + 1),
+                    FirstName = fullName.Substring(0, index)
+                };
+            }
+            else
+            {
+                return new CustomerFirstLastName
+                {
+                    LastName = string.Empty,
+                    FirstName = fullName
+                };
+            }
+        }
+        // Generate a random string with a given size  
+        public static string RandomString(int size, bool lowerCase)
+        {
+            StringBuilder builder = new StringBuilder();
+            Random random = new Random();
+            char ch;
+            for (int i = 0; i < size; i++)
+            {
+                ch = Convert.ToChar(Convert.ToInt32(Math.Floor(26 * random.NextDouble() + 65)));
+                builder.Append(ch);
+            }
+            if (lowerCase)
+                return builder.ToString().ToLower();
+            return builder.ToString();
+        }
+        public static string GetPackageCode(int lastPackageId)
+        {
+            lastPackageId++;
+            return $"KH.{DateTime.Now.Year}.{DateTime.Now.Month}.{DateTime.Now.Day}_{lastPackageId}";
         }
         public static string RemoveWhitespace(string str)
         {
@@ -35,7 +66,7 @@ namespace Nop.Web.Extensions
             var random = new Random();
             firstName = ConvertToUnSign3(firstName.Trim());
             lastName = ConvertToUnSign3(lastName);
-            return $"{lastName.ToLower()}.{firstName.ToLower()}{random.Next(100, 999)}@gmail.com";
+            return $"{lastName.ToLower()}{firstName.ToLower()}{random.Next(100, 999)}@gmail.com";
         }
 
         public static string Encrypt(string toEncrypt, bool useHashing, string keyEncryptUserName)

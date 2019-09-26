@@ -1238,7 +1238,6 @@ namespace Nop.Web.Controllers
                 excludeProperties: false,
                 addressSettings: _addressSettings,
                 loadCountries: () => _countryService.GetAllCountries(_workContext.WorkingLanguage.Id));
-
             return View(model);
         }
 

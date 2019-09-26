@@ -1,6 +1,6 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Mvc.Rendering;
+using System;
 using System.Linq;
-using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace Nop.Services.ExportImport.Help
 {
@@ -44,7 +44,8 @@ namespace Nop.Services.ExportImport.Help
         /// <summary>
         /// Property value
         /// </summary>
-        public object PropertyValue {
+        public object PropertyValue
+        {
             get
             {
                 return IsDropDownCell ? GetItemId(_propertyValue) : _propertyValue;
@@ -52,7 +53,8 @@ namespace Nop.Services.ExportImport.Help
             set
             {
                 _propertyValue = value;
-            } }
+            }
+        }
 
         /// <summary>
         /// Converted property value to Int32
@@ -164,13 +166,15 @@ namespace Nop.Services.ExportImport.Help
 
         }
 
+        public bool IsImage { get; set; }
+
         /// <summary>
         /// Get DropDown elements
         /// </summary>
         /// <returns>Result</returns>
         public string[] GetDropDownElements()
         {
-            return  IsDropDownCell ? DropDownElements.Select(ev => ev.Text).ToArray() : new string[0];
+            return IsDropDownCell ? DropDownElements.Select(ev => ev.Text).ToArray() : new string[0];
         }
 
         /// <summary>
@@ -192,7 +196,7 @@ namespace Nop.Services.ExportImport.Help
         {
             return Convert.ToInt32(DropDownElements.FirstOrDefault(ev => ev.Text.Trim() == (name ?? string.Empty).ToString().Trim())?.Value ?? "0");
         }
-        
+
         /// <summary>
         /// Elements for a drop-down cell
         /// </summary>

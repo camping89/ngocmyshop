@@ -18,88 +18,89 @@
         @T("Admin.Dashboard")
     </h1>
 </div>
-<div class="content">
-    <div class="row">
-        <div class="col-md-12">
-            @await Component.InvokeAsync("AdminWidget", new { widgetZone = "admin_dashboard_top" })
-            @if (!Model.IsLoggedInAsVendor)
-            {
-                <div class="row">
-                    <div class="col-md-12">
-                        @await Component.InvokeAsync("NopCommerceNews")
-                    </div>
-                </div>
-            }
-            @await Component.InvokeAsync("AdminWidget", new { widgetZone = "admin_dashboard_news_after" })
-            @if (!Model.IsLoggedInAsVendor && canManageOrders && canManageCustomers && canManageProducts && canManageReturnRequests)
-            {
-                <div class="row">
-                    <div class="col-md-12">
-                        @await Component.InvokeAsync("CommonStatistics")
-                    </div>
-                </div>
-            }
-            @await Component.InvokeAsync("AdminWidget", new { widgetZone = "admin_dashboard_commonstatistics_after" })
-            @if (!Model.IsLoggedInAsVendor && (canManageOrders || canManageCustomers))
-            {
-                <div class="row">
-                    @if (!Model.IsLoggedInAsVendor && canManageOrders)
-                    {
-                        <div class="col-md-6">
-                            @await Html.PartialAsync("_OrderStatistics")
+
+@*<div class="content">
+        <div class="row">
+            <div class="col-md-12">
+                @await Component.InvokeAsync("AdminWidget", new { widgetZone = "admin_dashboard_top" })
+                @if (!Model.IsLoggedInAsVendor)
+                {
+                    <div class="row">
+                        <div class="col-md-12">
+                            @await Component.InvokeAsync("NopCommerceNews")
                         </div>
-                    }
-                    @if (!Model.IsLoggedInAsVendor && canManageCustomers)
-                    {
-                        <div class="col-md-6">
-                            @await Html.PartialAsync("_CustomerStatistics")
-                        </div>
-                    }
-                </div>
-            }
-            @await Component.InvokeAsync("AdminWidget", new { widgetZone = "admin_dashboard_customerordercharts_after" })
-            @if (!Model.IsLoggedInAsVendor && canManageOrders)
-            {
-                <div class="row">
-                    <div class="col-md-8">
-                        @await Html.PartialAsync("_OrderAverageReport")
                     </div>
-                    <div class="col-md-4">
-                        @await Html.PartialAsync("_OrderIncompleteReport")
-                    </div>
-                </div>
-            }
-            @await Component.InvokeAsync("AdminWidget", new { widgetZone = "admin_dashboard_orderreports_after" })
-            @if (!Model.IsLoggedInAsVendor && (canManageOrders || canManageProducts))
-            {
-                <div class="row">
-                    @if (canManageOrders)
-                    {
-                        <div class="col-md-8">
-                            @await Html.PartialAsync("_LatestOrders")
+                }
+                @await Component.InvokeAsync("AdminWidget", new { widgetZone = "admin_dashboard_news_after" })
+                @if (!Model.IsLoggedInAsVendor && canManageOrders && canManageCustomers && canManageProducts && canManageReturnRequests)
+                {
+                    <div class="row">
+                        <div class="col-md-12">
+                            @await Component.InvokeAsync("CommonStatistics")
                         </div>
-                    }
-                    <div class="col-md-4">
-                        @if (canManageProducts)
+                    </div>
+                }
+                @await Component.InvokeAsync("AdminWidget", new { widgetZone = "admin_dashboard_commonstatistics_after" })
+                @if (!Model.IsLoggedInAsVendor && (canManageOrders || canManageCustomers))
+                {
+                    <div class="row">
+                        @if (!Model.IsLoggedInAsVendor && canManageOrders)
                         {
-                            @await Html.PartialAsync("_PopularSearchTermsReport")
+                            <div class="col-md-6">
+                                @await Html.PartialAsync("_OrderStatistics")
+                            </div>
+                        }
+                        @if (!Model.IsLoggedInAsVendor && canManageCustomers)
+                        {
+                            <div class="col-md-6">
+                                @await Html.PartialAsync("_CustomerStatistics")
+                            </div>
                         }
                     </div>
-                </div>
-            }
-            @await Component.InvokeAsync("AdminWidget", new { widgetZone = "admin_dashboard_latestorders_searchterms_after" })
-            @if (canManageOrders)
-            {
-                <div class="row">
-                    <div class="col-md-6">
-                        @await Html.PartialAsync("_BestsellersBriefReportByQuantity")
+                }
+                @await Component.InvokeAsync("AdminWidget", new { widgetZone = "admin_dashboard_customerordercharts_after" })
+                @if (!Model.IsLoggedInAsVendor && canManageOrders)
+                {
+                    <div class="row">
+                        <div class="col-md-8">
+                            @await Html.PartialAsync("_OrderAverageReport")
+                        </div>
+                        <div class="col-md-4">
+                            @await Html.PartialAsync("_OrderIncompleteReport")
+                        </div>
                     </div>
-                    <div class="col-md-6">
-                        @await Html.PartialAsync("_BestsellersBriefReportByAmount")
+                }
+                @await Component.InvokeAsync("AdminWidget", new { widgetZone = "admin_dashboard_orderreports_after" })
+                @if (!Model.IsLoggedInAsVendor && (canManageOrders || canManageProducts))
+                {
+                    <div class="row">
+                        @if (canManageOrders)
+                        {
+                            <div class="col-md-8">
+                                @await Html.PartialAsync("_LatestOrders")
+                            </div>
+                        }
+                        <div class="col-md-4">
+                            @if (canManageProducts)
+                            {
+                                @await Html.PartialAsync("_PopularSearchTermsReport")
+                            }
+                        </div>
                     </div>
-                </div>
-            }
-            @await Component.InvokeAsync("AdminWidget", new { widgetZone = "admin_dashboard_bottom" })
+                }
+                @await Component.InvokeAsync("AdminWidget", new { widgetZone = "admin_dashboard_latestorders_searchterms_after" })
+                @if (canManageOrders)
+                {
+                    <div class="row">
+                        <div class="col-md-6">
+                            @await Html.PartialAsync("_BestsellersBriefReportByQuantity")
+                        </div>
+                        <div class="col-md-6">
+                            @await Html.PartialAsync("_BestsellersBriefReportByAmount")
+                        </div>
+                    </div>
+                }
+                @await Component.InvokeAsync("AdminWidget", new { widgetZone = "admin_dashboard_bottom" })
+            </div>
         </div>
-    </div>
-</div>
+    </div>*@

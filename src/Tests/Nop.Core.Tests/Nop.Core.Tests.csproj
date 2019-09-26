@@ -11,6 +11,7 @@
     				<RepositoryUrl>https://github.com/nopSolutions/nopCommerce</RepositoryUrl>
     				<RepositoryType>Git</RepositoryType>
     				<Product>Nop.Core.Tests</Product>
+    				<LangVersion>7.2</LangVersion>
   			</PropertyGroup>
   			<ItemGroup>
   			  <ProjectReference Include="..\..\Libraries\Nop.Core\Nop.Core.csproj" />

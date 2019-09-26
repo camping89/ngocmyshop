@@ -1,0 +1,854 @@
+﻿@model ShipmentListModel
+@inject AdminAreaSettings adminAreaSettings
+
+@{
+    var defaultGridPageSize = adminAreaSettings.DefaultGridPageSize;
+    var gridPageSizes = adminAreaSettings.GridPageSizes;
+
+    //page title
+    ViewBag.Title = T("Admin.Orders.Shipments.List").Text;
+
+    //active menu item (system name)
+    Html.SetActiveMenuItemSystemName("ShipmentsManual");
+}
+
+
+<form asp-controller="Order" asp-action="ShipmentManualList" method="post">
+    <div class="content-header clearfix">
+        <h1 class="pull-left">
+            @T("Admin.Orders.ShipmentsManual.List")
+        </h1>
+        <div class="pull-right">
+            <div class="btn-group">
+                <button type="button" class="btn bg-purple">
+                    <i class="fa fa-file-pdf-o"></i>
+                    @T("Admin.Orders.Shipments.PrintPackagingSlips")
+                </button>
+                <button type="button" class="btn bg-purple dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+                    <span class="caret"></span>
+                    <span class="sr-only">&nbsp;</span>
+                </button>
+                <ul class="dropdown-menu" role="menu">
+                    <li>
+                        <button type="button" id="exportpackagingslips-selected">
+                            @T("Admin.Orders.Shipments.PrintPackagingSlips.Selected")
+                        </button>
+                    </li>
+                    <li>
+                        <button type="submit" name="exportpackagingslips-all">
+                            @T("Admin.Orders.Shipments.PrintPackagingSlips.All")
+                        </button>
+                    </li>
+                </ul>
+            </div>
+
+            @*<div class="btn-group">
+                    <button type="button" class="btn btn-success">
+                        <i class="fa fa-download"></i>
+                        @T("Admin.Common.Export")
+                    </button>
+                    <button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+                        <span class="caret"></span>
+                        <span class="sr-only">&nbsp;</span>
+                    </button>
+                    <ul class="dropdown-menu" role="menu">
+
+                        <li>
+                            <button type="button" id="exportexcel-shipment-selected">
+                                <i class="fa fa-file-excel-o"></i>
+                                @T("Admin.Common.ExportToExcel.ShipmentItems.Selected")
+                            </button>
+                        </li>
+                        <li>
+                            <button type="submit" name="exportexcel-shipment-all">
+                                <i class="fa fa-file-excel-o"></i>
+                                @T("Admin.Common.ExportToExcel.ShipmentItems.All")
+                            </button>
+                        </li>
+                    </ul>
+                </div>*@
+
+            <button type="button" id="assign-shipper-selected" class="btn bg-aqua" data-toggle="modal" data-target="#assign-shipment-new-customer-window">
+                @T("Admin.Orders.Shipments.AssignToShipperSelected")
+            </button>
+
+            <button type="button" id="apply-tracking-number-selected" class="btn bg-fuchsia" data-toggle="modal" data-target="#apply-tracking-number-window">
+                @T("Admin.Orders.Shipments.ApplyTrackingNumber")
+            </button>
+
+            <button type="button" id="apply-bagid-selected" class="btn bg-orange" data-toggle="modal" data-target="#apply-bagid-window">
+                @T("Admin.Orders.Shipments.ApplyBagId")
+            </button>
+
+            <button type="button" id="ship-selected" class="btn bg-teal">
+                <i class="fa fa-truck"></i>
+                @T("Admin.Orders.Shipments.ShipSelected")
+            </button>
+            <button type="button" id="deliver-selected" class="btn bg-green">
+                <i class="fa fa-check-square-o"></i>
+                @T("Admin.Orders.Shipments.DeliverySelected")
+            </button>
+            @await Component.InvokeAsync("AdminWidget", new { widgetZone = "admin_order_shipment_list_buttons" })
+        </div>
+    </div>
+    <div class="content">
+        <div class="form-horizontal">
+            <div class="panel-group">
+                <div class="panel panel-default panel-search">
+                    <div class="panel-body">
+                        <div class="row">
+                            <div class="col-md-5">
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <nop-label asp-for="ShipperPhoneNumber" />
+                                    </div>
+                                    <div class="col-md-8">
+                                        <nop-editor asp-for="ShipperPhoneNumber" />
+                                    </div>
+                                    <script>
+                                        $(document).ready(function() {
+                                            $("#ShipperPhoneNumber").autocomplete({
+                                                delay: 800,
+                                                source: function(request, response) {
+
+                                                    var postData = {
+                                                        searchTerm: request.term
+                                                    };
+                                                    addAntiForgeryToken(postData);
+
+                                                    $.ajax({
+                                                        cache: false,
+                                                        type: "POST",
+                                                        url: "@(Url.Action("CustomerSearchPhone", "Customer"))",
+                                                        data: postData,
+                                                        complete: function(result) {
+                                                            response($.map(result.responseJSON.Data,
+                                                                function(item) {
+                                                                    return {
+                                                                        label: item.FullName,
+                                                                        value: item.Phone
+                                                                    }
+                                                                }));
+                                                        },
+                                                        error: function(xhr, ajaxOptions, thrownError) {
+                                                            alert(thrownError);
+                                                        },
+                                                        traditional: true
+                                                    });
+                                                },
+                                                minLength: 2,
+                                                select: function(event, ui) {
+                                                    $('#CustomerId').val(ui.item.value);
+                                                    this.value = ui.item.value;
+                                                    //setTimeout(function() {
+
+                                                    //},500);
+                                                    return false;
+                                                },
+                                                focus: function(event, ui) {
+                                                    event.preventDefault();
+                                                    this.value = ui.item.value;
+                                                },
+                                                search: function(e, u) {
+                                                    $(this).addClass('ajaxprocessing');
+                                                },
+                                                response: function(event, ui) {
+                                                    $(this).removeClass('ajaxprocessing');
+                                                }
+                                            });
+
+                                        });
+                                    </script>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <nop-label asp-for="StartDate" />
+                                    </div>
+                                    <div class="col-md-8">
+                                        <nop-editor asp-for="StartDate" />
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <nop-label asp-for="EndDate" />
+                                    </div>
+                                    <div class="col-md-8">
+                                        <nop-editor asp-for="EndDate" />
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <nop-label asp-for="TodayFilter" />
+                                    </div>
+                                    <div class="col-md-8">
+                                        <nop-editor asp-for="TodayFilter" />
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <nop-label asp-for="LoadNotShipped" />
+                                    </div>
+                                    <div class="col-md-8">
+                                        <nop-editor asp-for="LoadNotShipped" />
+                                    </div>
+                                </div>
+
+                            </div>
+                            <div class="col-md-7">
+
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <nop-label asp-for="City" />
+                                    </div>
+                                    <div class="col-md-8">
+                                        <nop-editor asp-for="City" />
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <nop-label asp-for="TrackingNumber" />
+                                    </div>
+                                    <div class="col-md-8">
+                                        <nop-editor asp-for="TrackingNumber" />
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <nop-label asp-for="OrderItemId" />
+                                    </div>
+                                    <div class="col-md-8">
+                                        <nop-editor asp-for="OrderItemId" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-7 col-md-offset-4">
+                                    <button type="button" id="search-shipments" class="btn btn-primary btn-search">
+                                        <i class="fa fa-search"></i>
+                                        @T("Admin.Common.Search")
+                                    </button>
+                                    <button type="button" id="clear-filter" class="btn btn-danger btn-search">
+                                        <i class="fa fa-recycle"></i>
+                                        @T("Admin.Common.ClearFilter")
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        @*<button class="k-button" id="expand">@T("Admin.Common.ExpandAll")</button>*@
+                        <button type="button" class="k-button" id="collapse">@T("Admin.Common.CollapseAll")</button>
+
+                        <div style="margin-top: 10px;" id="shipments-grid"></div>
+
+                        <script type="text/javascript">
+                            $(document).ready(function() {
+                                $("#shipments-grid").kendoGrid({
+                                    dataSource: {
+                                        type: "json",
+                                        transport: {
+                                            read: {
+                                                url: "@Html.Raw(Url.Action("ShipmentManualListSelect", "Order"))",
+                                                type: "POST",
+                                                dataType: "json",
+                                                data: additionalData
+                                            }
+                                        },
+                                        schema: {
+                                            data: "Data",
+                                            total: "Total",
+                                            errors: "Errors"
+                                        },
+                                        requestEnd: function (e) {
+                                            if (e.type === "read") {
+                                                var response = e.response;
+                                                if (response) {
+                                                    //store extra data
+                                                    reportAggregates = e.response["ExtraData"];
+                                                }
+                                            }
+                                        },
+                                        error: function(e) {
+                                            display_kendoui_grid_error(e);
+                                            // Cancel the changes
+                                            this.cancelChanges();
+                                        },
+                                        pageSize: @(defaultGridPageSize),
+                                        serverPaging: true,
+                                        serverFiltering: true,
+                                        serverSorting: true
+                                    },
+                                    pageable: {
+                                        refresh: true,
+                                        pageSizes: [@(gridPageSizes)],
+                                        @await Html.PartialAsync("_GridPagerMessages")
+                                    },
+                                    scrollable: false,
+                                    dataBound: onDataBound,
+                                    columns: [
+                                        {
+                                            field: "Id",
+                                            headerTemplate: "<input id='mastercheckbox' type='checkbox'/>",
+                                            headerAttributes: { style: "text-align:center" },
+                                            attributes: { style: "text-align:center" },
+                                            template:
+                                                "<div style='display:block;padding: 27px 40%;' onclick='setChecked(#=Id#);'><input onclick='setChecked(#=Id#);' id='ckb#=Id#' type='checkbox' value='#=Id#' class='checkboxGroups'/></div>",
+                                            width: 50
+                                        }, {
+                                            field: "Id",
+                                            title: "@T("Admin.Orders.Shipments.ID")",
+                                            width: 50
+                                        }, {
+                                            field: "BagId",
+                                            title: "@T("Admin.Orders.Shipments.BagId")",
+                                            width: 100
+                                        }, {
+                                            field: "ProductSku",
+                                            title: "@T("Admin.Orders.Shipments.ProductSku")",
+                                            width: 100
+                                        },{
+                                            field: "Quantity",
+                                            title: "@T("Admin.Orders.Shipments.Quantity")",
+                                            width: 50
+                                        },{
+                                            field: "ShippingFee",
+                                            title: "@T("Admin.Orders.Shipments.ShippingFee")",
+                                            width: 100,
+                                            template: '#= kendo.toString(TotalShippingFee, "n2") #'
+                                        }, {
+                                            field: "TrackingNumber",
+                                            title: "@T("Admin.Orders.Shipments.TrackingNumber")",
+                                            width: 100
+                                        }, {
+                                            field: "ShipperFullName",
+                                            title: "@T("Admin.Orders.Shipments.ShipperFullName")",
+                                            width: 200
+                                        }, {
+                                            field: "CustomerFullName",
+                                            title: "@T("Admin.Orders.Shipments.CustomerFullName")",
+                                            width: 200,
+                                            template: '<p>#=CustomerFullName# - #=CustomerPhone#<p>' +
+                                                        '<p><a href="#=CustomerLinkFacebook#" target="_blank">#=CustomerLinkFacebook#</a></p>'
+                                        }, {
+                                            field: "ShipmentAddress",
+                                            title: "@T("Admin.Orders.Shipments.ShipmentAddress")",
+                                            width: 200
+                                        }, {
+                                            field: "ShippedDate",
+                                            title: "@T("Admin.Orders.Shipments.ShippedDate")",
+                                            width: 200,
+                                            type: "date",
+                                            format: "{0:dd/MM/yyyy}"
+                                        }, {
+                                            field: "DeliveryDate",
+                                            title: "@T("Admin.Orders.Shipments.ReceivedDate")",
+                                            width: 200,
+                                            type: "date",
+                                            format: "{0:dd/MM/yyyy}"
+                                        }, {
+                                            field: "ShipmentNote",
+                                            title: "@T("Admin.Orders.Shipments.ShipmentNote")",
+                                            width: 100
+                                        },{
+                                            field: "Deposit",
+                                            title: "@T("Admin.Orders.Shipments.Deposit")",
+                                            width: 100,
+                                            template: '#= kendo.toString(Deposit, "n2") #'
+                                        }, {
+                                            field: "TotalOrderFee",
+                                            title: "@T("Admin.Orders.Shipments.TotalOrderFee")",
+                                            width: 150,
+                                            template: '<strong>#=TotalOrderFee#</strong><br/>' +
+                                                '<p>@T("Admin.Orders.Shipments.TotalOrderFeeNote")</p>',
+                                            footerTemplate:
+                                                '<div><strong>@T("Admin.Orders.Shipments.Summary")</strong></div>' +
+                                                    '<div>@T("Admin.Orders.Shipments.Deposit") <span id=\"aggregator-deposit-block\"></span></div>' +
+                                                    '<div>@T("Admin.Orders.Shipments.Total") <span id=\"aggregator-total-block\"></span></div>'
+
+                                        }
+                                    ]
+                                });
+
+                                $("#shipments-grid").on("click", "td", function(e) {
+                                    var grid = $("#shipments-grid").data("kendoGrid");
+                                    console.log($(this).hasClass("k-hierarchy-cell"));
+                                    console.log($(this).parent().get(0));
+                                    if ($(this).hasClass("k-hierarchy-cell")) {
+                                        var row = $(this).parent().get(0);
+                                        if ($(this).find(".k-icon").hasClass("k-minus")) {
+
+                                            grid.collapseRow(row);
+                                        } else {
+                                            grid.expandRow(row);
+                                        }
+                                    }
+
+
+                                });
+                            });
+
+
+                            $('#collapse').click(function (e) {
+                                var grid = $("#shipments-grid").data("kendoGrid");
+                                $(".k-master-row").each(function (index) {
+                                    grid.collapseRow(this);
+                                });
+                            });
+
+
+                            function setChecked(ckbId) {
+                                var status =  $('#ckb' + ckbId).is(':checked');
+                                if (status) {
+                                    status = false;
+                                } else {
+                                    status = true;
+                                }
+                                $('#ckb' + ckbId).attr('checked', status).change();
+                            }
+                        </script>
+                    </div>
+                </div>
+
+                <script type="text/javascript">
+                    var selectedIds = [];
+                    var reportAggregates = "";
+                    $(document).ready(function() {
+                        $("#clear-filter").click(function() {
+                            $('#@Html.IdFor(model => model.ShipperPhoneNumber)').val('');
+                            $('#@Html.IdFor(model => model.StartDate)').val('');
+                            $('#@Html.IdFor(model => model.EndDate)').val('');
+                            $('#@Html.IdFor(model => model.TrackingNumber)').val('');
+                            $('#@Html.IdFor(model => model.CountryId)').val(0);
+                            $('#@Html.IdFor(model => model.StateProvinceId)').val(0);
+                            $('#@Html.IdFor(model => model.City)').val('');
+
+                            $('#@Html.IdFor(model => model.LoadNotShipped)').prop('checked', false);
+                            $('#@Html.IdFor(model => model.OrderId)').val('');
+
+                            $("#search-shipments").click();
+                        });
+
+                        $('#@Html.IdFor(model => model.TodayFilter)').click(function () {
+                            if ($(this).is(':checked')) {
+                                var start = new Date();
+                                start.setHours(0,0,0,0);
+                                var end = new Date();
+                                end.setHours(23,59,59,999);
+                                var startDate = kendo.toString(kendo.parseDate(start), 'MM/dd/yyyy HH:mm tt');
+                                var endDate = kendo.toString(kendo.parseDate(end), 'MM/dd/yyyy HH:mm tt');
+                                $('#@Html.IdFor(model => model.StartDate)').val(startDate);
+                                $('#@Html.IdFor(model => model.EndDate)').val(endDate);
+                            } else {
+                                $('#@Html.IdFor(model => model.StartDate)').val('');
+                                $('#@Html.IdFor(model => model.EndDate)').val('');
+                            }
+                        });
+
+                        //load states when changing a country dropdownlist
+                        $("#@Html.IdFor(model => model.CountryId)").change(function() {
+                            var selectedItem = $(this).val();
+                            var ddlStates = $("#@Html.IdFor(model => model.StateProvinceId)");
+                            $.ajax({
+                                cache: false,
+                                type: "GET",
+                                url: "@(Url.Action("GetStatesByCountryId", "Country"))",
+                                data: { "countryId": selectedItem, "addAsterisk": "true" },
+                                success: function(data) {
+                                    ddlStates.html('');
+                                    $.each(data, function(id, option) {
+                                        ddlStates.append($('<option></option>').val(option.id).html(option.name));
+                                    });
+                                },
+                                error: function(xhr, ajaxOptions, thrownError) {
+                                    alert('Failed to retrieve states.');
+                                }
+                            });
+                        });
+
+                        $("".concat("#@Html.IdFor(model => model.TrackingNumber),",
+                            "#@Html.IdFor(model => model.City)")).keydown(function(event) {
+                            if (event.keyCode === 13) {
+                                $("#search-shipments").click();
+                                return false;
+                            }
+                        });
+
+                        //search button
+                        $('#search-shipments').click(function() {
+                            //search
+                            var grid = $('#shipments-grid').data('kendoGrid');
+                            grid.dataSource.page(1); //new search. Set page size to 1
+                            //grid.dataSource.read(); we already loaded the grid above using "page" function
+                            //clear selected checkboxes
+                            $('.checkboxGroups').attr('checked', false).change();
+                            selectedIds = [];
+                            return false;
+                        });
+
+                        //"ship selected" button
+                        $('#ship-selected').click(function(e) {
+                            e.preventDefault();
+
+                            var postData = {
+                                selectedIds: selectedIds
+                            };
+                            addAntiForgeryToken(postData);
+
+                            $.ajax({
+                                cache: false,
+                                type: "POST",
+                                url: "@(Url.Action("SetAsShippedSelected", "Order"))",
+                                data: postData,
+                                complete: function(data) {
+                                    //reload grid
+                                    var grid = $('#shipments-grid').data('kendoGrid');
+                                    grid.dataSource.read();
+                                },
+                                error: function(xhr, ajaxOptions, thrownError) {
+                                    alert(thrownError);
+                                },
+                                traditional: true
+                            });
+                            return false;
+                        });
+
+                        //"deliver selected" button
+                        $('#deliver-selected').click(function(e) {
+                            e.preventDefault();
+
+                            var postData = {
+                                selectedIds: selectedIds
+                            };
+                            addAntiForgeryToken(postData);
+
+                            $.ajax({
+                                cache: false,
+                                type: "POST",
+                                url: "@(Url.Action("SetAsDeliveredSelected", "Order"))",
+                                data: postData,
+                                complete: function(data) {
+                                    //reload grid
+                                    var grid = $('#shipments-grid').data('kendoGrid');
+                                    grid.dataSource.read();
+                                },
+                                error: function(xhr, ajaxOptions, thrownError) {
+                                    alert(thrownError);
+                                },
+                                traditional: true
+                            });
+                            return false;
+                        });
+
+                        $('#mastercheckbox').click(function() {
+                            $('.checkboxGroups').attr('checked', $(this).is(':checked')).change();
+                        });
+
+                        //wire up checkboxes.
+                        $('#shipments-grid').on('change', 'input[type=checkbox][id!=mastercheckbox][class=checkboxGroups]', function(e) {
+                            var $check = $(this);
+                            if ($check.is(":checked") == true) {
+                                var checked = jQuery.inArray($check.val(), selectedIds);
+                                if (checked == -1) {
+                                    //add id to selectedIds.
+                                    selectedIds.push($check.val());
+                                }
+                            } else {
+                                var checked = jQuery.inArray($check.val(), selectedIds);
+                                if (checked > -1) {
+                                    //remove id from selectedIds.
+                                    selectedIds = $.grep(selectedIds, function(item, index) {
+                                        return item != $check.val();
+                                    });
+                                }
+                            }
+                            updateMasterCheckbox();
+
+                        });
+
+
+                    });
+
+                    function additionalData() {
+                        var data = {
+                            ShipperPhoneNumber: $('#@Html.IdFor(model => model.ShipperPhoneNumber)').val(),
+                            StartDate: $('#@Html.IdFor(model => model.StartDate)').val(),
+                            EndDate: $('#@Html.IdFor(model => model.EndDate)').val(),
+                            TrackingNumber: $('#@Html.IdFor(model => model.TrackingNumber)').val(),
+                            CountryId: $('#@Html.IdFor(model => model.CountryId)').val(),
+                            StateProvinceId: $('#@Html.IdFor(model => model.StateProvinceId)').val(),
+                            City: $('#@Html.IdFor(model => model.City)').val(),
+                            WarehouseId: $('#@Html.IdFor(model => model.WarehouseId)').val(),
+                            LoadNotShipped: $('#@Html.IdFor(model => model.LoadNotShipped)').is(':checked'),
+                            OrderId: $('#@Html.IdFor(model => model.OrderId)').val()
+                        };
+                        addAntiForgeryToken(data);
+                        return data;
+                    }
+
+                    function onDataBound(e) {
+                        $('#shipments-grid input[type=checkbox][id!=mastercheckbox][class=checkboxGroups]').each(function() {
+                            var currentId = $(this).val();
+                            var checked = jQuery.inArray(currentId, selectedIds);
+                            //set checked based on if current checkbox's value is in selectedIds.
+                            $(this).attr('checked', checked > -1);
+                        });
+
+                        updateMasterCheckbox();
+
+                        //update order totals summary
+                        if (reportAggregates != "") {
+                            for(var key in reportAggregates) {
+                                $('#aggregator-deposit-block').text(reportAggregates['aggregatordeposit']);
+                                $('#aggregator-total-block').text(reportAggregates['aggregatortotal']);
+                            }
+                        }
+
+                    }
+
+                    function updateMasterCheckbox() {
+                        var numChkBoxes = $('#shipments-grid input[type=checkbox][id!=mastercheckbox][class=checkboxGroups]').length;
+                        var numChkBoxesChecked = $('#shipments-grid input[type=checkbox][id!=mastercheckbox][class=checkboxGroups]:checked').length;
+                        $('#mastercheckbox').attr('checked', numChkBoxes == numChkBoxesChecked && numChkBoxes > 0);
+                    }
+
+
+                </script>
+            </div>
+        </div>
+    </div>
+</form>
+
+@*export selected (Excel). We don't use GET approach because it's limited to 2K-4K chars and won't work for large number of entities*@
+<form asp-controller="Order" asp-action="PdfPackagingSlipSelected" method="post" id="pdf-packaging-slip-selected-form">
+    <input type="hidden" class="selectedIds" name="selectedIds" value="" />
+</form>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('#exportpackagingslips-selected').click(function (e) {
+            e.preventDefault();
+            var ids = selectedIds.join(",");
+            $('#pdf-packaging-slip-selected-form .selectedIds').val(ids);
+            $('#pdf-packaging-slip-selected-form').submit();
+            return false;
+        });
+    });
+</script>
+
+<form asp-controller="Order" asp-action="ExcelPackagingSlipSelected" method="post" id="excel-packaging-slip-selected-form">
+    <input type="hidden" class="selectedIds" name="selectedIds" value="" />
+</form>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('#exportexcel-shipment-selected').click(function (e) {
+            e.preventDefault();
+            var ids = selectedIds.join(",");
+            $('#excel-packaging-slip-selected-form .selectedIds').val(ids);
+            $('#excel-packaging-slip-selected-form').submit();
+            return false;
+        });
+    });
+</script>
+
+
+<div id="apply-tracking-number-window" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="apply-tracking-number-title">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="apply-tracking-number-window-title">@T("Admin.Common.AddTrackingNumberTitle")</h4>
+            </div>
+            <form asp-controller="Order" asp-action="ApplyTrackingNumberSelected" method="post" id="apply-tracking-number-selected-form">
+                <div class="form-horizontal">
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <div class="col-md-4">
+                                <nop-label asp-for="TrackingNumberNew" />
+                            </div>
+                            <div class="col-md-8">
+                                <nop-editor asp-for="TrackingNumberNew" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" id="btn-apply-tracking-number" class="btn btn-primary">
+                            @T("Admin.Common.Save")
+                        </button>
+                    </div>
+                </div>
+
+            </form>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('#btn-apply-tracking-number').click(function (e) {
+            e.preventDefault();
+            var trackingNumberNew = $('#TrackingNumberNew').val();
+            var postData = { selectedIds: selectedIds, trackingNumberNew: trackingNumberNew };
+            addAntiForgeryToken(postData);
+            $.ajax({
+                cache: false,
+                type: "POST",
+                url: "@(Url.Action("ApplyTrackingNumberSelected", "Order"))",
+                data: postData,
+                complete: function(data) {
+                    var jsonData = data.responseJSON;
+                    if (jsonData.Result === false) {
+                        alert(jsonData.Message);
+                        return;
+                    }
+                    selectedIds = [];
+                    $('#apply-tracking-number-window').modal('toggle');
+                    //reload grid
+                    var grid = $('#shipments-grid').data('kendoGrid');
+                    grid.dataSource.read();
+                },
+                error: function(xhr, ajaxOptions, thrownError) {
+                    alert(thrownError);
+                },
+                traditional: true
+            });
+            return false;
+        });
+    });
+</script>
+
+
+
+<div id="apply-bagid-window" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="apply-bagid-title">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="apply-bagid-window-title">@T("Admin.Common.AddBagIdTitle")</h4>
+            </div>
+            <form asp-controller="Order" asp-action="ApplyBagIdSelected" method="post" id="apply-bagid-selected-form">
+                <div class="form-horizontal">
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <div class="col-md-4">
+                                <nop-label asp-for="BagIdNew" />
+                            </div>
+                            <div class="col-md-8">
+                                <nop-editor asp-for="BagIdNew" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" id="btn-apply-bagid" class="btn btn-primary">
+                            @T("Admin.Common.Save")
+                        </button>
+                    </div>
+                </div>
+
+            </form>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('#btn-apply-bagid').click(function (e) {
+            e.preventDefault();
+            var bagIdNew = $('#BagIdNew').val();
+            var postData = { selectedIds: selectedIds, bagIdNew: bagIdNew };
+            addAntiForgeryToken(postData);
+            $.ajax({
+                cache: false,
+                type: "POST",
+                url: "@(Url.Action("ApplyBagIdSelected", "Order"))",
+                data: postData,
+                complete: function(data) {
+                    var jsonData = data.responseJSON;
+                    if (jsonData.Result === false) {
+                        alert(jsonData.Message);
+                        return;
+                    }
+                    selectedIds = [];
+                    $('#apply-bagid-window').modal('toggle');
+                    //reload grid
+                    var grid = $('#shipments-grid').data('kendoGrid');
+                    grid.dataSource.read();
+                    $('#BagIdNew').val('');
+                },
+                error: function(xhr, ajaxOptions, thrownError) {
+                    alert(thrownError);
+                },
+                traditional: true
+            });
+            return false;
+        });
+    });
+</script>
+
+<div id="assign-shipment-new-customer-window" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="assign-shipment-new-customer-title">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="assign-shipment-new-customer-window-title">@T("Admin.Common.AssignNewShipper")</h4>
+            </div>
+            <form asp-controller="Order" asp-action="AssignNewShipperSelected" method="post" id="assign-shipper-selected-form">
+                <div class="form-horizontal">
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <div class="col-md-4">
+                                <nop-label asp-for="CustomerNewId" />
+                            </div>
+                            <div class="col-md-8">
+                                <nop-select asp-for="CustomerNewId" asp-items="Model.AvailableShippers" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" id="btn-assign-to-new-customer" class="btn btn-primary">
+                            @T("Admin.Common.Save")
+                        </button>
+                    </div>
+                </div>
+
+            </form>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('#btn-assign-to-new-customer').click(function (e) {
+            e.preventDefault();
+            var customerId = $('#CustomerNewId').val();
+            var postData = { selectedIds: selectedIds, customerNewId: customerId };
+            addAntiForgeryToken(postData);
+            $.ajax({
+                cache: false,
+                type: "POST",
+                url: "@(Url.Action("AssignNewShipperSelected", "Order"))",
+                data: postData,
+                complete: function(data) {
+                    selectedIds = [];
+                    $('#assign-shipment-new-customer-window').modal('toggle');
+                    //reload grid
+                    var grid = $('#shipments-grid').data('kendoGrid');
+                    grid.dataSource.read();
+                    $('#CustomerNewId').val(0);
+
+                    $("#CustomerNewId").chosen("destroy");
+                    $("#CustomerNewId").chosen();
+                },
+                error: function(xhr, ajaxOptions, thrownError) {
+                    alert(thrownError);
+                },
+                traditional: true
+            });
+            return false;
+        });
+    });
+</script>

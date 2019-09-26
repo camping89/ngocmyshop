@@ -1,12 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Nop.Web.Areas.Admin.Extensions;
-using Nop.Web.Areas.Admin.Models.Directory;
+using Newtonsoft.Json;
 using Nop.Core;
 using Nop.Core.Domain.Directory;
 using Nop.Services.Common;
@@ -16,22 +11,30 @@ using Nop.Services.Localization;
 using Nop.Services.Logging;
 using Nop.Services.Security;
 using Nop.Services.Stores;
+using Nop.Web.Areas.Admin.Extensions;
+using Nop.Web.Areas.Admin.Helpers;
+using Nop.Web.Areas.Admin.Models.Directory;
 using Nop.Web.Framework.Kendoui;
 using Nop.Web.Framework.Mvc;
 using Nop.Web.Framework.Mvc.Filters;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Text;
 
 namespace Nop.Web.Areas.Admin.Controllers
 {
     public partial class CountryController : BaseAdminController
-	{
-		#region Fields
+    {
+        #region Fields
 
         private readonly ICountryService _countryService;
         private readonly IStateProvinceService _stateProvinceService;
         private readonly ILocalizationService _localizationService;
-	    private readonly IAddressService _addressService;
+        private readonly IAddressService _addressService;
         private readonly IPermissionService _permissionService;
-	    private readonly ILocalizedEntityService _localizedEntityService;
+        private readonly ILocalizedEntityService _localizedEntityService;
         private readonly ILanguageService _languageService;
         private readonly IStoreService _storeService;
         private readonly IStoreMappingService _storeMappingService;
@@ -44,11 +47,11 @@ namespace Nop.Web.Areas.Admin.Controllers
         #region Ctor
 
         public CountryController(ICountryService countryService,
-            IStateProvinceService stateProvinceService, 
+            IStateProvinceService stateProvinceService,
             ILocalizationService localizationService,
-            IAddressService addressService, 
+            IAddressService addressService,
             IPermissionService permissionService,
-            ILocalizedEntityService localizedEntityService, 
+            ILocalizedEntityService localizedEntityService,
             ILanguageService languageService,
             IStoreService storeService,
             IStoreMappingService storeMappingService,
@@ -70,10 +73,10 @@ namespace Nop.Web.Areas.Admin.Controllers
             this._customerActivityService = customerActivityService;
         }
 
-		#endregion 
+        #endregion
 
         #region Utilities
-        
+
         protected virtual void UpdateLocales(Country country, CountryModel model)
         {
             foreach (var localized in model.Locales)
@@ -85,18 +88,18 @@ namespace Nop.Web.Areas.Admin.Controllers
             }
         }
 
-	    protected virtual void UpdateLocales(StateProvince stateProvince, StateProvinceModel model)
-	    {
-	        foreach (var localized in model.Locales)
-	        {
-	            _localizedEntityService.SaveLocalizedValue(stateProvince,
-	                x => x.Name,
-	                localized.Name,
-	                localized.LanguageId);
-	        }
-	    }
+        protected virtual void UpdateLocales(StateProvince stateProvince, StateProvinceModel model)
+        {
+            foreach (var localized in model.Locales)
+            {
+                _localizedEntityService.SaveLocalizedValue(stateProvince,
+                    x => x.Name,
+                    localized.Name,
+                    localized.LanguageId);
+            }
+        }
 
-	    protected virtual void PrepareStoresMappingModel(CountryModel model, Country country, bool excludeProperties)
+        protected virtual void PrepareStoresMappingModel(CountryModel model, Country country, bool excludeProperties)
         {
             if (model == null)
                 throw new ArgumentNullException(nameof(model));
@@ -115,7 +118,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 });
             }
         }
-        
+
         protected virtual void SaveStoreMappings(Country country, CountryModel model)
         {
             country.LimitedToStores = model.SelectedStoreIds.Any();
@@ -172,7 +175,7 @@ namespace Nop.Web.Areas.Admin.Controllers
 
             return Json(gridModel);
         }
-        
+
         public virtual IActionResult Create()
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageCountries))
@@ -280,7 +283,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                     //selected tab
                     SaveSelectedTabName();
 
-                    return RedirectToAction("Edit", new {id = country.Id});
+                    return RedirectToAction("Edit", new { id = country.Id });
                 }
                 return RedirectToAction("List");
             }
@@ -500,7 +503,7 @@ namespace Nop.Web.Areas.Admin.Controllers
 
             return new NullJsonResult();
         }
-        
+
         public virtual IActionResult GetStatesByCountryId(string countryId,
             bool? addSelectStateItem, bool? addAsterisk)
         {
@@ -514,7 +517,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             var country = _countryService.GetCountryById(Convert.ToInt32(countryId));
             var states = country != null ? _stateProvinceService.GetStateProvincesByCountryId(country.Id, showHidden: true).ToList() : new List<StateProvince>();
             var result = (from s in states
-                         select new { id = s.Id, name = s.Name }).ToList();
+                          select new { id = s.Id, name = s.Name }).ToList();
             if (addAsterisk.HasValue && addAsterisk.Value)
             {
                 //asterisk
@@ -555,10 +558,88 @@ namespace Nop.Web.Areas.Admin.Controllers
             return Json(result);
         }
 
+        public virtual IActionResult GetDistrictByStateProvinceName(string stateProvinceName)
+        {
+            var result = SelectListHelper.GetDistrictSelectListItems(_stateProvinceService, stateProvinceName);
+
+            return Json(result);
+        }
+        public virtual IActionResult GetDistricts()
+        {
+            var provinceName = Request.Query.FirstOrDefault(_ => _.Key.Contains("filter[filters][0][value]")).Value;
+            var province = _stateProvinceService.GetStateProvinces().FirstOrDefault(_ => _.Name.Contains(provinceName));
+            if (province != null)
+            {
+                var result = _stateProvinceService.GetDistricts(province.Id).Select(_ => new { ShipmentDistrictId = _.Name, ShipmentDistrict = _.Name, ShipmentCityId = _.StateProvince.Name }).ToList();
+
+
+                result.Insert(0, new { ShipmentDistrictId = "0", ShipmentDistrict = "---Tất cả---", ShipmentCityId = "0" });
+                return Json(result);
+            }
+            return Json(new[] { new { ShipmentDistrictId = "0", ShipmentDistrict = "---Không có quận---", ShipmentCityId = "0" } });
+        }
+
         #endregion
 
         #region Export / import
 
+        public virtual IActionResult GenerateStateProvincesVN(int id)
+        {
+            var countryVn = _countryService.GetCountryById(id);
+            var cityJson = new CityJson();
+            //GET
+            using (var client = new WebClient())
+            {
+                try
+                {
+                    client.BaseAddress = "https://thongtindoanhnghiep.co/";
+                    // HTTP GET
+                    client.UseDefaultCredentials = true;
+                    client.Encoding = Encoding.UTF8;
+                    var jsonResponse = client.DownloadString("api/city");
+                    cityJson = JsonConvert.DeserializeObject<CityJson>(jsonResponse);
+                    if (cityJson != null)
+                    {
+                        foreach (var cityItem in cityJson.LtsItem)
+                        {
+                            var districtResponse = client.DownloadString($"/api/city/{cityItem.ID}/district");
+                            cityItem.DistrictJsons = JsonConvert.DeserializeObject<List<DistrictJson>>(districtResponse);
+                        }
+                    }
+                }
+                catch (WebException ex)
+                {
+                    throw ex;
+                }
+            }
+
+            var orderDisplay = 1;
+            foreach (var cityItem in cityJson.LtsItem.OrderBy(_ => _.Title))
+            {
+                var stateProvince = new StateProvince()
+                {
+                    CountryId = countryVn.Id,
+                    Name = cityItem.Title,
+                    Published = true,
+                    DisplayOrder = orderDisplay
+                };
+                _stateProvinceService.InsertStateProvince(stateProvince);
+
+                var orderDistrict = 1;
+                foreach (var districtItem in cityItem.DistrictJsons)
+                {
+                    _stateProvinceService.InsertDistrict(new District
+                    {
+                        StateProvinceId = stateProvince.Id,
+                        Name = districtItem.Title,
+                        DisplayOrder = orderDistrict
+                    });
+                    orderDistrict++;
+                }
+                orderDisplay++;
+            }
+            return Json(cityJson);
+        }
         public virtual IActionResult ExportCsv()
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageCountries))
@@ -598,4 +679,6 @@ namespace Nop.Web.Areas.Admin.Controllers
 
         #endregion
     }
+
+
 }

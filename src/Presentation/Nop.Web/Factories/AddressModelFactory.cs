@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using Microsoft.AspNetCore.Mvc.Rendering;
+﻿using Microsoft.AspNetCore.Mvc.Rendering;
 using Nop.Core;
 using Nop.Core.Domain.Catalog;
 using Nop.Core.Domain.Common;
@@ -12,6 +9,9 @@ using Nop.Services.Common;
 using Nop.Services.Directory;
 using Nop.Services.Localization;
 using Nop.Web.Models.Common;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Nop.Web.Factories
 {
@@ -185,6 +185,7 @@ namespace Nop.Web.Factories
                     ? address.StateProvince.GetLocalized(x => x.Name)
                     : null;
                 model.City = address.City;
+                model.District = address.District;
                 model.Address1 = address.Address1;
                 model.Address2 = address.Address2;
                 model.ZipPostalCode = address.ZipPostalCode;
@@ -204,6 +205,7 @@ namespace Nop.Web.Factories
                 model.Address2 = customer.GetAttribute<string>(SystemCustomerAttributeNames.StreetAddress2);
                 model.ZipPostalCode = customer.GetAttribute<string>(SystemCustomerAttributeNames.ZipPostalCode);
                 model.City = customer.GetAttribute<string>(SystemCustomerAttributeNames.City);
+                model.District = customer.GetAttribute<string>(SystemCustomerAttributeNames.District);
                 //ignore country and state for prepopulation. it can cause some issues when posting pack with errors, etc
                 //model.CountryId = customer.GetAttribute<int>(SystemCustomerAttributeNames.CountryId);
                 //model.StateProvinceId = customer.GetAttribute<int>(SystemCustomerAttributeNames.StateProvinceId);

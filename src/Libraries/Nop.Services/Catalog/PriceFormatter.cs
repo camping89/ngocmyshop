@@ -78,7 +78,14 @@ namespace Nop.Services.Catalog
             string result;
             if (!string.IsNullOrEmpty(targetCurrency.CustomFormatting))
             {
-                result = amount == 0 ? $"{amount} ({targetCurrency.CurrencyCode})" : amount.ToString(targetCurrency.CustomFormatting);
+                if (showCurrency)
+                {
+                    result = amount == 0 ? $"0" : amount.ToString(targetCurrency.CustomFormatting);
+                }
+                else
+                {
+                    result = amount.ToString("#,###");
+                }
             }
             else
             {
@@ -91,7 +98,15 @@ namespace Nop.Services.Catalog
                 {
                     //not possible because "DisplayLocale" should be always specified
                     //but anyway let's just handle this behavior
-                    result = $"{amount.ToString("N")} ({targetCurrency.CurrencyCode})";
+                    if (showCurrency)
+                    {
+                        result = $"{amount.ToString("N")} ({targetCurrency.CurrencyCode})";
+                    }
+                    else
+                    {
+                        result = $"{amount.ToString("N")}";
+                    }
+
                     return result;
                 }
             }
@@ -99,6 +114,7 @@ namespace Nop.Services.Catalog
             //display currency code?
             if (showCurrency && _currencySettings.DisplayCurrencyLabel)
                 result = $"{result} ({targetCurrency.CurrencyCode})";
+
             return result;
         }
 
@@ -217,7 +233,6 @@ namespace Nop.Services.Catalog
         {
             //we should round it no matter of "ShoppingCartSettings.RoundPricesDuringCalculation" setting
             price = RoundingHelper.RoundPrice(price);
-
             var currencyString = GetCurrencyString(price, showCurrency, targetCurrency);
             //if (showTax)
             //{

@@ -1,8 +1,10 @@
 using Nop.Core;
 using Nop.Core.Data;
 using Nop.Core.Domain.Catalog;
+using Nop.Core.Domain.Common;
 using Nop.Core.Domain.Customers;
 using Nop.Core.Domain.Orders;
+using Nop.Core.Domain.Shipping;
 using Nop.Services.Events;
 using System;
 using System.Collections.Generic;
@@ -18,11 +20,13 @@ namespace Nop.Services.Orders
         #region Fields
 
         private readonly IRepository<Order> _orderRepository;
+        private readonly IRepository<GenericAttribute> _gaRepository;
         private readonly IRepository<OrderItem> _orderItemRepository;
         private readonly IRepository<OrderNote> _orderNoteRepository;
         private readonly IRepository<Product> _productRepository;
         private readonly IRepository<RecurringPayment> _recurringPaymentRepository;
         private readonly IRepository<Customer> _customerRepository;
+        private readonly IRepository<ShelfOrderItem> _shelfOrderItemRepository;
         private readonly IEventPublisher _eventPublisher;
 
         #endregion
@@ -45,7 +49,7 @@ namespace Nop.Services.Orders
             IRepository<Product> productRepository,
             IRepository<RecurringPayment> recurringPaymentRepository,
             IRepository<Customer> customerRepository,
-            IEventPublisher eventPublisher)
+            IEventPublisher eventPublisher, IRepository<ShelfOrderItem> shelfOrderItemRepository, IRepository<GenericAttribute> gaRepository)
         {
             this._orderRepository = orderRepository;
             this._orderItemRepository = orderItemRepository;
@@ -54,6 +58,8 @@ namespace Nop.Services.Orders
             this._recurringPaymentRepository = recurringPaymentRepository;
             this._customerRepository = customerRepository;
             this._eventPublisher = eventPublisher;
+            _shelfOrderItemRepository = shelfOrderItemRepository;
+            _gaRepository = gaRepository;
         }
 
         #endregion
@@ -207,10 +213,16 @@ namespace Nop.Services.Orders
             int billingCountryId = 0, string paymentMethodSystemName = null,
             DateTime? createdFromUtc = null, DateTime? createdToUtc = null,
             List<int> osIds = null, List<int> psIds = null, List<int> ssIds = null, List<int> procIds = null,
-            string billingEmail = null, List<int> custIdsByLinkFace = null, string billingFullName = null, string billingPhone = null, string packageOrderItemCode = null,
-            string orderNotes = null, int pageIndex = 0, int pageSize = int.MaxValue, OrderSortingEnum orderBy = OrderSortingEnum.CreatedOnDesc, bool? isOrderCheckout = null)
+            string billingEmail = null, List<int> custIdsByLinkFace = null, string billingFullName = null, string billingPhone = null,
+            string orderNotes = null, int pageIndex = 0, int pageSize = int.MaxValue, OrderSortingEnum orderBy = OrderSortingEnum.CreatedOnDesc, string orderId = null)
         {
             var query = _orderRepository.Table;
+
+            if (string.IsNullOrEmpty(orderId) == false)
+            {
+                orderId = orderId.TrimStart().TrimEnd().Trim();
+                query = query.Where(_ => _.Id.ToString().Contains(orderId));
+            }
             if (storeId > 0)
                 query = query.Where(o => o.StoreId == storeId);
             if (vendorId > 0)
@@ -233,13 +245,6 @@ namespace Nop.Services.Orders
                 query = query
                     .Where(o => o.OrderItems
                         .Any(orderItem => procIds.Contains(orderItem.Product.Id)));
-            }
-
-            if (string.IsNullOrEmpty(packageOrderItemCode) == false)
-            {
-                query = query
-                    .Where(o => o.OrderItems
-                        .Any(orderItem => orderItem.PackageItemCode.Contains(packageOrderItemCode)));
             }
 
             if (warehouseId > 0)
@@ -278,8 +283,17 @@ namespace Nop.Services.Orders
             if (ssIds != null && ssIds.Any())
                 query = query.Where(o => ssIds.Contains(o.ShippingStatusId));
 
-            if (custIdsByLinkFace != null && custIdsByLinkFace.Any())
-                query = query.Where(o => custIdsByLinkFace.Contains(o.CustomerId));
+            if (custIdsByLinkFace != null)
+            {
+                if (custIdsByLinkFace.Count > 0)
+                {
+                    query = query.Where(o => custIdsByLinkFace.Contains(o.CustomerId));
+                }
+                else
+                {
+                    query = query.Where(o => 1 == 0);
+                }
+            }
 
             if (!string.IsNullOrEmpty(billingEmail))
                 query = query.Where(o => o.BillingAddress != null && !string.IsNullOrEmpty(o.BillingAddress.Email) && o.BillingAddress.Email.Contains(billingEmail));
@@ -291,17 +305,17 @@ namespace Nop.Services.Orders
 
             //query = query.Where(o => o.BillingAddress != null && (!string.IsNullOrEmpty(o.BillingAddress.LastName) && o.BillingAddress.LastName.Contains(billingLastName)) || !string.IsNullOrEmpty(o.BillingAddress.FirstName) && o.BillingAddress.FirstName.Contains(billingLastName));
             if (!string.IsNullOrEmpty(billingPhone))
-                query = query.Where(o => o.BillingAddress != null && !string.IsNullOrEmpty(o.BillingAddress.PhoneNumber) && o.BillingAddress.PhoneNumber.Contains(billingPhone));
+                query = query.Where(o => o.Customer != null && o.Customer.Phone.Contains(billingPhone));
             if (!string.IsNullOrEmpty(orderNotes))
                 if (!string.IsNullOrEmpty(orderNotes))
                     query = query.Where(o => o.OrderNotes.Any(on => on.Note.Contains(orderNotes)));
             query = query.Where(o => !o.Deleted);
 
             //filter is checkout order
-            if (isOrderCheckout.HasValue)
-            {
-                query = query.Where(o => o.IsOrderCheckout == isOrderCheckout.Value);
-            }
+            //if (isOrderCheckout.HasValue)
+            //{
+            //    query = query.Where(o => o.IsOrderCheckout == isOrderCheckout.Value);
+            //}
 
             switch (orderBy)
             {
@@ -453,48 +467,143 @@ namespace Nop.Services.Orders
             return orderItems;
         }
 
-        public virtual IPagedList<OrderItem> GetOrderItemsVendorCheckout(string vendorProductUrl, int orderId = 0, int pageIndex = 0, int pageSize = int.MaxValue, OrderSortingEnum orderBy = OrderSortingEnum.CreatedOnDesc, bool? isOrderCheckout = null)
+        public virtual IPagedList<OrderItem> GetOrderItemsVendorCheckout(string vendorProductUrl, string orderId = null,
+            string orderItemId = null, int pageIndex = 0,
+            int pageSize = int.MaxValue, OrderSortingEnum orderBy = OrderSortingEnum.CreatedOnDesc,
+            DateTime? startDate = null, DateTime? endDate = null,
+            string customerPhone = null, string packageOrderCode = null,
+            int vendorId = 0, bool? isSetPackageOrderId = null,
+            bool? hasShelf = null, int orderItemStatusId = -1, bool? isPackageItemProcessedDatetime = null, bool? isOrderCheckout = null, bool isWeightCostZero = false, string productSku = null)
         {
-            var query = _orderItemRepository.Table;
+            var query = from oi in _orderItemRepository.Table
+                join o in _orderRepository.Table on oi.OrderId equals o.Id
+                where !o.Deleted
+                select oi;
+
+            if (string.IsNullOrEmpty(productSku) == false)
+            {
+                query = from item in query
+                        join p in _productRepository.Table on item.ProductId equals p.Id
+                        where p.Sku == productSku
+                        select item;
+            }
+            if (isWeightCostZero)
+            {
+                query = query.Where(_ => _.WeightCost == Decimal.Zero);
+            }
             if (string.IsNullOrEmpty(vendorProductUrl) == false)
             {
-                query = query.Where(_ => string.IsNullOrEmpty(_.Product.VendorProductUrl) == false 
+                query = query.Where(_ => string.IsNullOrEmpty(_.Product.VendorProductUrl) == false
                                          && _.Product.VendorProductUrl.Contains(vendorProductUrl));
             }
 
-            if (orderId > 0)
+            if (string.IsNullOrEmpty(orderItemId) == false)
             {
-                query = query.Where(_ => _.OrderId == orderId);
+                orderItemId = orderItemId.TrimStart().TrimEnd().Trim();
+                query = query.Where(_ => _.Id.ToString().Contains(orderItemId));
+            }
+
+            if (string.IsNullOrEmpty(orderId) == false)
+            {
+                orderId = orderId.TrimStart().TrimEnd().Trim();
+                query = query.Where(_ => _.OrderId.ToString().Contains(orderId));
+            }
+
+            if (string.IsNullOrEmpty(packageOrderCode) == false)
+            {
+                packageOrderCode = packageOrderCode.TrimStart().TrimEnd().Trim();
+                query = query.Where(_ => _.PackageOrder.PackageCode.Contains(packageOrderCode));
+            }
+            else
+            {
+                if (isSetPackageOrderId.HasValue)
+                {
+                    if (isSetPackageOrderId.Value)
+                    {
+                        query = query.Where(_ => _.PackageOrderId != null && _.PackageOrderId > 0);
+                    }
+                    else
+                    {
+                        query = query.Where(_ => _.PackageOrderId == null || _.PackageOrderId == 0);
+                    }
+                }
+            }
+
+            // TODO Huy: need to merge order item and shelf order item to one entity later
+            if (hasShelf.HasValue)
+            {
+                //var shelfOrderItemIds = _shelfOrderItemRepository.Table.Select(_ => _.OrderItemId).ToList();
+                //if (isSetShelfId.Value)
+                //{
+                //    query = query.Where(_ => shelfOrderItemIds.Contains(_.Id));
+                //}
+                //else
+                //{
+                //    query = query.Where(_ => shelfOrderItemIds.Contains(_.Id) == false);
+                //}
+
+                //query = hasShelf.Value ? query.Where(_ => _.ShelfOrderItem !=  null) : query.Where(_ => _.ShelfOrderItem ==  null);
+            }
+
+            if (isPackageItemProcessedDatetime.HasValue)
+            {
+                query = query.Where(_ => _.PackageItemProcessedDatetime != null == isPackageItemProcessedDatetime.Value);
+            }
+
+            if (vendorId > 0)
+            {
+                query = query.Where(_ => _.Product.VendorId == vendorId);
             }
 
             if (isOrderCheckout.HasValue)
             {
-                query = query.Where(_ => _.IsOrderCheckout == isOrderCheckout);
+                query = query.Where(_ => _.IsOrderCheckout == isOrderCheckout.Value);
+            }
+
+            if (startDate != null)
+            {
+                query = query.Where(_ => _.Order.CreatedOnUtc != null && _.Order.CreatedOnUtc >= startDate.Value);
+            }
+
+            if (endDate != null)
+            {
+                query = query.Where(_ => _.Order.CreatedOnUtc != null && _.Order.CreatedOnUtc <= endDate.Value);
+            }
+
+            if (!string.IsNullOrWhiteSpace(customerPhone))
+            {
+                customerPhone = customerPhone.TrimStart().TrimEnd().Trim();
+                //query = query
+                //    .Join(_customerRepository.Table, x => x.Order.CustomerId, y => y.Id, (x, y) => new { OrderItem = x, Customer = y })
+                //    .Where(z => z.Customer.Phone.Contains(customerPhone))
+                //    .Select(z => z.OrderItem);
+                query = query.Where(_ => _.Order.Customer.Phone.Contains(customerPhone));
             }
 
             switch (orderBy)
             {
                 case OrderSortingEnum.CreatedOnAsc:
-                    query = query.OrderBy(o => o.Order.CreatedOnUtc);
+                    query = query.OrderBy(i => i.Order.CreatedOnUtc);
                     break;
                 case OrderSortingEnum.CreatedOnDesc:
-                    query = query.OrderByDescending(o => o.Order.CreatedOnUtc);
+                    query = query.OrderByDescending(i => i.Order.CreatedOnUtc);
                     break;
                 case OrderSortingEnum.StatusAsc:
-                    query = query.OrderBy(o => o.Order.OrderStatusId);
+                    query = query.OrderBy(i => i.Order.OrderStatusId);
                     break;
                 case OrderSortingEnum.StatusDesc:
-                    query = query.OrderByDescending(o => o.Order.OrderStatusId);
+                    query = query.OrderByDescending(i => i.Order.OrderStatusId);
                     break;
                 case OrderSortingEnum.TotalAsc:
-                    query = query.OrderBy(o => o.Order.OrderTotal);
+                    query = query.OrderBy(i => i.Order.OrderTotal);
                     break;
                 case OrderSortingEnum.TotalDesc:
-                    query = query.OrderByDescending(o => o.Order.OrderTotal);
+                    query = query.OrderByDescending(i => i.Order.OrderTotal);
                     break;
             }
 
-            return new PagedList<OrderItem>(query, pageIndex, pageSize);
+            var results = new PagedList<OrderItem>(query, pageIndex, pageSize);
+            return results;
         }
         /// <summary>
         /// Delete an order item
@@ -509,6 +618,26 @@ namespace Nop.Services.Orders
 
             //event notification
             _eventPublisher.EntityDeleted(orderItem);
+        }
+        public virtual void UpdateOrderItem(OrderItem orderItem)
+        {
+            if (orderItem == null)
+                throw new ArgumentNullException(nameof(orderItem));
+
+            _orderItemRepository.Update(orderItem);
+
+            //event notification
+            _eventPublisher.EntityUpdated(orderItem);
+        }
+
+        public IList<OrderItem> GetUnassignedOrderItems(int customerId)
+        {
+            var query = from oi in _orderItemRepository.Table.Where(_ => _.PackageItemProcessedDatetime.HasValue && _.PackageItemProcessedDatetime.Value < DateTime.Now)
+                from o in _orderRepository.Table.Where(_ => _.Id == oi.OrderId && !_.Deleted && _.CustomerId == customerId)
+                from soi in _shelfOrderItemRepository.Table.Where(_ => _.OrderItemId == oi.Id).DefaultIfEmpty()
+                select new {oi, soi};
+
+            return query.Where(_ => _.soi == null).Select(_ => _.oi).ToList();
         }
 
         #endregion

@@ -262,8 +262,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 {
                     FirstName = customer.GetAttribute<string>(SystemCustomerAttributeNames.FirstName),
                     LastName = customer.GetAttribute<string>(SystemCustomerAttributeNames.LastName),
-                    Address1 = "Chưa xác định",
-                    PhoneNumber = customer.GetAttribute<string>(SystemCustomerAttributeNames.Phone)
+                    PhoneNumber = customer.Phone
                 };
                 _addressService.InsertAddress(addressCustomer);
                 customer.Addresses.Add(addressCustomer);

@@ -1,11 +1,12 @@
-using System;
-using System.Collections.Generic;
 using Nop.Core.Domain.Directory;
 using Nop.Core.Domain.Discounts;
 using Nop.Core.Domain.Localization;
 using Nop.Core.Domain.Security;
 using Nop.Core.Domain.Seo;
 using Nop.Core.Domain.Stores;
+using Nop.Core.Domain.Vendors;
+using System;
+using System.Collections.Generic;
 
 namespace Nop.Core.Domain.Catalog
 {
@@ -72,6 +73,8 @@ namespace Nop.Core.Domain.Catalog
         /// Gets or sets a vendor identifier
         /// </summary>
         public int VendorId { get; set; }
+
+        public Vendor Vendor { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether to show the product on home page
@@ -554,7 +557,7 @@ namespace Nop.Core.Domain.Catalog
         /// </summary>
         public DateTime UpdatedOnUtc { get; set; }
         public string VendorProductUrl { get; set; }
-        public decimal UnitPriceUsd {get; set; }
+        public decimal UnitPriceUsd { get; set; }
         public decimal ExchangeRate { get; set; }
         public decimal OrderingFee { get; set; }
         public double SaleOffPercent { get; set; }

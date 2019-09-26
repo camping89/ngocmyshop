@@ -37,20 +37,20 @@
     <div class="panel panel-default">
         <div class="panel-body">
             @if (Model.UsernamesEnabled)
-                {
-                    <div class="form-group">
-                        <div class="col-md-3">
-                            <nop-label asp-for="Username"/>
-                        </div>
-                        <div class="col-md-9">
-                            <nop-editor asp-for="Username"/>
-                            <span asp-validation-for="Username"></span>
-                        </div>
+            {
+                <div class="form-group">
+                    <div class="col-md-3">
+                        <nop-label asp-for="Username" />
                     </div>
-                }
+                    <div class="col-md-9">
+                        <nop-editor asp-for="Username" asp-required="true" />
+                        <span asp-validation-for="Username"></span>
+                    </div>
+                </div>
+            }
             else
             {
-                <input type="hidden" name="Username" value="@Model.Username"/>
+                <input type="hidden" name="Username" value="@Model.Username" />
             }
             @if (Model.PhoneEnabled)
             {
@@ -59,7 +59,7 @@
                         <nop-label asp-for="Phone" />
                     </div>
                     <div class="col-md-9">
-                        <nop-editor asp-for="Phone" />
+                        <nop-editor asp-for="Phone" asp-required="true" />
                         <span asp-validation-for="Phone"></span>
                     </div>
                 </div>
@@ -73,44 +73,44 @@
                     <span asp-validation-for="Email"></span>
                 </div>
             </div>
-    <div class="form-group">
-            <div class="col-md-3">
-                <nop-label asp-for="Password" />
-            </div>
-            <div class="col-md-9">
-                <div class="input-group">
-                    <nop-editor asp-for="Password" />
-                    <div class="input-group-btn">
-                        @if (Model.Id > 0)
-                        {
-                            <button type="submit" name="changepassword" class="btn btn-info">
-                                @T("Admin.Customers.Customers.Fields.Password.Change")
-                            </button>
-                        }
-                    </div>
+            <div class="form-group">
+                <div class="col-md-3">
+                    <nop-label asp-for="Password" />
                 </div>
-                <span asp-validation-for="Password"></span>
+                <div class="col-md-9">
+                    <div class="input-group">
+                        <nop-editor asp-for="Password" />
+                        <div class="input-group-btn">
+                            @if (Model.Id > 0)
+                            {
+                                <button type="submit" name="changepassword" class="btn btn-info">
+                                    @T("Admin.Customers.Customers.Fields.Password.Change")
+                                </button>
+                            }
+                        </div>
+                    </div>
+                    <span asp-validation-for="Password"></span>
+                </div>
             </div>
-        </div>
-        <div class="form-group">
-            <div class="col-md-3">
-                <nop-label asp-for="FullName" />
+            <div class="form-group">
+                <div class="col-md-3">
+                    <nop-label asp-for="FullName" />
+                </div>
+                <div class="col-md-9">
+                    <nop-editor asp-for="FullName" asp-required="true" />
+                    <span asp-validation-for="FullName"></span>
+                </div>
             </div>
-            <div class="col-md-9">
-                <nop-editor asp-for="FullName" />
-                <span asp-validation-for="FullName"></span>
-            </div>
-        </div>
-        <div class="form-group">
+            <div class="form-group">
                 <div class="col-md-3">
                     <nop-label asp-for="LinkFacebook1" />
                 </div>
                 <div class="col-md-9">
-                    <nop-editor asp-for="LinkFacebook1" />
+                    <nop-editor asp-for="LinkFacebook1" asp-required="true" />
                     <span asp-validation-for="LinkFacebook1"></span>
                 </div>
-        </div>
-        <div class="form-group">
+            </div>
+            <div class="form-group">
                 <div class="col-md-3">
                     <nop-label asp-for="LinkFacebook2" />
                 </div>
@@ -118,8 +118,8 @@
                     <nop-editor asp-for="LinkFacebook2" />
                     <span asp-validation-for="LinkFacebook2"></span>
                 </div>
-        </div>
-        @if (Model.Id > 0 && Model.AssociatedExternalAuthRecords.Count > 0)
+            </div>
+            @if (Model.Id > 0 && Model.AssociatedExternalAuthRecords.Count > 0)
             {
                 <div class="form-group">
                     <div class="col-md-3">
@@ -233,15 +233,15 @@
                 </div>
             </div>
             @*<div class="form-group">
-                <div class="col-md-3">
-                    <nop-label asp-for="VendorId" />
-                </div>
-                <div class="col-md-9">
-                    <nop-select asp-for="VendorId" asp-items="Model.AvailableVendors" />
-                    <span asp-validation-for="VendorId"></span>
-                    <em>@T("Admin.Customers.Customers.VendorShouldBeInVendorsRole")</em>
-                </div>
-            </div>*@
+                    <div class="col-md-3">
+                        <nop-label asp-for="VendorId" />
+                    </div>
+                    <div class="col-md-9">
+                        <nop-select asp-for="VendorId" asp-items="Model.AvailableVendors" />
+                        <span asp-validation-for="VendorId"></span>
+                        <em>@T("Admin.Customers.Customers.VendorShouldBeInVendorsRole")</em>
+                    </div>
+                </div>*@
             @if (Model.GenderEnabled)
             {
                 <div class="form-group">
@@ -271,23 +271,23 @@
                 </div>
             }
             @*<div class="form-group">
-                <div class="col-md-3">
-                    <nop-label asp-for="FirstName" />
+                    <div class="col-md-3">
+                        <nop-label asp-for="FirstName" />
+                    </div>
+                    <div class="col-md-9">
+                        <nop-editor asp-for="FirstName" />
+                        <span asp-validation-for="FirstName"></span>
+                    </div>
                 </div>
-                <div class="col-md-9">
-                    <nop-editor asp-for="FirstName" />
-                    <span asp-validation-for="FirstName"></span>
-                </div>
-            </div>
-            <div class="form-group">
-                <div class="col-md-3">
-                    <nop-label asp-for="LastName" />
-                </div>
-                <div class="col-md-9">
-                    <nop-editor asp-for="LastName" />
-                    <span asp-validation-for="LastName"></span>
-                </div>
-            </div>*@
+                <div class="form-group">
+                    <div class="col-md-3">
+                        <nop-label asp-for="LastName" />
+                    </div>
+                    <div class="col-md-9">
+                        <nop-editor asp-for="LastName" />
+                        <span asp-validation-for="LastName"></span>
+                    </div>
+                </div>*@
             @if (Model.DateOfBirthEnabled)
             {
                 <div class="form-group">
@@ -385,17 +385,17 @@
                 </div>
             }
             @*@if (Model.PhoneEnabled)
-            {
-                <div class="form-group">
-                    <div class="col-md-3">
-                        <nop-label asp-for="Phone" />
+                {
+                    <div class="form-group">
+                        <div class="col-md-3">
+                            <nop-label asp-for="Phone" />
+                        </div>
+                        <div class="col-md-9">
+                            <nop-editor asp-for="Phone" />
+                            <span asp-validation-for="Phone"></span>
+                        </div>
                     </div>
-                    <div class="col-md-9">
-                        <nop-editor asp-for="Phone" />
-                        <span asp-validation-for="Phone"></span>
-                    </div>
-                </div>
-            }*@
+                }*@
             @if (Model.FaxEnabled)
             {
                 <div class="form-group">
@@ -413,23 +413,23 @@
                 @await Html.PartialAsync("_CustomerAttributes", Model.CustomerAttributes)
             }
             @*<div class="form-group">
-                <div class="col-md-3">
-                    <nop-label asp-for="AdminComment" />
+                    <div class="col-md-3">
+                        <nop-label asp-for="AdminComment" />
+                    </div>
+                    <div class="col-md-9">
+                        <nop-textarea asp-for="AdminComment" />
+                        <span asp-validation-for="AdminComment"></span>
+                    </div>
                 </div>
-                <div class="col-md-9">
-                    <nop-textarea asp-for="AdminComment" />
-                    <span asp-validation-for="AdminComment"></span>
-                </div>
-            </div>
-            <div class="form-group">
-                <div class="col-md-3">
-                    <nop-label asp-for="IsTaxExempt" />
-                </div>
-                <div class="col-md-9">
-                    <nop-editor asp-for="IsTaxExempt" />
-                    <span asp-validation-for="IsTaxExempt"></span>
-                </div>
-            </div>*@
+                <div class="form-group">
+                    <div class="col-md-3">
+                        <nop-label asp-for="IsTaxExempt" />
+                    </div>
+                    <div class="col-md-9">
+                        <nop-editor asp-for="IsTaxExempt" />
+                        <span asp-validation-for="IsTaxExempt"></span>
+                    </div>
+                </div>*@
             @if (Model.AllowCustomersToSetTimeZone)
             {
                 <div class="form-group">
@@ -476,28 +476,28 @@
                 </div>
             }
             @*@if (Model.AvailableNewsletterSubscriptionStores != null && Model.AvailableNewsletterSubscriptionStores.Count > 0)
-            {
-                <div class="form-group">
-                    <div class="col-md-3">
-                        <nop-label asp-for="SelectedNewsletterSubscriptionStoreIds" />
+                {
+                    <div class="form-group">
+                        <div class="col-md-3">
+                            <nop-label asp-for="SelectedNewsletterSubscriptionStoreIds" />
+                        </div>
+                        <div class="col-md-9">
+                            @foreach (var store in Model.AvailableNewsletterSubscriptionStores)
+                            {
+                                <div class="checkbox">
+                                    <label>
+                                        <input type="checkbox" name="SelectedNewsletterSubscriptionStoreIds" value="@store.Id" checked="@(Model.SelectedNewsletterSubscriptionStoreIds != null && Model.SelectedNewsletterSubscriptionStoreIds.Contains(store.Id))" />
+                                        (@(store.Name))
+                                    </label>
+                                </div>
+                            }
+                        </div>
                     </div>
-                    <div class="col-md-9">
-                        @foreach (var store in Model.AvailableNewsletterSubscriptionStores)
-                        {
-                            <div class="checkbox">
-                                <label>
-                                    <input type="checkbox" name="SelectedNewsletterSubscriptionStoreIds" value="@store.Id" checked="@(Model.SelectedNewsletterSubscriptionStoreIds != null && Model.SelectedNewsletterSubscriptionStoreIds.Contains(store.Id))" />
-                                    (@(store.Name))
-                                </label>
-                            </div>
-                        }
-                    </div>
-                </div>
-            }
-            else
-            {
-                @T("Admin.Customers.Customers.Fields.CustomerRoles.NoRoles")
-            }*@
+                }
+                else
+                {
+                    @T("Admin.Customers.Customers.Fields.CustomerRoles.NoRoles")
+                }*@
             <div class="form-group">
                 <div class="col-md-3">
                     <nop-label asp-for="Active" />

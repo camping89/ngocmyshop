@@ -47,6 +47,13 @@ namespace Nop.Data.Mapping.Catalog
             this.HasMany(p => p.ProductTags)
                 .WithMany(pt => pt.Products)
                 .Map(m => m.ToTable("Product_ProductTag_Mapping"));
+
+            this.HasRequired(p => p.Vendor)
+                .WithMany()
+                .HasForeignKey(orderItem => orderItem.VendorId);
+            this.HasRequired(p => p.Currency)
+                .WithMany()
+                .HasForeignKey(orderItem => orderItem.CurrencyId);
         }
     }
 }
