@@ -1,8 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc.Rendering;
-using Nop.Web.Areas.Admin.Models.Customers;
 using Nop.Web.Framework.Mvc.ModelBinding;
 using Nop.Web.Framework.Mvc.Models;
-using System;
 using System.Collections.Generic;
 
 namespace Nop.Web.Areas.Admin.Models.Orders
@@ -53,16 +51,5 @@ namespace Nop.Web.Areas.Admin.Models.Orders
 
         public bool HasOrderItem { get; set; }
     }
-
-    public class ShelfOrderItemModel : BaseNopEntityModel
-    {
-        public int ShelfId { get; set; }
-        public int OrderItemId { get; set; }
-
-        public DateTime AssignedDate { get; set; }
-        public bool IsActived { get; set; }
-        public virtual ShelfModel ShelfModel { get; set; }
-        public virtual CustomerModel CustomerModel { get; set; }
-        public virtual OrderModel.OrderItemModel OrderItemModel { get; set; }
-    }
+    
 }

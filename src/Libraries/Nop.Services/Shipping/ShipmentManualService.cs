@@ -4,10 +4,10 @@ using Nop.Core.Domain.Common;
 using Nop.Core.Domain.Customers;
 using Nop.Core.Domain.Orders;
 using Nop.Core.Domain.Shipping;
+using Nop.Core.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Nop.Core.Extensions;
 
 namespace Nop.Services.Shipping
 {
@@ -23,29 +23,22 @@ namespace Nop.Services.Shipping
         private readonly IRepository<GenericAttribute> _gaRepository;
         private readonly IRepository<OrderItem> _orderItemRepository;
         private readonly IRepository<Shelf> _shelfRepository;
-        private readonly IRepository<ShelfOrderItem> _shelfOrderItemRepository;
 
         #endregion
 
         #region Ctor
 
-        /// <summary>
-        /// Ctor
-        /// </summary>
-        /// <param name="shipmentManualRepository">Shipment repository</param>
-        /// <param name="orderItemRepository">Order item repository</param>
-        /// <param name="eventPublisher">Event published</param>
-        /// <param name="gaRepository"></param>
-        /// <param name="shipmentManualItemRepository"></param>
         public ShipmentManualService(IRepository<ShipmentManual> shipmentManualRepository,
-            IRepository<OrderItem> orderItemRepository, IRepository<GenericAttribute> gaRepository, IRepository<ShipmentManualItem> shipmentManualItemRepository, IRepository<Shelf> shelfRepository, IRepository<ShelfOrderItem> shelfOrderItemRepository)
+            IRepository<OrderItem> orderItemRepository, 
+            IRepository<GenericAttribute> gaRepository, 
+            IRepository<ShipmentManualItem> shipmentManualItemRepository, 
+            IRepository<Shelf> shelfRepository)
         {
             this._shipmentManualRepository = shipmentManualRepository;
             this._orderItemRepository = orderItemRepository;
             _gaRepository = gaRepository;
             _shipmentManualItemRepository = shipmentManualItemRepository;
             _shelfRepository = shelfRepository;
-            _shelfOrderItemRepository = shelfOrderItemRepository;
         }
 
         #endregion
@@ -190,8 +183,8 @@ namespace Nop.Services.Shipping
                 query = query.Where(_ => _.ShelfCode.Equals(shelfCode));
             }
 
-            //query = query.OrderByDescending(s => s.CreatedOnUtc);
-            query = query.OrderByDescending(o => o.Id).ThenByDescending(o => o.CreatedOnUtc);
+            query = query.OrderByDescending(s => s.ShippedDateUtc);
+            //query = query.OrderByDescending(o => o.Id).ThenByDescending(o => o.CreatedOnUtc);
             var shipments = new PagedList<ShipmentManual>(query, pageIndex, pageSize) { TotalIds = query.Select(_ => _.Id).ToList() };
             return shipments;
         }

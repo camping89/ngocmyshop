@@ -22,8 +22,7 @@ namespace Nop.Web.Areas.Admin.Models.Shelfs
         public int OrderItemStatusId { get; set; }
         public string Note { get; set; }
         public string VendorName { get; set; }
-
-        public int ShelfOrderItemId { get; set; }
+        public string ShelfCode { get; set; }
         public bool ShelfOrderItemIsActive { get; set; }
 
         public string WeightCost { get; set; }

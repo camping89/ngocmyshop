@@ -1,4 +1,5 @@
 ﻿using Nop.Core.Domain.Customers;
+using Nop.Core.Domain.Orders;
 using System;
 using System.Collections.Generic;
 
@@ -6,7 +7,7 @@ namespace Nop.Core.Domain.Shipping
 {
     public class Shelf : BaseEntity
     {
-        private ICollection<ShelfOrderItem> _shelfOrderItems;
+        private ICollection<OrderItem> _orderItems;
         public string ShelfCode { get; set; }
 
         public int? CustomerId { get; set; }
@@ -23,12 +24,11 @@ namespace Nop.Core.Domain.Shipping
         public bool InActive { get; set; }
         public virtual Customer Customer { get; set; }
 
-        public virtual ICollection<ShelfOrderItem> ShelfOrderItems
+        public virtual ICollection<OrderItem> OrderItems
         {
-            get { return _shelfOrderItems ?? (_shelfOrderItems = new List<ShelfOrderItem>()); }
-            protected set { _shelfOrderItems = value; }
+            get { return _orderItems ?? (_orderItems = new List<OrderItem>()); }
+            protected set { _orderItems = value; }
         }
-
 
         /// <summary>
         /// Gets or sets the shipping status

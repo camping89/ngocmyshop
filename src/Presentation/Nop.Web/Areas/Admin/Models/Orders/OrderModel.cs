@@ -338,9 +338,7 @@ namespace Nop.Web.Areas.Admin.Models.Orders
 
             public string ShelfCode { get; set; }
 
-            public int ShelfId { get; set; }
-            public int ShelfOrderItemId { get; set; }
-            public bool ShelfOrderItemIsActive { get; set; }
+            public int? ShelfId { get; set; }
 
             public string AttributeInfo { get; set; }
             public string PictureThumbnailUrl { get; set; }
@@ -423,9 +421,7 @@ namespace Nop.Web.Areas.Admin.Models.Orders
 
             public string ShelfCode { get; set; }
 
-            public int ShelfId { get; set; }
-            public int ShelfOrderItemId { get; set; }
-            public bool ShelfOrderItemIsActive { get; set; }
+            public int? ShelfId { get; set; }
 
             public DateTime? DeliveryDateUtc { get; set; }
 

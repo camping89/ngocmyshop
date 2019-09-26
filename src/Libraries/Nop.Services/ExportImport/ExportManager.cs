@@ -1974,7 +1974,6 @@ namespace Nop.Services.ExportImport
                     }
 
                     var currencyProduct = _currencyService.GetCurrencyById(orderItem.Product.CurrencyId);
-                    var shelfOrderItem = _shelfService.GetShelfOrderItemByOrderItemId(orderItem.Id);
                     //picture
                     var orderItemPicture =
                         orderItem.Product.GetProductPicture(orderItem.AttributesXml, _pictureService, _productAttributeParser);
@@ -1996,7 +1995,7 @@ namespace Nop.Services.ExportImport
                         Weight = orderItem.Product.Weight,
                         UnitWeightCost = orderItem.UnitWeightCost != null ? orderItem.UnitWeightCost.Value : 0,
                         TotalCost = orderItem.PriceExclTax,
-                        ShelfCode = shelfOrderItem?.Shelf?.ShelfCode,
+                        ShelfCode = orderItem?.Shelf?.ShelfCode,
                         PackageOrderCode = orderItem.PackageOrder != null ? $"{orderItem.PackageOrder.PackageCode}" : string.Empty,
                         PackageItemProcessedDatetime = orderItem.PackageItemProcessedDatetime?.ToString("g"),
                         IsOrderCheckout = orderItem.IsOrderCheckout ? "Đã xuất" : "Chưa xuất",
