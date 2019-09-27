@@ -1506,7 +1506,8 @@ namespace Nop.Web.Areas.Admin.Controllers
                 ShipmentWard = shipment.Ward,
 
                 HasShippingFee = shipment.HasShippingFee,
-                ShelfCode = shipment.ShelfCode
+                ShelfCode = shipment.ShelfCode,
+                AllowDelete = shipment.ShipmentManualItems == null ? true : shipment.ShipmentManualItems.All(_=>_.DeliveryDateUtc == null && _.OrderItem.DeliveryDateUtc == null)
             };
 
             var customerOrder = shipment.Customer;
