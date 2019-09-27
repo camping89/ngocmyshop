@@ -707,7 +707,7 @@
 
                             function dateTimeEditorCustom(container, options) {
                                 var dateTime = options.model.AssignedDate;
-                                if (options.model.AssignedDate === null || options.model.AssignedDate === '') {
+                                if (options.model.AssignedDate == null || options.model.AssignedDate === '') {
                                     dateTime = new Date();
                                 }
                                 $('<input style="width:120px !important;" data-text-field="' +
@@ -732,7 +732,7 @@
                                         transport: {
                                             read: {
                                                 url:
-                                                    "@Html.Raw(Url.Action("ShipmentsManualItemsByShipmentManualId", "Order"))?shipmentId=" +
+                                                    "@Html.Raw(Url.Action("ShipmentsManualItems", "Order"))?shipmentId=" +
                                                         e.data.Id,
                                                 type: "POST",
                                                 data: addAntiForgeryToken
@@ -760,7 +760,7 @@
                                                     QuantityInThisShipment: { editable: false, type: "number" },
                                                     ItemWeight: { editable: false, type: "number" },
                                                     Deposit: { editable: true, type: "number" },
-                                                    DeliveryDateUtc: { editable: false, type: "string" }
+                                                    DeliveryDateUtc: { editable: true, type: "string" }
                                                 }
                                             },
                                             data: "Data",
@@ -870,7 +870,10 @@
                                                     {
                                                         name: "destroy",
                                                         text: "@T("Admin.Common.Delete")",
-                                                        template: '<a class="btn btn-danger k-button-icontext k-grid-delete" href="" >@T("Admin.Common.Delete")</a>'
+                                                        template: '<a class="btn btn-danger k-button-icontext k-grid-delete" href="" >@T("Admin.Common.Delete")</a>',
+                                                        visible: function(dataItem) {
+                                                            return dataItem.DeliveryDateUtc == null;
+                                                        }
                                                     }
                                                 </text>
                                             }
@@ -881,12 +884,6 @@
                                 });
                             }
 
-                            //$('#expand').click(function(e) {
-                            //    var grid = $("#shipments-grid").data("kendoGrid");
-                            //    $(".k-master-row").each(function(index) {
-                            //        grid.expandRow(this);
-                            //    });
-                            //});
 
                             $('#collapse').click(function (e) {
                                 var grid = $("#shipments-grid").data("kendoGrid");

@@ -28,12 +28,6 @@ namespace Nop.Data.Mapping.Orders
             this.HasRequired(orderItem => orderItem.Order)
                 .WithMany(o => o.OrderItems)
                 .HasForeignKey(orderItem => orderItem.OrderId);
-            
-            this.HasRequired(orderItem => orderItem.Shelf)
-                .WithMany(o => o.OrderItems)
-                .HasForeignKey(orderItem => orderItem.ShelfId);
-
-
 
             this.HasRequired(orderItem => orderItem.Product)
                 .WithMany()
@@ -48,7 +42,7 @@ namespace Nop.Data.Mapping.Orders
                 .HasForeignKey(orderItem => orderItem.AssignedByCustomerId);
 
             this.HasRequired(orderItem => orderItem.Shelf)
-                .WithMany()
+                .WithMany(s=> s.OrderItems)
                 .HasForeignKey(orderItem => orderItem.ShelfId);
 
             this.Ignore(o => o.OrderItemStatus);

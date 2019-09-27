@@ -4243,7 +4243,7 @@ namespace Nop.Web.Areas.Admin.Controllers
         }
 
         [HttpPost]
-        public virtual IActionResult ShipmentsManualItemsByShipmentManualId(int shipmentId, DataSourceRequest command)
+        public virtual IActionResult ShipmentsManualItems(int shipmentId, DataSourceRequest command)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageOrders))
                 return AccessDeniedKendoGridJson();
@@ -6380,7 +6380,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                     };
                     if (orderItemModel.PackageOrderId > 0) orderItemModel.PackageOrderCode = orderItem.PackageOrder?.PackageCode;
 
-                    orderItemModel.ShelfCode = orderItem.Shelf.ShelfCode;
+                    orderItemModel.ShelfCode = orderItem.Shelf?.ShelfCode;
 
                     if (orderItem.AssignedByCustomer != null)
                     {
