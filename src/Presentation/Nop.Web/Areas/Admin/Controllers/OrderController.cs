@@ -1426,7 +1426,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                     ShippingFee = shipmentItem.ShippingFee,
                     Deposit = shipmentItem.OrderItem.Deposit,
                     DepositStr = _priceFormatter.FormatPrice(shipmentItem.OrderItem.Deposit),
-                    DeliveryDateUtc = shipmentItem.DeliveryDateUtc,
+                    DeliveryDateUtc = shipmentItem.OrderItem.DeliveryDateUtc,
                     ShippingFeeStr = _priceFormatter.FormatPrice(shipmentItem.ShippingFee, true, primaryStoreCurrency,
                         _workContext.WorkingLanguage, true, false),
                     OrderItemFee = _priceFormatter.FormatPrice(orderItem.PriceInclTax, true, primaryStoreCurrency,
