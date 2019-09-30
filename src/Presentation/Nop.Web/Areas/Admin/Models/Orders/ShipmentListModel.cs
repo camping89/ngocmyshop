@@ -19,7 +19,7 @@ namespace Nop.Web.Areas.Admin.Models.Orders
             AvailableCities = new List<SelectListItem>();
         }
         [NopResourceDisplayName("Admin.Orders.Shipments.List.ShipmentId")]
-        public int ShipmentId { get; set; }
+        public string ShipmentId { get; set; }
 
         [NopResourceDisplayName("Admin.Orders.Shipments.List.ShipperPhoneNumber")]
         public string ShipperPhoneNumber { get; set; }
@@ -59,17 +59,17 @@ namespace Nop.Web.Areas.Admin.Models.Orders
         [NopResourceDisplayName("Admin.Orders.Shipments.List.District")]
         public string District { get; set; }
 
-        [NopResourceDisplayName("Admin.Orders.Shipments.List.LoadNotShipped")]
-        public bool LoadNotShipped { get; set; }
+        [NopResourceDisplayName("Admin.Orders.Shipments.List.IsDelivered")]
+        public bool IsDelivered { get; set; }
 
         [NopResourceDisplayName("Admin.Orders.Shipments.List.Warehouse")]
         public int WarehouseId { get; set; }
         public IList<SelectListItem> AvailableWarehouses { get; set; }
 
         [NopResourceDisplayName("Admin.Orders.Shipments.List.OrderId")]
-        public int OrderId { get; set; }
+        public string OrderId { get; set; }
         [NopResourceDisplayName("Admin.Orders.Shipments.List.OrderItemId")]
-        public int OrderItemId { get; set; }
+        public string OrderItemId { get; set; }
         [NopResourceDisplayName("Admin.Orders.Shipments.List.ShelfCode")]
         public string ShelfCode { get; set; }
 
@@ -80,11 +80,14 @@ namespace Nop.Web.Areas.Admin.Models.Orders
         public int SearchShipperId { get; set; }
         [NopResourceDisplayName("Admin.Orders.Shipments.List.CustomerId")]
         public int CustomerId { get; set; }
+
+        [NopResourceDisplayName("Admin.Orders.Shipments.List.CustomerPhone")]
+        public string CustomerPhone { get; set; }
         public IList<SelectListItem> AvailableShippersForSearch { get; set; }
-        [NopResourceDisplayName("Admin.Orders.Shipments.List.ExceptCity")]
-        public bool ExceptCity { get; set; }
-        [NopResourceDisplayName("Admin.Orders.Shipments.List.IsShipDateEmpty")]
-        public bool IsNotSetShippedDate { get; set; }
+        [NopResourceDisplayName("Admin.Orders.Shipments.List.IsCityExcluded")]
+        public bool IsCityExcluded { get; set; }
+        [NopResourceDisplayName("Admin.Orders.Shipments.List.IsShipmentDateEmpty")]
+        public bool IsShipmentDateEmpty { get; set; }
 
         [NopResourceDisplayName("Admin.Orders.Shipments.List.IsAddressEmpty")]
         public bool IsAddressEmpty { get; set; }

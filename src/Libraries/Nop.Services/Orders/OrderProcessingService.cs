@@ -2296,7 +2296,6 @@ namespace Nop.Services.Orders
             foreach (var shipmentManualItem in shipment.ShipmentManualItems)
             {
                 var shipmentItem = _shipmentManualService.GetShipmentManualItemById(shipmentManualItem.Id);
-                shipmentItem.DeliveryDateUtc = DateTime.UtcNow;
                 _shipmentManualService.UpdateShipmentManualItem(shipmentManualItem);
 
                 var orderItem = _orderService.GetOrderItemById(shipmentItem.OrderItemId);

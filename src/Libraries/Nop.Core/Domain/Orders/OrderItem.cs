@@ -160,8 +160,6 @@ namespace Nop.Core.Domain.Orders
         /// </summary>
         public virtual Product Product { get; set; }
 
-        
-
         public OrderItemStatus OrderItemStatus
         {
             get

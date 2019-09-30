@@ -1507,7 +1507,7 @@ namespace Nop.Web.Areas.Admin.Controllers
 
                 HasShippingFee = shipment.HasShippingFee,
                 ShelfCode = shipment.ShelfCode,
-                AllowDelete = shipment.ShipmentManualItems == null ? true : shipment.ShipmentManualItems.All(_=>_.DeliveryDateUtc == null && _.OrderItem.DeliveryDateUtc == null)
+                AllowDelete = !shipment.DeliveryDateUtc.HasValue
             };
 
             var customerOrder = shipment.Customer;
@@ -3843,12 +3843,12 @@ namespace Nop.Web.Areas.Admin.Controllers
                 model.StateProvinceId,
                 model.City,
                 model.TrackingNumber,
-                model.LoadNotShipped,
+                model.IsDelivered,
                 startDateValue,
                 endDateValue,
                 command.Page - 1,
                 command.PageSize,
-                model.OrderId,
+                model.OrderId.ToIntODefault(),
                 model.ShipperPhoneNumber);
 
             var gridModel = new DataSourceResult
@@ -5142,17 +5142,12 @@ namespace Nop.Web.Areas.Admin.Controllers
                 vendorId = _workContext.CurrentVendor.Id;
 
             //load shipments
-            var shipments = _shipmentManualService.GetAllShipmentsManual(vendorId: vendorId,
+            var shipments = _shipmentManualService.GetShipmentManuals(vendorId: vendorId,
                 shippingCountryId: model.CountryId,
                 shippingStateId: model.StateProvinceId,
                 shippingCity: model.City,
-                trackingNumber: model.TrackingNumber,
-                loadNotShipped: model.LoadNotShipped,
-                createdFromUtc: startDateValue,
-                createdToUtc: endDateValue,
                 shippingDistrict: model.District,
-                phoneShipperNumber: model.ShipperPhoneNumber
-            );
+                trackingNumber: model.TrackingNumber, loadNotShipped: model.IsDelivered, createdFromUtc: startDateValue, createdToUtc: endDateValue, phoneShipperNumber: model.ShipperPhoneNumber);
 
             //ensure that we at least one shipment selected
             if (!shipments.Any())
@@ -5200,7 +5195,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 model.StateProvinceId,
                 model.City,
                 model.TrackingNumber,
-                model.LoadNotShipped,
+                model.IsDelivered,
                 startDateValue,
                 endDateValue);
 
@@ -5546,25 +5541,24 @@ namespace Nop.Web.Areas.Admin.Controllers
                 vendorId = _workContext.CurrentVendor.Id;
 
             //load shipments
-            var shipments = _shipmentManualService.GetAllShipmentsManual(model.ShipmentId, vendorId,
+            var shipments = _shipmentManualService.GetShipmentManuals(model.ShipmentId.ToIntODefault(), vendorId,
                 model.CountryId,
                 model.StateProvinceId,
                 model.City,
                 model.District,
-                model.TrackingNumber,
-                model.LoadNotShipped,
-                model.ExceptCity,
-                model.StartDate,
-                model.EndDate,
-                command.Page - 1,
-                command.PageSize,
-                model.OrderItemId,
-                model.ShelfCode,
-                model.ShipperPhoneNumber,
-                model.SearchShipperId,
-                model.CustomerId,
-                model.IsNotSetShippedDate,
-                model.IsAddressEmpty);
+                isCityExcluded: model.IsCityExcluded,
+                trackingNumber: model.TrackingNumber,
+                loadNotShipped: model.IsDelivered,
+                createdFromUtc: model.StartDate,
+                createdToUtc: model.EndDate,
+                pageIndex: command.Page - 1,
+                pageSize: command.PageSize,
+                orderItemId: model.OrderItemId.ToIntODefault(),
+                shelfCode: model.ShelfCode,
+                phoneShipperNumber: model.ShipperPhoneNumber,
+                shipperId: model.SearchShipperId,
+                customerId: model.CustomerId,
+                isShipmentDateEmpty: model.IsShipmentDateEmpty, isAddressEmpty: model.IsAddressEmpty, customerPhone: model.CustomerPhone);
 
             var gridModel = new DataSourceResult
             {

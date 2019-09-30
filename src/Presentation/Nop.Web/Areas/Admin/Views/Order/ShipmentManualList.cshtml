@@ -105,14 +105,7 @@
                     <div class="panel-body">
                         <div class="row">
                             <div class="col-md-5">
-                                <div class="form-group">
-                                    <div class="col-md-4">
-                                        <nop-label asp-for="ShipmentId" />
-                                    </div>
-                                    <div class="col-md-8">
-                                        <nop-editor asp-for="ShipmentId" />
-                                    </div>
-                                </div>
+                               
                                 <div class="form-group">
                                     <div class="col-md-4">
                                         <nop-label asp-for="SearchShipperId" />
@@ -243,6 +236,46 @@
                                 </div>
                                 <div class="form-group">
                                     <div class="col-md-4">
+                                        <nop-label asp-for="CustomerPhone" />
+                                    </div>
+                                    <div class="col-md-8">
+                                        <nop-editor asp-for="CustomerPhone" />
+                                    </div>
+                                </div>
+
+
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <nop-label asp-for="ShelfCode" />
+                                    </div>
+                                    <div class="col-md-8">
+                                        <nop-editor asp-for="ShelfCode" />
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <nop-label asp-for="OrderItemId" />
+                                    </div>
+                                    <div class="col-md-8">
+                                        <nop-editor asp-for="OrderItemId" />
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <nop-label asp-for="ShipmentId" />
+                                    </div>
+                                    <div class="col-md-8">
+                                        <nop-editor asp-for="ShipmentId" />
+                                    </div>
+                                </div>
+
+                                
+                                
+                            </div>
+                            <div class="col-md-7">
+                                <div class="form-group">
+                                    <div class="col-md-4">
                                         <nop-label asp-for="StartDate" />
                                     </div>
                                     <div class="col-md-8">
@@ -257,51 +290,7 @@
                                         <nop-editor asp-for="EndDate" />
                                     </div>
                                 </div>
-                                <div class="form-group">
-                                    <div class="col-md-4">
-                                        <nop-label asp-for="TodayFilter" />
-                                    </div>
-                                    <div class="col-md-8">
-                                        <nop-editor asp-for="TodayFilter" />
-                                    </div>
-                                </div>
 
-                                <div class="form-group">
-                                    <div class="col-md-4">
-                                        <nop-label asp-for="IsNotSetShippedDate" />
-                                    </div>
-                                    <div class="col-md-8">
-                                        <nop-editor asp-for="IsNotSetShippedDate" />
-                                    </div>
-                                </div>
-
-                            </div>
-                            <div class="col-md-7">
-
-                                <div class="form-group">
-                                    <div class="col-md-4">
-                                        <nop-label asp-for="IsAddressEmpty" />
-                                    </div>
-                                    <div class="col-md-8">
-                                        <nop-editor asp-for="IsAddressEmpty" />
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <div class="col-md-4">
-                                        <nop-label asp-for="LoadNotShipped" />
-                                    </div>
-                                    <div class="col-md-8">
-                                        <nop-editor asp-for="LoadNotShipped" />
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <div class="col-md-4">
-                                        <nop-label asp-for="ExceptCity" />
-                                    </div>
-                                    <div class="col-md-8">
-                                        <nop-editor asp-for="ExceptCity" />
-                                    </div>
-                                </div>
                                 <div class="form-group">
                                     <div class="col-md-4">
                                         <nop-label asp-for="City" />
@@ -323,20 +312,49 @@
 
                                 <div class="form-group">
                                     <div class="col-md-4">
-                                        <nop-label asp-for="ShelfCode" />
+                                        <nop-label asp-for="IsCityExcluded" />
                                     </div>
                                     <div class="col-md-8">
-                                        <nop-editor asp-for="ShelfCode" />
+                                        <nop-editor asp-for="IsCityExcluded" />
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <nop-label asp-for="TodayFilter" />
+                                    </div>
+                                    <div class="col-md-8">
+                                        <nop-editor asp-for="TodayFilter" />
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <nop-label asp-for="IsShipmentDateEmpty" />
+                                    </div>
+                                    <div class="col-md-8">
+                                        <nop-editor asp-for="IsShipmentDateEmpty" />
+                                    </div>
+                                </div>
+
+
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <nop-label asp-for="IsAddressEmpty" />
+                                    </div>
+                                    <div class="col-md-8">
+                                        <nop-editor asp-for="IsAddressEmpty" />
                                     </div>
                                 </div>
                                 <div class="form-group">
                                     <div class="col-md-4">
-                                        <nop-label asp-for="OrderItemId" />
+                                        <nop-label asp-for="IsDelivered" />
                                     </div>
                                     <div class="col-md-8">
-                                        <nop-editor asp-for="OrderItemId" />
+                                        <nop-editor asp-for="IsDelivered" />
                                     </div>
                                 </div>
+
                             </div>
                             <div class="row">
                                 <div class="col-md-7 col-md-offset-4">
@@ -786,7 +804,7 @@
                                         serverSorting: true
                                     },
                                     scrollable: false,
-                                    sortable: true,
+                                    sortable: false,
                                     pageable: {
                                         refresh: true,
                                         numeric: false,
@@ -842,7 +860,7 @@
                                             width: 70,
                                             template: '#= DepositStr #'
                                         },
-                                        {
+                                        @*{
                                                     field: "DeliveryDateUtc",
                                                     title: "@T("Admin.Orders.Products.DeliveryDateUtc")",
                                                     width: 150,
@@ -851,12 +869,12 @@
                                                         "#} else {#" +
                                                         "<p></p>" +
                                                         "# } #"
-                                                }
+                                                }*@
                                         @*, {
                                             field: "ItemDimensions",
                                             title: "@T("Admin.Orders.Shipments.Products.ItemDimensions")",
                                             width: 150
-                                        }*@,
+                                        },*@
                                         {
                                             command: [
                                                 {
@@ -979,15 +997,17 @@
                             $('#@Html.IdFor(model => model.City)').trigger("chosen:updated");
                             $('#@Html.IdFor(model => model.District)').val('');
                             $('#@Html.IdFor(model => model.District)').trigger("chosen:updated");
-                            $('#@Html.IdFor(model => model.LoadNotShipped)').prop('checked', false);
-                            $('#@Html.IdFor(model => model.ExceptCity)').prop('checked', false);
-                            $('#@Html.IdFor(model => model.ExceptCity)').prop('checked', false);
-                            $('#@Html.IdFor(model => model.IsNotSetShippedDate)').prop('checked', false);
+                            $('#@Html.IdFor(model => model.IsDelivered)').prop('checked', false);
+                            $('#@Html.IdFor(model => model.IsCityExcluded)').prop('checked', false);
+                            $('#@Html.IdFor(model => model.IsCityExcluded)').prop('checked', false);
+                            $('#@Html.IdFor(model => model.IsShipmentDateEmpty)').prop('checked', false);
                             $('#@Html.IdFor(model => model.IsAddressEmpty)').prop('checked', false);
                             $('#@Html.IdFor(model => model.OrderId)').val('');
                             $('#@Html.IdFor(model => model.OrderItemId)').val('');
                             $('#@Html.IdFor(model => model.ShelfCode)').val('');
+                            $('#@Html.IdFor(model => model.CustomerId)').val('');
                             $('#CustomerNameOrPhone').val('');
+                            $('#@Html.IdFor(model => model.CustomerPhone)').val('');
 
                             $("#search-shipments").click();
                         });
@@ -1151,6 +1171,7 @@
                             ShipmentId: $('#@Html.IdFor(model => model.ShipmentId)').val(),
                             SearchShipperId: $('#@Html.IdFor(model => model.SearchShipperId)').val(),
                             CustomerId: $('#@Html.IdFor(model => model.CustomerId)').val(),
+                            CustomerPhone: $('#@Html.IdFor(model => model.CustomerPhone)').val(),
                             ShipperPhoneNumber: $('#@Html.IdFor(model => model.ShipperPhoneNumber)').val(),
                             StartDate: startDate,
                             EndDate: endDate,
@@ -1160,9 +1181,9 @@
                             City: $('#@Html.IdFor(model => model.City)').val(),
                             District: $('#@Html.IdFor(model => model.District)').val(),
                             WarehouseId: $('#@Html.IdFor(model => model.WarehouseId)').val(),
-                            LoadNotShipped: $('#@Html.IdFor(model => model.LoadNotShipped)').is(':checked'),
-                            ExceptCity: $('#@Html.IdFor(model => model.ExceptCity)').is(':checked'),
-                            IsNotSetShippedDate: $('#@Html.IdFor(model => model.IsNotSetShippedDate)').is(':checked'),
+                            LoadNotShipped: $('#@Html.IdFor(model => model.IsDelivered)').is(':checked'),
+                            ExceptCity: $('#@Html.IdFor(model => model.IsCityExcluded)').is(':checked'),
+                            IsNotSetShippedDate: $('#@Html.IdFor(model => model.IsShipmentDateEmpty)').is(':checked'),
                             IsAddressEmpty: $('#@Html.IdFor(model => model.IsAddressEmpty)').is(':checked'),
                             OrderId: $('#@Html.IdFor(model => model.OrderId)').val(),
                             OrderItemId: $('#@Html.IdFor(model => model.OrderItemId)').val(),

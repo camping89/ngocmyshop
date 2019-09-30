@@ -1,5 +1,4 @@
 using Nop.Core.Domain.Orders;
-using System;
 
 namespace Nop.Core.Domain.Shipping
 {
@@ -30,10 +29,8 @@ namespace Nop.Core.Domain.Shipping
         /// </summary>
         public int WarehouseId { get; set; }
 
-
         public decimal ShippingFee { get; set; }
-
-        public DateTime? DeliveryDateUtc { get; set; }
+        
         /// <summary>
         /// Gets the shipment
         /// </summary>

@@ -468,17 +468,19 @@ namespace Nop.Web.Areas.Admin.Controllers
         }
 
         [HttpPost]
-        public IActionResult DeleteOrderItemId(int orderItemId)
+        public IActionResult DeleteShelfOrderItemId(OrderItemInShelfModel model)
         {
-            var orderItem = _orderService.GetOrderItemById(orderItemId);
+            var orderItem = _orderService.GetOrderItemById(model.Id);
 
             if (orderItem != null)
             {
+                var shelfId = orderItem.ShelfId;
+
                 orderItem.ShelfId = null;
                 orderItem.ShelfAssignedDate = null;
                 _orderService.UpdateOrderItem(orderItem);
 
-                UpdateShelfTotalAmount(orderItem.ShelfId.ToString());
+                UpdateShelfTotalAmount(shelfId.ToString());
             }
 
             return new NullJsonResult();
@@ -539,9 +541,22 @@ namespace Nop.Web.Areas.Admin.Controllers
 
         private void CreateShipment(Shelf shelf, ICollection<int> orderItemIds, int customerId)
         {
+            var ids = new List<int>();
             if (customerId > 0 && orderItemIds != null)
             {
-                var orderItems = _orderService.GetOrderItemsByIds(orderItemIds.ToArray());
+                // 1. get undelivered shipment by orderitem id
+                var shipmentItemIds = _shipmentManualService.GetShipmentManualItemsByOrderItemIds(orderItemIds.ToArray())
+                    .Select(_=>_.OrderItemId).Distinct().ToList();
+                foreach (var orderItemId in orderItemIds)
+                {
+                    if (!shipmentItemIds.Contains(orderItemId))
+                    {
+                        ids.Add(orderItemId);
+
+                    }
+                }
+
+                var orderItems = _orderService.GetOrderItemsByIds(ids.ToArray());
                 foreach (var orderItem in orderItems)
                 {
                     orderItem.PriceInclTax = DecimalExtensions.RoundCustom(orderItem.PriceInclTax / 1000) * 1000;
@@ -810,7 +825,7 @@ namespace Nop.Web.Areas.Admin.Controllers
 
         public IActionResult UpdateShipmentsManual()
         {
-            var shipmentManuals = _shipmentManualService.GetAllShipmentsManual().ToList();
+            var shipmentManuals = _shipmentManualService.GetShipmentManuals().ToList();
             foreach (var shipmentManual in shipmentManuals)
             {
                 if (shipmentManual.ShipmentManualItems != null)

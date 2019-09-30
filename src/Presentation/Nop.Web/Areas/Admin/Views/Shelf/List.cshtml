@@ -705,13 +705,11 @@
                                             read: {
                                                 url: '@Html.Raw(Url.Action("OrderItemsByShelfId", "Shelf"))',
                                                 type: "POST",
-                                                dataType: "json",
                                                 data: addAntiForgeryToken(postData)
                                             },
                                             destroy: {
-                                                url: "@Url.Action("DeleteOrderItemId", "Shelf")",
+                                                url: "@Url.Action("DeleteShelfOrderItemId", "Shelf")",
                                                 type: "POST",
-                                                dataType: "json",
                                                 data: addAntiForgeryToken
                                             }
                                         },
@@ -721,9 +719,6 @@
                                             errors: "Errors",
                                             model: {
                                                 id: "Id",
-                                                fields: {
-                                                    ShelfOrderItemId: { editable: true, type: "number" }
-                                                }
                                             }
                                         },
                                         requestEnd: function(e) {
