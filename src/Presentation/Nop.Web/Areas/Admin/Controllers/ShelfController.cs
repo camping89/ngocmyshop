@@ -247,7 +247,8 @@ namespace Nop.Web.Areas.Admin.Controllers
                     _workContext.WorkingLanguage, true, true),
                 PackageOrderCode = orderItem.PackageOrder?.PackageCode,
                 AssignedShelfDate = orderItem.ShelfAssignedDate,
-                PrimaryStoreCurrencyCode = primaryStoreCurrency.CurrencyCode
+                PrimaryStoreCurrencyCode = primaryStoreCurrency.CurrencyCode,
+                ExistShipment = orderItem.DeliveryDateUtc.HasValue
             };
             var vendor = _vendorService.GetVendorById(orderItem.Product.VendorId);
             if (vendor != null)
@@ -255,8 +256,8 @@ namespace Nop.Web.Areas.Admin.Controllers
                 model.VendorName = vendor.Name;
             }
 
-            var shipmentItem = _shipmentManualService.GetShipmentManualItemByOrderItemId(orderItem.Id);
-            model.ExistShipment = shipmentItem != null;
+            //var shipmentItem = _shipmentManualService.GetShipmentManualItemByOrderItemId(orderItem.Id);
+            //model.ExistShipment = shipmentItem != null;
             return model;
         }
 

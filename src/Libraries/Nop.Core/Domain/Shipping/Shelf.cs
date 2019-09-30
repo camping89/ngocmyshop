@@ -24,6 +24,9 @@ namespace Nop.Core.Domain.Shipping
         public bool InActive { get; set; }
         public virtual Customer Customer { get; set; }
 
+        /// <summary>
+        /// Gets or sets order items
+        /// </summary>
         public virtual ICollection<OrderItem> OrderItems
         {
             get { return _orderItems ?? (_orderItems = new List<OrderItem>()); }

@@ -43,7 +43,7 @@ namespace Nop.Services.Shipping
 
             if (isShelfEmpty)
             {
-                query = query.Where(_ => _.OrderItems == null || _.OrderItems.All(oi => oi.DeliveryDateUtc != null)).OrderBy(_ => _.ShelfCode);
+                query = query.Where(_ => _.OrderItems.All(oi => oi.DeliveryDateUtc != null)).OrderBy(_ => _.ShelfCode);
                 return new PagedList<Shelf>(query, pageIndex, pageSize);
             }
 
@@ -95,7 +95,7 @@ namespace Nop.Services.Shipping
             
             if (assignedOrderItemFromUtc != null && assignedOrderItemToUtc != null)
             {
-                query = query.Where(shelf => shelf.OrderItems!=null && shelf.OrderItems.Any(oi => 
+                query = query.Where(shelf => shelf.OrderItems.Any(oi => 
                                                  (oi.ShelfAssignedDate >= assignedOrderItemFromUtc && oi.ShelfAssignedDate <= assignedOrderItemToUtc)
                                                 && oi.DeliveryDateUtc !=null));
             }
@@ -123,7 +123,7 @@ namespace Nop.Services.Shipping
 
         public List<Shelf> GetAvailableShelf(string shelfCode = null)
         {
-            var availableShelf= _shelfRepository.Table.Where(_ => _.OrderItems == null || _.OrderItems.All(oi => oi.DeliveryDateUtc != null));
+            var availableShelf= _shelfRepository.Table.Where(_ => _.OrderItems.All(oi => oi.DeliveryDateUtc != null));
             
             if (shelfCode.IsNotNullOrEmpty())
             {
@@ -179,7 +179,7 @@ namespace Nop.Services.Shipping
             {
                 if (activeItem)
                 {
-                    orderItems = shelf.OrderItems.Where(_ => _.DeliveryDateUtc != null).OrderByDescending(oi=>oi.ShelfAssignedDate).ToList();
+                    orderItems = shelf.OrderItems.Where(_ => _.DeliveryDateUtc == null).OrderByDescending(oi=>oi.ShelfAssignedDate).ToList();
                 }
 
             }
