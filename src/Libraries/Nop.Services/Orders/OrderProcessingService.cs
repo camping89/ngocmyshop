@@ -2295,26 +2295,26 @@ namespace Nop.Services.Orders
 
             foreach (var shipmentManualItem in shipment.ShipmentManualItems)
             {
-                var shipmentItem = _shipmentManualService.GetShipmentManualItemById(shipmentManualItem.Id);
-                _shipmentManualService.UpdateShipmentManualItem(shipmentManualItem);
-
-                var orderItem = _orderService.GetOrderItemById(shipmentItem.OrderItemId);
-                orderItem.DeliveryDateUtc = DateTime.UtcNow;
-                _orderService.UpdateOrderItem(orderItem);
-
-                var order = _orderService.GetOrderById(shipmentManualItem.OrderItem.OrderId);
-                if (order != null)
+                var orderItem = _orderService.GetOrderItemById(shipmentManualItem.OrderItemId);
+                if (orderItem != null)
                 {
-                    if (!order.HasItemsToAddToShipment() && !order.HasItemsToShip() && !order.HasItemsToDeliver())
-                        order.ShippingStatusId = (int)ShippingStatus.Delivered;
-                    _orderService.UpdateOrder(order);
-
-                    //add a note
-                    AddOrderNote(order, $"Shipment# {shipment.Id} has been delivered");
-
-                    //check order status
-                    CheckOrderStatus(order);
+                    orderItem.DeliveryDateUtc = DateTime.UtcNow;
+                    _orderService.UpdateOrderItem(orderItem);
+                    
                 }
+                //var order = _orderService.GetOrderById(shipmentManualItem.OrderItem.OrderId);
+                //if (order != null)
+                //{
+                //    if (!order.HasItemsToAddToShipment() && !order.HasItemsToShip() && !order.HasItemsToDeliver())
+                //        order.ShippingStatusId = (int)ShippingStatus.Delivered;
+                //    _orderService.UpdateOrder(order);
+
+                //    //add a note
+                //    AddOrderNote(order, $"Shipment# {shipment.Id} has been delivered");
+
+                //    //check order status
+                //    CheckOrderStatus(order);
+                //}
 
             }
         }

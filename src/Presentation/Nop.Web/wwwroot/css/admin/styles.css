@@ -310,7 +310,7 @@ table.adminContent {
     background: #fff;
     border: 1px solid #d2d6de;
     height: 32px;
-    width: 32px;
+    width: 52px;
     padding-left: 1px;
     -moz-box-sizing: content-box;
 }
@@ -855,7 +855,7 @@ td.k-state-focused.k-state-selected {
 .form-horizontal .k-colorpicker,
 .form-horizontal .k-timepicker, .form-horizontal .k-datetimepicker, 
 .form-horizontal .k-datepicker {
-    width: 300px;
+    width: 100%;
     max-width: 100%;
     border-radius: 0;
     border-color: #d2d6de;
@@ -888,10 +888,10 @@ td.k-state-focused.k-state-selected {
     font-size: 18px;
 }
 .panel-search .form-control {
-    max-width: 425px;
+    max-width: 100%;
 }
 .panel-search .k-multiselect.k-header {
-    max-width: 423px;
+    max-width: 100%;
 }
 .panel-popup .btn-search {
     margin-left: auto;
@@ -3604,9 +3604,9 @@ span.grid-report-item.red {
     #no-more-tables td:before { content: attr(data-title); }
 }
 
-.chosen-container {
+/*.chosen-container {
     min-width: 300px !important;
-}
+}*/
 
 .fixed-header {
         top:0;

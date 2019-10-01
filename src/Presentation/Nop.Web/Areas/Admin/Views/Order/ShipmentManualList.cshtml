@@ -104,7 +104,7 @@
                 <div class="panel panel-default panel-search">
                     <div class="panel-body">
                         <div class="row">
-                            <div class="col-md-5">
+                            <div class="col-md-6">
                                
                                 <div class="form-group">
                                     <div class="col-md-4">
@@ -273,7 +273,7 @@
                                 
                                 
                             </div>
-                            <div class="col-md-7">
+                            <div class="col-md-6">
                                 <div class="form-group">
                                     <div class="col-md-4">
                                         <nop-label asp-for="StartDate" />
@@ -414,8 +414,8 @@
                                                     ShipmentWard: { editable: true, type: "string" },
                                                     ShipmentDistrictId: { editable: true, type: "string" },
                                                     ShipmentDistrict: { editable: true, type: "string" },
-                                                    ShippedDate: { editable: true, type: "date", nullable: true },
-                                                    DeliveryDate: { editable: true, type: "date", nullable: true },
+                                                    ShippedDate: { editable: false, type: "date", nullable: true },
+                                                    DeliveryDate: { editable: false, type: "date", nullable: true },
                                                     ShipmentNote: { editable: true, type: "string" },
                                                     Deposit: { editable: false, type: "number" },
                                                     HasShippingFee: { editable: true, type: "boolean" },
@@ -596,6 +596,9 @@
                                                     edit: "@T("Admin.Common.Edit")",
                                                     update: "@T("Admin.Common.Update")",
                                                     cancel: "@T("Admin.Common.Cancel")"
+                                                },
+                                                visible: function(dataItem) {
+                                                    return dataItem.AllowDelete;
                                                 }
                                             },
                                             {
@@ -883,6 +886,9 @@
                                                         edit: "@T("Admin.Common.Edit")",
                                                         update: "@T("Admin.Common.Update")",
                                                         cancel: "@T("Admin.Common.Cancel")"
+                                                    },
+                                                    visible: function(dataItem) {
+                                                        return dataItem.DeliveryDateUtc == null;
                                                     }
                                                 },
                                             @if (Model.IsAdmin)
@@ -949,7 +955,7 @@
                                 $.each(data, function(id, option) {
                                     ddlDistrict.append($('<option></option>').val(option.Value).html(option.Text));
                                 });
-                                ddlDistrict.chosen({ search_contains: true });
+                                ddlDistrict.chosen({ search_contains: true ,width: '100%'});
                             },
                             error: function(xhr, ajaxOptions, thrownError) {
                                 alert('Failed to retrieve states.');
