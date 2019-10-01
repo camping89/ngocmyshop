@@ -187,6 +187,12 @@ namespace Nop.Services.Shipping
             var shipments = new PagedList<ShipmentManual>(query, pageIndex, pageSize) { TotalIds = query.Select(_ => _.Id).ToList() };
             return shipments;
         }
+
+        public IList<ShipmentManual> GetShipmentManualsByShelfCode(string shelfCode)
+        {
+            return _shipmentManualRepository.Table.Where(_ => _.ShelfCode.Equals(shelfCode, StringComparison.CurrentCultureIgnoreCase)).ToList();
+        }
+
         /// <summary>
         /// Get shipment by identifiers
         /// </summary>
@@ -211,7 +217,7 @@ namespace Nop.Services.Shipping
             }
             return sortedOrders;
         }
-        
+
         public virtual IList<ShipmentManualItem> GetShipmentManualItemsByOrderItemIds(int[] orderItemIds)
         {
             if (orderItemIds == null || orderItemIds.Length == 0)
@@ -221,7 +227,7 @@ namespace Nop.Services.Shipping
                         where orderItemIds.Contains(o.OrderItemId)
                         select o;
             return query.ToList();
-            
+
         }
 
         /// <summary>

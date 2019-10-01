@@ -202,7 +202,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             var model = new List<OrderItemInShelfModel>();
             if (shelf.CustomerId.HasValue)
             {
-                var orderItems = _shelfService.GetOrderItems(shelfId);
+                var orderItems = _shelfService.GetOrderItems(shelfId.ToString());
                 model = orderItems.OrderBy(_ => _.ShelfAssignedDate).Select(PrepareOrderItemInShelfModel).ToList();
             }
 
@@ -513,7 +513,7 @@ namespace Nop.Web.Areas.Admin.Controllers
         [HttpPost]
         public IActionResult CreateShipAll(int shelfId, int customerId)
         {
-            var orderItems = _shelfService.GetOrderItems(shelfId);
+            var orderItems = _shelfService.GetOrderItems(shelfId.ToString());
             var shelf = _shelfService.GetShelfById(shelfId);
             if (orderItems.Count > 0 && shelf != null)
             {
@@ -546,7 +546,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             {
                 // 1. get undelivered shipment by orderitem id
                 var shipmentItemIds = _shipmentManualService.GetShipmentManualItemsByOrderItemIds(orderItemIds.ToArray())
-                    .Select(_=>_.OrderItemId).Distinct().ToList();
+                    .Select(_ => _.OrderItemId).Distinct().ToList();
                 foreach (var orderItemId in orderItemIds)
                 {
                     if (!shipmentItemIds.Contains(orderItemId))
@@ -849,6 +849,22 @@ namespace Nop.Web.Areas.Admin.Controllers
             return new NullJsonResult();
         }
 
+
+        public IActionResult ClearCustomerInfoShelfEmpty()
+        {
+            var shelfs = _shelfService.GetShelves(isShelfEmpty: true);
+            foreach (var shelf in shelfs)
+            {
+                shelf.CustomerId = null;
+                shelf.AssignedDate = null;
+                shelf.ShippedDate = null;
+                shelf.Total = 0;
+                shelf.TotalWithoutDeposit = 0;
+                shelf.ShelfNoteStatus = ShelfNoteStatus.NoReply;
+            }
+            _shelfService.UpdateShelfves(shelfs);
+            return new NullJsonResult();
+        }
         #endregion
     }
 }

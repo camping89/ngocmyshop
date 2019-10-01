@@ -1282,7 +1282,7 @@ namespace Nop.Services.Orders
 
                 //var itemWeight = _shippingService.GetShoppingCartItemWeight(sc);
                 var itemWeight = sc.Product.Weight;
-                
+
                 //save order item
                 var orderItem = new OrderItem
                 {
@@ -2300,7 +2300,7 @@ namespace Nop.Services.Orders
                 {
                     orderItem.DeliveryDateUtc = DateTime.UtcNow;
                     _orderService.UpdateOrderItem(orderItem);
-                    
+
                 }
                 //var order = _orderService.GetOrderById(shipmentManualItem.OrderItem.OrderId);
                 //if (order != null)

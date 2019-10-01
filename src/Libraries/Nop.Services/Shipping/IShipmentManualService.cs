@@ -31,6 +31,8 @@ namespace Nop.Services.Shipping
             bool isAddressEmpty = false,
             string customerPhone = null);
 
+        IList<ShipmentManual> GetShipmentManualsByShelfCode(string shelfCode);
+
         IList<ShipmentManual> GetShipmentsManualByIds(int[] shipmentManualIds);
         IList<ShipmentManualItem> GetShipmentManualItemsByOrderItemIds(int[] orderItemIds);
 

@@ -4162,7 +4162,9 @@ namespace Nop.Web.Areas.Admin.Controllers
                     // check if shelf owner is matched with the item owner
                     if (shelf.CustomerId == null
                         || shelf.CustomerId == 0
-                        || shelf.OrderItems.All(_ => _.DeliveryDateUtc != null))
+                        || shelf.OrderItems.All(_ => _.DeliveryDateUtc != null) // emptyshelf
+                        || shelf.CustomerId == customerId
+                        )
                     {
                         var firstItem = shelf.OrderItems.Where(_ => _.DeliveryDateUtc == null && _.Order.CustomerId == customerId).OrderBy(_ => _.ShelfAssignedDate).FirstOrDefault();
                         shelf.AssignedDate = firstItem == null ? DateTime.UtcNow : firstItem.ShelfAssignedDate;
@@ -5473,7 +5475,8 @@ namespace Nop.Web.Areas.Admin.Controllers
             return Json(new { Result = true });
         }
 
-
+        // TODO: we need to create a flag for an orderitem with shipment, hasNotCompleteShipment = true => indicate that the orderItem is locked but still at the shelf
+        // => to check emtpty shelf (by shelfcode), we get "active" order items with delivery date = null and item hasn't complete shipment
         [HttpPost]
         public virtual IActionResult SetAsDeliveredManualSelected(ICollection<int> selectedIds)
         {
@@ -5484,14 +5487,32 @@ namespace Nop.Web.Areas.Admin.Controllers
             if (selectedIds != null) shipments.AddRange(_shipmentManualService.GetShipmentsManualByIds(selectedIds.ToArray()));
 
             foreach (var shipment in shipments)
-                try
+            {
+                _orderProcessingService.DeliverManual(shipment, true);
+            }
+
+            var shelfCodes = shipments.GroupBy(_ => _.ShelfCode).Select(_ => _.Key).ToList();
+            foreach (var shelfCode in shelfCodes)
+            {
+                var activeOrderItems = _shelfService.GetOrderItems(shelfCode);
+
+                if (!activeOrderItems.Any())
                 {
-                    _orderProcessingService.DeliverManual(shipment, true);
+                    var shelf = _shelfService.GetShelfByCode(shelfCode);
+
+                    if (shelf != null)
+                    {
+                        shelf.CustomerId = null;
+                        shelf.AssignedDate = null;
+                        shelf.ShippedDate = null;
+                        shelf.Total = 0;
+                        shelf.TotalWithoutDeposit = 0;
+                        shelf.ShelfNoteStatus = ShelfNoteStatus.NoReply;
+                        shelf.HasOrderItem = false;
+                        _shelfService.UpdateShelf(shelf);
+                    }
                 }
-                catch
-                {
-                    //ignore any exception
-                }
+            }
 
             return Json(new { Result = true });
         }
