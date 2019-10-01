@@ -173,7 +173,8 @@ namespace Nop.Services.Shipping
 
         public IList<OrderItem> GetOrderItems(string shelfIdOrShelfCode, bool activeItem = true)
         {
-            var shelf = _shelfRepository.Table.FirstOrDefault(_ => _.Id == shelfIdOrShelfCode.ToIntODefault(0));
+            var shelfId = shelfIdOrShelfCode.ToIntODefault();
+            var shelf = _shelfRepository.Table.FirstOrDefault(_ => _.Id == shelfId);
             if (shelf == null)
             {
                 shelf = _shelfRepository.Table.FirstOrDefault(_ => _.ShelfCode.Equals(shelfIdOrShelfCode, StringComparison.CurrentCultureIgnoreCase));
