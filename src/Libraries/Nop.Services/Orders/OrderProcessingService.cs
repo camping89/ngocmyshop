@@ -2281,15 +2281,7 @@ namespace Nop.Services.Orders
 
         public virtual void DeliverManual(ShipmentManual shipment, bool notifyCustomer)
         {
-            if (shipment == null)
-                throw new ArgumentNullException(nameof(shipment));
-
-            if (!shipment.ShippedDateUtc.HasValue)
-                throw new Exception("This shipment is not shipped yet");
-
-            if (shipment.DeliveryDateUtc.HasValue)
-                throw new Exception("This shipment is already delivered");
-
+            
             shipment.DeliveryDateUtc = DateTime.UtcNow;
             _shipmentManualService.UpdateShipmentManual(shipment);
 

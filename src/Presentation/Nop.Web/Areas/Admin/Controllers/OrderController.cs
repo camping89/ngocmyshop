@@ -5488,6 +5488,12 @@ namespace Nop.Web.Areas.Admin.Controllers
 
             foreach (var shipment in shipments)
             {
+                if (shipment == null || shipment.DeliveryDateUtc.HasValue)
+                    continue;
+
+                if (!shipment.ShippedDateUtc.HasValue)
+                    shipment.ShippedDateUtc = DateTime.Now;
+                
                 _orderProcessingService.DeliverManual(shipment, true);
             }
 
