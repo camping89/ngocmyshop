@@ -36,6 +36,9 @@ namespace Nop.Services.Shipping
         void InsertShelf(Shelf shelf);
         Shelf GetShelfById(int id);
         Shelf GetShelfByCode(string shelfCode);
+        void ClearShelfInfo(string shelfIdorShelfCode);
         IList<OrderItem> GetOrderItems(string shelfIdOrShelfCode, bool activeItem = true);
+
+        void UpdateShelfTotalAmount(string shelfIdOrCode);
     }
 }

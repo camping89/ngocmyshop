@@ -20,7 +20,6 @@ namespace Nop.Core.Domain.Shipping
 
         public decimal Total { get; set; }
         public decimal TotalWithoutDeposit { get; set; }
-        public bool HasOrderItem { get; set; }
         public bool InActive { get; set; }
         public virtual Customer Customer { get; set; }
 

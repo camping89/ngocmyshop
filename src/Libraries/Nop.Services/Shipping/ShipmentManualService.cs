@@ -181,9 +181,8 @@ namespace Nop.Services.Shipping
                 shelfCode = shelfCode.ToUpper();
                 query = query.Where(_ => _.ShelfCode.Equals(shelfCode));
             }
-
-            query = query.OrderByDescending(s => s.ShippedDateUtc);
-            //query = query.OrderByDescending(o => o.Id).ThenByDescending(o => o.CreatedOnUtc);
+            
+            query = query.OrderByDescending(o => o.Id).ThenByDescending(o => o.CreatedOnUtc);
             var shipments = new PagedList<ShipmentManual>(query, pageIndex, pageSize) { TotalIds = query.Select(_ => _.Id).ToList() };
             return shipments;
         }

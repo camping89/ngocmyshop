@@ -170,6 +170,22 @@ namespace Nop.Services.Shipping
             return query.FirstOrDefault();
         }
 
+        public void ClearShelfInfo(string shelfIdorShelfCode)
+        {
+            var shelf = GetShelfByCode(shelfIdorShelfCode);
+            if (shelf == null) shelf = GetShelfById(shelfIdorShelfCode.ToIntODefault());
+
+            if (shelf != null)
+            {
+                shelf.CustomerId = null;
+                shelf.AssignedDate = null;
+                shelf.ShippedDate = null;
+                shelf.Total = 0;
+                shelf.TotalWithoutDeposit = 0;
+                shelf.ShelfNoteStatus = ShelfNoteStatus.NoReply;
+                UpdateShelf(shelf);
+            }
+        }
 
         public IList<OrderItem> GetOrderItems(string shelfIdOrShelfCode, bool activeItem = true)
         {
@@ -190,6 +206,37 @@ namespace Nop.Services.Shipping
             }
 
             return orderItems;
+        }
+
+        public void UpdateShelfTotalAmount(string shelfIdOrCode)
+        {
+            var shelf = GetShelfById(shelfIdOrCode.ToIntODefault());
+            if (shelf == null)
+            {
+                shelf = GetShelfByCode(shelfIdOrCode);
+            }
+            if (shelf != null)
+            {
+                decimal total = 0;
+                decimal totalWithoutDeposit = 0;
+                if (shelf.OrderItems != null)
+                {
+                    var orderItems = shelf.OrderItems.Where(_ => _.DeliveryDateUtc == null).OrderBy(_ => _.ShelfAssignedDate).ToList();
+                    foreach (var item in orderItems)
+                    {
+                        var itemTotal = DecimalExtensions.RoundCustom(item.PriceInclTax / 1000) * 1000;
+                        total += itemTotal;
+                        totalWithoutDeposit += itemTotal - DecimalExtensions.RoundCustom(item.Deposit / 1000) * 1000;
+                    }
+
+                    var firstItem = orderItems.FirstOrDefault();
+                    shelf.AssignedDate = firstItem == null ? null : firstItem.ShelfAssignedDate;
+                }
+                shelf.Total = total;
+                shelf.TotalWithoutDeposit = totalWithoutDeposit;
+
+                UpdateShelf(shelf);
+            }
         }
     }
 }

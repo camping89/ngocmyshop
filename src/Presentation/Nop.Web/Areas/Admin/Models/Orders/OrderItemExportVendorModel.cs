@@ -159,11 +159,7 @@ namespace Nop.Web.Areas.Admin.Models.Orders
         public DateTime CreatedDate { get; set; }
         public decimal Deposit { get; set; }
         public string DepositStr { get; set; }
-
-        //[NopResourceDisplayName("Admin.OrderItem.Status")]
-        //public string OrderItemStatus { get; set; }
-        //[NopResourceDisplayName("Admin.OrderItem.Status")]
-        //public int OrderItemStatusId { get; set; }
+        
         public bool ExistShipment{get;set;}
         [NopResourceDisplayName("Admin.OrderItem.Note")]
         public string Note { get; set; }

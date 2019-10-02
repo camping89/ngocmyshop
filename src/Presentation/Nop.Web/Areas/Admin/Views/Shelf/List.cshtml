@@ -557,7 +557,7 @@
                                 ]
                             });
 
-                           
+
 
                             // handle grid row clicks for detail row expansion
                             grid.on("click","td.k-hierarchy-cell",function(e) {
@@ -764,8 +764,10 @@
                                             //headerTemplate: "<input  onclick='setCheckedMaster(" + e.data.Id + ");' id='mastercheckbox" + e.data.Id +"' type='checkbox'/>",
                                             headerAttributes: { style: "text-align:center" },
                                             attributes: { style: "text-align:center" },
-                                            template:
-                                                "<div style='display:block;padding: 40% 0;' onclick='setChecked(#=Id#);'><input onclick='setChecked(#=Id#);' id='ckb#=Id#' type='checkbox' value='#=Id#' class='checkboxGroups"+e.data.Id+"'/></div>",
+                                            template: '# if(!ExistShipment) {#' +
+                                                "<div style='display:block;padding: 40% 0;' onclick='setChecked(#=Id#);'><input onclick='setChecked(#=Id#);' id='ckb#=Id#' type='checkbox' value='#=Id#' class='checkboxGroups" + e.data.Id +"'/></div>" +
+                                                '#} #'
+                                                ,
                                             width: 80,
                                             sortable: false
                                         },
@@ -790,11 +792,11 @@
                                         }, {
                                             field: "Quantity",
                                             title: "@T("Admin.Orders.Products.Quantity")",
-                                            width: 100
+                                            width: 50
                                         }, {
                                             field: "TotalWithoutWeightCost",
                                             title: "@T("Admin.Orders.Products.TotalWithoutWeightCost")",
-                                            width: 100
+                                            width: 80
                                         }, {
                                             field: "DepositStr",
                                             title: "@T("Admin.Orders.Products.Deposit")",
@@ -803,7 +805,7 @@
                                         }, {
                                             field: "WeightCost",
                                             title: "@T("Admin.Orders.Products.WeightCost")",
-                                            width: 100,
+                                            width: 80,
                                             template: "# if (WeightCost != null) { #" +
                                                 "#=WeightCost#" +
                                                 "#} else {#" +
@@ -812,7 +814,7 @@
                                         }, {
                                             field: "SubTotalInclTax",
                                             title: "@T("Admin.Orders.Products.Total")",
-                                            width: 100,
+                                            width: 80,
                                             @*footerTemplate:
                                                 '<div><strong>@T("Admin.Orders.Report.Summary")</strong></div>' +
                                                 '<div>@T("Admin.Orders.Report.Total") <span id=\"aggregator-total-block' + e.data.Id +'\"></span></div>'*@
@@ -839,6 +841,14 @@
                                                 "#} else {#" +
                                                 "<p></p>" +
                                                 "# } #"
+                                        },{
+                                            field: "ExistShipment",
+                                            title: "@T("Admin.OrderItem.Fields.ExistShipment")",
+                                            width: 100,
+                                            template:
+                                                '# if(!ExistShipment) {# ' + '<span class="grid-report-item gray">@T("Admin.OrderItem.Fields.ExistShipment.False")</span>' + ' #} #' +
+                                                '# if(ExistShipment) {#  ' + '<span class="grid-report-item green">@T("Admin.OrderItem.Fields.ExistShipment.True")</span>' + ' #} #'
+
                                         },
                                         {
                                             command: [
@@ -850,7 +860,7 @@
                                                         return dataItem.ExistShipment === false;
                                                     }
                                                 }
-                                                
+
                                             ],
                                             width: 100
                                         }

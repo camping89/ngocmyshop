@@ -2279,35 +2279,19 @@ namespace Nop.Services.Orders
             CheckOrderStatus(order);
         }
 
-        public virtual void DeliverManual(ShipmentManual shipment, bool notifyCustomer)
+        public virtual void SetShipmentManualDelivered(ShipmentManual shipment, bool notifyCustomer)
         {
-            
             shipment.DeliveryDateUtc = DateTime.UtcNow;
             _shipmentManualService.UpdateShipmentManual(shipment);
 
-            foreach (var shipmentManualItem in shipment.ShipmentManualItems)
+            foreach (var item in shipment.ShipmentManualItems)
             {
-                var orderItem = _orderService.GetOrderItemById(shipmentManualItem.OrderItemId);
+                var orderItem = _orderService.GetOrderItemById(item.OrderItemId);
                 if (orderItem != null)
                 {
                     orderItem.DeliveryDateUtc = DateTime.UtcNow;
                     _orderService.UpdateOrderItem(orderItem);
-
                 }
-                //var order = _orderService.GetOrderById(shipmentManualItem.OrderItem.OrderId);
-                //if (order != null)
-                //{
-                //    if (!order.HasItemsToAddToShipment() && !order.HasItemsToShip() && !order.HasItemsToDeliver())
-                //        order.ShippingStatusId = (int)ShippingStatus.Delivered;
-                //    _orderService.UpdateOrder(order);
-
-                //    //add a note
-                //    AddOrderNote(order, $"Shipment# {shipment.Id} has been delivered");
-
-                //    //check order status
-                //    CheckOrderStatus(order);
-                //}
-
             }
         }
 

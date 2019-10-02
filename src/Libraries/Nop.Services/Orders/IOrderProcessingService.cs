@@ -80,7 +80,7 @@ namespace Nop.Services.Orders
         /// <param name="shipment">Shipment</param>
         /// <param name="notifyCustomer">True to notify customer</param>
         void Deliver(Shipment shipment, bool notifyCustomer);
-        void DeliverManual(ShipmentManual shipment, bool notifyCustomer);
+        void SetShipmentManualDelivered(ShipmentManual shipment, bool notifyCustomer);
 
         /// <summary>
         /// Gets a value indicating whether cancel is allowed
