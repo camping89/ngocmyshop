@@ -4149,7 +4149,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                             shelf.ShippedDate = null;
                             shelf.UpdatedNoteDate = null;
                         }
-                        
+
                         orderItem.ShelfId = shelf.Id;
                         orderItem.ShelfAssignedDate = DateTime.UtcNow;
                         _orderService.UpdateOrderItem(orderItem);
@@ -5463,7 +5463,7 @@ namespace Nop.Web.Areas.Admin.Controllers
 
                 if (!shipment.ShippedDateUtc.HasValue)
                     shipment.ShippedDateUtc = DateTime.Now;
-                
+
                 _orderProcessingService.SetShipmentManualDelivered(shipment, true);
             }
 
@@ -5471,7 +5471,10 @@ namespace Nop.Web.Areas.Admin.Controllers
             foreach (var shelfCode in shelfCodes)
             {
                 var activeOrderItems = _shelfService.GetOrderItems(shelfCode);
-                if (!activeOrderItems.Any()) _shelfService.ClearShelfInfo(shelfCode);
+                if (!activeOrderItems.Any())
+                    _shelfService.ClearShelfInfo(shelfCode);
+                else //Update total Shelf
+                    _shelfService.UpdateShelfTotalAmount(shelfCode);
             }
 
             return Json(new { Result = true });
@@ -6375,7 +6378,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                         _workContext.WorkingLanguage, true, true);
 
                     orderItemModel.AttributeInfo = orderItem.AttributeDescription ?? string.Empty;
-                    
+
                     var shipmentItem = _shipmentManualService.GetShipmentManualItemByOrderItemId(orderItem.Id);
                     orderItemModel.ExistShipment = shipmentItem != null;
                     return orderItemModel;
