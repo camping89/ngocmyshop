@@ -30,13 +30,13 @@
                 @T("Admin.Common.AddNew")
             </a>*@
         @*<button type="button" class="btn btn-success" id="btn-set-active-shelf-selected">
-            <i class="fa fa-save"></i>
-            @T("Admin.Common.SetActiveShelfSelected")
-        </button>
-        <button type="button" class="btn btn-danger" id="btn-set-inactive-shelf-selected">
-            <i class="fa fa-trash"></i>
-            @T("Admin.Common.SetInActiveShelfSelected")
-        </button>*@
+                <i class="fa fa-save"></i>
+                @T("Admin.Common.SetActiveShelfSelected")
+            </button>
+            <button type="button" class="btn btn-danger" id="btn-set-inactive-shelf-selected">
+                <i class="fa fa-trash"></i>
+                @T("Admin.Common.SetInActiveShelfSelected")
+            </button>*@
         @await Component.InvokeAsync("AdminWidget", new { widgetZone = "admin_shelf_list_buttons" })
     </div>
 </div>
@@ -133,15 +133,7 @@
                                 </div>
                             </div>
 
-                            <div class="form-group display-none">
-                                <div class="col-md-4">
-                                    <nop-label asp-for="ShelfOrderItemIsActive" />
-                                </div>
-                                <div class="col-md-8">
-                                    <nop-select asp-for="ShelfOrderItemIsActive" asp-items="Model.ShelfOrderItemsStatus" />
-                                </div>
-                            </div>
-
+                            
                             <div class="form-group">
                                 <div class="col-md-4">
                                     <nop-label asp-for="IsCustomerNotified" />
@@ -170,34 +162,8 @@
                                 </div>
                             </div>
 
-                            @*<div class="form-group">
-                                <div class="col-md-4">
-                                    <nop-label asp-for="IsEmptyAssignedShelf" />
-                                </div>
-                                <div class="col-md-8">
-                                    <nop-editor asp-for="IsEmptyAssignedShelf" />
-                                </div>
-                            </div>*@
-                            @*<div class="form-group">
-                                <div class="col-md-4">
-                                    <nop-label asp-for="InActive" />
-                                </div>
-                                <div class="col-md-8">
-                                    <nop-editor asp-for="InActive" />
-                                </div>
-                            </div>*@
                         </div>
                         <div class="col-md-6">
-
-
-                            @*<div class="form-group">
-                                    <div class="col-md-4">
-                                        <nop-label asp-for="IsPackageItemProcessedDatetime" />
-                                    </div>
-                                    <div class="col-md-8">
-                                        <nop-select asp-for="IsPackageItemProcessedDatetime" asp-items="Model.PackageItemProcessedDatetimeStatus" />
-                                    </div>
-                                </div>*@
 
                             <div class="form-group advanced-setting">
                                 <div class="col-md-4">
@@ -305,11 +271,6 @@
                                         },
                                         update: {
                                             url: "@Html.Raw(Url.Action("EditAjax", "Shelf"))",
-                                            type: "POST",
-                                            data: additionalData
-                                        },
-                                        destroy: {
-                                            url: "@Html.Raw(Url.Action("DeleteAjax", "Shelf"))",
                                             type: "POST",
                                             data: additionalData
                                         },
@@ -488,8 +449,8 @@
                                             },*@
                                             {
                                                 name: "shipall",
-                                                text: "@T("Admin.ShelfOrderItem.ShipAll")",
-                                                template: '<a role="button" href="javascript:void(0);" class="btn btn-success k-button-icontext k-grid-shipall">@T("Admin.ShelfOrderItem.ShipAll")</a>',
+                                                text: "@T("Admin.OrderItem.ShipAll")",
+                                                template: '<a role="button" href="javascript:void(0);" class="btn btn-success k-button-icontext k-grid-shipall">@T("Admin.OrderItem.ShipAll")</a>',
                                                 click: function(e) {
 
                                                     e.preventDefault();
@@ -540,8 +501,8 @@
                                             },
                                             {
                                                 name: "shipselected",
-                                                text: "@T("Admin.ShelfOrderItem.ShipSelected")",
-                                                template: '<a role="button" href="javascript:void(0);" class="btn btn-primary k-button-icontext k-grid-shipselected">@T("Admin.ShelfOrderItem.ShipSelected")</a>',
+                                                text: "@T("Admin.OrderItem.ShipSelected")",
+                                                template: '<a role="button" href="javascript:void(0);" class="btn btn-primary k-button-icontext k-grid-shipselected">@T("Admin.OrderItem.ShipSelected")</a>',
                                                 click: function(e) {
                                                     e.preventDefault();
                                                     var r = confirm("@T("Admin.Common.CreateConfirmation")");
@@ -554,12 +515,12 @@
                                                     console.log("Details for: " + data.Id);
                                                     //shipOrderItemsSelected(data.Id);
 
-                                                    var shelfOrderItemIds = $("#grid-shelf-items" + data.Id +" input.checkboxGroups" + data.Id +":checkbox:checked").map(function(){
+                                                    var orderItemIds = $("#grid-shelf-items" + data.Id +" input.checkboxGroups" + data.Id +":checkbox:checked").map(function(){
                                                         return $(this).val();
                                                     }).get();
-                                                    console.log(shelfOrderItemIds);
-                                                    if (shelfOrderItemIds.length > 0) {
-                                                        var postData = { shelfId: data.Id, orderItemIds: shelfOrderItemIds, customerId: data.CustomerId };
+
+                                                    if (orderItemIds.length > 0) {
+                                                        var postData = { shelfId: data.Id, orderItemIds: orderItemIds, customerId: data.CustomerId };
                                                         addAntiForgeryToken(postData);
                                                         $.ajax({
                                                             cache: false,
@@ -593,26 +554,10 @@
                                         title: "@T("Admin.Common.Function")",
                                         width: 400
                                     }
-                                    @*{
-                                        field: "Id",
-                                        title: "@T("Admin.Common.Edit")",
-                                        width: 100,
-                                        headerAttributes: { style: "text-align:center" },
-                                        attributes: { style: "text-align:center" },
-                                        template: '<a class="btn btn-default" href="Edit/#=Id#"><i class="fa fa-pencil"></i>@T("Admin.Common.Edit")</a>'
-                                    }*@
                                 ]
                             });
 
-                            //$("#shelf-grid").on("change", "input[name=IsCustomerNotified]", function(e) {
-                            //    var shelfgrid = $("#shelf-grid").data("kendoGrid"),
-                            //        dataItem = shelfgrid.dataItem($(e.target).closest("tr"));
-                            //    console.log($(this).is(":checked"));
-                            //    if ($(this).is(":checked")) {
-                            //        dataItem.set("ShelfNoteId", 0);
-                            //    }
 
-                            //});
 
                             // handle grid row clicks for detail row expansion
                             grid.on("click","td.k-hierarchy-cell",function(e) {
@@ -752,8 +697,7 @@
                             function detailInit(e) {
                                 e.preventDefault();
 
-                                var isActive = $('#@Html.IdFor(model => model.ShelfOrderItemIsActive)').val();
-                                var postData = { shelfId: e.data.Id, isActive: isActive};
+                                var postData = { shelfId: e.data.Id};
                                 $('<div id="grid-shelf-items' + e.data.Id +'"></div>').appendTo(e.detailCell).kendoGrid({
                                     dataSource: {
                                         //type: "json",
@@ -761,13 +705,11 @@
                                             read: {
                                                 url: '@Html.Raw(Url.Action("OrderItemsByShelfId", "Shelf"))',
                                                 type: "POST",
-                                                dataType: "json",
                                                 data: addAntiForgeryToken(postData)
                                             },
                                             destroy: {
-                                                url: "@Url.Action("DeleteOrderItemId", "Shelf")",
+                                                url: "@Url.Action("DeleteShelfOrderItemId", "Shelf")",
                                                 type: "POST",
-                                                dataType: "json",
                                                 data: addAntiForgeryToken
                                             }
                                         },
@@ -777,9 +719,6 @@
                                             errors: "Errors",
                                             model: {
                                                 id: "Id",
-                                                fields: {
-                                                    ShelfOrderItemId: { editable: true, type: "number" }
-                                                }
                                             }
                                         },
                                         requestEnd: function(e) {
@@ -825,14 +764,16 @@
                                             //headerTemplate: "<input  onclick='setCheckedMaster(" + e.data.Id + ");' id='mastercheckbox" + e.data.Id +"' type='checkbox'/>",
                                             headerAttributes: { style: "text-align:center" },
                                             attributes: { style: "text-align:center" },
-                                            template:
-                                                "<div style='display:block;padding: 40% 0;' onclick='setChecked(#=Id#);'><input onclick='setChecked(#=Id#);' id='ckb#=Id#' type='checkbox' value='#=Id#' class='checkboxGroups"+e.data.Id+"'/></div>",
+                                            template: '# if(!ExistShipment) {#' +
+                                                "<div style='display:block;padding: 40% 0;' onclick='setChecked(#=Id#);'><input onclick='setChecked(#=Id#);' id='ckb#=Id#' type='checkbox' value='#=Id#' class='checkboxGroups" + e.data.Id +"'/></div>" +
+                                                '#} #'
+                                                ,
                                             width: 80,
                                             sortable: false
                                         },
                                         {
                                             field: "Id",
-                                            title: "@T("Admin.Orders.ShelfOrderItemId")",
+                                            title: "@T("Admin.Orders.OrderItemId")",
                                             width: 50,
                                             template: '<p>#=OrderId#.#=Id#</p>'
                                         }, {
@@ -851,11 +792,11 @@
                                         }, {
                                             field: "Quantity",
                                             title: "@T("Admin.Orders.Products.Quantity")",
-                                            width: 100
+                                            width: 50
                                         }, {
                                             field: "TotalWithoutWeightCost",
                                             title: "@T("Admin.Orders.Products.TotalWithoutWeightCost")",
-                                            width: 100
+                                            width: 80
                                         }, {
                                             field: "DepositStr",
                                             title: "@T("Admin.Orders.Products.Deposit")",
@@ -864,7 +805,7 @@
                                         }, {
                                             field: "WeightCost",
                                             title: "@T("Admin.Orders.Products.WeightCost")",
-                                            width: 100,
+                                            width: 80,
                                             template: "# if (WeightCost != null) { #" +
                                                 "#=WeightCost#" +
                                                 "#} else {#" +
@@ -873,7 +814,7 @@
                                         }, {
                                             field: "SubTotalInclTax",
                                             title: "@T("Admin.Orders.Products.Total")",
-                                            width: 100,
+                                            width: 80,
                                             @*footerTemplate:
                                                 '<div><strong>@T("Admin.Orders.Report.Summary")</strong></div>' +
                                                 '<div>@T("Admin.Orders.Report.Total") <span id=\"aggregator-total-block' + e.data.Id +'\"></span></div>'*@
@@ -893,27 +834,20 @@
 
                                         },{
                                             field: "AssignedShelfDate",
-                                            title: "@T("Admin.ShelfOrderItem.Fields.AssignedShelfDate")",
+                                            title: "@T("Admin.OrderItem.Fields.AssignedShelfDate")",
                                             width: 100,
                                             template: "# if (AssignedShelfDate != null) { #" +
                                                 "<p>#= kendo.toString(kendo.parseDate(AssignedShelfDate, 'yyyy-MM-dd'), 'dd/MM/yyyy') #</p>" +
                                                 "#} else {#" +
                                                 "<p></p>" +
                                                 "# } #"
-                                        },
-                                        @*{
-                                            field: "PackageItemProcessedDatetime",
-                                            title: "@T("Admin.OrderItem.PackageItemProcessedDatetime")",
-                                            width: 100
-                                        },*@
-                                        {
-                                            field: "ShelfOrderItemIsActive",
-                                            title: "@T("Admin.ShelfOrderItem.IsActive")",
-                                            template: "# if (ShelfOrderItemIsActive) { #" +
-                                                "@T("Admin.ShelfOrderItem.IsActive.True")" +
-                                                "#} else {#" +
-                                                "@T("Admin.ShelfOrderItem.IsActive.False")" +
-                                                "# } #"
+                                        },{
+                                            field: "ExistShipment",
+                                            title: "@T("Admin.OrderItem.Fields.ExistShipment")",
+                                            width: 100,
+                                            template:
+                                                '# if(!ExistShipment) {# ' + '<span class="grid-report-item gray">@T("Admin.OrderItem.Fields.ExistShipment.False")</span>' + ' #} #' +
+                                                '# if(ExistShipment) {#  ' + '<span class="grid-report-item green">@T("Admin.OrderItem.Fields.ExistShipment.True")</span>' + ' #} #'
 
                                         },
                                         {
@@ -925,40 +859,8 @@
                                                     visible: function(dataItem) {
                                                         return dataItem.ExistShipment === false;
                                                     }
-                                                },
-                                                @if (Model.IsAdmin)
-                                                {
-                                                    <text>
-                                                        {
-                                                            name: "setitemactive",
-                                                            text: "@T("Admin.ShelfOrderItem.ShipSelected")",
-                                                            template: '<a role="button" href="javascript:void(0);" class="btn btn-primary k-button-icontext k-grid-setitemactive">@T("Admin.ShelfOrderItem.SetItemActiveOrInActive")</a>',
-                                                            click: function(e) {
-                                                                e.preventDefault();
-
-                                                                var tr = $(e.target).closest("tr");
-                                                                var data = this.dataItem(tr);
-                                                                console.log("Shelf order item id: " + data.Id);
-
-                                                                var postData = { orderItemId: data.Id};
-                                                                addAntiForgeryToken(postData);
-                                                                $.ajax({
-                                                                    cache: false,
-                                                                    type: "POST",
-                                                                    url: "@(Url.Action("SetShelfOrderItemActiveOrInActive", "Shelf"))",
-                                                                    data: postData,
-                                                                    complete: function(result) {
-                                                                        $("#search-shelf").trigger('click');
-                                                                    },
-                                                                    error: function(xhr, ajaxOptions, thrownError) {
-                                                                        alert(thrownError);
-                                                                    },
-                                                                    traditional: true
-                                                                });
-                                                            }
-                                                        }
-                                                    </text>
                                                 }
+
                                             ],
                                             width: 100
                                         }
@@ -1070,8 +972,7 @@
                                 $('#@Html.IdFor(model => model.ShippedFromDate)').val('');
                                 $('#@Html.IdFor(model => model.ShippedToDate)').val('');
                                 $('#@Html.IdFor(model => model.ShelfCode)').val('');
-                                $('#@Html.IdFor(model => model.ShelfOrderItemIsActive)').val('True');
-
+                                
                                 $('#@Html.IdFor(model => model.IsShelfEmpty)').prop('checked', false);
                                 //$('#@Html.IdFor(model => model.InActive)').prop('checked', false);
                                 //$('#@Html.IdFor(model => model.IsEmptyAssignedShelf)').prop('checked', false);
@@ -1135,7 +1036,6 @@
                                 ShippedFromDate: shippedFromDate,
                                 ShippedToDate: shippedToDate,
                                 ShelfCode: $('#@Html.IdFor(model => model.ShelfCode)').val(),
-                                ShelfOrderItemIsActive: $('#@Html.IdFor(model => model.ShelfOrderItemIsActive)').val(),
                                 IsShelfEmpty: $('#@Html.IdFor(model => model.IsShelfEmpty)').is(":checked"),
                                 //IsEmptyAssignedShelf: $('#@Html.IdFor(model => model.IsEmptyAssignedShelf)').is(":checked"),
                                 IsCustomerNotified: $('#@Html.IdFor(model => model.IsCustomerNotified)').val(),

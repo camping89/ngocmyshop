@@ -1974,16 +1974,7 @@ namespace Nop.Services.Common
             foreach (var shipmentDetail in shipmentManuals)
             {
                 var shipmentManualItem = shipmentDetail.ShipmentManualItems.FirstOrDefault();
-                var shelfCode = string.Empty;
-
-                if (shipmentManualItem != null)
-                {
-                    var shelfOrderItem = _shelfService.GetShelfOrderItemByOrderItemId(shipmentManualItem.OrderItemId);
-                    if (shelfOrderItem != null && shelfOrderItem.Shelf != null)
-                    {
-                        shelfCode = shelfOrderItem.Shelf.ShelfCode;
-                    }
-                }
+                var shelfCode = shipmentManualItem?.OrderItem?.Shelf?.ShelfCode;
                 //print shipment detail one page;
                 PrintShipmentDetails(stream, shipmentDetail, languageId, shelfCode, doc);
 

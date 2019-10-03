@@ -146,9 +146,6 @@ namespace Nop.Web.Areas.Admin.Models.Orders
         //public string PrimaryStoreCurrencyCode { get; set; }
 
         public string ShelfCode { get; set; }
-
-        //public int ShelfId { get; set; }
-        //public int ShelfOrderItemId { get; set; }
         public decimal ItemWeight { get; set; }
         public string TotalWithoutWeightCost { get; set; }
         public decimal UnitWeightCost { get; set; }
@@ -162,11 +159,7 @@ namespace Nop.Web.Areas.Admin.Models.Orders
         public DateTime CreatedDate { get; set; }
         public decimal Deposit { get; set; }
         public string DepositStr { get; set; }
-
-        //[NopResourceDisplayName("Admin.OrderItem.Status")]
-        //public string OrderItemStatus { get; set; }
-        //[NopResourceDisplayName("Admin.OrderItem.Status")]
-        //public int OrderItemStatusId { get; set; }
+        
         public bool ExistShipment{get;set;}
         [NopResourceDisplayName("Admin.OrderItem.Note")]
         public string Note { get; set; }

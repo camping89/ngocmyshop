@@ -97,6 +97,7 @@ namespace Nop.Web.Areas.Admin.Models.Orders
         [NopResourceDisplayName("Admin.Orders.Fields.ShippingAddress")]
         public AddressModel ShippingAddress { get; set; }
 
+        public bool AllowDelete{get; set; }
         public List<ShipmentManualItemModel> Items { get; set; }
 
         public partial class ShipmentManualItemModel : BaseNopEntityModel

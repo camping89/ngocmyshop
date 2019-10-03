@@ -154,7 +154,7 @@ namespace Nop.Web.Framework.TagHelpers.Admin
                     }
                     renderHtml += "<script type='text/javascript'>" +
                                   "$(function () {" +
-                                  $"$('#{tagName}')" + ".chosen({search_contains:true});" +
+                                  $"$('#{tagName}')" + ".chosen({search_contains:true, width: '100%'});" +
                                   extendSelected +
                                   "});" +
                                   "</script>";

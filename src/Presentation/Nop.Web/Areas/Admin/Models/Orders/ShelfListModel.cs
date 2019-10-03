@@ -10,7 +10,7 @@ namespace Nop.Web.Areas.Admin.Models.Orders
     {
         public ShelfListModel()
         {
-            ShelfOrderItemsStatus = new List<SelectListItem>();
+            OrderItemsStatus = new List<SelectListItem>();
             CustomerNotifiedStatus = new List<SelectListItem>();
             ShelfNoteStatus = new List<SelectListItem>();
             PackageItemProcessedDatetimeStatus = new List<SelectListItem>();
@@ -52,32 +52,29 @@ namespace Nop.Web.Areas.Admin.Models.Orders
         [NopResourceDisplayName("Admin.Orders.Shelf.Fields.InActive")]
         public bool InActive { get; set; }
 
-        [NopResourceDisplayName("Admin.ShelfOrderItem.IsActive")]
-        public bool? ShelfOrderItemIsActive { get; set; }
-
-        [NopResourceDisplayName("Admin.ShelfOrderItem.IsCustomerNotified")]
+        [NopResourceDisplayName("Admin.OrderItem.IsCustomerNotified")]
         public bool? IsCustomerNotified { get; set; }
 
-        [NopResourceDisplayName("Admin.ShelfOrderItem.IsShelfEmpty")]
+        [NopResourceDisplayName("Admin.OrderItem.IsShelfEmpty")]
         public bool IsShelfEmpty { get; set; }
 
-        [NopResourceDisplayName("Admin.ShelfOrderItem.IsEmptyAssignedShelf")]
+        [NopResourceDisplayName("Admin.OrderItem.IsEmptyAssignedShelf")]
         public bool IsEmptyAssignedShelf { get; set; }
 
-        [NopResourceDisplayName("Admin.ShelfOrderItem.ShipTodayFilter")]
+        [NopResourceDisplayName("Admin.OrderItem.ShipTodayFilter")]
         public bool ShipTodayFilter { get; set; }
 
-        [NopResourceDisplayName("Admin.ShelfOrderItem.ShelfNoteId")]
+        [NopResourceDisplayName("Admin.OrderItem.ShelfNoteId")]
         public int? ShelfNoteId { get; set; }
 
-        [NopResourceDisplayName("Admin.ShelfOrderItem.IsPackageItemProcessedDatetime")]
+        [NopResourceDisplayName("Admin.OrderItem.IsPackageItemProcessedDatetime")]
         public bool? IsPackageItemProcessedDatetime { get; set; }
 
-        [NopResourceDisplayName("Admin.ShelfOrderItem.IsAscSortedAssignedDate")]
+        [NopResourceDisplayName("Admin.OrderItem.IsAscSortedAssignedDate")]
         public bool IsAscSortedAssignedDate { get; set; }
 
         public List<SelectListItem> PackageItemProcessedDatetimeStatus { get; set; }
-        public List<SelectListItem> ShelfOrderItemsStatus { get; set; }
+        public List<SelectListItem> OrderItemsStatus { get; set; }
         public List<SelectListItem> CustomerNotifiedStatus { get; set; }
         public List<SelectListItem> ShelfNoteStatus { get; set; }
 

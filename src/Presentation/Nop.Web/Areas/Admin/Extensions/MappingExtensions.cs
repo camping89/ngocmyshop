@@ -104,21 +104,6 @@ namespace Nop.Web.Areas.Admin.Extensions
             return model.MapTo(destination);
         }
 
-        public static ShelfOrderItemModel ToModel(this ShelfOrderItem entity)
-        {
-            return entity.MapTo<ShelfOrderItem, ShelfOrderItemModel>();
-        }
-
-        public static ShelfOrderItem ToEntity(this ShelfOrderItemModel model)
-        {
-            return model.MapTo<ShelfOrderItemModel, ShelfOrderItem>();
-        }
-
-        public static ShelfOrderItem ToEntity(this ShelfOrderItemModel model, ShelfOrderItem destination)
-        {
-            return model.MapTo(destination);
-        }
-
         #endregion
 
         #region Manufacturer

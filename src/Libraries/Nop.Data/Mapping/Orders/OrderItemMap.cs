@@ -41,6 +41,10 @@ namespace Nop.Data.Mapping.Orders
                 .WithMany()
                 .HasForeignKey(orderItem => orderItem.AssignedByCustomerId);
 
+            this.HasRequired(orderItem => orderItem.Shelf)
+                .WithMany(s=> s.OrderItems)
+                .HasForeignKey(orderItem => orderItem.ShelfId);
+
             this.Ignore(o => o.OrderItemStatus);
         }
     }

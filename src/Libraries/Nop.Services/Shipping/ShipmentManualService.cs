@@ -4,10 +4,11 @@ using Nop.Core.Domain.Common;
 using Nop.Core.Domain.Customers;
 using Nop.Core.Domain.Orders;
 using Nop.Core.Domain.Shipping;
+using Nop.Core.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Nop.Core.Extensions;
+using System.Linq.Dynamic;
 
 namespace Nop.Services.Shipping
 {
@@ -23,29 +24,22 @@ namespace Nop.Services.Shipping
         private readonly IRepository<GenericAttribute> _gaRepository;
         private readonly IRepository<OrderItem> _orderItemRepository;
         private readonly IRepository<Shelf> _shelfRepository;
-        private readonly IRepository<ShelfOrderItem> _shelfOrderItemRepository;
 
         #endregion
 
         #region Ctor
 
-        /// <summary>
-        /// Ctor
-        /// </summary>
-        /// <param name="shipmentManualRepository">Shipment repository</param>
-        /// <param name="orderItemRepository">Order item repository</param>
-        /// <param name="eventPublisher">Event published</param>
-        /// <param name="gaRepository"></param>
-        /// <param name="shipmentManualItemRepository"></param>
         public ShipmentManualService(IRepository<ShipmentManual> shipmentManualRepository,
-            IRepository<OrderItem> orderItemRepository, IRepository<GenericAttribute> gaRepository, IRepository<ShipmentManualItem> shipmentManualItemRepository, IRepository<Shelf> shelfRepository, IRepository<ShelfOrderItem> shelfOrderItemRepository)
+            IRepository<OrderItem> orderItemRepository,
+            IRepository<GenericAttribute> gaRepository,
+            IRepository<ShipmentManualItem> shipmentManualItemRepository,
+            IRepository<Shelf> shelfRepository)
         {
             this._shipmentManualRepository = shipmentManualRepository;
             this._orderItemRepository = orderItemRepository;
             _gaRepository = gaRepository;
             _shipmentManualItemRepository = shipmentManualItemRepository;
             _shelfRepository = shelfRepository;
-            _shelfOrderItemRepository = shelfOrderItemRepository;
         }
 
         #endregion
@@ -68,10 +62,13 @@ namespace Nop.Services.Shipping
         /// <summary>
         /// Search shipments
         /// </summary>
+        /// <param name="shipmentId"></param>
         /// <param name="vendorId">Vendor identifier; 0 to load all records</param>
         /// <param name="shippingCountryId">Shipping country identifier; 0 to load all records</param>
         /// <param name="shippingStateId">Shipping state identifier; 0 to load all records</param>
         /// <param name="shippingCity">Shipping city; null to load all records</param>
+        /// <param name="shippingDistrict"></param>
+        /// <param name="isCityExcluded"></param>
         /// <param name="trackingNumber">Search by tracking number</param>
         /// <param name="loadNotShipped">A value indicating whether we should load only not shipped shipments</param>
         /// <param name="createdFromUtc">Created date from (UTC); null to load all records</param>
@@ -79,26 +76,30 @@ namespace Nop.Services.Shipping
         /// <param name="pageIndex">Page index</param>
         /// <param name="pageSize">Page size</param>
         /// <param name="orderItemId"></param>
+        /// <param name="shelfCode"></param>
         /// <param name="phoneShipperNumber"></param>
         /// <param name="shipperId"></param>
         /// <param name="customerId"></param>
+        /// <param name="isShipmentDateEmpty"></param>
+        /// <param name="isAddressEmpty"></param>
+        /// <param name="customerPhone"></param>
         /// <returns>Shipments</returns>
-        public virtual IPagedList<ShipmentManual> GetAllShipmentsManual(int shipmentId = 0, int vendorId = 0,
+        public virtual IPagedList<ShipmentManual> GetShipmentManuals(int shipmentId = 0, int vendorId = 0,
             int shippingCountryId = 0,
             int shippingStateId = 0,
             string shippingCity = null,
             string shippingDistrict = null,
+            bool isCityExcluded = false,
             string trackingNumber = null,
             bool loadNotShipped = false,
-            bool exceptCity = false,
             DateTime? createdFromUtc = null, DateTime? createdToUtc = null,
             int pageIndex = 0, int pageSize = int.MaxValue,
             int orderItemId = 0,
             string shelfCode = null,
             string phoneShipperNumber = null,
             int shipperId = 0, int customerId = 0,
-            bool isNotSetShippedDate = false,
-            bool isAddressEmpty = false)
+            bool isShipmentDateEmpty = false,
+            bool isAddressEmpty = false, string customerPhone = null)
         {
             var query = _shipmentManualRepository.Table;
             if (shipmentId > 0)
@@ -107,7 +108,7 @@ namespace Nop.Services.Shipping
             }
             if (!string.IsNullOrEmpty(trackingNumber))
                 query = query.Where(s => s.TrackingNumber.Contains(trackingNumber));
-            if (isNotSetShippedDate)
+            if (isShipmentDateEmpty)
             {
                 query = query.Where(_ => _.ShippedDateUtc == null);
             }
@@ -129,6 +130,11 @@ namespace Nop.Services.Shipping
                 query = query.Where(_ => _.CustomerId == customerId);
             }
 
+            if (customerPhone.IsNotNullOrEmpty())
+            {
+                query = query.Where(_ => _.Customer.Phone.EndsWith(customerPhone.Trim()));
+            }
+
             if (!string.IsNullOrWhiteSpace(phoneShipperNumber))
             {
                 query = query
@@ -148,7 +154,7 @@ namespace Nop.Services.Shipping
             if (shippingStateId > 0)
                 query = query.Where(s => s.Customer.ShippingAddress.StateProvinceId == shippingStateId);
             if (!string.IsNullOrWhiteSpace(shippingCity))
-                query = query.Where(s => s.Province.Equals(shippingCity) == !exceptCity);
+                query = query.Where(s => s.Province.Equals(shippingCity) == !isCityExcluded);
 
             if (!string.IsNullOrWhiteSpace(shippingDistrict))
                 query = query.Where(s => s.District.Equals(shippingDistrict));
@@ -170,31 +176,22 @@ namespace Nop.Services.Shipping
                         select s;
             }
 
-            //if (shelfCode.IsNotNullOrEmpty())
-            //{
-            //    shelfCode = shelfCode.ToUpper();
-            //    var orderItemIds = new List<int>();
-            //    var shelf = _shelfRepository.TableNoTracking.FirstOrDefault(_ => _.ShelfCode != null && _.ShelfCode == shelfCode);
-            //    if (shelf != null)
-            //    {
-            //        orderItemIds = _shelfOrderItemRepository.TableNoTracking.Where(_ => _.ShelfId == shelf.Id).Select(s => s.OrderItemId).ToList();
-            //    }
-
-            //    query = from s in query
-            //        where s.ShipmentManualItems.Any(_ => orderItemIds.Contains(_.OrderItemId))
-            //        select s;
-            //}
             if (shelfCode.IsNotNullOrEmpty())
             {
                 shelfCode = shelfCode.ToUpper();
                 query = query.Where(_ => _.ShelfCode.Equals(shelfCode));
             }
-
-            //query = query.OrderByDescending(s => s.CreatedOnUtc);
+            
             query = query.OrderByDescending(o => o.Id).ThenByDescending(o => o.CreatedOnUtc);
             var shipments = new PagedList<ShipmentManual>(query, pageIndex, pageSize) { TotalIds = query.Select(_ => _.Id).ToList() };
             return shipments;
         }
+
+        public IList<ShipmentManual> GetShipmentManualsByShelfCode(string shelfCode)
+        {
+            return _shipmentManualRepository.Table.Where(_ => _.ShelfCode.Equals(shelfCode, StringComparison.CurrentCultureIgnoreCase)).ToList();
+        }
+
         /// <summary>
         /// Get shipment by identifiers
         /// </summary>
@@ -218,6 +215,18 @@ namespace Nop.Services.Shipping
                     sortedOrders.Add(shipment);
             }
             return sortedOrders;
+        }
+
+        public virtual IList<ShipmentManualItem> GetShipmentManualItemsByOrderItemIds(int[] orderItemIds)
+        {
+            if (orderItemIds == null || orderItemIds.Length == 0)
+                return new List<ShipmentManualItem>();
+
+            var query = from o in _shipmentManualItemRepository.Table
+                        where orderItemIds.Contains(o.OrderItemId)
+                        select o;
+            return query.ToList();
+
         }
 
         /// <summary>
@@ -288,7 +297,7 @@ namespace Nop.Services.Shipping
             if (orderItemId == 0)
                 return null;
 
-            return _shipmentManualItemRepository.Table.FirstOrDefault(_=>_.OrderItemId == orderItemId);
+            return _shipmentManualItemRepository.Table.FirstOrDefault(_ => _.OrderItemId == orderItemId);
         }
 
         public void InsertShipmentManualItem(ShipmentManualItem shipmentManualItem)

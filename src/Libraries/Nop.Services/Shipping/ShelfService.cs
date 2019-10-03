@@ -1,9 +1,10 @@
 ﻿using Nop.Core;
 using Nop.Core.Data;
+using Nop.Core.Domain.Orders;
 using Nop.Core.Domain.Shipping;
+using Nop.Core.Extensions;
 using System;
 using System.Collections.Generic;
-using System.Data.Entity;
 using System.Linq;
 
 namespace Nop.Services.Shipping
@@ -11,13 +12,13 @@ namespace Nop.Services.Shipping
     public class ShelfService : IShelfService
     {
         private readonly IRepository<Shelf> _shelfRepository;
-        private readonly IRepository<ShelfOrderItem> _shelfOrderItemRepository;
+        private readonly IRepository<OrderItem> _orderItemRepository;
         private readonly IRepository<ShipmentManual> _shipmentRepository;
-        public ShelfService(IRepository<Shelf> shelfRepository, IRepository<ShelfOrderItem> shelfOrderItemRepository, IRepository<ShipmentManual> shipmentRepository)
+        public ShelfService(IRepository<Shelf> shelfRepository, IRepository<ShipmentManual> shipmentRepository, IRepository<OrderItem> orderItemRepository)
         {
             _shelfRepository = shelfRepository;
-            _shelfOrderItemRepository = shelfOrderItemRepository;
             _shipmentRepository = shipmentRepository;
+            _orderItemRepository = orderItemRepository;
         }
 
         public void DeleteShelf(int shelfId)
@@ -29,31 +30,25 @@ namespace Nop.Services.Shipping
             }
         }
 
-        public IPagedList<Shelf> GetAllShelf(int customerId = 0,
+        public IPagedList<Shelf> GetShelves(int customerId = 0,
             DateTime? assignedFromUtc = null, DateTime? assignedToUtc = null,
             DateTime? assignedOrderItemFromUtc = null, DateTime? assignedOrderItemToUtc = null,
             DateTime? shippedFromUtc = null, DateTime? shippedToUtc = null,
             int pageIndex = 0, int pageSize = int.MaxValue,
-            bool? shelfOrderItemIsActive = true,
-            bool isShelfEmpty = false, bool isEmptyAssignedShelf = false,
+            bool isShelfEmpty = false,
             bool? isCustomerNotified = null, string shelfCode = null,
-            int? shelfNoteId = null, bool? isPackageItemProcessedDatetime = null, bool inActive = false, bool isAscSortedAssignedDate = false, string customerPhone = null)
+            int? shelfNoteId = null, bool isAscSortedAssignedDate = false, string customerPhone = null)
         {
-            var query = _shelfRepository.Table.Where(_ => _.InActive == inActive);
+            var query = _shelfRepository.Table;
 
             if (isShelfEmpty)
             {
-                var hasShipmentShelf = _shipmentRepository.Table.Where(_ => _.DeliveryDateUtc == null).Select(_ => _.ShelfCode.ToLower()).Distinct();
-                query = query.Where(_ =>
-                        _.ShelfOrderItems.All(soi => !soi.IsActived)
-                        && !hasShipmentShelf.Contains(_.ShelfCode.ToLower()))
-                    .OrderBy(_ => _.ShelfCode);
-                
+                query = query.Where(_ => _.OrderItems.All(oi => oi.DeliveryDateUtc != null)).OrderBy(_ => _.ShelfCode);
                 return new PagedList<Shelf>(query, pageIndex, pageSize);
             }
 
 
-            if (string.IsNullOrEmpty(shelfCode) == false)
+            if (shelfCode.IsNotNullOrEmpty())
             {
                 shelfCode = shelfCode.TrimStart().TrimEnd().Trim().ToLowerInvariant();
                 query = query.Where(_ => _.ShelfCode.ToLower().Contains(shelfCode));
@@ -63,7 +58,7 @@ namespace Nop.Services.Shipping
             {
                 query = query.Where(_ => _.CustomerId == customerId);
             }
-            if (!string.IsNullOrEmpty(customerPhone))
+            if (customerPhone.IsNotNullOrEmpty())
             {
                 query = query.Where(_ => _.Customer.Phone.EndsWith(customerPhone.Trim()));
             }
@@ -78,8 +73,6 @@ namespace Nop.Services.Shipping
                 query = query.Where(_ => _.AssignedDate != null && _.AssignedDate <= assignedToUtc);
             }
 
-
-
             if (shippedFromUtc != null)
             {
                 query = query.Where(_ => _.ShippedDate != null && _.ShippedDate >= shippedFromUtc);
@@ -92,74 +85,22 @@ namespace Nop.Services.Shipping
 
             if (isCustomerNotified != null)
             {
-                query = query.Where(_ => _.IsCustomerNotified == isCustomerNotified);
+                query = query.Where(_ => _.IsCustomerNotified == isCustomerNotified && _.OrderItems.Any(oi => oi.DeliveryDateUtc == null));
             }
 
             if (shelfNoteId != null)
             {
-                query = query.Where(_ => _.ShelfNoteId == shelfNoteId);
+                query = query.Where(_ => _.ShelfNoteId == shelfNoteId && _.OrderItems.Any(oi => oi.DeliveryDateUtc == null));
             }
-
-            if (isPackageItemProcessedDatetime != null)
-            {
-                if (isPackageItemProcessedDatetime.Value)
-                {
-                    //var shelfOrderItems = _shelfOrderItemRepository.Table.Where(s => s.OrderItem.PackageItemProcessedDatetime != null).Select(_ => _.ShelfId).Distinct().ToList();
-                    //query = query.Where(_ => shelfOrderItems.Contains(_.Id));
-                    query = query.Where(_ => _.ShelfOrderItems.Any(soi => soi.CustomerId == _.CustomerId && soi.OrderItem.PackageItemProcessedDatetime != null));
-                }
-                else
-                {
-                    //var shelfOrderItems = _shelfOrderItemRepository.Table.Where(s => s.OrderItem.PackageItemProcessedDatetime == null).Select(_ => _.ShelfId).Distinct().ToList();
-                    //query = query.Where(_ => shelfOrderItems.Contains(_.Id));
-                    query = query.Where(_ => _.ShelfOrderItems.Any(soi => soi.CustomerId == _.CustomerId && soi.OrderItem.PackageItemProcessedDatetime == null));
-                }
-            }
-
-            // query active soi only without caring about user (to display wrong shelf placement)
-            query = query.Where(_ => _.ShelfOrderItems.Any(soi => soi.IsActived));
-
-            //if (shelfOrderItemIsActive != null && shelfOrderItemIsActive == true)
-            //{
-            //    //var shelfOrderItems = _shelfOrderItemRepository.Table.Where(s => s.IsActived).Select(_ => _.ShelfId).Distinct().ToList();
-            //    //query = query.Where(_ => shelfOrderItems.Contains(_.Id));
-            //    query = query.Where(_ => _.ShelfOrderItems.Any(soi => soi.IsActived && soi.CustomerId == _.CustomerId));
-            //}
-            //else if (shelfOrderItemIsActive != null && shelfOrderItemIsActive == false)
-            //{
-            //    //var shelfOrderItems = _shelfOrderItemRepository.Table.Where(s => s.IsActived == false).Select(_ => _.ShelfId).Distinct().ToList();
-            //    //query = query.Where(_ => shelfOrderItems.Contains(_.Id));
-
-            //    query = query.Where(_ => _.ShelfOrderItems.Any(soi => soi.IsActived == false && soi.CustomerId == _.CustomerId));
-            //}
 
             if (assignedOrderItemFromUtc != null && assignedOrderItemToUtc != null)
             {
-                //var subQuery = _shelfOrderItemRepository.Table;
-                //var shelfIds = subQuery.Where(_ => _.AssignedDate >= assignedOrderItemFromUtc && _.AssignedDate <= assignedOrderItemToUtc).Select(s => s.ShelfId).Distinct().ToList();
-                //query = query.Where(_ => shelfIds.Contains(_.Id));
-
-                query = query.Where(_ => _.ShelfOrderItems.Any(soi => soi.CustomerId == _.CustomerId &&
-                                                                      (soi.AssignedDate >= assignedOrderItemFromUtc && soi.AssignedDate <= assignedOrderItemToUtc)
-                                                                      && (shelfOrderItemIsActive == null || soi.IsActived == shelfOrderItemIsActive)));
+                query = query.Where(shelf => shelf.OrderItems.Any(oi =>
+                                                 (oi.ShelfAssignedDate >= assignedOrderItemFromUtc && oi.ShelfAssignedDate <= assignedOrderItemToUtc)
+                                                && oi.DeliveryDateUtc != null));
             }
 
-
-
-            
-            if (isEmptyAssignedShelf)
-            {
-                query = query.Where(_ => _.ShelfOrderItems.Count == 0 && _.CustomerId != null && _.CustomerId > 0);
-            }
-
-            if (isAscSortedAssignedDate)
-            {
-                query = query.Where(_ => _.AssignedDate != null).OrderBy(_ => _.AssignedDate);
-            }
-            else
-            {
-                query = query.OrderBy(_ => _.ShelfCode);
-            }
+            query = isAscSortedAssignedDate ? query.Where(_ => _.AssignedDate != null).OrderBy(_ => _.AssignedDate) : query.OrderBy(_ => _.ShelfCode);
 
 
             var shelfList = new PagedList<Shelf>(query, pageIndex, pageSize);
@@ -167,14 +108,13 @@ namespace Nop.Services.Shipping
         }
 
         public IPagedList<Shelf> GetAllShelfByStore(int customerId = 0,
-             DateTime? assignedFromUtc = null, DateTime? assignedToUtc = null,
-             DateTime? assignedOrderItemFromUtc = null, DateTime? assignedOrderItemToUtc = null,
-             DateTime? shippedFromUtc = null, DateTime? shippedToUtc = null,
-             int pageIndex = 0, int pageSize = int.MaxValue,
-             bool? shelfOrderItemIsActive = true,
-             bool isShelfEmpty = false, bool isEmptyAssignedShelf = false,
-             bool? isCustomerNotified = null, string shelfCode = null,
-             int? shelfNoteId = null, bool? isPackageItemProcessedDatetime = null)
+            DateTime? assignedFromUtc = null, DateTime? assignedToUtc = null,
+            DateTime? assignedOrderItemFromUtc = null, DateTime? assignedOrderItemToUtc = null,
+            DateTime? shippedFromUtc = null, DateTime? shippedToUtc = null,
+            int pageIndex = 0, int pageSize = int.MaxValue,
+            bool isShelfEmpty = false, bool isEmptyAssignedShelf = false,
+            bool? isCustomerNotified = null, string shelfCode = null,
+            int? shelfNoteId = null, bool? isPackageItemProcessedDatetime = null)
         {
 
             var shelfList = new PagedList<Shelf>(new List<Shelf>(), pageIndex, pageSize);
@@ -183,12 +123,9 @@ namespace Nop.Services.Shipping
 
         public List<Shelf> GetAvailableShelf(string shelfCode = null)
         {
-            var hasShipmentShelf = _shipmentRepository.Table.Where(_ => _.DeliveryDateUtc == null).Select(_ => _.ShelfCode.ToLower()).Distinct().ToList();
-            var availableShelf = _shelfRepository.Table.Where(s => !hasShipmentShelf.Contains(s.ShelfCode) && s.ShelfOrderItems.All(_ => !_.IsActived));
+            var availableShelf = _shelfRepository.Table.Where(_ => _.OrderItems.All(oi => oi.DeliveryDateUtc != null));
 
-            var x = hasShipmentShelf.Contains("1a203");
-
-            if (!string.IsNullOrEmpty(shelfCode))
+            if (shelfCode.IsNotNullOrEmpty())
             {
                 shelfCode = shelfCode.TrimStart().TrimEnd().Trim().ToLowerInvariant();
                 availableShelf = availableShelf.Where(_ => _.ShelfCode.ToLower().Contains(shelfCode));
@@ -204,11 +141,12 @@ namespace Nop.Services.Shipping
                 _shelfRepository.Update(shelf);
             }
         }
-        public void UpdateShelfs(IEnumerable<Shelf> shelfs)
+
+        public void UpdateShelfves(IEnumerable<Shelf> items)
         {
-            if (shelfs != null)
+            if (items != null)
             {
-                _shelfRepository.Update(shelfs);
+                _shelfRepository.Update(items);
             }
         }
 
@@ -232,96 +170,73 @@ namespace Nop.Services.Shipping
             return query.FirstOrDefault();
         }
 
-        public void DeleteShelfOrderItem(int shelfOrderItemId)
+        public void ClearShelfInfo(string shelfIdorShelfCode)
         {
-            var shelfOrderItem = _shelfOrderItemRepository.GetById(shelfOrderItemId);
-            if (shelfOrderItem != null)
+            var shelf = GetShelfByCode(shelfIdorShelfCode);
+            if (shelf == null) shelf = GetShelfById(shelfIdorShelfCode.ToIntODefault());
+
+            if (shelf != null)
             {
-                _shelfOrderItemRepository.Delete(shelfOrderItem);
+                shelf.CustomerId = null;
+                shelf.AssignedDate = null;
+                shelf.ShippedDate = null;
+                shelf.Total = 0;
+                shelf.TotalWithoutDeposit = 0;
+                shelf.ShelfNoteStatus = ShelfNoteStatus.NoReply;
+                UpdateShelf(shelf);
             }
         }
 
-        public IPagedList<ShelfOrderItem> GetAllShelfOrderItem(int shelfId = 0, int customerId = 0, DateTime? assignedFromUtc = null, DateTime? assignedToUtc = null, int pageIndex = 0, int pageSize = Int32.MaxValue, bool? shelfOrderItemIsActive = null)
+        public IList<OrderItem> GetOrderItems(string shelfIdOrShelfCode, bool activeItem = true)
         {
-            var query = _shelfOrderItemRepository.Table;
-            if (shelfId > 0)
+            var shelfId = shelfIdOrShelfCode.ToIntODefault();
+            var shelf = _shelfRepository.Table.FirstOrDefault(_ => _.Id == shelfId);
+            if (shelf == null)
             {
-                query = query.Where(_ => _.ShelfId == shelfId);
+                shelf = _shelfRepository.Table.FirstOrDefault(_ => _.ShelfCode.Equals(shelfIdOrShelfCode, StringComparison.CurrentCultureIgnoreCase));
+            }
+            var orderItems = new List<OrderItem>();
+            if (shelf != null)
+            {
+                if (activeItem)
+                {
+                    orderItems = shelf.OrderItems.Where(_ => _.DeliveryDateUtc == null).OrderByDescending(oi => oi.ShelfAssignedDate).ToList();
+                }
+
             }
 
-            if (customerId > 0)
-            {
-                query = query.Where(_ => _.CustomerId == customerId);
-            }
-
-            if (assignedFromUtc != null)
-            {
-                query = query.Where(_ => _.AssignedDate >= assignedFromUtc);
-            }
-
-            if (assignedToUtc != null)
-            {
-                query = query.Where(_ => _.AssignedDate <= assignedToUtc);
-            }
-
-            if (shelfOrderItemIsActive.HasValue)
-            {
-                query = query.Where(_ => _.IsActived == shelfOrderItemIsActive);
-            }
-
-            query = query.OrderByDescending(_ => _.AssignedDate);
-            var shelfOrderItems = new PagedList<ShelfOrderItem>(query, pageIndex, pageSize);
-            return shelfOrderItems;
+            return orderItems;
         }
 
-        public List<ShelfOrderItem> GetOrderItemIdsByShelf(int shelfId, bool? shelfOrderItemIsActive = null, int customerId = 0)
+        public void UpdateShelfTotalAmount(string shelfIdOrCode)
         {
-            var query = _shelfOrderItemRepository.Table.AsNoTracking();
-            if (customerId > 0 && shelfOrderItemIsActive.HasValue && shelfOrderItemIsActive == true)
+            var shelf = GetShelfById(shelfIdOrCode.ToIntODefault());
+            if (shelf == null)
             {
-                query = query.Where(_ => _.CustomerId == customerId);
+                shelf = GetShelfByCode(shelfIdOrCode);
             }
-            if (shelfId > 0)
+            if (shelf != null)
             {
-                query = query.Where(_ => _.ShelfId == shelfId);
-            }
+                decimal total = 0;
+                decimal totalWithoutDeposit = 0;
+                if (shelf.OrderItems != null)
+                {
+                    var orderItems = shelf.OrderItems.Where(_ => _.DeliveryDateUtc == null).OrderBy(_ => _.ShelfAssignedDate).ToList();
+                    foreach (var item in orderItems)
+                    {
+                        var itemTotal = DecimalExtensions.RoundCustom(item.PriceInclTax / 1000) * 1000;
+                        total += itemTotal;
+                        totalWithoutDeposit += itemTotal - DecimalExtensions.RoundCustom(item.Deposit / 1000) * 1000;
+                    }
 
-            if (shelfOrderItemIsActive.HasValue)
-            {
-                query = query.Where(_ => _.IsActived == shelfOrderItemIsActive);
-            }
-            query = query.OrderByDescending(_ => _.AssignedDate);
-            return query.ToList();
-        }
-        public void UpdateShelfOrderItem(ShelfOrderItem shelfOrderItem)
-        {
-            if (shelfOrderItem != null)
-            {
-                _shelfOrderItemRepository.Update(shelfOrderItem);
-            }
-        }
+                    var firstItem = orderItems.FirstOrDefault();
+                    shelf.AssignedDate = firstItem == null ? null : firstItem.ShelfAssignedDate;
+                }
+                shelf.Total = total;
+                shelf.TotalWithoutDeposit = totalWithoutDeposit;
 
-        public void InsertShelfOrderItem(ShelfOrderItem shelfOrderItem)
-        {
-            if (shelfOrderItem != null)
-            {
-                _shelfOrderItemRepository.Insert(shelfOrderItem);
+                UpdateShelf(shelf);
             }
-        }
-
-        public ShelfOrderItem GetShelfOrderItemById(int id)
-        {
-            return _shelfOrderItemRepository.GetById(id);
-        }
-        public ShelfOrderItem GetShelfOrderItemByOrderItemId(int orderItemId)
-        {
-            var query = _shelfOrderItemRepository.Table;
-            if (orderItemId > 0)
-            {
-                return query.FirstOrDefault(_ => _.OrderItemId == orderItemId);
-            }
-
-            return null;
         }
     }
 }

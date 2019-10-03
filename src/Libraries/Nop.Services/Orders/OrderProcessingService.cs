@@ -1282,7 +1282,7 @@ namespace Nop.Services.Orders
 
                 //var itemWeight = _shippingService.GetShoppingCartItemWeight(sc);
                 var itemWeight = sc.Product.Weight;
-                
+
                 //save order item
                 var orderItem = new OrderItem
                 {
@@ -2279,44 +2279,19 @@ namespace Nop.Services.Orders
             CheckOrderStatus(order);
         }
 
-        public virtual void DeliverManual(ShipmentManual shipment, bool notifyCustomer)
+        public virtual void SetShipmentManualDelivered(ShipmentManual shipment, bool notifyCustomer)
         {
-            if (shipment == null)
-                throw new ArgumentNullException(nameof(shipment));
-
-            if (!shipment.ShippedDateUtc.HasValue)
-                throw new Exception("This shipment is not shipped yet");
-
-            if (shipment.DeliveryDateUtc.HasValue)
-                throw new Exception("This shipment is already delivered");
-
             shipment.DeliveryDateUtc = DateTime.UtcNow;
             _shipmentManualService.UpdateShipmentManual(shipment);
 
-            foreach (var shipmentManualItem in shipment.ShipmentManualItems)
+            foreach (var item in shipment.ShipmentManualItems)
             {
-                var shipmentItem = _shipmentManualService.GetShipmentManualItemById(shipmentManualItem.Id);
-                shipmentItem.DeliveryDateUtc = DateTime.UtcNow;
-                _shipmentManualService.UpdateShipmentManualItem(shipmentManualItem);
-
-                var orderItem = _orderService.GetOrderItemById(shipmentItem.OrderItemId);
-                orderItem.DeliveryDateUtc = DateTime.UtcNow;
-                _orderService.UpdateOrderItem(orderItem);
-
-                var order = _orderService.GetOrderById(shipmentManualItem.OrderItem.OrderId);
-                if (order != null)
+                var orderItem = _orderService.GetOrderItemById(item.OrderItemId);
+                if (orderItem != null)
                 {
-                    if (!order.HasItemsToAddToShipment() && !order.HasItemsToShip() && !order.HasItemsToDeliver())
-                        order.ShippingStatusId = (int)ShippingStatus.Delivered;
-                    _orderService.UpdateOrder(order);
-
-                    //add a note
-                    AddOrderNote(order, $"Shipment# {shipment.Id} has been delivered");
-
-                    //check order status
-                    CheckOrderStatus(order);
+                    orderItem.DeliveryDateUtc = DateTime.UtcNow;
+                    _orderService.UpdateOrderItem(orderItem);
                 }
-
             }
         }
 

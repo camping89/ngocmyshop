@@ -4,7 +4,6 @@ using Nop.Core.Domain.Catalog;
 using Nop.Core.Domain.Common;
 using Nop.Core.Domain.Customers;
 using Nop.Core.Domain.Orders;
-using Nop.Core.Domain.Shipping;
 using Nop.Services.Events;
 using System;
 using System.Collections.Generic;
@@ -26,7 +25,6 @@ namespace Nop.Services.Orders
         private readonly IRepository<Product> _productRepository;
         private readonly IRepository<RecurringPayment> _recurringPaymentRepository;
         private readonly IRepository<Customer> _customerRepository;
-        private readonly IRepository<ShelfOrderItem> _shelfOrderItemRepository;
         private readonly IEventPublisher _eventPublisher;
 
         #endregion
@@ -49,7 +47,7 @@ namespace Nop.Services.Orders
             IRepository<Product> productRepository,
             IRepository<RecurringPayment> recurringPaymentRepository,
             IRepository<Customer> customerRepository,
-            IEventPublisher eventPublisher, IRepository<ShelfOrderItem> shelfOrderItemRepository, IRepository<GenericAttribute> gaRepository)
+            IEventPublisher eventPublisher, IRepository<GenericAttribute> gaRepository)
         {
             this._orderRepository = orderRepository;
             this._orderItemRepository = orderItemRepository;
@@ -58,7 +56,6 @@ namespace Nop.Services.Orders
             this._recurringPaymentRepository = recurringPaymentRepository;
             this._customerRepository = customerRepository;
             this._eventPublisher = eventPublisher;
-            _shelfOrderItemRepository = shelfOrderItemRepository;
             _gaRepository = gaRepository;
         }
 
@@ -532,17 +529,17 @@ namespace Nop.Services.Orders
             // TODO Huy: need to merge order item and shelf order item to one entity later
             if (hasShelf.HasValue)
             {
-                //var shelfOrderItemIds = _shelfOrderItemRepository.Table.Select(_ => _.OrderItemId).ToList();
+                //var orderItemIds = _orderItemRepository.Table.Select(_ => _.OrderItemId).ToList();
                 //if (isSetShelfId.Value)
                 //{
-                //    query = query.Where(_ => shelfOrderItemIds.Contains(_.Id));
+                //    query = query.Where(_ => orderItemIds.Contains(_.Id));
                 //}
                 //else
                 //{
-                //    query = query.Where(_ => shelfOrderItemIds.Contains(_.Id) == false);
+                //    query = query.Where(_ => orderItemIds.Contains(_.Id) == false);
                 //}
 
-                //query = hasShelf.Value ? query.Where(_ => _.ShelfOrderItem !=  null) : query.Where(_ => _.ShelfOrderItem ==  null);
+                //query = hasShelf.Value ? query.Where(_ => _.OrderItem !=  null) : query.Where(_ => _.OrderItem ==  null);
             }
 
             if (isPackageItemProcessedDatetime.HasValue)
@@ -632,12 +629,15 @@ namespace Nop.Services.Orders
 
         public IList<OrderItem> GetUnassignedOrderItems(int customerId)
         {
-            var query = from oi in _orderItemRepository.Table.Where(_ => _.PackageItemProcessedDatetime.HasValue && _.PackageItemProcessedDatetime.Value < DateTime.Now)
-                from o in _orderRepository.Table.Where(_ => _.Id == oi.OrderId && !_.Deleted && _.CustomerId == customerId)
-                from soi in _shelfOrderItemRepository.Table.Where(_ => _.OrderItemId == oi.Id).DefaultIfEmpty()
-                select new {oi, soi};
+            var query = _orderItemRepository.Table.Where(oi =>
+                oi.PackageItemProcessedDatetime.HasValue 
+                && oi.PackageItemProcessedDatetime.Value < DateTime.Now
+                && oi.ShelfId == null
+                && oi.DeliveryDateUtc == null
+                && !oi.Order.Deleted && oi.Order.CustomerId == customerId
+            );
 
-            return query.Where(_ => _.soi == null).Select(_ => _.oi).ToList();
+            return query.ToList();
         }
 
         #endregion

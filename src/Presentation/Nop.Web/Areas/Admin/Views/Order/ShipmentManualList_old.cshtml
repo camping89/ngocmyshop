@@ -187,10 +187,10 @@
 
                                 <div class="form-group">
                                     <div class="col-md-4">
-                                        <nop-label asp-for="LoadNotShipped" />
+                                        <nop-label asp-for="IsDelivered" />
                                     </div>
                                     <div class="col-md-8">
-                                        <nop-editor asp-for="LoadNotShipped" />
+                                        <nop-editor asp-for="IsDelivered" />
                                     </div>
                                 </div>
 
@@ -426,7 +426,7 @@
                             $('#@Html.IdFor(model => model.StateProvinceId)').val(0);
                             $('#@Html.IdFor(model => model.City)').val('');
 
-                            $('#@Html.IdFor(model => model.LoadNotShipped)').prop('checked', false);
+                            $('#@Html.IdFor(model => model.IsDelivered)').prop('checked', false);
                             $('#@Html.IdFor(model => model.OrderId)').val('');
 
                             $("#search-shipments").click();
@@ -582,7 +582,7 @@
                             StateProvinceId: $('#@Html.IdFor(model => model.StateProvinceId)').val(),
                             City: $('#@Html.IdFor(model => model.City)').val(),
                             WarehouseId: $('#@Html.IdFor(model => model.WarehouseId)').val(),
-                            LoadNotShipped: $('#@Html.IdFor(model => model.LoadNotShipped)').is(':checked'),
+                            LoadNotShipped: $('#@Html.IdFor(model => model.IsDelivered)').is(':checked'),
                             OrderId: $('#@Html.IdFor(model => model.OrderId)').val()
                         };
                         addAntiForgeryToken(data);
