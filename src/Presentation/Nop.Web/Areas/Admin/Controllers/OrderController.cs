@@ -4125,6 +4125,11 @@ namespace Nop.Web.Areas.Admin.Controllers
         private string UpdateOrderItem(OrderItem orderItem, string shelfCode, int customerId)
         {
             var errorStr = string.Empty;
+            if (customerId == 0)
+            {
+                throw new InvalidOperationException("customerId of shelf is invalid");
+            }
+
             if (shelfCode.IsNotNullOrEmpty())
             {
                 shelfCode = shelfCode.Trim();
@@ -4132,12 +4137,10 @@ namespace Nop.Web.Areas.Admin.Controllers
 
                 if (shelf != null)
                 {
+                    // first assignment should be to the empty customer id shelf
+
                     // check if shelf owner is matched with the item owner
-                    if (shelf.CustomerId == null
-                        || shelf.CustomerId == 0
-                        || shelf.OrderItems.All(_ => _.DeliveryDateUtc != null) // emptyshelf
-                        || shelf.CustomerId == customerId
-                        )
+                    if (shelf.CustomerId == null || shelf.CustomerId == 0 || shelf.CustomerId == customerId)
                     {
                         var firstItem = shelf.OrderItems.Where(_ => _.DeliveryDateUtc == null && _.Order.CustomerId == customerId).OrderBy(_ => _.ShelfAssignedDate).FirstOrDefault();
                         shelf.AssignedDate = firstItem == null ? DateTime.UtcNow : firstItem.ShelfAssignedDate;

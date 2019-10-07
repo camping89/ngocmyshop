@@ -198,12 +198,9 @@ namespace Nop.Web.Areas.Admin.Controllers
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageOrders))
                 return AccessDeniedKendoGridJson();
             var shelf = _shelfService.GetShelfById(shelfId);
-            var model = new List<OrderItemInShelfModel>();
-            if (shelf.CustomerId.HasValue)
-            {
-                var orderItems = _shelfService.GetOrderItems(shelfId.ToString());
-                model = orderItems.OrderBy(_ => _.ShelfAssignedDate).Select(PrepareOrderItemInShelfModel).ToList();
-            }
+
+            var orderItems = _shelfService.GetOrderItems(shelfId.ToString());
+            var model = orderItems.OrderBy(_ => _.ShelfAssignedDate).Select(PrepareOrderItemInShelfModel).ToList();
 
             var gridModel = new DataSourceResult
             {
@@ -679,13 +676,24 @@ namespace Nop.Web.Areas.Admin.Controllers
                     _shelfService.UpdateShelfTotalAmount(shelf.Id.ToString());
                 }
                 _customerActivityService.InsertActivity("DeleteShipmentManual", _localizationService.GetResource("activitylog.DeleteShipmentManual"), shipmentManual.Id);
+
+                foreach (var shipmentManualItem in shipmentManual.ShipmentManualItems)
+                {
+                    var orderItem = _orderService.GetOrderItemById(shipmentManualItem.OrderItemId);
+                    if (orderItem != null)
+                    {
+                        orderItem.DeliveryDateUtc = null;
+                        _orderService.UpdateOrderItem(orderItem);
+                    }
+                }
+
                 _shipmentManualService.DeleteShipmentManual(shipmentManual);
             }
 
             return Json(new { Success = true });
         }
 
-        
+
 
 
         public ActionResult UpdateTotalShelfByCode(string shelfCode)
@@ -725,6 +733,12 @@ namespace Nop.Web.Areas.Admin.Controllers
 
                 _shipmentManualService.DeleteShipmentManualItem(shipmentManualItem);
 
+                var orderItem = _orderService.GetOrderItemById(orderItemId);
+                if (orderItem != null)
+                {
+                    orderItem.DeliveryDateUtc = null;
+                    _orderService.UpdateOrderItem(orderItem);
+                }
 
                 var shipmentManual = _shipmentManualService.GetShipmentManualById(shipmentManualId);
                 if (shipmentManual.ShipmentManualItems.Count == 0)

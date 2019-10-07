@@ -105,7 +105,7 @@
                     <div class="panel-body">
                         <div class="row">
                             <div class="col-md-6">
-                               
+
                                 <div class="form-group">
                                     <div class="col-md-4">
                                         <nop-label asp-for="SearchShipperId" />
@@ -260,7 +260,7 @@
                                         <nop-editor asp-for="OrderItemId" />
                                     </div>
                                 </div>
-                                
+
                                 <div class="form-group">
                                     <div class="col-md-4">
                                         <nop-label asp-for="ShipmentId" />
@@ -270,8 +270,8 @@
                                     </div>
                                 </div>
 
-                                
-                                
+
+
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
@@ -597,17 +597,29 @@
                                                     update: "@T("Admin.Common.Update")",
                                                     cancel: "@T("Admin.Common.Cancel")"
                                                 },
-                                                visible: function(dataItem) {
-                                                    return dataItem.AllowDelete;
+                                                @if (Model.IsAdmin == false)
+                                                {
+                                                    <text>
+                                                        visible: function(dataItem) {
+                                                            return dataItem.AllowDelete;
+                                                        }
+                                                    </text>
                                                 }
+
                                             },
                                             {
                                                 name: "destroy",
                                                 text: "@T("Admin.Common.Delete")",
                                                 template: '<a class="btn btn-danger k-button-icontext k-grid-delete" href="" >@T("Admin.Common.Delete")</a>',
-                                                visible: function(dataItem) {
-                                                    return dataItem.AllowDelete;
+                                                @if (Model.IsAdmin == false)
+                                                {
+                                                    <text>
+                                                        visible: function(dataItem) {
+                                                            return dataItem.AllowDelete;
+                                                        }
+                                                    </text>
                                                 }
+                                                
                                             },
                                             {
                                                 name: "shipall",
@@ -891,9 +903,22 @@
                                                         return dataItem.DeliveryDateUtc == null;
                                                     }
                                                 },
-                                            @if (Model.IsAdmin)
-                                            {
-                                                <text>
+                                                @if (Model.IsAdmin)
+                                                {
+                                                    <text>
+                                                    {
+                                                        name: "destroy",
+                                                        text: "@T("Admin.Common.Delete")",
+                                                        template: '<a class="btn btn-danger k-button-icontext k-grid-delete" href="" >@T("Admin.Common.Delete")</a>',
+                                                        //visible: function(dataItem) {
+                                                        //    return dataItem.DeliveryDateUtc == null;
+                                                        //}
+                                                    },
+                                                    </text>
+                                                }
+                                                else
+                                                {
+                                                    <text>
                                                     {
                                                         name: "destroy",
                                                         text: "@T("Admin.Common.Delete")",
@@ -902,8 +927,8 @@
                                                             return dataItem.DeliveryDateUtc == null;
                                                         }
                                                     }
-                                                </text>
-                                            }
+                                                    </text>
+                                                }
                                         ],
                                         title: "@T("Admin.Common.Function")"
                                     }
@@ -1113,6 +1138,10 @@
                         //"deliver selected" button
                         $('#deliver-selected').click(function(e) {
                             e.preventDefault();
+                            var result = confirm("@T("Common.Confirm.SetShipmentDelivered.Message")");
+                            if (result === false) {
+                                return false;
+                            }
                             var ids = selectedIds;
                             if (selectedIds.length === 0) {
                                 ids = totalIds;
