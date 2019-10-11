@@ -6394,6 +6394,51 @@ namespace Nop.Web.Areas.Admin.Controllers
         }
 
         [HttpPost]
+        public IActionResult DeleteOrderItemVendorCheckout(int orderId, int id)
+        {
+            var order = _orderService.GetOrderById(orderId);
+            var orderItem = order.OrderItems.FirstOrDefault(_ => _.Id == id);
+
+            var shelfId = orderItem.ShelfId;
+            //delete item
+            _orderService.DeleteOrderItem(orderItem);
+
+            //update order totals
+            var updateOrderParameters = new UpdateOrderParameters
+            {
+                UpdatedOrder = order,
+                UpdatedOrderItem = orderItem
+            };
+            _orderProcessingService.UpdateOrderTotals(updateOrderParameters);
+
+            //add a note
+            order.OrderNotes.Add(new OrderNote
+            {
+                Note = "Order item has been deleted",
+                DisplayToCustomer = false,
+                CreatedOnUtc = DateTime.UtcNow
+            });
+            _orderService.UpdateOrder(order);
+
+            //Update Shipment
+            UpdateTotalShipmentManual(orderItemId: id);
+
+            //Update Shelf
+            if (shelfId.HasValue)
+            {
+                _shelfService.UpdateShelfTotalAmount(shelfId.ToString());
+            }
+            
+            //Delete order when order empty items.
+            order = _orderService.GetOrderById(orderId);
+            if (order.OrderItems.Count == 0)
+            {
+                _orderService.DeleteOrder(order);
+            }
+            return new NullJsonResult();
+        }
+
+        [HttpPost]
         [HttpPost]
         [ActionName("OrderItemsVendorCheckout")]
         [FormValueRequired("exportexcel-orderbasic-all")]

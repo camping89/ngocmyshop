@@ -17,7 +17,7 @@ namespace Nop.Services.Shipping
             int pageIndex = 0, int pageSize = int.MaxValue,
             bool isShelfEmpty = false,
             bool? isCustomerNotified = null,
-            string shelfCode = null, int? shelfNoteId = null,
+            string shelfCode = null,int orderItemId = 0, int? shelfNoteId = null,
             bool isAscSortedAssignedDate = false, string customerPhone = null);
 
         IPagedList<Shelf> GetAllShelfByStore(int customerId = 0,

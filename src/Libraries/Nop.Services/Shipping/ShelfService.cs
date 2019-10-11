@@ -36,7 +36,7 @@ namespace Nop.Services.Shipping
             DateTime? shippedFromUtc = null, DateTime? shippedToUtc = null,
             int pageIndex = 0, int pageSize = int.MaxValue,
             bool isShelfEmpty = false,
-            bool? isCustomerNotified = null, string shelfCode = null,
+            bool? isCustomerNotified = null, string shelfCode = null,int orderItemId = 0,
             int? shelfNoteId = null, bool isAscSortedAssignedDate = false, string customerPhone = null)
         {
             var query = _shelfRepository.Table;
@@ -54,6 +54,10 @@ namespace Nop.Services.Shipping
                 query = query.Where(_ => _.ShelfCode.ToLower().Contains(shelfCode));
             }
 
+            if (orderItemId > 0)
+            {
+                query = query.Where(_ => _.OrderItems.Any(oi => oi.Id == orderItemId));
+            }
             if (customerId > 0)
             {
                 query = query.Where(_ => _.CustomerId == customerId);

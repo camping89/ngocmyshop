@@ -917,7 +917,7 @@ namespace Nop.Services.Orders
             var updatedOrderItem = updateOrderParameters.UpdatedOrderItem;
 
             //get the customer 
-            var customer = restoredCart.GetCustomer();
+            var customer = updatedOrder.Customer;
 
             //sub total
             var subTotalExclTax = UpdateSubTotal(updateOrderParameters, restoredCart, updatedOrderItem, updatedOrder, customer, out var subTotalInclTax, out var subTotalTaxRates, out var discountAmountExclTax);

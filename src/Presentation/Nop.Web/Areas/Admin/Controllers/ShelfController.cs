@@ -132,6 +132,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 isShelfEmpty: model.IsShelfEmpty,
                 isCustomerNotified: model.IsCustomerNotified,
                 shelfCode: model.ShelfCode,
+                orderItemId:model.OrderItemId.ToIntODefault(),
                 shelfNoteId: model.ShelfNoteId,
                 isAscSortedAssignedDate: model.IsAscSortedAssignedDate,
                 customerPhone: model.CustomerPhone);
@@ -192,14 +193,17 @@ namespace Nop.Web.Areas.Admin.Controllers
 
 
         [HttpPost]
-        public virtual IActionResult OrderItemsByShelfId(int shelfId, bool? isActive, DataSourceRequest command)
+        public virtual IActionResult OrderItemsByShelfId(int shelfId, string orderItemId, bool? isActive, DataSourceRequest command)
         {
 
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageOrders))
                 return AccessDeniedKendoGridJson();
-            var shelf = _shelfService.GetShelfById(shelfId);
 
-            var orderItems = _shelfService.GetOrderItems(shelfId.ToString());
+            var orderItems = _shelfService.GetOrderItems(shelfId.ToString()).ToList();
+            if (orderItemId.IsNotNullOrEmpty())
+            {
+                orderItems = orderItems.Where(_ => _.Id == orderItemId.ToIntODefault()).ToList();
+            }
             var model = orderItems.OrderBy(_ => _.ShelfAssignedDate).Select(PrepareOrderItemInShelfModel).ToList();
 
             var gridModel = new DataSourceResult

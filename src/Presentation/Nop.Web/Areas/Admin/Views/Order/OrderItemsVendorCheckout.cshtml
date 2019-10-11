@@ -269,6 +269,11 @@
                                             "@Html.Raw(Url.Action("UpdateOrderItemChekcout", "Order"))",
                                         type: "POST",
                                         data: addAntiForgeryToken
+                                    },
+                                    destroy: {
+                                        url: "@Html.Raw(Url.Action("DeleteOrderItemVendorCheckout", "Order"))",
+                                        type: "POST",
+                                        data: additionalData
                                     }
                                 },
                                 schema: {
@@ -300,7 +305,7 @@
                                                 type: "date"
                                             },
                                             DeliveryDateUtc: {
-                                                editable: true,
+                                                editable: false,
                                                 type: "date"
                                             },
                                             PictureThumbnailUrl: { editable: false, type: "string" },
@@ -327,7 +332,7 @@
 
                                         alert(e.response.errors);
                                     }
-                                    if (e.type === "update") {
+                                    if (e.type !== "read") {
                                         var grid = $("#order-items-grid").data('kendoGrid');
                                         grid.dataSource.read();
                                     }
@@ -497,6 +502,14 @@
                                                 edit: "@T("Admin.Common.Edit")",
                                                 update: "@T("Admin.Common.Update")",
                                                 cancel: "@T("Admin.Common.Cancel")"
+                                            }
+                                        },
+                                        {
+                                            name: "destroy",
+                                            text: "@T("Admin.Common.Delete")",
+                                            template: '<a class="btn btn-danger k-button-icontext k-grid-delete" href="" >@T("Admin.Common.Delete")</a>',
+                                            visible: function(dataItem) {
+                                                return dataItem.DeliveryDateUtc == null;
                                             }
                                         }
                                         @*,
