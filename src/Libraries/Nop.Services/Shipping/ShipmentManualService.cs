@@ -316,6 +316,53 @@ namespace Nop.Services.Shipping
             _shipmentManualItemRepository.Update(shipmentManualItem);
         }
 
+        private IList<OrderItem> GetOrderItemsByIds(int[] orderItemIds)
+        {
+            if (orderItemIds == null || orderItemIds.Length == 0)
+                return new List<OrderItem>();
+
+            var query = from o in _orderItemRepository.Table
+                where orderItemIds.Contains(o.Id)
+                select o;
+            var orderItems = query.ToList();
+            //sort by passed identifiers
+            var sortedOrderItems = new List<OrderItem>();
+            foreach (var id in orderItemIds)
+            {
+                var order = orderItems.Find(x => x.Id == id);
+                if (order != null)
+                    sortedOrderItems.Add(order);
+            }
+            return sortedOrderItems;
+        }
+
+        public void UpdateTotalShipmentManual(int shipmentManualId)
+        {
+            if (shipmentManualId > 0)
+            {
+                var shipmentManual = GetShipmentManualById(shipmentManualId);
+                if (shipmentManual != null)
+                {
+                    if (shipmentManual.ShipmentManualItems.Count == 0)
+                    {
+                        DeleteShipmentManual(shipmentManual);
+                    }
+                    else
+                    {
+                        var orderItems = shipmentManual.ShipmentManualItems.Select(_=>_.OrderItem).ToList();
+                        shipmentManual.Deposit = orderItems.Sum(_ => _.Deposit);
+                        shipmentManual.Total = orderItems.Sum(_ => _.PriceInclTax);
+                        shipmentManual.TotalWeight = orderItems.Sum(_ => _.ItemWeight);
+
+                        UpdateShipmentManual(shipmentManual);
+                    }
+                }
+                
+            }
+
+            
+        }
+
         #endregion
     }
 }

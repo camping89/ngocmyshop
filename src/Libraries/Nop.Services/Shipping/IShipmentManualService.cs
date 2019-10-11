@@ -54,5 +54,7 @@ namespace Nop.Services.Shipping
         void InsertShipmentManualItem(ShipmentManualItem shipmentManualItem);
 
         void UpdateShipmentManualItem(ShipmentManualItem shipmentManualItem);
+
+        void UpdateTotalShipmentManual(int shipmentManualId);
     }
 }

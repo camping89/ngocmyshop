@@ -3990,32 +3990,17 @@ namespace Nop.Web.Areas.Admin.Controllers
             order.OrderTotal = order.OrderItems.Sum(_ => _.PriceExclTax);
             _orderService.UpdateOrder(order);
 
-            UpdateTotalShipmentManual(orderItem.Id);
+            var shipmentManualItem = _shipmentManualService.GetShipmentManualItemByOrderItemId(orderItem.Id);
+            if (shipmentManualItem != null)
+            {
+                _shipmentManualService.UpdateTotalShipmentManual(shipmentManualItem.ShipmentManualId);
+            }
             if (orderItem.ShelfId.HasValue) _shelfService.UpdateShelfTotalAmount(orderItem.ShelfId.Value.ToString());
 
             return new NullJsonResult();
         }
 
-        private void UpdateTotalShipmentManual(int orderItemId)
-        {
-            var shipmentManualItem = _shipmentManualService.GetShipmentManualItemByOrderItemId(orderItemId);
-            if (shipmentManualItem != null)
-            {
-                var shipmentManual = _shipmentManualService.GetShipmentManualById(shipmentManualItem.ShipmentManualId);
-                if (shipmentManual != null)
-                {
-                    var orderItems = _orderService.GetOrderItemsByIds(shipmentManual.ShipmentManualItems.Select(_ => _.OrderItemId).ToArray());
-                    if (orderItems != null)
-                    {
-                        shipmentManual.Deposit = orderItems.Sum(_ => _.Deposit);
-                        shipmentManual.Total = orderItems.Sum(_ => _.PriceInclTax);
-                        shipmentManual.TotalWeight = orderItems.Sum(_ => _.ItemWeight);
 
-                        _shipmentManualService.UpdateShipmentManual(shipmentManual);
-                    }
-                }
-            }
-        }
 
         [HttpPost]
         public virtual IActionResult UpdateOrderItemChekcout(OrderModel.OrderItemModelBasic orderItemModel)
@@ -4115,7 +4100,11 @@ namespace Nop.Web.Areas.Admin.Controllers
             order.OrderTotal = order.OrderItems.Sum(_ => _.PriceExclTax);
             _orderService.UpdateOrder(order);
 
-            UpdateTotalShipmentManual(orderItem.Id);
+            var shipmentManualItem = _shipmentManualService.GetShipmentManualItemByOrderItemId(orderItem.Id);
+            if (shipmentManualItem != null)
+            {
+                _shipmentManualService.UpdateTotalShipmentManual(shipmentManualItem.ShipmentManualId);
+            }
 
             var errorMess = UpdateOrderItem(orderItem, orderItemModel.ShelfCode, order.CustomerId);
             if (errorMess.IsNotNullOrEmpty()) return Json(new { errors = errorMess });
@@ -6398,8 +6387,13 @@ namespace Nop.Web.Areas.Admin.Controllers
         {
             var order = _orderService.GetOrderById(orderId);
             var orderItem = order.OrderItems.FirstOrDefault(_ => _.Id == id);
+            
+            
+            //Update Shipment
+            var shipmentManualItem = _shipmentManualService.GetShipmentManualItemByOrderItemId(orderItem.Id);
+            var shipmentManualId = shipmentManualItem?.ShipmentManualId;
 
-            var shelfId = orderItem.ShelfId;
+            var shelfCode = orderItem.Shelf?.ShelfCode;
             //delete item
             _orderService.DeleteOrderItem(orderItem);
 
@@ -6420,13 +6414,23 @@ namespace Nop.Web.Areas.Admin.Controllers
             });
             _orderService.UpdateOrder(order);
 
-            //Update Shipment
-            UpdateTotalShipmentManual(orderItemId: id);
-
-            //Update Shelf
-            if (shelfId.HasValue)
+            //Update shipment manual
+            if (shipmentManualId.HasValue)
             {
-                _shelfService.UpdateShelfTotalAmount(shelfId.ToString());
+                _shipmentManualService.UpdateTotalShipmentManual(shipmentManualId.Value);
+            }
+
+            
+            //Update Shelf
+            if (shelfCode.IsNotNullOrEmpty())
+            {
+                var activeOrderItems = _shelfService.GetOrderItems(shelfCode);
+                if (!activeOrderItems.Any())
+                    _shelfService.ClearShelfInfo(shelfCode);
+                else
+                {
+                    _shelfService.UpdateShelfTotalAmount(shelfCode);
+                }
             }
             
             //Delete order when order empty items.

@@ -712,13 +712,14 @@ namespace Nop.Web.Areas.Admin.Controllers
             var shipmentManualItem = _shipmentManualService.GetShipmentManualItemById(id);
             if (shipmentManualItem != null)
             {
+                var shipmentManualId = shipmentManualItem.ShipmentManualId;
                 var orderItem = _orderService.GetOrderItemById(shipmentManualItem.OrderItemId);
                 if (orderItem != null)
                 {
                     orderItem.Deposit = deposit;
                     _orderService.UpdateOrderItem(orderItem);
 
-                    UpdateTotalShipmentManual(orderItem.Id);
+                    _shipmentManualService.UpdateTotalShipmentManual(shipmentManualId);
                 }
             }
 
@@ -732,9 +733,8 @@ namespace Nop.Web.Areas.Admin.Controllers
             var shipmentManualItem = _shipmentManualService.GetShipmentManualItemById(id);
             if (shipmentManualItem != null)
             {
-                var orderItemId = shipmentManualItem.OrderItemId;
                 var shipmentManualId = shipmentManualItem.ShipmentManualId;
-
+                var orderItemId = shipmentManualItem.OrderItemId;
                 _shipmentManualService.DeleteShipmentManualItem(shipmentManualItem);
 
                 var orderItem = _orderService.GetOrderItemById(orderItemId);
@@ -742,44 +742,12 @@ namespace Nop.Web.Areas.Admin.Controllers
                 {
                     orderItem.DeliveryDateUtc = null;
                     _orderService.UpdateOrderItem(orderItem);
-                }
-
-                var shipmentManual = _shipmentManualService.GetShipmentManualById(shipmentManualId);
-                if (shipmentManual.ShipmentManualItems.Count == 0)
-                {
-                    _shipmentManualService.DeleteShipmentManual(shipmentManual);
-                }
-                else
-                {
-                    UpdateTotalShipmentManual(orderItemId);
+                    _shipmentManualService.UpdateTotalShipmentManual(shipmentManualId);
                 }
             }
-
-
             return Json(new { Success = true });
         }
 
-
-        private void UpdateTotalShipmentManual(int orderItemId)
-        {
-            var shipmentManualItem = _shipmentManualService.GetShipmentManualItemByOrderItemId(orderItemId);
-            if (shipmentManualItem != null)
-            {
-                var shipmentManual = _shipmentManualService.GetShipmentManualById(shipmentManualItem.ShipmentManualId);
-                if (shipmentManual != null)
-                {
-                    var orderItems = _orderService.GetOrderItemsByIds(shipmentManual.ShipmentManualItems.Select(_ => _.OrderItemId).ToArray());
-                    if (orderItems != null)
-                    {
-                        shipmentManual.Deposit = orderItems.Sum(_ => _.Deposit);
-                        shipmentManual.Total = orderItems.Sum(_ => _.PriceInclTax);
-                        shipmentManual.TotalWeight = orderItems.Sum(_ => _.ItemWeight);
-
-                        _shipmentManualService.UpdateShipmentManual(shipmentManual);
-                    }
-                }
-            }
-        }
 
         public IActionResult UpdateShelvesTotal()
         {
