@@ -56,5 +56,7 @@ namespace Nop.Services.Shipping
         void UpdateShipmentManualItem(ShipmentManualItem shipmentManualItem);
 
         void UpdateTotalShipmentManual(int shipmentManualId);
+
+        bool ExistShipmentItem(int orderItemId);
     }
 }

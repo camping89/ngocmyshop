@@ -363,6 +363,11 @@ namespace Nop.Services.Shipping
             
         }
 
+        public bool ExistShipmentItem(int orderItemId)
+        {
+            return _shipmentManualItemRepository.Table.Any(_ => _.OrderItemId == orderItemId);
+        }
+
         #endregion
     }
 }

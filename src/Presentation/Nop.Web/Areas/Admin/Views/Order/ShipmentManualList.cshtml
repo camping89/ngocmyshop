@@ -619,7 +619,7 @@
                                                         }
                                                     </text>
                                                 }
-                                                
+
                                             },
                                             {
                                                 name: "shipall",
@@ -1135,39 +1135,6 @@
                             return false;
                         });
 
-                        //"deliver selected" button
-                        $('#deliver-selected').click(function(e) {
-                            e.preventDefault();
-                            var result = confirm("@T("Common.Confirm.SetShipmentDelivered.Message")");
-                            if (result === false) {
-                                return false;
-                            }
-                            var ids = selectedIds;
-                            if (selectedIds.length === 0) {
-                                ids = totalIds;
-                            }
-                            var postData = {
-                                selectedIds: ids
-                            };
-                            addAntiForgeryToken(postData);
-
-                            $.ajax({
-                                cache: false,
-                                type: "POST",
-                                url: "@(Url.Action("SetAsDeliveredManualSelected", "Order"))",
-                                data: postData,
-                                complete: function(data) {
-                                    //reload grid
-                                    var grid = $('#shipments-grid').data('kendoGrid');
-                                    grid.dataSource.read();
-                                },
-                                error: function(xhr, ajaxOptions, thrownError) {
-                                    alert(thrownError);
-                                },
-                                traditional: true
-                            });
-                            return false;
-                        });
 
                         $('#mastercheckbox').click(function() {
                             $('.checkboxGroups').attr('checked', $(this).is(':checked')).change();
@@ -1586,3 +1553,71 @@
         });
     });
 </script>
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+        $('#deliver-selected').click(function(e) {
+            e.preventDefault();
+            
+            var ids = selectedIds;
+            if (selectedIds.length === 0) {
+                ids = totalIds;
+            }
+            $('#number-shipment-delivered').html(ids.length + ' Lệnh ship');
+            $('#confirm-submit').modal('toggle');
+        });
+
+        //"deliver selected" button
+        $('#deliver-selected-confirm').click(function(e) {
+            e.preventDefault();
+            $('#confirm-submit').modal('hide');
+            var ids = selectedIds;
+            if (selectedIds.length === 0) {
+                ids = totalIds;
+            }
+            var postData = {
+                selectedIds: ids
+            };
+            addAntiForgeryToken(postData);
+
+            $.ajax({
+                cache: false,
+                type: "POST",
+                url: "@(Url.Action("SetAsDeliveredManualSelected", "Order"))",
+                data: postData,
+                complete: function(data) {
+                    $("#search-shipments").click();
+                },
+                error: function(xhr, ajaxOptions, thrownError) {
+                    alert(thrownError);
+                },
+                traditional: true
+            });
+            return false;
+        });
+
+    });
+</script>
+
+
+<div class="modal fade" id="confirm-submit" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="confirm-title">@T("Common.Confirm.SetShipmentDelivered.Title")</h4>
+            </div>
+            <div class="modal-body">
+                <span>@T("Common.Confirm.SetShipmentDelivered.Message")</span> - <span id="number-shipment-delivered"></span>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="deliver-selected-confirm" class="btn btn-primary pull-right">
+                    @T("Admin.Common.Yes")
+                </button>
+                <span class="btn btn-default pull-right margin-r-5" data-dismiss="modal">@T("Admin.Common.NoCancel")</span>
+            </div>
+        </div>
+    </div>
+</div>

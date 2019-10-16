@@ -6370,9 +6370,8 @@ namespace Nop.Web.Areas.Admin.Controllers
                         _workContext.WorkingLanguage, true, true);
 
                     orderItemModel.AttributeInfo = orderItem.AttributeDescription ?? string.Empty;
-
-                    var shipmentItem = _shipmentManualService.GetShipmentManualItemByOrderItemId(orderItem.Id);
-                    orderItemModel.ExistShipment = shipmentItem != null;
+                    
+                    orderItemModel.ExistShipment = _shipmentManualService.ExistShipmentItem(orderItem.Id);
                     return orderItemModel;
                 }),
                 Total = orderItems.TotalCount

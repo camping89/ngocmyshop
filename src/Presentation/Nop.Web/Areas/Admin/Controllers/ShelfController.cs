@@ -254,9 +254,8 @@ namespace Nop.Web.Areas.Admin.Controllers
             {
                 model.VendorName = vendor.Name;
             }
-
-            var shipmentItem = _shipmentManualService.GetShipmentManualItemByOrderItemId(orderItem.Id);
-            model.ExistShipment = shipmentItem != null;
+            
+            model.ExistShipment =  _shipmentManualService.ExistShipmentItem(orderItem.Id);
             return model;
         }
 

@@ -14,11 +14,13 @@ namespace Nop.Services.Shipping
         private readonly IRepository<Shelf> _shelfRepository;
         private readonly IRepository<OrderItem> _orderItemRepository;
         private readonly IRepository<ShipmentManual> _shipmentRepository;
-        public ShelfService(IRepository<Shelf> shelfRepository, IRepository<ShipmentManual> shipmentRepository, IRepository<OrderItem> orderItemRepository)
+        private readonly IRepository<ShipmentManualItem> _shipmentItemRepository;
+        public ShelfService(IRepository<Shelf> shelfRepository, IRepository<ShipmentManual> shipmentRepository, IRepository<OrderItem> orderItemRepository, IRepository<ShipmentManualItem> shipmentItemRepository)
         {
             _shelfRepository = shelfRepository;
             _shipmentRepository = shipmentRepository;
             _orderItemRepository = orderItemRepository;
+            _shipmentItemRepository = shipmentItemRepository;
         }
 
         public void DeleteShelf(int shelfId)
@@ -228,6 +230,7 @@ namespace Nop.Services.Shipping
                     var orderItems = shelf.OrderItems.Where(_ => _.DeliveryDateUtc == null).OrderBy(_ => _.ShelfAssignedDate).ToList();
                     foreach (var item in orderItems)
                     {
+                        if (_shipmentItemRepository.Table.Any(_ => _.OrderItemId == item.Id)) continue;
                         var itemTotal = DecimalExtensions.RoundCustom(item.PriceInclTax / 1000) * 1000;
                         total += itemTotal;
                         totalWithoutDeposit += itemTotal - DecimalExtensions.RoundCustom(item.Deposit / 1000) * 1000;

@@ -765,7 +765,7 @@
                                         confirmation: "@T("Admin.Common.DeleteConfirmation")",
                                         mode: "inline"
                                     },
-                                    dataBound: onDataBoundDetail(e.data.Id),
+                                    dataBound: onDataBoundDetail,
                                     columns: [
                                         {
                                             field: "Id",
@@ -892,7 +892,7 @@
 
                         });
 
-                        function onDataBoundDetail(shelfId) {
+                        function onDataBoundDetail(e) {
                             console.log(reportAggregates);
                             //update order totals summary
                             if (reportAggregates !== "") {
@@ -900,6 +900,34 @@
                                     $('#aggregator-total-block' + shelfId).text(reportAggregates['aggregatortotal']);
                                 }
                             }
+
+                            //// get the index of the UnitsInStock cell
+                            //var columns = e.sender.columns;
+                            //var columnIndex = this.wrapper.find(".k-grid-header [data-field=" + "UnitsInStock" + "]").index();
+
+                            // iterate the table rows and apply custom row and cell styling
+                            var rows = e.sender.tbody.children();
+                            for (var j = 0; j < rows.length; j++) {
+                                var row = $(rows[j]);
+                                var dataItem = e.sender.dataItem(row);
+                                
+                                var ExistShipment = dataItem.get("ExistShipment");
+
+                                if (ExistShipment) {
+                                    row.css("color", "#00A65A");
+                                }
+
+                                //var cell = row.children().eq(columnIndex);
+                                //cell.addClass(getUnitsInStockClass(units));
+                            }
+                            //var gridChild = $("#grid-shelf-items").data("kendoGrid");
+                            //var data = gridChild.dataSource.view();
+                            //$.each(data, function (i, row) {
+                            //    if (row.ExistShipment === true) {
+                            //        var element = $('tr[data-uid="' + row.uid + '"] ');
+                            //        $(element).css("color","#cccccc");
+                            //    }
+                            //});
                         }
 
 
