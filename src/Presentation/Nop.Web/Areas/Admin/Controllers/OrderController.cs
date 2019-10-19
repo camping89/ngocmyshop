@@ -4010,9 +4010,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             if (!string.IsNullOrEmpty(orderItemModel.ShelfCode) && orderItemModel.ShelfCode.ToLower().Equals(_localizationService.GetResource("shelf.edit.chooseself"))) orderItemModel.ShelfCode = string.Empty;
 
             //Validate set shelf code
-            if (orderItemModel.ShelfCode.IsNotNullOrEmpty()
-                && orderItemModel.PackageItemProcessedDatetime.IsNullOrEmpty()
-            )
+            if (orderItemModel.ShelfCode.IsNotNullOrEmpty()&& orderItemModel.PackageItemProcessedDatetime.IsNullOrEmpty())
                 return Json(new { errors = _localizationService.GetResource("Admin.OrderVendorCheckout.ValidateAssignShelf") });
 
             var order = _orderService.GetOrderById(orderItemModel.OrderId);
@@ -4148,6 +4146,9 @@ namespace Nop.Web.Areas.Admin.Controllers
 
                         // reassign all other order items of the same customer
                         var unassignedOrderItems = _orderService.GetUnassignedOrderItems(customerId);
+                        unassignedOrderItems = unassignedOrderItems.Where(_ => _.PackageOrder != null 
+                                                                               && _.PackageOrder.PackageName.StartsWith("TAM") == false 
+                                                                               && _.PackageItemProcessedDatetime != null).ToList();
                         foreach (var item in unassignedOrderItems) _orderService.UpdateOrderItem(item);
 
                         shelf.ShippedDate = null;
@@ -4165,7 +4166,15 @@ namespace Nop.Web.Areas.Admin.Controllers
                 }
                 else
                 {
-                    errorStr = "Ngăn không tồn tại.";
+                    if (orderItem.ShelfId.HasValue)
+                    {
+                        var shelfId = orderItem.ShelfId.Value;
+                        orderItem.ShelfId = null;
+                        orderItem.ShelfAssignedDate = null;
+                        _orderService.UpdateOrderItem(orderItem);
+
+                        _shelfService.UpdateShelfTotalAmount(shelfId.ToString());
+                    }
                     return errorStr;
                 }
             }

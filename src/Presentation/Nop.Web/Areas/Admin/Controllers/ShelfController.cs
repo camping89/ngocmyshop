@@ -676,6 +676,12 @@ namespace Nop.Web.Areas.Admin.Controllers
                 var shelf = _shelfService.GetShelfByCode(shelfCode);
                 if (shelf != null)
                 {
+                    //update customer
+                    if (shelf.CustomerId == null || shelf.CustomerId == 0)
+                    {
+                        shelf.CustomerId = shipmentManual.CustomerId;
+                        _shelfService.UpdateShelf(shelf);
+                    }
                     _shelfService.UpdateShelfTotalAmount(shelf.Id.ToString());
                 }
                 _customerActivityService.InsertActivity("DeleteShipmentManual", _localizationService.GetResource("activitylog.DeleteShipmentManual"), shipmentManual.Id);
