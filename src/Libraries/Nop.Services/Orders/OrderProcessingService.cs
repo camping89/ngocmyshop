@@ -84,6 +84,7 @@ namespace Nop.Services.Orders
         private readonly CurrencySettings _currencySettings;
         private readonly ICustomNumberFormatter _customNumberFormatter;
         private readonly IPictureService _pictureService;
+        private readonly IOrderItemProcessingService _orderItemProcessingService;
 
         #endregion
 
@@ -173,7 +174,7 @@ namespace Nop.Services.Orders
             TaxSettings taxSettings,
             LocalizationSettings localizationSettings,
             CurrencySettings currencySettings,
-            ICustomNumberFormatter customNumberFormatter, IShipmentManualService shipmentManualService, IPictureService pictureService)
+            ICustomNumberFormatter customNumberFormatter, IShipmentManualService shipmentManualService, IPictureService pictureService, IOrderItemProcessingService orderItemProcessingService)
         {
             this._orderService = orderService;
             this._webHelper = webHelper;
@@ -219,6 +220,7 @@ namespace Nop.Services.Orders
             this._customNumberFormatter = customNumberFormatter;
             _shipmentManualService = shipmentManualService;
             _pictureService = pictureService;
+            _orderItemProcessingService = orderItemProcessingService;
         }
 
         #endregion
@@ -2291,6 +2293,9 @@ namespace Nop.Services.Orders
                 {
                     orderItem.DeliveryDateUtc = DateTime.UtcNow;
                     _orderService.UpdateOrderItem(orderItem);
+
+                    //Award reward point for customer
+                    _orderItemProcessingService.AwardRewardPoints(orderItem);
                 }
             }
         }
