@@ -98,7 +98,8 @@ namespace Nop.Web.Areas.Admin.Controllers
         private readonly IAddressAttributeFormatter _addressAttributeFormatter;
         private readonly IAffiliateService _affiliateService;
         private readonly IWorkflowMessageService _workflowMessageService;
-        private readonly IRewardPointService _rewardPointService;
+        //private readonly IRewardPointService _rewardPointService;
+        private readonly IRewardPointOrderItemService _rewardPointOrderItemService;
         private readonly IStaticCacheManager _cacheManager;
         private readonly ISettingService _settingService;
         #endregion
@@ -146,8 +147,8 @@ namespace Nop.Web.Areas.Admin.Controllers
             IAddressAttributeFormatter addressAttributeFormatter,
             IAffiliateService affiliateService,
             IWorkflowMessageService workflowMessageService,
-            IRewardPointService rewardPointService,
-            IStaticCacheManager cacheManager, ISettingService settingService)
+            //IRewardPointService rewardPointService,
+            IStaticCacheManager cacheManager, ISettingService settingService, IRewardPointOrderItemService rewardPointOrderItemService)
         {
             this._customerService = customerService;
             this._newsLetterSubscriptionService = newsLetterSubscriptionService;
@@ -190,9 +191,10 @@ namespace Nop.Web.Areas.Admin.Controllers
             this._addressAttributeFormatter = addressAttributeFormatter;
             this._affiliateService = affiliateService;
             this._workflowMessageService = workflowMessageService;
-            this._rewardPointService = rewardPointService;
+            //this._rewardPointService = rewardPointService;
             this._cacheManager = cacheManager;
             _settingService = settingService;
+            _rewardPointOrderItemService = rewardPointOrderItemService;
         }
 
         #endregion
@@ -1808,7 +1810,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             if (customer == null)
                 throw new ArgumentException("No customer found with the specified id");
 
-            var rewardPoints = _rewardPointService.GetRewardPointsHistory(customer.Id, true, true, command.Page - 1, command.PageSize);
+            var rewardPoints = _rewardPointOrderItemService.GetRewardPointsHistory(customer.Id, true, true, command.Page - 1, command.PageSize);
             var gridModel = new DataSourceResult
             {
                 Data = rewardPoints.Select(rph =>
@@ -1841,7 +1843,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             if (customer == null)
                 return Json(new { Result = false });
 
-            _rewardPointService.AddRewardPointsHistoryEntry(customer,
+            _rewardPointOrderItemService.AddRewardPointsHistoryEntry(customer,
                 addRewardPointsValue, storeId, addRewardPointsMessage);
 
             return Json(new { Result = true });
