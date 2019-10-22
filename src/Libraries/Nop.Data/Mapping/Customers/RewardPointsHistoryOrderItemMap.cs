@@ -20,10 +20,9 @@ namespace Nop.Data.Mapping.Customers
             this.HasRequired(rph => rph.Customer)
                 .WithMany()
                 .HasForeignKey(rph => rph.CustomerId);
-
-            this.HasOptional(rph => rph.UsedWithOrderItem)
-                .WithOptionalDependent(o => o.RedeemedRewardPointsOrderItemEntry)
-                .WillCascadeOnDelete(false);
+            this.HasRequired(rph => rph.UsedWithShipmentManual)
+                .WithMany()
+                .HasForeignKey(rph => rph.UsedWithShipmentManualId);
         }
     }
 }

@@ -1,7 +1,7 @@
 using Nop.Core;
 using Nop.Core.Data;
 using Nop.Core.Domain.Customers;
-using Nop.Core.Domain.Orders;
+using Nop.Core.Domain.Shipping;
 using Nop.Services.Events;
 using System;
 using System.Linq;
@@ -129,12 +129,12 @@ namespace Nop.Services.Orders
         /// <param name="points">Number of points to add</param>
         /// <param name="storeId">Store identifier</param>
         /// <param name="message">Message</param>
-        /// <param name="usedWithOrderItem">The order item for which points were redeemed (spent) as a payment</param>
+        /// <param name="usedWithShipmentManual">The order item for which points were redeemed (spent) as a payment</param>
         /// <param name="usedAmount">Used amount</param>
         /// <param name="activatingDate">Date and time of activating reward points; pass null to immediately activating</param>
         /// <returns>Reward points history entry identifier</returns>
         public virtual int AddRewardPointsHistoryEntry(Customer customer, int points, int storeId, string message = "",
-            OrderItem usedWithOrderItem = null, decimal usedAmount = 0M, DateTime? activatingDate = null)
+            ShipmentManual usedWithShipmentManual = null, decimal usedAmount = 0M, DateTime? activatingDate = null)
         {
             if (customer == null)
                 throw new ArgumentNullException(nameof(customer));
@@ -146,7 +146,7 @@ namespace Nop.Services.Orders
             {
                 Customer = customer,
                 StoreId = storeId,
-                UsedWithOrderItem = usedWithOrderItem,
+                UsedWithShipmentManual = usedWithShipmentManual,
                 Points = points,
                 PointsBalance = activatingDate.HasValue ? null : (int?)(GetRewardPointsBalance(customer.Id, storeId) + points),
                 UsedAmount = usedAmount,

@@ -1,4 +1,4 @@
-using Nop.Core.Domain.Orders;
+using Nop.Core.Domain.Shipping;
 using System;
 
 namespace Nop.Core.Domain.Customers
@@ -43,10 +43,11 @@ namespace Nop.Core.Domain.Customers
         /// </summary>
         public DateTime CreatedOnUtc { get; set; }
 
+        public int? UsedWithShipmentManualId { get; set; }
         /// <summary>
         /// Gets or sets the order for which points were redeemed as a payment (spent by a customer when placing this order)
         /// </summary>
-        public virtual OrderItem UsedWithOrderItem { get; set; }
+        public virtual ShipmentManual UsedWithShipmentManual { get; set; }
 
         /// <summary>
         /// Gets or sets the customer
