@@ -153,7 +153,6 @@ namespace Nop.Services.Orders
                 Message = message,
                 CreatedOnUtc = activatingDate ?? DateTime.UtcNow
             };
-
             _rphRepository.Insert(rph);
 
             //event notification
@@ -233,7 +232,14 @@ namespace Nop.Services.Orders
             //event notification
             _eventPublisher.EntityUpdated(rewardPointsHistory);
         }
+        public virtual decimal ConvertRewardPointsToAmount(int rewardPoints)
+        {
+            if (rewardPoints <= 0)
+                return decimal.Zero;
 
+            var result = rewardPoints * _rewardPointsSettings.ExchangeRate;
+            return result;
+        }
         #endregion
     }
 }

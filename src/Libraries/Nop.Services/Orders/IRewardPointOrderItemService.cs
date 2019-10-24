@@ -45,6 +45,7 @@ namespace Nop.Services.Orders
         /// <returns>Balance</returns>
         int GetRewardPointsBalance(int customerId, int storeId);
 
+        decimal ConvertRewardPointsToAmount(int rewardPoints);
         /// <summary>
         /// Gets a reward point history entry
         /// </summary>

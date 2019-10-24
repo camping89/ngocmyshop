@@ -421,7 +421,9 @@
                                                     HasShippingFee: { editable: true, type: "boolean" },
                                                     DepositStr: { editable: false, type: "string" },
                                                     ShelfCode: { editable: false, type: "string" },
-                                                    TotalOrderFee: { editable: false, type: "string" }
+                                                    TotalOrderFee: { editable: false, type: "string" },
+                                                    RedeemedRewardPoints: { editable: false, type: "string" },
+                                                    RedeemedRewardPointAmount: { editable: false, type: "string" }
                                                 }
                                             },
                                             data: "Data",
@@ -583,6 +585,13 @@
                                             title: "@T("Admin.Orders.Shipments.TotalWithoutDeposit")",
                                             width: 100,
                                             editor: noteEditorCustom
+                                        }, {
+                                            field: "RedeemedRewardPointAmount",
+                                            title: "@T("Admin.Orders.Shipments.RedeemedRewardPointAmount")",
+                                            width: 100,
+                                            template: "# if(RedeemedRewardPointAmount !== '0'){#" +
+                                                "<span>#= RedeemedRewardPointAmount #</span><br/><span>@T("Admin.Orders.Shipments.UsedRewardPoints") (#= RedeemedRewardPoints #)</span>" +
+                                                "#}#"
                                         }, {
                                             field: "ShelfCode",
                                             title: "@T("Admin.Orders.Shipments.ShelfCode")",
@@ -1578,7 +1587,8 @@
                 ids = totalIds;
             }
             var postData = {
-                selectedIds: ids
+                selectedIds: ids,
+                usedRewardPoint: $("#usedRewardPoint").is(':checked')
             };
             addAntiForgeryToken(postData);
 
@@ -1610,7 +1620,16 @@
                 <h4 class="modal-title" id="confirm-title">@T("Common.Confirm.SetShipmentDelivered.Title")</h4>
             </div>
             <div class="modal-body">
-                <span>@T("Common.Confirm.SetShipmentDelivered.Message")</span> - <span id="number-shipment-delivered"></span>
+                
+                <form>
+                    <div class="form-group">
+                        <label for="exampleInputEmail1">@T("Common.Confirm.SetShipmentDelivered.Message") - <span id="number-shipment-delivered"></span></label>
+                    </div>
+                    <div class="form-check">
+                        <input type="checkbox" class="form-check-input" id="usedRewardPoint">
+                        <label class="form-check-label" for="usedRewardPoint">@T("Common.Confirm.SetShipmentDelivered.Message")</label>
+                    </div>
+                </form>
             </div>
             <div class="modal-footer">
                 <button type="button" id="deliver-selected-confirm" class="btn btn-primary pull-right">

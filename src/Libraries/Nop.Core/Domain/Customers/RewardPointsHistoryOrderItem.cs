@@ -43,7 +43,6 @@ namespace Nop.Core.Domain.Customers
         /// </summary>
         public DateTime CreatedOnUtc { get; set; }
 
-        public int? UsedWithShipmentManualId { get; set; }
         /// <summary>
         /// Gets or sets the order for which points were redeemed as a payment (spent by a customer when placing this order)
         /// </summary>
