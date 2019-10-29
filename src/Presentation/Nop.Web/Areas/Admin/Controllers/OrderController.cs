@@ -3981,6 +3981,8 @@ namespace Nop.Web.Areas.Admin.Controllers
 
             orderItem.IncludeWeightCost = orderItemModel.IncludeWeightCost;
 
+            orderItemModel.WeightCostDec = orderItemModel.WeightCostDec * orderItemModel.Quantity;
+
             orderItem.UnitPriceInclTax = orderItem.UnitPriceInclTax - orderItem.WeightCost + orderItemModel.WeightCostDec;
             orderItem.UnitPriceExclTax = orderItem.UnitPriceExclTax - orderItem.WeightCost + orderItemModel.WeightCostDec;
             orderItem.PriceInclTax = orderItem.PriceInclTax - orderItem.WeightCost + orderItemModel.WeightCostDec;
