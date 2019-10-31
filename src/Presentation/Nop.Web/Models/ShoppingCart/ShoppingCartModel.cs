@@ -76,7 +76,8 @@ namespace Nop.Web.Models.ShoppingCart
             public decimal UnitPriceDecimal { get; set; }
             public int CurrencyId { get; set; }
             public string Weight { get; set; }
-            public decimal WeightCost { get; set; }
+            //public decimal WeightCost { get; set; }
+            public decimal UnitWeightCost { get; set; }
             public string SubTotal { get; set; }
 
             public string Discount { get; set; }

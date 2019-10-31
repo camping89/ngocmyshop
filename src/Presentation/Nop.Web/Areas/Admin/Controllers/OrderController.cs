@@ -3980,9 +3980,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             if (string.IsNullOrEmpty(orderItemModel.DeliveryDateUtc) == false) orderItem.DeliveryDateUtc = StringExtensions.StringToDateTime(orderItemModel.DeliveryDateUtc);
 
             orderItem.IncludeWeightCost = orderItemModel.IncludeWeightCost;
-
-            orderItemModel.WeightCostDec = orderItemModel.WeightCostDec * orderItemModel.Quantity;
-
+            
             orderItem.UnitPriceInclTax = orderItem.UnitPriceInclTax - orderItem.WeightCost + orderItemModel.WeightCostDec;
             orderItem.UnitPriceExclTax = orderItem.UnitPriceExclTax - orderItem.WeightCost + orderItemModel.WeightCostDec;
             orderItem.PriceInclTax = orderItem.PriceInclTax - orderItem.WeightCost + orderItemModel.WeightCostDec;
