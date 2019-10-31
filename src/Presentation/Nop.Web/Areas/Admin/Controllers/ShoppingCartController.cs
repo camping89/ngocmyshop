@@ -1605,12 +1605,15 @@ namespace Nop.Web.Areas.Admin.Controllers
                         }
                     }
 
+                    
                     if (newPrice != sci.CustomerEnteredPrice || newQuantity != sci.Quantity)
                     {
+                        var weightCost = unitWeightCost * newQuantity;
+
                         var currSciWarnings = _shoppingCartService.UpdateShoppingCartItem(customer,
                             sci.Id, sci.AttributesXml, newPrice,
                             sci.RentalStartDateUtc, sci.RentalEndDateUtc,
-                            newQuantity, true, unitPriceUsd, exchangeRate, orderingFee, saleOffPercent, currencyId, unitWeightCost: unitWeightCost);
+                            newQuantity, true, unitPriceUsd, exchangeRate, orderingFee, saleOffPercent, currencyId,weightCost, unitWeightCost: unitWeightCost);
                         innerWarnings.Add(sci.Id, currSciWarnings);
                     }
                 }

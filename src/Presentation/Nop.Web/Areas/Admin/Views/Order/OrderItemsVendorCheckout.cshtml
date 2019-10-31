@@ -284,7 +284,7 @@
                                         id: "Id",
                                         fields: {
                                             OrderId: { editable: false, type: "number" },
-                                            Quantity: { editable: false, type: "number" },
+                                            Quantity: { editable: true, type: "number" },
                                             PackageId: { editable: false, type: "string" },
                                             AssignedByCustomerId: { editable: true, type: "number" },
                                             CustomerAssignShelfInfo: {
@@ -450,7 +450,8 @@
                                 }, {
                                     field: "Quantity",
                                     title: "@T("Admin.Orders.Products.Quantity")",
-                                    width: 70
+                                    width: 70,
+                                    editor: addExtendCustom
                                 }, {
                                     field: "TotalWithoutWeightCost",
                                     title: "@T("Admin.Orders.Products.TotalWithoutWeightCost")",
@@ -606,12 +607,13 @@
                             //});
 
                             var weightCostElement = $("input[name=WeightCostDec]");
+                            var orderItemQty = parseInt($("input[name=Quantity]").val());
                             $("input[name=ItemWeight]").on('input',
                                 function() {
                                     $('input[name=WeightCostDec]').prop('readonly', false);
                                     var itemWeight = parseFloat($(this).val());
                                     var unitWeightCost = $("input[name=UnitWeightCost]").val();
-                                    var weightCostDec = parseFloat(unitWeightCost) * itemWeight;
+                                    var weightCostDec = parseFloat(unitWeightCost) * itemWeight * orderItemQty;
                                     //need trigger change update data to model
                                     weightCostElement.val(weightCostDec).change();
                                     $('input[name=WeightCostDec]').prop('readonly', true);
@@ -623,7 +625,7 @@
                                     var unitWeightCost = parseFloat($(this).val());
                                     if (unitWeightCost > 0) {
                                         var itemWeight = $("input[name=ItemWeight]").val();
-                                        var weightCostDec = parseFloat(itemWeight) * unitWeightCost;
+                                        var weightCostDec = parseFloat(itemWeight) * unitWeightCost * orderItemQty;
                                         //need trigger change update data to model
                                         weightCostElement.val(weightCostDec).change();
                                     }

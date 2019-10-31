@@ -90,6 +90,9 @@
                                 @T("shoppingcart.itemweightCost")
                             </th>
                             <th class="unit-price">
+                                @T("shoppingcart.weightCost")
+                            </th>
+                            <th class="unit-price">
                                 @T("ShoppingCart.TotalUnitPrice")
                             </th>
                             <th class="quantity">
@@ -200,7 +203,11 @@
                                 <td data-title="@T("shoppingcart.itemweightCost")" class="unit-price">
 
                                     <p>@T("shoppingcart.itemweight"): <strong>@item.Weight</strong></p>
-                                    <input name="itemweightcost@(item.Id)" type="text" data-item-id="@item.Id" value="@(item.WeightCost)" class="weightcost-input-@(item.Id)" />
+                                    <input name="itemweightcost@(item.Id)" type="text" data-item-id="@item.Id" value="@(item.UnitWeightCost)" class="weightcost-input-@(item.Id)" />
+                                </td>
+                                <td data-title="@T("shoppingcart.weightCost")" class="unit-price">
+
+                                    <span class="product-weightcost">@item.WeightCost</span>
                                 </td>
                                 <td data-title="@T("ShoppingCart.TotalUnitPrice")" class="unit-price">
 

@@ -70,7 +70,7 @@ namespace Nop.Core.Domain.Orders
         public double SaleOffPercent { get; set; }
         public int CurrencyId { get; set; }
         public decimal UnitWeightCost { get; set; }
-        //public decimal WeightCost { get; set; }
+        public decimal WeightCost { get; set; }
         /// <summary>
         /// Gets the log type
         /// </summary>

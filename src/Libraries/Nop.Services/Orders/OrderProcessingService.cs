@@ -1312,7 +1312,7 @@ namespace Nop.Services.Orders
                     OrderingFee = sc.OrderingFee,
                     SaleOffPercent = sc.SaleOffPercent,
                     CurrencyId = sc.CurrencyId,
-                    WeightCost = sc.UnitWeightCost * sc.Quantity,
+                    WeightCost = sc.WeightCost,
                     UnitWeightCost = sc.UnitWeightCost
                 };
                 order.OrderItems.Add(orderItem);
@@ -1325,7 +1325,7 @@ namespace Nop.Services.Orders
                 _productService.AdjustInventory(sc.Product, -sc.Quantity, sc.AttributesXml,
                     string.Format(_localizationService.GetResource("Admin.StockQuantityHistory.Messages.PlaceOrder"),
                         order.Id));
-                weightCost += sc.UnitWeightCost * sc.Quantity;
+                weightCost += sc.WeightCost;
             }
 
             order.WeightCost = weightCost;

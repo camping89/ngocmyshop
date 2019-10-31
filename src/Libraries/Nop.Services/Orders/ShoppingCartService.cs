@@ -1105,7 +1105,8 @@ namespace Nop.Services.Orders
                     shoppingCartItem.AttributesXml = attributesXml;
                     shoppingCartItem.Quantity = newQuantity;
                     shoppingCartItem.UpdatedOnUtc = DateTime.UtcNow;
-                    shoppingCartItem.UnitWeightCost = product.WeightCost;
+                    //shoppingCartItem.UnitWeightCost = product.WeightCost;
+                    shoppingCartItem.WeightCost = shoppingCartItem.UnitWeightCost * quantity;
                     shoppingCartItem.OrderingFee = product.OrderingFee;
                     shoppingCartItem.SaleOffPercent = product.SaleOffPercent;
 
@@ -1170,6 +1171,7 @@ namespace Nop.Services.Orders
                         UnitPriceUsd = product.UnitPriceUsd + basePriceAdjustment,
                         ExchangeRate = product.ExchangeRate,
                         UnitWeightCost = product.WeightCost,
+                        WeightCost = product.WeightCost * quantity,
                         OrderingFee = product.OrderingFee,
                         SaleOffPercent = product.SaleOffPercent
                     };
@@ -1250,6 +1252,7 @@ namespace Nop.Services.Orders
                 shoppingCartItem.SaleOffPercent = saleOffPercent;
                 shoppingCartItem.CurrencyId = currencyId;
                 shoppingCartItem.UnitWeightCost = unitWeightCost;
+                shoppingCartItem.WeightCost = weightCost;
                 _customerService.UpdateCustomer(customer);
 
                 //event notification
