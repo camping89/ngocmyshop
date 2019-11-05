@@ -1,5 +1,6 @@
 ﻿using Nop.Core.Domain.Customers;
 using Nop.Core.Domain.Orders;
+using Nop.Core.Extensions;
 using Nop.Services.Localization;
 using System;
 
@@ -23,7 +24,7 @@ namespace Nop.Services.Orders
 
        public void AwardRewardPoints(OrderItem orderItem)
         {
-            var totalForRewardPoints = orderItem.PriceExclTax;
+            var totalForRewardPoints = DecimalExtensions.RoundCustomNoDivide(orderItem.PriceExclTax);
             var points = _orderTotalCalculationService.CalculateRewardPoints(orderItem.Order.Customer, totalForRewardPoints);
             if (points == 0)
                 return;
@@ -50,7 +51,7 @@ namespace Nop.Services.Orders
 
         public void ReduceRewardPoints(OrderItem orderItem)
         {
-            var totalForRewardPoints = orderItem.PriceInclTax;
+            var totalForRewardPoints = DecimalExtensions.RoundCustomNoDivide(orderItem.PriceExclTax);
             var points = _orderTotalCalculationService.CalculateRewardPoints(orderItem.Order.Customer, totalForRewardPoints);
             if (points == 0)
                 return;

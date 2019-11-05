@@ -505,14 +505,22 @@
                                                 cancel: "@T("Admin.Common.Cancel")"
                                             }
                                         },
-                                        {
-                                            name: "destroy",
-                                            text: "@T("Admin.Common.Delete")",
-                                            template: '<a class="btn btn-danger k-button-icontext k-grid-delete" href="" >@T("Admin.Common.Delete")</a>',
-                                            visible: function(dataItem) {
-                                                return dataItem.DeliveryDateUtc == null;
+                                        @{
+                                            if (Model.IsAdmin)
+                                            {
+                                                <text>
+                                                    {
+                                                        name: "destroy",
+                                                        text: "@T("Admin.Common.Delete")",
+                                                        template: '<a class="btn btn-danger k-button-icontext k-grid-delete" href="" >@T("Admin.Common.Delete")</a>',
+                                                        visible: function(dataItem) {
+                                                            return dataItem.DeliveryDateUtc == null;
+                                                        }
+                                                    }
+                                                </text>
                                             }
                                         }
+                                        
                                         @*,
                                                         {
                                                             template: "<a class='k-grid-decreaseIndent btn btn-primary' onclick='showDetails($(this))' ><span class='fa fa-plus'> @T("Admin.Shipments.AddNewShipment")</span></a>"

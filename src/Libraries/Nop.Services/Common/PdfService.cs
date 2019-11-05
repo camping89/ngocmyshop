@@ -2363,19 +2363,54 @@ namespace Nop.Services.Common
             totalsTable.AddCell(new Paragraph(" "));
             totalsTable.AddCell(new Paragraph(" "));
 
-            var orderSubtotalInclTaxStr = _priceFormatter.FormatPrice(totalShipment + shipmentDetails.TotalShippingFee);
-            if (shipmentDetails.HasShippingFee == false)
-            {
-                orderSubtotalInclTaxStr = _priceFormatter.FormatPrice(totalShipment);
-            }
+           
             var fontSub = GetFont();
             fontSub.SetStyle(Font.BOLD);
             fontSub.Size = 12;
+
+            var redeemedRewardPointAmount = 0.0M;
+
+            if (shipmentDetails.RedeemedRewardPointsOrderItemEntry != null)
+            {
+                redeemedRewardPointAmount = shipmentDetails.RedeemedRewardPointsOrderItemEntry.UsedAmount;
+                var reeemedRewardPointAmountStr = _priceFormatter.FormatPrice(redeemedRewardPointAmount);
+                var redeemedRewardPoints = shipmentDetails.RedeemedRewardPointsOrderItemEntry.Points.ToString();
+            
+
+                //Reward Point
+                subCell = GetPdfCell($"{_localizationService.GetResource("PDFPackagingSlip.TotalPointUsed", lang.Id)}", fontSub);
+                subCell.HorizontalAlignment = Element.ALIGN_RIGHT;
+                subCell.Border = Rectangle.NO_BORDER;
+                totalsTable.AddCell(subCell);
+
+                subCell = GetPdfCell($"{redeemedRewardPoints}", fontSub);
+                subCell.HorizontalAlignment = Element.ALIGN_RIGHT;
+                subCell.Border = Rectangle.NO_BORDER;
+                totalsTable.AddCell(subCell);
+
+                //Reward Point Money
+                subCell = GetPdfCell($"{_localizationService.GetResource("PDFPackagingSlip.TotalPointMoneyUsed", lang.Id)}", fontSub);
+                subCell.HorizontalAlignment = Element.ALIGN_RIGHT;
+                subCell.Border = Rectangle.NO_BORDER;
+                totalsTable.AddCell(subCell);
+
+                subCell = GetPdfCell($"{reeemedRewardPointAmountStr}", fontSub);
+                subCell.HorizontalAlignment = Element.ALIGN_RIGHT;
+                subCell.Border = Rectangle.NO_BORDER;
+                totalsTable.AddCell(subCell);
+            }
+
+
             subCell = GetPdfCell($"{_localizationService.GetResource("PDFPackagingSlip.TotalShipment", lang.Id)}", fontSub);
             subCell.HorizontalAlignment = Element.ALIGN_RIGHT;
             subCell.Border = Rectangle.NO_BORDER;
             totalsTable.AddCell(subCell);
 
+            var orderSubtotalInclTaxStr = _priceFormatter.FormatPrice(totalShipment + shipmentDetails.TotalShippingFee - redeemedRewardPointAmount);
+            if (shipmentDetails.HasShippingFee == false)
+            {
+                orderSubtotalInclTaxStr = _priceFormatter.FormatPrice(totalShipment - redeemedRewardPointAmount);
+            }
             subCell = GetPdfCell($"{orderSubtotalInclTaxStr}", fontSub);
             subCell.HorizontalAlignment = Element.ALIGN_RIGHT;
             subCell.Border = Rectangle.NO_BORDER;

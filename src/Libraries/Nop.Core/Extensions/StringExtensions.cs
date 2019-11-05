@@ -40,6 +40,29 @@ namespace Nop.Core.Extensions
 
             return convert;
         }
+        public static decimal RoundCustomNoDivide(decimal convert)
+        {
+            convert = convert > 0 ? convert / 1000 : 0;
+            decimal below = Math.Floor(convert);
+
+            var remainder = convert - below;
+
+            if (0.0m < remainder && remainder <= 0.5m)
+            {
+
+                //convert = below + 0.5m;
+                convert = below;
+
+            }
+            if (remainder > 0.5m)
+            {
+
+                convert = below + 1.0m;
+
+            }
+
+            return convert > 0 ? convert * 1000 : 0;
+        }
     }
 
     public static class StringExtensions

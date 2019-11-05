@@ -6302,6 +6302,8 @@ namespace Nop.Web.Areas.Admin.Controllers
             model.AvailableOrderStatus = OrderItemStatus.Available.ToSelectList(false).ToList();
             model.AvailableOrderStatus.Insert(0, new SelectListItem { Text = _localizationService.GetResource("Admin.Common.All"), Value = "-1", Selected = true });
 
+            model.IsAdmin = _workContext.CurrentCustomer.IsAdmin();
+
             return View(model);
         }
 
