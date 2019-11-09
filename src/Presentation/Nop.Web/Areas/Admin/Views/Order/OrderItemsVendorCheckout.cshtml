@@ -465,13 +465,13 @@
                                         "#} else {#" +
                                         "<p>@(T("orderitem.includeweightcost.false"))</p>" +
                                         "# } #",
-                                    editor: addExtendCustom
+                                    //editor: addExtendCustom
                                 }, {
                                     field: "UnitWeightCost",
                                     title: "@T("Admin.Orders.Products.UnitWeightCost")",
                                     width: 70,
                                     //hidden: true,
-                                    editor: addExtendCustom
+                                    //editor: addExtendCustom
                                 }, {
                                     field: "ItemWeight",
                                     title: "@T("Admin.Orders.Products.ItemWeight")",
@@ -638,6 +638,15 @@
                                         weightCostElement.val(weightCostDec).change();
                                     }
                                     $('input[name=WeightCostDec]').prop('readonly', true);
+                                });
+
+                            $("input[name=WeightCostDec]").on('input',
+                                function () {
+                                    $('input[name=UnitWeightCost]').prop('readonly', false);
+                                    $("input[name=ItemWeight]").prop('readonly', false);
+
+                                    $('input[name=UnitWeightCost]').val(0).change();
+                                    
                                 });
 
                         }
