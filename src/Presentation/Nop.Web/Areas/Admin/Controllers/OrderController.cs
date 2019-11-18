@@ -4010,7 +4010,9 @@ namespace Nop.Web.Areas.Admin.Controllers
             if (!string.IsNullOrEmpty(orderItemModel.ShelfCode) && orderItemModel.ShelfCode.ToLower().Equals(_localizationService.GetResource("shelf.edit.chooseself"))) orderItemModel.ShelfCode = string.Empty;
 
             //Validate set shelf code
-            if (orderItemModel.ShelfCode.IsNotNullOrEmpty()&& orderItemModel.PackageItemProcessedDatetime.IsNullOrEmpty())
+            if (orderItemModel.ShelfCode.IsNotNullOrEmpty()
+                && orderItemModel.PackageItemProcessedDatetime.IsNullOrEmpty() 
+                && orderItemModel.WeightCostDec == 0)
                 return Json(new { errors = _localizationService.GetResource("Admin.OrderVendorCheckout.ValidateAssignShelf") });
 
             var order = _orderService.GetOrderById(orderItemModel.OrderId);
@@ -4148,8 +4150,13 @@ namespace Nop.Web.Areas.Admin.Controllers
                         var unassignedOrderItems = _orderService.GetUnassignedOrderItems(customerId);
                         unassignedOrderItems = unassignedOrderItems.Where(_ => _.PackageOrder != null 
                                                                                && _.PackageOrder.PackageName.StartsWith("TAM") == false 
-                                                                               && _.PackageItemProcessedDatetime != null).ToList();
-                        foreach (var item in unassignedOrderItems) _orderService.UpdateOrderItem(item);
+                                                                               && _.PackageItemProcessedDatetime != null && _.WeightCost > 0).ToList();
+                        foreach (var item in unassignedOrderItems)
+                        {
+                            item.ShelfId = shelf.Id;
+                            item.ShelfAssignedDate = DateTime.UtcNow;
+                            _orderService.UpdateOrderItem(item);
+                        }
 
                         shelf.ShippedDate = null;
 
@@ -6296,6 +6303,8 @@ namespace Nop.Web.Areas.Admin.Controllers
                 hasShelf: model.HasShelf, orderItemStatusId: model.OrderItemStatusId,
                 isPackageItemProcessedDatetime: model.IsPackageItemProcessedDatetime, isOrderCheckout: model.IsOrderCheckout, isWeightCostZero: model.IsWeightCostZero, productSku: model.ProductSku);
 
+            var primaryCurrency = _currencyService.GetCurrencyById(_currencySettings.PrimaryStoreCurrencyId, false);
+
             var vendors = _vendorService.GetAllVendors();
             var gridModel = new DataSourceResult
             {
@@ -6319,7 +6328,10 @@ namespace Nop.Web.Areas.Admin.Controllers
                     }
 
                     var currencyProduct = _currencyService.GetCurrencyById(orderItem.Product.CurrencyId);
-
+                    if (currencyProduct == null)
+                    {
+                        currencyProduct = primaryCurrency;
+                    }
                     orderItem.PriceInclTax = DecimalExtensions.RoundCustom(orderItem.PriceInclTax / 1000) * 1000;
 
                     var orderItemModel = new OrderItemExportVendorModelBasic
