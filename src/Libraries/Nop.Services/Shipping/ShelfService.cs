@@ -101,9 +101,11 @@ namespace Nop.Services.Shipping
 
             if (assignedOrderItemFromUtc != null && assignedOrderItemToUtc != null)
             {
-                query = query.Where(shelf => shelf.OrderItems.Any(oi =>
-                                                 (oi.ShelfAssignedDate >= assignedOrderItemFromUtc && oi.ShelfAssignedDate <= assignedOrderItemToUtc)
-                                                && oi.DeliveryDateUtc != null));
+                //query = query.Where(shelf => shelf.OrderItems.Any(oi =>
+                //                                 (oi.ShelfAssignedDate >= assignedOrderItemFromUtc && oi.ShelfAssignedDate <= assignedOrderItemToUtc)
+                //                                && oi.DeliveryDateUtc != null));
+
+                query = query.Where(shelf => shelf.AssignedDate != null && shelf.AssignedDate >= assignedOrderItemFromUtc && shelf.AssignedDate <= assignedOrderItemToUtc);
             }
 
             query = isAscSortedAssignedDate ? query.Where(_ => _.AssignedDate != null).OrderBy(_ => _.AssignedDate) : query.OrderBy(_ => _.ShelfCode);

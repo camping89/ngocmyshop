@@ -4012,7 +4012,7 @@ namespace Nop.Web.Areas.Admin.Controllers
 
 
         [HttpPost]
-        public virtual IActionResult UpdateOrderItemChekcout(OrderModel.OrderItemModelBasic orderItemModel)
+        public virtual IActionResult UpdateOrderItemCheckout(OrderModel.OrderItemModelBasic orderItemModel)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageOrders))
                 return AccessDeniedView();

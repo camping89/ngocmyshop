@@ -24,10 +24,11 @@ namespace Nop.Services.Orders
 
        public void AwardRewardPoints(OrderItem orderItem)
         {
-            var totalForRewardPoints = DecimalExtensions.RoundCustomNoDivide(orderItem.PriceExclTax);
-            var points = _orderTotalCalculationService.CalculateRewardPoints(orderItem.Order.Customer, totalForRewardPoints);
-            if (points == 0)
-                return;
+            //var totalForRewardPoints = DecimalExtensions.RoundCustomNoDivide(orderItem.PriceExclTax);
+            //One orderitem add 1 point.
+            var points = 1;//_orderTotalCalculationService.CalculateRewardPoints(orderItem.Order.Customer, totalForRewardPoints);
+            //if (points == 0)
+            //    return;
 
             //Ensure that reward points were not added (earned) before. We should not add reward points if they were already earned for this order
             if (orderItem.RewardPointsHistoryEntryId.HasValue)
