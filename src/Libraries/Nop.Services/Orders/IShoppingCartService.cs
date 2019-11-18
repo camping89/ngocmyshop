@@ -1,8 +1,8 @@
-using System;
-using System.Collections.Generic;
 using Nop.Core.Domain.Catalog;
 using Nop.Core.Domain.Customers;
 using Nop.Core.Domain.Orders;
+using System;
+using System.Collections.Generic;
 
 namespace Nop.Services.Orders
 {
@@ -191,7 +191,7 @@ namespace Nop.Services.Orders
             decimal customerEnteredPrice,
             DateTime? rentalStartDate = null, DateTime? rentalEndDate = null,
             int quantity = 1, bool resetCheckoutData = true,
-            decimal unitPriceUsd = 0, decimal exchangeRate = 0, decimal orderingFee = 0, double saleOffPercent = 0,int currencyId = 0,decimal weightCost = 0 );
+            decimal unitPriceUsd = 0, decimal exchangeRate = 0, decimal orderingFee = 0, double saleOffPercent = 0,int currencyId = 0,decimal weightCost = 0, decimal unitWeightCost = 0 );
         
         /// <summary>
         /// Migrate shopping cart

@@ -94,6 +94,14 @@ namespace Nop.Web.Areas.Admin.Models.Orders
         public string ShelfCode { get; set; }
 
 
+        [NopResourceDisplayName("Admin.Orders.Shipments.RedeemedRewardPoints")]
+        public string RedeemedRewardPoints { get; set; }
+
+
+        [NopResourceDisplayName("Admin.Orders.Shipments.RedeemedRewardPoints")]
+        public string RedeemedRewardPointAmount { get; set; }
+
+
         [NopResourceDisplayName("Admin.Orders.Fields.ShippingAddress")]
         public AddressModel ShippingAddress { get; set; }
 

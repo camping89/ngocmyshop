@@ -247,7 +247,8 @@ namespace Nop.Web.Areas.Admin.Controllers
                     _workContext.WorkingLanguage, true, true),
                 PackageOrderCode = orderItem.PackageOrder?.PackageCode,
                 AssignedShelfDate = orderItem.ShelfAssignedDate,
-                PrimaryStoreCurrencyCode = primaryStoreCurrency.CurrencyCode
+                PrimaryStoreCurrencyCode = primaryStoreCurrency.CurrencyCode,
+                Note = orderItem.Note
             };
             var vendor = _vendorService.GetVendorById(orderItem.Product.VendorId);
             if (vendor != null)

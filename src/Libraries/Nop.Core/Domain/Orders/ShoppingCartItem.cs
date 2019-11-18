@@ -1,6 +1,6 @@
-using System;
 using Nop.Core.Domain.Catalog;
 using Nop.Core.Domain.Customers;
+using System;
 
 namespace Nop.Core.Domain.Orders
 {
@@ -69,6 +69,7 @@ namespace Nop.Core.Domain.Orders
         public decimal OrderingFee { get; set; }
         public double SaleOffPercent { get; set; }
         public int CurrencyId { get; set; }
+        public decimal UnitWeightCost { get; set; }
         public decimal WeightCost { get; set; }
         /// <summary>
         /// Gets the log type

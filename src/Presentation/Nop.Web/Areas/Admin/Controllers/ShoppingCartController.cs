@@ -1565,7 +1565,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                     decimal orderingFee = sci.OrderingFee;
                     double saleOffPercent = sci.SaleOffPercent;
                     int currencyId = sci.CurrencyId;
-                    decimal weightCost = sci.WeightCost;
+                    decimal unitWeightCost = sci.UnitWeightCost;
                     foreach (var formKey in form.Keys)
                     {
 
@@ -1601,16 +1601,19 @@ namespace Nop.Web.Areas.Admin.Controllers
                         }
                         if (formKey.Equals($"itemweightcost{sci.Id}", StringComparison.InvariantCultureIgnoreCase))
                         {
-                            decimal.TryParse(form[formKey], out weightCost);
+                            decimal.TryParse(form[formKey], out unitWeightCost);
                         }
                     }
 
+                    
                     if (newPrice != sci.CustomerEnteredPrice || newQuantity != sci.Quantity)
                     {
+                        var weightCost = unitWeightCost * newQuantity;
+
                         var currSciWarnings = _shoppingCartService.UpdateShoppingCartItem(customer,
                             sci.Id, sci.AttributesXml, newPrice,
                             sci.RentalStartDateUtc, sci.RentalEndDateUtc,
-                            newQuantity, true, unitPriceUsd, exchangeRate, orderingFee, saleOffPercent, currencyId, weightCost);
+                            newQuantity, true, unitPriceUsd, exchangeRate, orderingFee, saleOffPercent, currencyId,weightCost, unitWeightCost: unitWeightCost);
                         innerWarnings.Add(sci.Id, currSciWarnings);
                     }
                 }

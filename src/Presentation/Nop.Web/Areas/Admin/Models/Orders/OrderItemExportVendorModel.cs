@@ -117,7 +117,7 @@ namespace Nop.Web.Areas.Admin.Models.Orders
         [NopResourceDisplayName("Admin.Orders.List.IsWeightCostZero")]
         public bool IsWeightCostZero { get; set; }
 
-
+        public bool IsAdmin { get; set; }
     }
 
     public class OrderItemExportVendorModelBasic : BaseNopEntityModel// : OrderModel.OrderItemModel

@@ -364,6 +364,7 @@ namespace Nop.Web.Factories
                 SaleOffPercent = sci.SaleOffPercent,
                 OrderingFee = sci.OrderingFee,
                 CurrencyId = sci.CurrencyId,
+                UnitWeightCost = sci.UnitWeightCost,
                 WeightCost = sci.WeightCost,
                 Weight = float.Parse(sci.Product.Weight.ToString(CultureInfo.InvariantCulture)) + (string.IsNullOrEmpty(baseWeight) ? string.Empty : $" {baseWeight}")
             };

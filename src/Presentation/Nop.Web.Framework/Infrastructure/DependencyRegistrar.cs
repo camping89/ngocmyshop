@@ -184,9 +184,11 @@ namespace Nop.Web.Framework.Infrastructure
             builder.RegisterType<PackageOrderService>().As<IPackageOrderService>().InstancePerLifetimeScope();
             builder.RegisterType<OrderReportService>().As<IOrderReportService>().InstancePerLifetimeScope();
             builder.RegisterType<OrderProcessingService>().As<IOrderProcessingService>().InstancePerLifetimeScope();
+            builder.RegisterType<OrderItemProcessingService>().As<IOrderItemProcessingService>().InstancePerLifetimeScope();
             builder.RegisterType<OrderTotalCalculationService>().As<IOrderTotalCalculationService>().InstancePerLifetimeScope();
             builder.RegisterType<ReturnRequestService>().As<IReturnRequestService>().InstancePerLifetimeScope();
             builder.RegisterType<RewardPointService>().As<IRewardPointService>().InstancePerLifetimeScope();
+            builder.RegisterType<RewardPointOrderItemService>().As<IRewardPointOrderItemService>().InstancePerLifetimeScope();
             builder.RegisterType<ShoppingCartService>().As<IShoppingCartService>().InstancePerLifetimeScope();
             builder.RegisterType<CustomNumberFormatter>().As<ICustomNumberFormatter>().InstancePerLifetimeScope();
             builder.RegisterType<PaymentService>().As<IPaymentService>().InstancePerLifetimeScope();

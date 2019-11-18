@@ -110,7 +110,9 @@ namespace Nop.Web.Areas.Admin.Controllers
             TaxSettings taxSettings,
             MeasureSettings measureSettings,
             AddressSettings addressSettings,
-            ShippingSettings shippingSettings, VendorSettings vendorSettings, ICustomerService customerService, IShoppingCartModelFactory shoppingCartModelFactory, IStoreContext storeContext, IPackageOrderService packageOrderService, ICommonModelFactory commonModelFactory, MediaSettings mediaSettings, IWebHelper webHelper, IShelfService shelfService, IShipmentManualService shipmentManualService)
+            ShippingSettings shippingSettings, VendorSettings vendorSettings, ICustomerService customerService, IShoppingCartModelFactory shoppingCartModelFactory, IStoreContext storeContext, IPackageOrderService packageOrderService, ICommonModelFactory commonModelFactory, MediaSettings mediaSettings, IWebHelper webHelper, IShelfService shelfService,
+            IShipmentManualService shipmentManualService,
+            IRewardPointOrderItemService rewardPointOrderItemService)
         {
             _orderService = orderService;
             _orderReportService = orderReportService;
@@ -170,6 +172,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             _webHelper = webHelper;
             _shelfService = shelfService;
             _shipmentManualService = shipmentManualService;
+            _rewardPointOrderItemService = rewardPointOrderItemService;
         }
 
         #endregion
@@ -211,6 +214,7 @@ namespace Nop.Web.Areas.Admin.Controllers
         private readonly IShipmentService _shipmentService;
         private readonly IShipmentManualService _shipmentManualService;
         private readonly IShippingService _shippingService;
+        private readonly IRewardPointOrderItemService _rewardPointOrderItemService;
         private readonly IStoreService _storeService;
         private readonly IVendorService _vendorService;
         private readonly IAddressAttributeParser _addressAttributeParser;
@@ -1468,6 +1472,8 @@ namespace Nop.Web.Areas.Admin.Controllers
 
 
             var customerAddress = shipment.Customer.Addresses.OrderByDescending(_ => _.CreatedOnUtc).FirstOrDefault();
+            
+            var redeemedRewardPointAmount = shipment.RedeemedRewardPointsOrderItemEntry != null ? shipment.RedeemedRewardPointsOrderItemEntry.UsedAmount : 0;
 
             var model = new ShipmentManualModel
             {
@@ -1507,7 +1513,10 @@ namespace Nop.Web.Areas.Admin.Controllers
 
                 HasShippingFee = shipment.HasShippingFee,
                 ShelfCode = shipment.ShelfCode,
-                AllowDelete = !shipment.DeliveryDateUtc.HasValue
+                AllowDelete = !shipment.DeliveryDateUtc.HasValue,
+
+                RedeemedRewardPoints = shipment.RedeemedRewardPointsOrderItemEntry != null ? shipment.RedeemedRewardPointsOrderItemEntry.Points.ToString() : "0",
+                RedeemedRewardPointAmount = _priceFormatter.FormatPrice(redeemedRewardPointAmount)
             };
 
             var customerOrder = shipment.Customer;
@@ -1544,7 +1553,7 @@ namespace Nop.Web.Areas.Admin.Controllers
 
             model.TotalOrderFee = _priceFormatter.FormatPrice(shipment.Total, true, primaryStoreCurrency,
                 _workContext.WorkingLanguage, true, false);
-            model.TotalWithoutDeposit = _priceFormatter.FormatPrice(shipment.Total - shipment.Deposit, true, primaryStoreCurrency,
+            model.TotalWithoutDeposit = _priceFormatter.FormatPrice(shipment.Total - (shipment.Deposit + redeemedRewardPointAmount), true, primaryStoreCurrency,
                 _workContext.WorkingLanguage, true, false);
             model.TotalOrderFeeDecimal = shipment.Total;
 
@@ -3971,7 +3980,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             if (string.IsNullOrEmpty(orderItemModel.DeliveryDateUtc) == false) orderItem.DeliveryDateUtc = StringExtensions.StringToDateTime(orderItemModel.DeliveryDateUtc);
 
             orderItem.IncludeWeightCost = orderItemModel.IncludeWeightCost;
-
+            
             orderItem.UnitPriceInclTax = orderItem.UnitPriceInclTax - orderItem.WeightCost + orderItemModel.WeightCostDec;
             orderItem.UnitPriceExclTax = orderItem.UnitPriceExclTax - orderItem.WeightCost + orderItemModel.WeightCostDec;
             orderItem.PriceInclTax = orderItem.PriceInclTax - orderItem.WeightCost + orderItemModel.WeightCostDec;
@@ -5456,7 +5465,7 @@ namespace Nop.Web.Areas.Admin.Controllers
         // TODO: we need to create a flag for an orderitem with shipment, hasNotCompleteShipment = true => indicate that the orderItem is locked but still at the shelf
         // => to check emtpty shelf (by shelfcode), we get "active" order items with delivery date = null and item hasn't complete shipment
         [HttpPost]
-        public virtual IActionResult SetAsDeliveredManualSelected(ICollection<int> selectedIds)
+        public virtual IActionResult SetAsDeliveredManualSelected(ICollection<int> selectedIds, bool usedRewardPoint = false)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageOrders))
                 return AccessDeniedView();
@@ -5472,6 +5481,19 @@ namespace Nop.Web.Areas.Admin.Controllers
                 if (!shipment.ShippedDateUtc.HasValue)
                     shipment.ShippedDateUtc = DateTime.Now;
 
+                var redeemedRewardPoints = _rewardPointOrderItemService.GetRewardPointsBalance(shipment.CustomerId, _storeContext.CurrentStore.Id);
+                //used redeemedRewardPoints for shipment
+                if (usedRewardPoint && redeemedRewardPoints > 0)
+                {
+                    var rewardPointsAmount = _rewardPointOrderItemService.ConvertRewardPointsToAmount(redeemedRewardPoints);
+
+                   var rewardPointOrderItemId =  _rewardPointOrderItemService.AddRewardPointsHistoryEntry(shipment.Customer, -redeemedRewardPoints, _storeContext.CurrentStore.Id,
+                        string.Format(_localizationService.GetResource("RewardPoints.Message.RedeemedForShipment", _workContext.WorkingLanguage.Id), shipment.Id),
+                        shipment, rewardPointsAmount);
+
+                   shipment.UsedRewardPointOrderItemId = rewardPointOrderItemId;
+                }
+
                 _orderProcessingService.SetShipmentManualDelivered(shipment, true);
             }
 
@@ -5484,6 +5506,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 else //Update total Shelf
                     _shelfService.UpdateShelfTotalAmount(shelfCode);
             }
+
 
             return Json(new { Result = true });
         }
@@ -6285,6 +6308,8 @@ namespace Nop.Web.Areas.Admin.Controllers
             model.OrderItemStatusId = -1;
             model.AvailableOrderStatus = OrderItemStatus.Available.ToSelectList(false).ToList();
             model.AvailableOrderStatus.Insert(0, new SelectListItem { Text = _localizationService.GetResource("Admin.Common.All"), Value = "-1", Selected = true });
+
+            model.IsAdmin = _workContext.CurrentCustomer.IsAdmin();
 
             return View(model);
         }

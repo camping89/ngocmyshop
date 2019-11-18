@@ -69,6 +69,12 @@ namespace Nop.Core.Domain.Shipping
         public int? ShippingAddressId { get; set; }
         public decimal Deposit { get; set; }
         public virtual Address ShippingAddress { get; set; }
+        
+        public int? UsedRewardPointOrderItemId { get; set; }
+        /// <summary>
+        /// Gets or sets the reward points history record (spent by a customer when order item shipped.)
+        /// </summary>
+        public virtual RewardPointsHistoryOrderItem RedeemedRewardPointsOrderItemEntry { get; set; }
 
         /// <summary>
         /// Gets or sets the shipment items

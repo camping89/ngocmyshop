@@ -284,7 +284,7 @@
                                         id: "Id",
                                         fields: {
                                             OrderId: { editable: false, type: "number" },
-                                            Quantity: { editable: false, type: "number" },
+                                            Quantity: { editable: true, type: "number" },
                                             PackageId: { editable: false, type: "string" },
                                             AssignedByCustomerId: { editable: true, type: "number" },
                                             CustomerAssignShelfInfo: {
@@ -450,7 +450,8 @@
                                 }, {
                                     field: "Quantity",
                                     title: "@T("Admin.Orders.Products.Quantity")",
-                                    width: 70
+                                    width: 70,
+                                    editor: addExtendCustom
                                 }, {
                                     field: "TotalWithoutWeightCost",
                                     title: "@T("Admin.Orders.Products.TotalWithoutWeightCost")",
@@ -464,13 +465,13 @@
                                         "#} else {#" +
                                         "<p>@(T("orderitem.includeweightcost.false"))</p>" +
                                         "# } #",
-                                    editor: addExtendCustom
+                                    //editor: addExtendCustom
                                 }, {
                                     field: "UnitWeightCost",
                                     title: "@T("Admin.Orders.Products.UnitWeightCost")",
                                     width: 70,
                                     //hidden: true,
-                                    editor: addExtendCustom
+                                    //editor: addExtendCustom
                                 }, {
                                     field: "ItemWeight",
                                     title: "@T("Admin.Orders.Products.ItemWeight")",
@@ -504,14 +505,22 @@
                                                 cancel: "@T("Admin.Common.Cancel")"
                                             }
                                         },
-                                        {
-                                            name: "destroy",
-                                            text: "@T("Admin.Common.Delete")",
-                                            template: '<a class="btn btn-danger k-button-icontext k-grid-delete" href="" >@T("Admin.Common.Delete")</a>',
-                                            visible: function(dataItem) {
-                                                return dataItem.DeliveryDateUtc == null;
+                                        @{
+                                            if (Model.IsAdmin)
+                                            {
+                                                <text>
+                                                    {
+                                                        name: "destroy",
+                                                        text: "@T("Admin.Common.Delete")",
+                                                        template: '<a class="btn btn-danger k-button-icontext k-grid-delete" href="" >@T("Admin.Common.Delete")</a>',
+                                                        visible: function(dataItem) {
+                                                            return dataItem.DeliveryDateUtc == null;
+                                                        }
+                                                    }
+                                                </text>
                                             }
                                         }
+                                        
                                         @*,
                                                         {
                                                             template: "<a class='k-grid-decreaseIndent btn btn-primary' onclick='showDetails($(this))' ><span class='fa fa-plus'> @T("Admin.Shipments.AddNewShipment")</span></a>"
@@ -606,12 +615,13 @@
                             //});
 
                             var weightCostElement = $("input[name=WeightCostDec]");
+                            var orderItemQty = parseInt($("input[name=Quantity]").val());
                             $("input[name=ItemWeight]").on('input',
                                 function() {
                                     $('input[name=WeightCostDec]').prop('readonly', false);
                                     var itemWeight = parseFloat($(this).val());
                                     var unitWeightCost = $("input[name=UnitWeightCost]").val();
-                                    var weightCostDec = parseFloat(unitWeightCost) * itemWeight;
+                                    var weightCostDec = parseFloat(unitWeightCost) * itemWeight * orderItemQty;
                                     //need trigger change update data to model
                                     weightCostElement.val(weightCostDec).change();
                                     $('input[name=WeightCostDec]').prop('readonly', true);
@@ -623,11 +633,20 @@
                                     var unitWeightCost = parseFloat($(this).val());
                                     if (unitWeightCost > 0) {
                                         var itemWeight = $("input[name=ItemWeight]").val();
-                                        var weightCostDec = parseFloat(itemWeight) * unitWeightCost;
+                                        var weightCostDec = parseFloat(itemWeight) * unitWeightCost * orderItemQty;
                                         //need trigger change update data to model
                                         weightCostElement.val(weightCostDec).change();
                                     }
                                     $('input[name=WeightCostDec]').prop('readonly', true);
+                                });
+
+                            $("input[name=WeightCostDec]").on('input',
+                                function () {
+                                    $('input[name=UnitWeightCost]').prop('readonly', false);
+                                    $("input[name=ItemWeight]").prop('readonly', false);
+
+                                    $('input[name=UnitWeightCost]').val(0).change();
+                                    
                                 });
 
                         }

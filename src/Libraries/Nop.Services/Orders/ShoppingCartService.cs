@@ -1105,7 +1105,8 @@ namespace Nop.Services.Orders
                     shoppingCartItem.AttributesXml = attributesXml;
                     shoppingCartItem.Quantity = newQuantity;
                     shoppingCartItem.UpdatedOnUtc = DateTime.UtcNow;
-                    shoppingCartItem.WeightCost = product.WeightCost;
+                    //shoppingCartItem.UnitWeightCost = product.WeightCost;
+                    shoppingCartItem.WeightCost = shoppingCartItem.UnitWeightCost * quantity;
                     shoppingCartItem.OrderingFee = product.OrderingFee;
                     shoppingCartItem.SaleOffPercent = product.SaleOffPercent;
 
@@ -1169,7 +1170,8 @@ namespace Nop.Services.Orders
                         CurrencyId = product.CurrencyId,
                         UnitPriceUsd = product.UnitPriceUsd + basePriceAdjustment,
                         ExchangeRate = product.ExchangeRate,
-                        WeightCost = product.WeightCost,
+                        UnitWeightCost = product.WeightCost,
+                        WeightCost = product.WeightCost * quantity,
                         OrderingFee = product.OrderingFee,
                         SaleOffPercent = product.SaleOffPercent
                     };
@@ -1211,7 +1213,7 @@ namespace Nop.Services.Orders
             decimal customerEnteredPrice,
             DateTime? rentalStartDate = null, DateTime? rentalEndDate = null,
             int quantity = 1, bool resetCheckoutData = true,
-            decimal unitPriceUsd = 0, decimal exchangeRate = 0, decimal orderingFee = 0, double saleOffPercent = 0, int currencyId = 0, decimal weightCost = 0)
+            decimal unitPriceUsd = 0, decimal exchangeRate = 0, decimal orderingFee = 0, double saleOffPercent = 0, int currencyId = 0, decimal weightCost = 0, decimal unitWeightCost = 0)
         {
             if (customer == null)
                 throw new ArgumentNullException(nameof(customer));
@@ -1249,6 +1251,7 @@ namespace Nop.Services.Orders
                 shoppingCartItem.OrderingFee = orderingFee;
                 shoppingCartItem.SaleOffPercent = saleOffPercent;
                 shoppingCartItem.CurrencyId = currencyId;
+                shoppingCartItem.UnitWeightCost = unitWeightCost;
                 shoppingCartItem.WeightCost = weightCost;
                 _customerService.UpdateCustomer(customer);
 

@@ -148,7 +148,7 @@ namespace Nop.Core.Domain.Orders
 
         public DateTime? ShelfAssignedDate { get; set; }
 
-
+        public int? RewardPointsHistoryEntryId { get; set; }
 
         /// <summary>
         /// Gets the order
@@ -159,6 +159,11 @@ namespace Nop.Core.Domain.Orders
         /// Gets the product
         /// </summary>
         public virtual Product Product { get; set; }
+
+        /// <summary>
+        /// Gets or sets the reward points history record (spent by a customer when order item shipped.)
+        /// </summary>
+        public virtual RewardPointsHistoryOrderItem RedeemedRewardPointsOrderItemEntry { get; set; }
 
         public OrderItemStatus OrderItemStatus
         {
