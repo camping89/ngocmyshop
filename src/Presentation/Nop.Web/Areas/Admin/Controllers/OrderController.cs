@@ -4020,9 +4020,11 @@ namespace Nop.Web.Areas.Admin.Controllers
 
             //Validate set shelf code
             if (orderItemModel.ShelfCode.IsNotNullOrEmpty()
-                && orderItemModel.PackageItemProcessedDatetime.IsNullOrEmpty() 
-                && orderItemModel.WeightCostDec == 0)
+                && orderItemModel.PackageItemProcessedDatetime.IsNullOrEmpty())
                 return Json(new { errors = _localizationService.GetResource("Admin.OrderVendorCheckout.ValidateAssignShelf") });
+
+            if (orderItemModel.WeightCostDec == 0)
+                return Json(new { errors = _localizationService.GetResource("Admin.OrderVendorCheckout.ValidateWeightCost") });
 
             var order = _orderService.GetOrderById(orderItemModel.OrderId);
             if (order == null)
@@ -6376,7 +6378,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                         PackageOrderId = orderItem.PackageOrderId ?? 0,
                         EstimatedTimeArrival = orderItem.EstimatedTimeArrival,
                         PackageItemProcessedDatetime = orderItem.PackageItemProcessedDatetime,
-                        UnitWeightCost = orderItem.UnitWeightCost ?? (currencyProduct != null ? currencyProduct.UnitWeightCost : 0),
+                        UnitWeightCost = (orderItem.UnitWeightCost == null || orderItem.UnitWeightCost == 0 ) ? (currencyProduct != null ? currencyProduct.UnitWeightCost : 0) : orderItem.UnitWeightCost.Value,
                         IsOrderCheckout = orderItem.IsOrderCheckout,
                         ItemWeight = orderItem.ItemWeight ?? 0,
                         CustomerInfo = customerInfo,
