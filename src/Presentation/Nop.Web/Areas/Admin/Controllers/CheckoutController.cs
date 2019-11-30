@@ -213,38 +213,38 @@ namespace Nop.Web.Areas.Admin.Controllers
 
         public virtual IActionResult Completed(int? orderId, int customerId)
         {
-            return RedirectToAction("List", "Order");
-            //var customer = _customerService.GetCustomerById(customerId);
-            ////validation
-            //if (customer.IsGuest() && !_orderSettings.AnonymousCheckoutAllowed)
-            //    return Challenge();
+            //return RedirectToAction("List", "Order");
+            var customer = _customerService.GetCustomerById(customerId);
+            //validation
+            if (customer.IsGuest() && !_orderSettings.AnonymousCheckoutAllowed)
+                return Challenge();
 
-            //Order order = null;
-            //if (orderId.HasValue)
-            //{
-            //    //load order by identifier (if provided)
-            //    order = _orderService.GetOrderById(orderId.Value);
-            //}
-            //if (order == null)
-            //{
-            //    order = _orderService.SearchOrders(storeId: _storeContext.CurrentStore.Id,
-            //    customerId: customer.Id, pageSize: 1)
-            //        .FirstOrDefault();
-            //}
-            //if (order == null || order.Deleted || customer.Id != order.CustomerId)
-            //{
-            //    return RedirectToAction("Index","Order");
-            //}
+            Order order = null;
+            if (orderId.HasValue)
+            {
+                //load order by identifier (if provided)
+                order = _orderService.GetOrderById(orderId.Value);
+            }
+            if (order == null)
+            {
+                order = _orderService.SearchOrders(storeId: _storeContext.CurrentStore.Id,
+                customerId: customer.Id, pageSize: 1)
+                    .FirstOrDefault();
+            }
+            if (order == null || order.Deleted || customer.Id != order.CustomerId)
+            {
+                return RedirectToAction("Index","Order");
+            }
 
-            ////disable "order completed" page?
-            //if (_orderSettings.DisableOrderCompletedPage)
-            //{
-            //    return RedirectToAction("Details","Order", new {orderId = order.Id});
-            //}
+            //disable "order completed" page?
+            if (_orderSettings.DisableOrderCompletedPage)
+            {
+                return RedirectToAction("Details","Order", new {orderId = order.Id});
+            }
 
-            ////model
-            //var model = _checkoutModelFactory.PrepareCheckoutCompletedModel(order,customer);
-            //return View(model);
+            //model
+            var model = _checkoutModelFactory.PrepareCheckoutCompletedModel(order,customer);
+            return View(model);
         }
 
         #endregion
