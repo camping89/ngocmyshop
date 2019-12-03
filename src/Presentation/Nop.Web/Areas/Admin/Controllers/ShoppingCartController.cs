@@ -49,6 +49,8 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
+using Nop.Services.Payments;
+using Nop.Core.Http.Extensions;
 
 namespace Nop.Web.Areas.Admin.Controllers
 {
@@ -97,6 +99,8 @@ namespace Nop.Web.Areas.Admin.Controllers
         private readonly IManufacturerService _manufacturerService;
         private readonly IShippingService _shippingService;
         private readonly CurrencySettings _currencySettings;
+        private readonly IPaymentService _paymentService;
+        private readonly IOrderProcessingService _orderProcessingService;
         #endregion
 
         #region Ctor
@@ -109,7 +113,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             IPriceCalculationService priceCalculationService,
             IPermissionService permissionService,
             ILocalizationService localizationService,
-            IProductAttributeFormatter productAttributeFormatter, IShoppingCartModelFactory shoppingCartModelFactory, IProductService productService, IWorkContext workContext, IStoreContext storeContext, IShoppingCartService shoppingCartService, IPictureService pictureService, IProductAttributeService productAttributeService, IProductAttributeParser productAttributeParser, ICurrencyService currencyService, ICheckoutAttributeParser checkoutAttributeParser, IDiscountService discountService, IGiftCardService giftCardService, IDateRangeService dateRangeService, ICheckoutAttributeService checkoutAttributeService, IWorkflowMessageService workflowMessageService, IDownloadService downloadService, IStaticCacheManager cacheManager, IWebHelper webHelper, ICustomerActivityService customerActivityService, IGenericAttributeService genericAttributeService, MediaSettings mediaSettings, ShoppingCartSettings shoppingCartSettings, OrderSettings orderSettings, CaptchaSettings captchaSettings, CustomerSettings customerSettings, IProductModelFactory productModelFactory, VendorSettings vendorSettings, ICategoryService categoryService, IVendorService vendorService, IManufacturerService manufacturerService, IShippingService shippingService, CurrencySettings currencySettings)
+            IProductAttributeFormatter productAttributeFormatter, IShoppingCartModelFactory shoppingCartModelFactory, IProductService productService, IWorkContext workContext, IStoreContext storeContext, IShoppingCartService shoppingCartService, IPictureService pictureService, IProductAttributeService productAttributeService, IProductAttributeParser productAttributeParser, ICurrencyService currencyService, ICheckoutAttributeParser checkoutAttributeParser, IDiscountService discountService, IGiftCardService giftCardService, IDateRangeService dateRangeService, ICheckoutAttributeService checkoutAttributeService, IWorkflowMessageService workflowMessageService, IDownloadService downloadService, IStaticCacheManager cacheManager, IWebHelper webHelper, ICustomerActivityService customerActivityService, IGenericAttributeService genericAttributeService, MediaSettings mediaSettings, ShoppingCartSettings shoppingCartSettings, OrderSettings orderSettings, CaptchaSettings captchaSettings, CustomerSettings customerSettings, IProductModelFactory productModelFactory, VendorSettings vendorSettings, ICategoryService categoryService, IVendorService vendorService, IManufacturerService manufacturerService, IShippingService shippingService, CurrencySettings currencySettings, IPaymentService paymentService, IOrderProcessingService orderProcessingService)
         {
             this._customerService = customerService;
             this._dateTimeHelper = dateTimeHelper;
@@ -152,6 +156,8 @@ namespace Nop.Web.Areas.Admin.Controllers
             _manufacturerService = manufacturerService;
             _shippingService = shippingService;
             _currencySettings = currencySettings;
+            _paymentService = paymentService;
+            _orderProcessingService = orderProcessingService;
         }
 
         #endregion
@@ -695,115 +701,13 @@ namespace Nop.Web.Areas.Admin.Controllers
         #endregion
         #region Admin Create Order Manual
 
-        public virtual IActionResult CreateOrder(int customerId = 0, string activetab = "", bool udOrder = false)
+        public virtual IActionResult CreateOrder()
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageProducts))
                 return AccessDeniedView();
             var modelResult = new OrderCreateOrUpdateModel();
-            var model = new ProductListModel
-            {
-                //a vendor should have access only to his products
-                IsLoggedInAsVendor = _workContext.CurrentVendor != null,
-                AllowVendorsToImportProducts = _vendorSettings.AllowVendorsToImportProducts
-            };
-            modelResult.CustomerId = customerId;
-            if (customerId > 0)
-            {
-                var customer = _customerService.GetCustomerById(customerId);
-                var cart = customer.ShoppingCartItems
-                    .Where(sci => sci.ShoppingCartType == ShoppingCartType.ShoppingCart)
-                    .LimitPerStore(_storeContext.CurrentStore.Id)
-                    .ToList();
-                var shoppingCartModel = new Web.Models.ShoppingCart.ShoppingCartModel();
-                shoppingCartModel.CurrencyCurrent = _currencyService.GetCurrencyById(_currencySettings.PrimaryStoreCurrencyId, false);
-                try
-                {
-                    var primaryStoreCurrency = _currencyService.GetCurrencyById(_currencySettings.PrimaryExchangeRateCurrencyId, false);
-                    shoppingCartModel.PrimaryExchangeCurrency = primaryStoreCurrency ?? throw new NopException("Primary store currency is not set");
-                }
-                catch (Exception exc)
-                {
-                    ErrorNotification(exc, false);
-                }
-                modelResult.ShoppingCartModel = _shoppingCartModelFactory.PrepareShoppingCartModel(shoppingCartModel, cart, customer: customer);
-               
-                var customerAddress = customer.Addresses.OrderByDescending(_ => _.CreatedOnUtc).FirstOrDefault();
-                if (customerAddress != null)
-                {
-                    modelResult.CustomerAddress = customerAddress.Address1;
-                    modelResult.CustomerWard = customerAddress.Ward;
-                    modelResult.CustomerDistrict = customerAddress.District;
-                    modelResult.CustomerCity = customerAddress.City;
-
-                    modelResult.CustomerFullName = $"<strong>{customer.GetFullName()}</strong> - Phone: <strong>{customer.GetAttribute<string>(SystemCustomerAttributeNames.Phone)}</strong> - Facebook: <strong>{customer.GetAttribute<string>(SystemCustomerAttributeNames.LinkFacebook1)}</strong>";
-                }
-                else
-                {
-                    // return error message and block the creation process
-                    ModelState.AddModelError("CustomerAddressNotExist",_localizationService.GetResource("CreateOrder.ErrorMessage.CustomerAddressNotExist"));
-                    customerId = 0;
-                    modelResult.CustomerId = customerId;
-                }
-            }
-            //categories
-            model.AvailableCategories.Add(new SelectListItem { Text = _localizationService.GetResource("Admin.Common.All"), Value = "0" });
-            var categories = SelectListHelper.GetCategoryList(_categoryService, _cacheManager, true);
-            foreach (var c in categories)
-                model.AvailableCategories.Add(c);
-
-            //manufacturers
-            model.AvailableManufacturers.Add(new SelectListItem { Text = _localizationService.GetResource("Admin.Common.All"), Value = "0" });
-            var manufacturers = SelectListHelper.GetManufacturerList(_manufacturerService, _cacheManager, true);
-            foreach (var m in manufacturers)
-                model.AvailableManufacturers.Add(m);
-
-            //stores
-            model.AvailableStores.Add(new SelectListItem { Text = _localizationService.GetResource("Admin.Common.All"), Value = "0" });
-            foreach (var s in _storeService.GetAllStores())
-                model.AvailableStores.Add(new SelectListItem { Text = s.Name, Value = s.Id.ToString() });
-
-            //warehouses
-            model.AvailableWarehouses.Add(new SelectListItem { Text = _localizationService.GetResource("Admin.Common.All"), Value = "0" });
-            foreach (var wh in _shippingService.GetAllWarehouses())
-                model.AvailableWarehouses.Add(new SelectListItem { Text = wh.Name, Value = wh.Id.ToString() });
-
-            //vendors
-            model.AvailableVendors.Add(new SelectListItem { Text = _localizationService.GetResource("Admin.Common.All"), Value = "0" });
-            var vendors = SelectListHelper.GetVendorList(_vendorService, _cacheManager, true);
-            foreach (var v in vendors)
-                model.AvailableVendors.Add(v);
-
-            //product types
-            model.AvailableProductTypes = ProductType.SimpleProduct.ToSelectList(false).ToList();
-            model.AvailableProductTypes.Insert(0, new SelectListItem { Text = _localizationService.GetResource("Admin.Common.All"), Value = "0" });
-
-            //"published" property
-            //0 - all (according to "ShowHidden" parameter)
-            //1 - published only
-            //2 - unpublished only
-            model.AvailablePublishedOptions.Add(new SelectListItem { Text = _localizationService.GetResource("Admin.Catalog.Products.List.SearchPublished.All"), Value = "0" });
-            model.AvailablePublishedOptions.Add(new SelectListItem { Text = _localizationService.GetResource("Admin.Catalog.Products.List.SearchPublished.PublishedOnly"), Value = "1" });
-            model.AvailablePublishedOptions.Add(new SelectListItem { Text = _localizationService.GetResource("Admin.Catalog.Products.List.SearchPublished.UnpublishedOnly"), Value = "2" });
-            modelResult.ProductListModel = model;
-            modelResult.SetUpdateOrder = udOrder;
-            if (!string.IsNullOrEmpty(activetab))
-            {
-                SaveSelectedTabName(activetab);
-            }
-
-            modelResult.Customer = _customerService.GetCustomerById(customerId);
-            ViewBag.CustomerId = customerId;
             return View(modelResult);
         }
-
-        [HttpPost]
-        public virtual IActionResult CreateOrder(OrderCreateOrUpdateModel model)
-        {
-
-            SaveSelectedTabName();
-            return View("CreateOrder");
-        }
-
 
         #endregion
 
@@ -948,21 +852,34 @@ namespace Nop.Web.Areas.Admin.Controllers
             });
         }
 
+        public IActionResult GetCustomerCurrentCart(int customerId)
+        {
+            var shoppingCartModel = new Web.Models.ShoppingCart.ShoppingCartModel();
+            if (customerId > 0)
+            {
+                var customer = _customerService.GetCustomerById(customerId);
+                var cart = customer.ShoppingCartItems
+                    .Where(sci => sci.ShoppingCartType == ShoppingCartType.ShoppingCart)
+                    .LimitPerStore(_storeContext.CurrentStore.Id)
+                    .ToList();
+                shoppingCartModel.CurrencyCurrent = _currencyService.GetCurrencyById(_currencySettings.PrimaryStoreCurrencyId, false);
+                try
+                {
+                    var primaryStoreCurrency = _currencyService.GetCurrencyById(_currencySettings.PrimaryExchangeRateCurrencyId, false);
+                    shoppingCartModel.PrimaryExchangeCurrency = primaryStoreCurrency ?? throw new NopException("Primary store currency is not set");
+                }
+                catch (Exception exc)
+                {
+                    ErrorNotification(exc, false);
+                }
+                shoppingCartModel = _shoppingCartModelFactory.PrepareShoppingCartModel(shoppingCartModel, cart, customer: customer);
+            }
+            return View("AdminCustomerCartAjax", shoppingCartModel);
+        }
+
         public IActionResult AddProductToCart_Details(int productId, int customerId, int updatecartitemid = 0)
         {
             var product = _productService.GetProductById(productId);
-
-
-            //visible individually?
-            if (!product.VisibleIndividually)
-            {
-                //is this one an associated products?
-                var parentGroupedProduct = _productService.GetProductById(product.ParentGroupedProductId);
-                if (parentGroupedProduct == null)
-                    return RedirectToRoute("HomePage");
-
-                return RedirectToRoute("Product", new { SeName = parentGroupedProduct.GetSeName() });
-            }
             var customer = _customerService.GetCustomerById(customerId);
             //update existing shopping cart or wishlist  item?
             ShoppingCartItem updatecartitem = null;
@@ -972,21 +889,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                     .LimitPerStore(_storeContext.CurrentStore.Id)
                     .ToList();
                 updatecartitem = cart.FirstOrDefault(x => x.Id == updatecartitemid);
-                //not found?
-                if (updatecartitem == null)
-                {
-                    return RedirectToRoute("Product", new { SeName = product.GetSeName() });
-                }
-                //is it this product?
-                if (product.Id != updatecartitem.ProductId)
-                {
-                    return RedirectToRoute("Product", new { SeName = product.GetSeName() });
-                }
             }
-
-            //activity log
-            _customerActivityService.InsertActivity("PublicStore.ViewProduct", _localizationService.GetResource("ActivityLog.PublicStore.ViewProduct"), product.Name);
-
             //model
             var model = _productModelFactory.PrepareProductDetailsModel(product, updatecartitem, false);
             model.CustomerId = customerId;
@@ -1094,73 +997,11 @@ namespace Nop.Web.Areas.Admin.Controllers
             ViewData["CustomerId"] = customerId;
             //return View(productTemplateViewPath,model);
             //return result
-            return View(productTemplateViewPath, model);
+            //return View(productTemplateViewPath, model);
             //return GetProductToCartDetails(addToCartWarnings, cartType, product);
+            return Json(new { Status = true});
         }
-        protected virtual IActionResult GetProductToCartDetails(List<string> addToCartWarnings, ShoppingCartType cartType,
-           Product product)
-        {
-            if (addToCartWarnings.Any())
-            {
-                //cannot be added to the cart/wishlist
-                //let's display warnings
-                return Json(new
-                {
-                    success = false,
-                    message = addToCartWarnings.ToArray()
-                });
-            }
-
-            //added to the cart/wishlist
-            switch (cartType)
-            {
-                case ShoppingCartType.Wishlist:
-                    {
-                        //activity log
-                        _customerActivityService.InsertActivity("PublicStore.AddToWishlist",
-                            _localizationService.GetResource("ActivityLog.PublicStore.AddToWishlist"), product.Name);
-
-                        if (_shoppingCartSettings.DisplayWishlistAfterAddingProduct)
-                        {
-                            //redirect to the wishlist page
-                            return Json(new
-                            {
-                                redirect = Url.RouteUrl("Wishlist")
-                            });
-                        }
-
-                        //display notification message and update appropriate blocks
-                        var updatetopwishlistsectionhtml = string.Format(
-                            _localizationService.GetResource("Wishlist.HeaderQuantity"),
-                            _workContext.CurrentCustomer.ShoppingCartItems
-                                .Where(sci => sci.ShoppingCartType == ShoppingCartType.Wishlist)
-                                .LimitPerStore(_storeContext.CurrentStore.Id)
-                                .ToList()
-                                .GetTotalProducts());
-
-                        return Json(new
-                        {
-                            success = true,
-                            message = string.Format(
-                                _localizationService.GetResource("Products.ProductHasBeenAddedToTheWishlist.Link"),
-                                Url.RouteUrl("Wishlist")),
-                            updatetopwishlistsectionhtml
-                        });
-                    }
-                case ShoppingCartType.ShoppingCart:
-                default:
-                    {
-                        //activity log
-                        _customerActivityService.InsertActivity("PublicStore.AddToShoppingCart",
-                            _localizationService.GetResource("ActivityLog.PublicStore.AddToShoppingCart"), product.Name);
-
-                        return Json(new
-                        {
-                            redirect = Url.RouteUrl("ShoppingCart")
-                        });
-                    }
-            }
-        }
+        
         //handle product attribute selection event. this way we return new price, overridden gtin/sku/mpn
         //currently we use this method on the product details pages
         [HttpPost]
@@ -1532,6 +1373,121 @@ namespace Nop.Web.Areas.Admin.Controllers
             return RedirectToAction("CreateOrder", new { customerId = customerId, activetab = activetab });
         }
 
+        [HttpPost]
+        public virtual IActionResult AdminUpdateCartAjax(int customerId, IFormCollection form)
+        {
+            if (!_permissionService.Authorize(StandardPermissionProvider.EnableShoppingCart))
+                return Json(new {Status = false});
+            var customer = _customerService.GetCustomerById(customerId);
+            var cart = customer.ShoppingCartItems
+                .Where(sci => sci.ShoppingCartType == ShoppingCartType.ShoppingCart)
+                .LimitPerStore(_storeContext.CurrentStore.Id)
+                .ToList();
+
+            var allIdsToRemove = form.ContainsKey("removefromcart") ?
+                form["removefromcart"][0].ToString().Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(x => int.Parse(x)).ToList() :
+                new List<int>();
+
+            //current warnings <cart item identifier, warnings>
+            var innerWarnings = new Dictionary<int, IList<string>>();
+            foreach (var sci in cart)
+            {
+                var remove = allIdsToRemove.Contains(sci.Id);
+                if (remove)
+                    _shoppingCartService.DeleteShoppingCartItem(sci, ensureOnlyActiveCheckoutAttributes: true);
+                else
+                {
+                    int newQuantity = sci.Quantity;
+                    decimal newPrice = sci.CustomerEnteredPrice;
+                    decimal unitPriceUsd = sci.UnitPriceUsd;
+                    decimal exchangeRate = sci.ExchangeRate;
+                    decimal orderingFee = sci.OrderingFee;
+                    double saleOffPercent = sci.SaleOffPercent;
+                    int currencyId = sci.CurrencyId;
+                    decimal unitWeightCost = sci.UnitWeightCost;
+                    foreach (var formKey in form.Keys)
+                    {
+
+                        if (formKey.Equals($"itemquantity{sci.Id}", StringComparison.InvariantCultureIgnoreCase))
+                        {
+                            int.TryParse(form[formKey][0], out newQuantity);
+                        }
+
+                        if (formKey.Equals($"itemprice{sci.Id}", StringComparison.InvariantCultureIgnoreCase))
+                        {
+                            decimal.TryParse(form[formKey][0], out newPrice);
+                            newPrice = DecimalExtensions.RoundCustom(newPrice / 1000) * 1000;
+                        }
+                        if (formKey.Equals($"itempricebase{sci.Id}", StringComparison.InvariantCultureIgnoreCase))
+                        {
+                            decimal.TryParse(form[formKey][0], out unitPriceUsd);
+                        }
+                        if (formKey.Equals($"itemexchangerate{sci.Id}", StringComparison.InvariantCultureIgnoreCase))
+                        {
+                            decimal.TryParse(form[formKey][0], out exchangeRate);
+                        }
+                        if (formKey.Equals($"itemfeeship{sci.Id}", StringComparison.InvariantCultureIgnoreCase))
+                        {
+                            decimal.TryParse(form[formKey][0], out orderingFee);
+                        }
+                        if (formKey.Equals($"itemsaleoff{sci.Id}", StringComparison.InvariantCultureIgnoreCase))
+                        {
+                            double.TryParse(form[formKey][0], out saleOffPercent);
+                        }
+                        if (formKey.Equals($"itemcustomerCurrency{sci.Id}", StringComparison.InvariantCultureIgnoreCase))
+                        {
+                            int.TryParse(form[formKey][0], out currencyId);
+                        }
+                        if (formKey.Equals($"itemweightcost{sci.Id}", StringComparison.InvariantCultureIgnoreCase))
+                        {
+                            decimal.TryParse(form[formKey][0], out unitWeightCost);
+                        }
+                    }
+
+                    
+                    if (newPrice != sci.CustomerEnteredPrice || newQuantity != sci.Quantity)
+                    {
+                        var weightCost = unitWeightCost * newQuantity;
+
+                        var currSciWarnings = _shoppingCartService.UpdateShoppingCartItem(customer,
+                            sci.Id, sci.AttributesXml, newPrice,
+                            sci.RentalStartDateUtc, sci.RentalEndDateUtc,
+                            newQuantity, true, unitPriceUsd, exchangeRate, orderingFee, saleOffPercent, currencyId,weightCost, unitWeightCost: unitWeightCost);
+                        innerWarnings.Add(sci.Id, currSciWarnings);
+                    }
+                }
+            }
+
+            customer = _customerService.GetCustomerById(customerId);
+            cart = customer.ShoppingCartItems
+                .Where(sci => sci.ShoppingCartType == ShoppingCartType.ShoppingCart)
+                .LimitPerStore(_storeContext.CurrentStore.Id)
+                .ToList();
+
+            //parse and save checkout attributes
+            ParseAndSaveCheckoutAttributes(cart, form, customer);
+
+            //updated cart
+
+            var model = new Web.Models.ShoppingCart.ShoppingCartModel();
+            model = _shoppingCartModelFactory.PrepareShoppingCartModel(model, cart, customer: customer);
+            //update current warnings
+            foreach (var kvp in innerWarnings)
+            {
+                //kvp = <cart item identifier, warnings>
+                var sciId = kvp.Key;
+                var warnings = kvp.Value;
+                //find model
+                var sciModel = model.Items.FirstOrDefault(x => x.Id == sciId);
+                if (sciModel != null)
+                    foreach (var w in warnings)
+                        if (!sciModel.Warnings.Contains(w))
+                            sciModel.Warnings.Add(w);
+            }
+
+            return Json(new { Status = true});
+        }
+
 
         [HttpPost, ActionName("AdminCart")]
         [FormValueRequired("updatecart")]
@@ -1662,31 +1618,61 @@ namespace Nop.Web.Areas.Admin.Controllers
             //parse and save checkout attributes
             ParseAndSaveCheckoutAttributes(cart, form, customer);
 
-            //validate attributes
-            var checkoutAttributes = customer.GetAttribute<string>(SystemCustomerAttributeNames.CheckoutAttributes, _genericAttributeService, _storeContext.CurrentStore.Id);
-            var checkoutAttributeWarnings = _shoppingCartService.GetShoppingCartWarnings(cart, checkoutAttributes, true);
-            if (checkoutAttributeWarnings.Any())
+            //reset checkout data
+            _customerService.ResetCheckoutData(customer, _storeContext.CurrentStore.Id);
+            CheckoutOrder(customerId);
+           return RedirectToAction("Index", "Order");
+        }
+
+        private JsonResult CheckoutOrder(int customerId)
+        {
+            var customer = _customerService.GetCustomerById(customerId);
+            try
             {
-                //something wrong, redisplay the page with warnings
-                var model = new Web.Models.ShoppingCart.ShoppingCartModel();
-                model = _shoppingCartModelFactory.PrepareShoppingCartModel(model, cart, validateCheckoutAttributes: true, customer: customer);
-                return View(model);
-            }
+                //validation
+                var cart = customer.ShoppingCartItems
+                    .Where(sci => sci.ShoppingCartType == ShoppingCartType.ShoppingCart)
+                    .LimitPerStore(_storeContext.CurrentStore.Id)
+                    .ToList();
+                
+                //place order
+                var processPaymentRequest = HttpContext.Session.Get<ProcessPaymentRequest>("OrderPaymentInfo");
+                if (processPaymentRequest == null)
+                {
+                    processPaymentRequest = new ProcessPaymentRequest();
+                }
 
-            //everything is OK
-            if (customer.IsGuest())
+                processPaymentRequest.StoreId = _storeContext.CurrentStore.Id;
+                processPaymentRequest.CustomerId = customer.Id;
+                processPaymentRequest.PaymentMethodSystemName = customer.GetAttribute<string>(
+                    SystemCustomerAttributeNames.SelectedPaymentMethod,
+                    _genericAttributeService, _storeContext.CurrentStore.Id);
+                var placeOrderResult = _orderProcessingService.PlaceOrder(processPaymentRequest);
+                if (placeOrderResult.Success)
+                {
+                    HttpContext.Session.Set<ProcessPaymentRequest>("OrderPaymentInfo", null);
+                    var postProcessPaymentRequest = new PostProcessPaymentRequest
+                    {
+                        Order = placeOrderResult.PlacedOrder
+                    };
+
+                    var paymentMethod = _paymentService.LoadPaymentMethodBySystemName(placeOrderResult.PlacedOrder.PaymentMethodSystemName);
+                    if (paymentMethod == null)
+                        //payment method could be null if order total is 0
+                        //success
+                        return Json(new { Status = true });
+                    
+                    _paymentService.PostProcessPayment(postProcessPaymentRequest);
+                    //success
+                    return Json(new { Status = true });
+                }
+                return Json(new { Status = false });
+            }
+            catch (Exception exc)
             {
-                var downloadableProductsRequireRegistration =
-                    _customerSettings.RequireRegistrationForDownloadableProducts && cart.Any(sci => sci.Product.IsDownload);
-
-                if (!_orderSettings.AnonymousCheckoutAllowed
-                    || downloadableProductsRequireRegistration)
-                    return Challenge();
-
-                return RedirectToRoute("LoginCheckoutAsGuest", new { returnUrl = Url.RouteUrl("ShoppingCart") });
+                
+                return Json(new { Status = false, message = exc.Message });
             }
-
-            return RedirectToAction("Index", "Checkout", new { customerId });
         }
 
         [HttpPost, ActionName("AdminCart")]

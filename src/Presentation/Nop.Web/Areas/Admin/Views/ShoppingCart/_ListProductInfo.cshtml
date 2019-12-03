@@ -11,17 +11,10 @@
     //ViewBag.Title = T("Admin.Catalog.Products").Text;
     //active menu item (system name)
     //Html.SetActiveMenuItemSystemName("Products");
-    var display = "none";
+
 }
 
-@if ((bool)ViewData["ShowProducts"])
-{
-    display = string.Empty;
-}
-else
-{
-    <p>@T("Admin.Catalog.Products.AddNewOrder.AlertOnlyOneProductInOrder")</p>
-}
+
 <div style="">
     <form asp-controller="Product" asp-action="List" method="post">
         <div class="content-header clearfix">
@@ -52,36 +45,16 @@ else
                                         <div class="col-md-4">
                                             <nop-label asp-for="SearchProductName" />
                                         </div>
-                                        <div class="col-md-8">
+                                        <div class="col-md-4">
                                             <nop-editor asp-for="SearchProductName" />
                                         </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-7">
-
-                                    <div class="form-group">
                                         <div class="col-md-4">
-                                            <nop-label asp-for="GoDirectlyToSku" />
-                                        </div>
-                                        <div class="col-md-8">
-                                            <div class="input-group input-group-short">
-                                                <nop-editor asp-for="GoDirectlyToSku" />
-                                                <span class="input-group-btn">
-                                                    <button type="submit" id="go-to-product-by-sku" name="go-to-product-by-sku" class="btn btn-info btn-flat">
-                                                        @T("Admin.Common.Go")
-                                                    </button>
-                                                </span>
-                                            </div>
+                                            <button type="button" id="search-products" class="btn btn-primary">
+                                                <i class="fa fa-search"></i>
+                                                @T("Admin.Common.Search")
+                                            </button>
                                         </div>
                                     </div>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-md-7 col-md-offset-5">
-                                    <button type="button" id="search-products" class="btn btn-primary btn-search">
-                                        <i class="fa fa-search"></i>
-                                        @T("Admin.Common.Search")
-                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -94,6 +67,7 @@ else
                             <script type="text/javascript">
                             $(document).ready(function() {
                                 $("#products-grid").kendoGrid({
+                                    autoBind: false,
                                     dataSource: {
                                         type: "json",
                                         transport: {
@@ -117,7 +91,7 @@ else
                                         pageSize: @(defaultGridPageSize),
                                         serverPaging: true,
                                         serverFiltering: true,
-                                        serverSorting: true
+                                        serverSorting: false
                                     },
                                     pageable: {
                                         refresh: true,
@@ -212,74 +186,74 @@ else
                 </div>
             </div>
         </div>
-
+        
+        
         <script type="text/javascript">
         function ShowPopUpDetailProduct(productId) {
             var customerId = $('#CustomerId').val();
             if (customerId === null || customerId === '') {
-                $('#alertModal').modal("show");
                 $('#alert-dialog-error').html('@T("Admin.Common.AlertMessage.NoSelectCustomer")');
+
+                $('#alertModal').modal("show");
                 return false;
             }
-            var queryUrl = '../ShoppingCart/AddProductToCart_Details?productId=' + productId + '&customerId=' + customerId+'&btnId=btnRefresh&formId=order-form';
-            OpenWindow(queryUrl, 1000, 800, true);
+            $.ajax({
+                cache: false,
+                type: "GET",
+                url: "@(Url.Action("AddProductToCart_Details", "ShoppingCart"))",
+                data: { productId: productId, customerId: customerId},
+                complete: function(result) {
+                    $("#product-info").html(result.responseText);
+                    $("#productInfoModal").modal("show");
+                },
+                error: function(xhr, ajaxOptions, thrownError) {
+                    $('#alert-dialog-error').html(thrownError);
+
+                    $('#alertModal').modal("show");
+                },
+                traditional: true
+            });
+
+            
+            //var queryUrl = '../ShoppingCart/AddProductToCart_Details?productId=' + productId + '&customerId=' + customerId+'&btnId=btnRefresh&formId=order-form';
+            //OpenWindow(queryUrl, 1000, 800, true);
             return true;
         };
         var selectedIds = [];
 
         $(document).ready(function () {
+            $("#SearchProductName").val('');
+
             //search button
             $('#search-products').click(function () {
+                var thisValue = $("#SearchProductName").val();
+                if (thisValue === null || thisValue === undefined || thisValue === '' ) {
+                    $('#alertModal').modal("show");
+                    $('#alert-dialog-error').html('@T("Vui lòng nhập tên sản phẩm hoặc SKU để tìm kiếm")');
+                    return;
+                }
                 //search
                 var grid = $('#products-grid').data('kendoGrid');
-                grid.dataSource.page(1); //new search. Set page size to 1
-                //grid.dataSource.read(); we already loaded the grid above using "page" function
+                grid.dataSource.read();// we already loaded the grid above using "page" function
                 //clear selected checkboxes
                 $('.checkboxGroups').attr('checked', false).change();
                 selectedIds = [];
-                return false;
             });
 
             $("#@Html.IdFor(model => model.SearchProductName)").keydown(function (event) {
                 if (event.keyCode === 13) {
                     $("#search-products").click();
-                    return false;
+                    return;
                 }
             });
 
-            $("#@Html.IdFor(model => model.GoDirectlyToSku)").keydown(function (event) {
+            @*$("#@Html.IdFor(model => model.GoDirectlyToSku)").keydown(function (event) {
                 if (event.keyCode === 13) {
                     $("#go-to-product-by-sku").click();
                     return false;
                 }
-            });
-            //delete selected
-            $('#delete-selected').click(function(e) {
-                e.preventDefault();
-
-                var postData = {
-                    selectedIds: selectedIds
-                };
-                addAntiForgeryToken(postData);
-
-                $.ajax({
-                    cache: false,
-                    type: "POST",
-                    url: "@(Url.Action("DeleteSelected", "Product"))",
-                    data: postData,
-                    complete: function(data) {
-                        //reload grid
-                        var grid = $('#products-grid').data('kendoGrid');
-                        grid.dataSource.read();
-                    },
-                    error: function(xhr, ajaxOptions, thrownError) {
-                        alert(thrownError);
-                    },
-                    traditional: true
-                });
-                return false;
-            });
-
+            });*@
+            
             $('#mastercheckbox').click(function () {
                 $('.checkboxGroups').attr('checked', $(this).is(':checked')).change();
             });

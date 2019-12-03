@@ -505,7 +505,7 @@ namespace Nop.Services.Customers
             if (!string.IsNullOrEmpty(phone))
             {
                 //query = query.Where(_ => _.Phone != null && _.Phone.ToUpperInvariant().Contains(phone.ToUpperInvariant()));
-                query = query.Where(_ => _.Phone != null && _.Phone.Contains(phone));
+                query = query.Where(_ => _.Phone != null && _.Phone.EndsWith(phone));
             }
 
             if (!string.IsNullOrEmpty(username))

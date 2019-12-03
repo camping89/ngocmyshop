@@ -36,6 +36,7 @@ using Nop.Services.Vendors;
 using Nop.Web.Areas.Admin.Extensions;
 using Nop.Web.Areas.Admin.Helpers;
 using Nop.Web.Areas.Admin.Models.Customers;
+using Nop.Web.Areas.Admin.Models.Orders;
 using Nop.Web.Areas.Admin.Models.ShoppingCart;
 using Nop.Web.Extensions;
 using Nop.Web.Framework.Controllers;
@@ -916,6 +917,34 @@ namespace Nop.Web.Areas.Admin.Controllers
             var customers = _customerService.SearchCustomers(linkFacebook: searchTerm);
             var result = customers.Select(_ => new { Id = _.Id, FullName = _.FullName + " - " + _.LinkFacebook1 }).ToArray();
             return Json(new { Data = result });
+        }
+
+        [HttpGet]
+        public virtual ActionResult GetCustomerInfo(int customerId)
+        {
+            var modelResult = new OrderCreateOrUpdateModel();
+            if (customerId > 0)
+            {
+                var customer = _customerService.GetCustomerById(customerId);
+                var customerAddress = customer.Addresses.OrderByDescending(_ => _.CreatedOnUtc).FirstOrDefault();
+                if (customerAddress != null)
+                {
+                    modelResult.CustomerAddress = customerAddress.Address1;
+                    modelResult.CustomerWard = customerAddress.Ward;
+                    modelResult.CustomerDistrict = customerAddress.District;
+                    modelResult.CustomerCity = customerAddress.City;
+
+                    modelResult.CustomerFullName = $"<strong>{customer.GetFullName()}</strong> - Phone: <strong>{customer.GetAttribute<string>(SystemCustomerAttributeNames.Phone)}</strong> - Facebook: <strong>{customer.GetAttribute<string>(SystemCustomerAttributeNames.LinkFacebook1)}</strong>";
+                }
+                else
+                {
+                    // return error message and block the creation process
+                    ModelState.AddModelError("CustomerAddressNotExist",_localizationService.GetResource("CreateOrder.ErrorMessage.CustomerAddressNotExist"));
+                    customerId = 0;
+                    modelResult.CustomerId = customerId;
+                }
+            }
+            return Json(new { Data = modelResult });
         }
         public virtual IActionResult Create()
         {
