@@ -68,6 +68,9 @@
     <None Include="wwwroot\chosen_v1.8.7\docsupport\prototype-1.7.0.0.js" />
     <None Include="wwwroot\chosen_v1.8.7\LICENSE.md" />
     <None Include="wwwroot\css\admin\stylesWEB.rtl.css" />
+    <Content Update="Areas\Admin\Views\Customer\RewardPointsSummary.cshtml">
+      <Pack>$(IncludeRazorContentInPack)</Pack>
+    </Content>
     <Content Update="Areas\Admin\Views\Order\EditPackageOrder.cshtml">
       <Pack>$(IncludeRazorContentInPack)</Pack>
     </Content>

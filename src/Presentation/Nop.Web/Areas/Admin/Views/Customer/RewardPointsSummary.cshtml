@@ -1,0 +1,185 @@
+﻿@model RewardPointsSummaryModel
+@inject AdminAreaSettings adminAreaSettings
+
+@using System.Globalization;
+
+@{
+    var defaultGridPageSize = adminAreaSettings.DefaultGridPageSize;
+    var gridPageSizes = adminAreaSettings.GridPageSizes;
+
+    //page title
+    ViewBag.Title = T("Admin.Customers.RewardPointsSummary").Text;
+    //active menu item (system name)
+    Html.SetActiveMenuItemSystemName("RewardPointsSummary");
+}
+
+<form asp-controller="Customer" asp-action="RewardPointsSummary" method="post">
+    <div class="content-header clearfix">
+        <h1 class="pull-left">
+            @T("Admin.Customers.RewardPointsSummary")
+        </h1>
+        <div class="pull-right">
+
+        </div>
+    </div>
+
+    <div class="content">
+        <div class="form-horizontal">
+            <div class="panel-group">
+                <div class="panel panel-default panel-search">
+                    <div class="panel-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <nop-label asp-for="FromDateTime" />
+                                    </div>
+                                    <div class="col-md-8">
+                                        <nop-editor asp-for="FromDateTime" />
+                                    </div>
+                                </div>
+
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <nop-label asp-for="ToDateTime" />
+                                    </div>
+                                    <div class="col-md-8">
+                                        <nop-editor asp-for="ToDateTime" />
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-7 col-md-offset-5">
+                                <button type="button" id="search-customers" class="btn btn-primary btn-search">
+                                    <i class="fa fa-search"></i>
+                                    @T("Admin.Common.Search")
+                                </button>
+                                <button type="button" id="clear-filter" class="btn btn-danger btn-search">
+                                    <i class="fa fa-recycle"></i>
+                                    @T("Admin.Common.ClearFilter")
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        <div id="customers-grid"></div>
+
+                        <script type="text/javascript">
+                            $(document).ready(function() {
+                                $("#customers-grid").kendoGrid({
+                                    autoBind: false,
+                                    dataSource: {
+                                        type: "json",
+                                        transport: {
+                                            read: {
+                                                url: "@Html.Raw(Url.Action("RewardPointsSummary", "Customer"))",
+                                                type: "POST",
+                                                dataType: "json",
+                                                data: additionalData
+                                            }
+                                        },
+                                        schema: {
+                                            data: "Data",
+                                            total: "Total",
+                                            errors: "Errors"
+                                        },
+                                        error: function(e) {
+                                            display_kendoui_grid_error(e);
+                                            // Cancel the changes
+                                            this.cancelChanges();
+                                        },
+                                        pageSize: @(defaultGridPageSize),
+                                        serverPaging: true,
+                                        serverFiltering: true,
+                                        serverSorting: true
+                                    },
+                                    pageable: {
+                                        refresh: true,
+                                        pageSizes: [@(gridPageSizes)],
+                                        @await Html.PartialAsync("_GridPagerMessages")
+                                    },
+                                    scrollable: false,
+                                    dataBound: onDataBound,
+                                    columns: [
+                                        {
+                                            field: "CustomerId",
+                                            headerTemplate: "<input id='mastercheckbox' type='checkbox'/>",
+                                            headerAttributes: { style: "text-align:center" },
+                                            attributes: { style: "text-align:center" },
+                                            template: "<input type='checkbox' value='#=CustomerId#' class='checkboxGroups'/>",
+                                            hidden:true
+                                        },
+                                        {
+                                            field: "CustomerFullName",
+                                            title: "@T("Admin.Customer.RewardHistorySummary.Fields.CustomerFullName")",
+                                            width: 200
+                                        },
+                                        {
+                                            field: "CustomerPhone",
+                                            title: "@T("Admin.Customer.RewardHistorySummary.Fields.CustomerPhone")",
+                                            width: 200
+                                        }, {
+                                            field: "TotalPoint",
+                                            title: "@T("Admin.Customer.RewardHistorySummary.Fields.TotalPoint")",
+                                            width: 200
+                                        }
+                                    ]
+                                });
+                            });
+                        </script>
+
+                        <script type="text/javascript">
+
+    $(document).ready(function() {
+        //search button
+        $('#search-customers').click(function() {
+
+          var fromDateTime =  $('#@Html.IdFor(model => model.FromDateTime)').val();
+           var toDateTime = $('#@Html.IdFor(model => model.ToDateTime)').val();
+            if (fromDateTime === null || fromDateTime === undefined || fromDateTime === '' ||
+                toDateTime === null || toDateTime === undefined || toDateTime === ''
+                ) {
+                 $('#alertModal').modal("show");
+                $('#alert-dialog-error').html('@T("Admin.Common.AlertMessage.FromDateOrToDateNotValid")');
+                return;
+            }
+            var grid = $('#customers-grid').data('kendoGrid');
+            grid.dataSource.page(1); //new search. Set page size to 1
+            //grid.dataSource.read(); we already loaded the grid above using "page" function
+            return false;
+        });
+
+        $("#clear-filter").click(function() {
+            $('#@Html.IdFor(model => model.FromDateTime)').val('');
+            $('#@Html.IdFor(model => model.ToDateTime)').val('');
+            $("#search-customers").click();
+        });
+    });
+                            function onDataBound() {
+
+                            }
+    function additionalData() {
+        var startDate = kendo.toString(kendo.parseDate($('#@Html.IdFor(model => model.FromDateTime)').val(), 'dd/MM/yyyy'), 'MM/dd/yyyy');
+                                var endDate = kendo.toString(kendo.parseDate($('#@Html.IdFor(model => model.ToDateTime)').val(), 'dd/MM/yyyy'), 'MM/dd/yyyy');
+        var data = {
+            FromDateTime: startDate,
+            ToDateTime: endDate
+        };
+        addAntiForgeryToken(data);
+        return data;
+    }
+                        </script>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+@await Html.PartialAsync("_AlertDialog")

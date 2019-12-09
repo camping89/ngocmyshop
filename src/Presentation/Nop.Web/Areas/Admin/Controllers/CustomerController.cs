@@ -1878,15 +1878,38 @@ namespace Nop.Web.Areas.Admin.Controllers
             return Json(new { Result = true });
         }
 
-        //public virtual IActionResult UpdateRewardPointAll()
-        //{
-        //    var customers = _customerService.GetAllCustomers();
-        //    foreach (var customer in customers)
-        //    {
-        //        var orderItemIds = _rewardPointOrderItemService.GetRewardPointsHistory(customer.Id).Select(_=>_.);
-        //        var orderItems = _orderService;
-        //    }
-        //}
+
+        public virtual IActionResult RewardPointsSummary()
+        {
+            return View(new RewardPointsSummaryModel());
+        }
+
+        [HttpPost]
+        public virtual IActionResult RewardPointsSummary(DataSourceRequest command,RewardPointsSummaryModel model)
+        {
+            if (!_permissionService.Authorize(StandardPermissionProvider.ManageCustomers))
+                return AccessDeniedKendoGridJson();
+            if (model?.FromDateTime == null || model?.ToDateTime == null)
+                throw new ArgumentException("Data invalid");
+           
+            var rewardPoints = _rewardPointOrderItemService.GetRewardPointsSummary( command.Page - 1, command.PageSize, model.FromDateTime, model.ToDateTime);
+            foreach (var item in rewardPoints)
+            {
+                var customer = _customerService.GetCustomerById(item.CustomerId);
+                if (customer != null)
+                {
+                    item.CustomerFullName = customer.FullName;
+                    item.CustomerPhone = customer.Phone;
+                }
+            }
+            var gridModel = new DataSourceResult
+            {
+                Data = rewardPoints,
+                Total = rewardPoints.TotalCount
+            };
+
+            return Json(gridModel);
+        }
 
         #endregion
 
