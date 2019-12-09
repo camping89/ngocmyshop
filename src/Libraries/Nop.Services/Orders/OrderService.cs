@@ -464,6 +464,11 @@ namespace Nop.Services.Orders
             return orderItems;
         }
 
+        public IList<OrderItem> GetOrderItemsIsShipped(int customerId,List<int> excludeIds)
+        {
+            var query = (from orderItem in _orderItemRepository.Table.Where(_ => _.DeliveryDateUtc != null && _.Order.CustomerId == customerId) select  orderItem).ToList();
+            return query.Where(_ => excludeIds.Exists(id => id.Equals(_.Id)) == false).ToList();
+        }
         public virtual IPagedList<OrderItem> GetOrderItemsVendorCheckout(string vendorProductUrl, string orderId = null,
             string orderItemId = null, int pageIndex = 0,
             int pageSize = int.MaxValue, OrderSortingEnum orderBy = OrderSortingEnum.CreatedOnDesc,

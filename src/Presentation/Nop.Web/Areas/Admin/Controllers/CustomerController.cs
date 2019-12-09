@@ -1878,6 +1878,16 @@ namespace Nop.Web.Areas.Admin.Controllers
             return Json(new { Result = true });
         }
 
+        //public virtual IActionResult UpdateRewardPointAll()
+        //{
+        //    var customers = _customerService.GetAllCustomers();
+        //    foreach (var customer in customers)
+        //    {
+        //        var orderItemIds = _rewardPointOrderItemService.GetRewardPointsHistory(customer.Id).Select(_=>_.);
+        //        var orderItems = _orderService;
+        //    }
+        //}
+
         #endregion
 
         #region Addresses

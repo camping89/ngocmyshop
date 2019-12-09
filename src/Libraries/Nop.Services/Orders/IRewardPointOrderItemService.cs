@@ -22,6 +22,8 @@ namespace Nop.Services.Orders
         IPagedList<RewardPointsHistoryOrderItem> GetRewardPointsHistory(int customerId = 0, bool showHidden = false, 
             bool showNotActivated = false, int pageIndex = 0, int pageSize = int.MaxValue);
 
+        IPagedList<RewardPointsHistorySummary> GetRewardPointsSummary(int pageIndex = 0, int pageSize = int.MaxValue, DateTime? fromDateTime = null, DateTime? toDateTime = null);
+
         /// <summary>
         /// Add reward points history record
         /// </summary>

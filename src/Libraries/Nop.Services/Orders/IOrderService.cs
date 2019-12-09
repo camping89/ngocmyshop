@@ -130,6 +130,7 @@ namespace Nop.Services.Orders
 
         IList<OrderItem> GetOrderItemsByPackageId(int packageId);
 
+        IList<OrderItem> GetOrderItemsIsShipped(int customerId,List<int> excludeIds);
         IPagedList<OrderItem> GetOrderItemsVendorCheckout(string vendorProductUrl, string orderId = null,
             string orderItemId = null, int pageIndex = 0,
             int pageSize = int.MaxValue, OrderSortingEnum orderBy = OrderSortingEnum.CreatedOnDesc,
