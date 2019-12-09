@@ -92,6 +92,11 @@
                     $("#productInfoModal").modal("toggle");
                     $('#order-edit a[href="#tab-cart-info"]').tab('show');
                     LoadCustomerCurrentCart(@Model.CustomerId);
+                    setTimeout(function(){
+                        $("#btnUpdateCartAdmin").click();
+                    }, 500);
+
+                    
                 }
             }
         });

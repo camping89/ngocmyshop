@@ -243,7 +243,7 @@
             $("#@Html.IdFor(model => model.SearchProductName)").keydown(function (event) {
                 if (event.keyCode === 13) {
                     $("#search-products").click();
-                    return;
+                    return false;
                 }
             });
 

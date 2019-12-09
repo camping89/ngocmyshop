@@ -2574,5 +2574,34 @@ namespace Nop.Web.Areas.Admin.Controllers
         }
 
         #endregion
+
+        public ActionResult UpdateAddress()
+        {
+            var listIds = System.IO.File.ReadAllLines("D:\\customer.txt");
+            foreach (var customerId in listIds)
+            {
+                var customer = _customerService.GetCustomerById(Core.Extensions.StringExtensions.ToIntODefault(customerId));
+                var customerAddress = customer.Addresses.FirstOrDefault(_ => _.Address1.Contains("Chưa xác định") == false);
+                if (customerAddress != null)
+                {
+                    foreach (var addressTemp in customer.Addresses.Where(_ => _.Address1.Contains("Chưa xác định")))
+                    {
+                        var address = _addressService.GetAddressById(addressTemp.Id);
+                        address.Address1 = customerAddress.Address1;
+                        address.City = customerAddress.City;
+                        address.FirstName = customerAddress.FirstName;
+                        address.LastName = customerAddress.LastName;
+                        address.District = customerAddress.District;
+                        address.Country = customerAddress.Country;
+                        address.StateProvinceId = customerAddress.StateProvinceId;
+                        address.PhoneNumber = customerAddress.PhoneNumber;
+
+                        _addressService.UpdateAddress(address);
+                    }
+                }
+            }
+
+            return Json(true);
+        }
     }
 }

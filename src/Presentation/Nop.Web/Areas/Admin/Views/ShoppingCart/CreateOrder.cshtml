@@ -69,19 +69,21 @@
                             }
 
                             function LoadCustomerCurrentCart(customerId) {
-                                // load info customer
-                                $.ajax({
-                                    type: "GET",
-                                    url: "@Url.Action("GetCustomerCurrentCart", "ShoppingCart")",
-                                    data: { customerId: customerId},
-                                    complete: function (result) {
-                                        $("#customerCurrentCart").html(result.responseText);
-                                    },
-                                    error: function(xhr, ajaxOptions, thrownError) {
-                                        alert(thrownError);
-                                    },
-                                    traditional: true
-                                });
+                                if (customerId !== null && customerId !== '' && customerId !== undefined) {
+                                    // load info customer
+                                    $.ajax({
+                                        type: "GET",
+                                        url: "@Url.Action("GetCustomerCurrentCart", "ShoppingCart")",
+                                        data: { customerId: customerId},
+                                        complete: function (result) {
+                                            $("#customerCurrentCart").html(result.responseText);
+                                        },
+                                        error: function(xhr, ajaxOptions, thrownError) {
+                                            alert(thrownError);
+                                        },
+                                        traditional: true
+                                    });
+                                }
                             }
 
                             $(document).ready(function() {
@@ -169,13 +171,15 @@
             <nop-tabs id="order-edit">
                 <nop-tab asp-name="tab-info" asp-title="@T("Admin.Orders.ListProductInfo")" asp-default="true">@await Html.PartialAsync("_ListProductInfo", Model.ProductListModel)</nop-tab>
                 <nop-tab asp-name="tab-cart-info" asp-title="@T("Admin.Orders.AdminCart")">
-                    <div>
-                        <button id="btnUpdateCartAdmin" type="button" name="updatecart" class="btn btn-primary">@T("ShoppingCart.UpdateCart")</button>
-                        <button style="float: right; margin-left: 10px; margin-top: 10px;" id="btnReloadCustomerCart" class="btn btn-danger" type="button">@T("Admin.Common.SelectedCustomer.ReloadCart")</button>
-                    </div>
-                    <br/>
-                    <div id="customerCurrentCart">
-                        <!--Cotent customer cart current-->
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <button style="float: right; margin-left: 10px; margin-top: 10px; margin-bottom: 10px;" id="btnUpdateCartAdmin" type="button" name="updatecart" class="btn btn-primary">@T("ShoppingCart.UpdateCart")</button>
+                            @*<button style="float: right; margin-left: 10px; margin-top: 10px;" id="btnReloadCustomerCart" class="btn btn-danger" type="button">@T("Admin.Common.SelectedCustomer.ReloadCart")</button>*@
+                        </div>
+                        <br/>
+                        <div class="col-lg-12" id="customerCurrentCart">
+                            <!--Cotent customer cart current-->
+                        </div>
                     </div>
                 </nop-tab>
             </nop-tabs>
@@ -223,5 +227,10 @@
             var customerId = $('#CustomerId').val();
             LoadCustomerCurrentCart(customerId);
         });
+        $('#order-edit a[href="#tab-cart-info"]').click(function() {
+            $(this).tab('show');
+            $("#btnUpdateCartAdmin").click();
+        });
+
     });
 </script>
