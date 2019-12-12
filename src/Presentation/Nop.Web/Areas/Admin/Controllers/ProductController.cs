@@ -1285,7 +1285,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 pageSize: command.PageSize,
                 showHidden: true,
                 overridePublished: overridePublished,
-                orderBy: ProductSortingEnum.UpdatedOn
+                orderBy: ProductSortingEnum.CreatedOn
             );
             var gridModel = new DataSourceResult
             {

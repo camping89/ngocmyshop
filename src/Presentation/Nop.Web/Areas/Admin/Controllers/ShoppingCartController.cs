@@ -1385,7 +1385,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 .ToList();
 
             var allIdsToRemove = form.ContainsKey("removefromcart") ?
-                form["removefromcart"][0].ToString().Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(x => int.Parse(x)).ToList() :
+                form["removefromcart"].ToString().Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(x => int.Parse(x)).ToList() :
                 new List<int>();
 
             //current warnings <cart item identifier, warnings>

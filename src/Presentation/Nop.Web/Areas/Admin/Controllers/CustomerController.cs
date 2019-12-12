@@ -1887,11 +1887,16 @@ namespace Nop.Web.Areas.Admin.Controllers
         [HttpPost]
         public virtual IActionResult RewardPointsSummary(DataSourceRequest command,RewardPointsSummaryModel model)
         {
-            if (!_permissionService.Authorize(StandardPermissionProvider.ManageCustomers))
-                return AccessDeniedKendoGridJson();
-            if (model?.FromDateTime == null || model?.ToDateTime == null)
-                throw new ArgumentException("Data invalid");
-           
+            
+            if (model.FromDateTime == null)
+            {
+                model.FromDateTime = DateTime.MinValue;
+            }
+
+            if (model.ToDateTime == null)
+            {
+                model.ToDateTime = DateTime.Now.AddDays(1);
+            }
             var rewardPoints = _rewardPointOrderItemService.GetRewardPointsSummary( command.Page - 1, command.PageSize, model.FromDateTime, model.ToDateTime);
             foreach (var item in rewardPoints)
             {
@@ -1900,6 +1905,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 {
                     item.CustomerFullName = customer.FullName;
                     item.CustomerPhone = customer.Phone;
+                    item.DateOfBirth = customer.GetAttribute<DateTime>(SystemCustomerAttributeNames.DateOfBirth);
                 }
             }
             var gridModel = new DataSourceResult

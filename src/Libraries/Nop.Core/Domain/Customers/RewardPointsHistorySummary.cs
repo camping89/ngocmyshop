@@ -11,6 +11,7 @@ namespace Nop.Core.Domain.Customers
         public int CustomerId { get; set; }
         public string CustomerPhone { get; set; }
         public string CustomerFullName { get; set; }
+        public DateTime DateOfBirth { get; set; }
         public int TotalPoint { get; set; }
     }
 }

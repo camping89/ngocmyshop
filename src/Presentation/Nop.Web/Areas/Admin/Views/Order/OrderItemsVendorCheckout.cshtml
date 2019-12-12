@@ -480,6 +480,10 @@
                                     editor: editItemWeight
                                     //hidden: true
                                 }, {
+                                    field: "ProductWeight",
+                                    editor: hiddenField,
+                                    hidden: true
+                                }, {
                                     field: "Deposit",
                                     title: "@T("Admin.Orders.Products.Deposit")",
                                     width: 70,
@@ -620,8 +624,9 @@
                                 function() {
                                     $('input[name=WeightCostDec]').prop('readonly', false);
                                     var itemWeight = parseFloat($(this).val());
+                                    var productWeight = parseFloat($('input[name=ProductWeight]').val());
                                     var unitWeightCost = $("input[name=UnitWeightCost]").val();
-                                    var weightCostDec = parseFloat(unitWeightCost) * itemWeight * orderItemQty;
+                                    var weightCostDec = (productWeight > 0) ? parseFloat(unitWeightCost) * itemWeight * orderItemQty : (parseFloat(unitWeightCost) * orderItemQty);
                                     //need trigger change update data to model
                                     weightCostElement.val(weightCostDec).change();
                                     $('input[name=WeightCostDec]').prop('readonly', true);
@@ -633,7 +638,8 @@
                                     var unitWeightCost = parseFloat($(this).val());
                                     if (unitWeightCost > 0) {
                                         var itemWeight = $("input[name=ItemWeight]").val();
-                                        var weightCostDec = parseFloat(itemWeight) * unitWeightCost * orderItemQty;
+                                        var productWeight = parseFloat($('input[name=ProductWeight]').val());
+                                        var weightCostDec = (productWeight > 0) ? parseFloat(itemWeight) * unitWeightCost * orderItemQty : unitWeightCost * orderItemQty ;
                                         //need trigger change update data to model
                                         weightCostElement.val(weightCostDec).change();
                                     }
@@ -740,6 +746,19 @@
                         function readonlyField(container, options) {
 
                             $('<input class="k-input k-textbox" readonly data-text-field="' +
+                                    options.field +
+                                    '" data-value-field="' +
+                                    options.field +
+                                    '" data-bind="value:' +
+                                    options.field +
+                                    '" />')
+                                .appendTo(container);
+                        }
+
+
+                        function hiddenField(container, options) {
+
+                            $('<input class="k-input k-textbox" type="hidden" data-text-field="' +
                                     options.field +
                                     '" data-value-field="' +
                                     options.field +

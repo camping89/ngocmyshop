@@ -125,12 +125,12 @@ namespace Nop.Services.Orders
         
         public virtual IPagedList<RewardPointsHistorySummary> GetRewardPointsSummary(int pageIndex = 0, int pageSize = int.MaxValue, DateTime? fromDateTime = null, DateTime? toDateTime = null)
         {
-            var query = _rphRepository.Table.ToList();
+            var query = _rphRepository.Table;
             
             var result = query.GroupBy(_=>_.CustomerId).Select(i => new RewardPointsHistorySummary{ 
                  CustomerId = i.Key,
-                 TotalPoint =  i != null ? i.Where(_=>_.CreatedOnUtc >= fromDateTime.Value && _.CreatedOnUtc <= toDateTime).Sum(s=>s.Points) : 0
-                }).Where(_=> _.CustomerId > 0).OrderByDescending(rph => rph.TotalPoint).ToList();
+                 TotalPoint =  i.Where(_=>_.CreatedOnUtc >= fromDateTime && _.CreatedOnUtc <= toDateTime).DefaultIfEmpty().Sum(s=>s.Points)
+                }).Where(_=> _.CustomerId > 0 && _.TotalPoint > 0).OrderByDescending(rph => rph.TotalPoint);
 
             var records = new PagedList<RewardPointsHistorySummary>(result, pageIndex, pageSize);
             return records;

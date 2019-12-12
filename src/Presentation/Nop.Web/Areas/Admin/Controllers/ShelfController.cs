@@ -671,9 +671,22 @@ namespace Nop.Web.Areas.Admin.Controllers
         public IActionResult DeleteShipmentManualAjax(int id)
         {
             var shipmentManual = _shipmentManualService.GetShipmentManualById(id);
-            var shelfCode = string.Empty;
+           
             if (shipmentManual != null)
             {
+                var shelfCode = shipmentManual.ShelfCode;
+                
+                //_customerActivityService.InsertActivity("DeleteShipmentManual", _localizationService.GetResource("activitylog.DeleteShipmentManual"), shipmentManual.Id);
+
+                foreach (var shipmentManualItem in shipmentManual.ShipmentManualItems)
+                {
+                    var orderItem = _orderService.GetOrderItemById(shipmentManualItem.OrderItemId);
+                    if (orderItem != null)
+                    {
+                        orderItem.DeliveryDateUtc = null;
+                        _orderService.UpdateOrderItem(orderItem);
+                    }
+                }
                 var shelf = _shelfService.GetShelfByCode(shelfCode);
                 if (shelf != null)
                 {
@@ -684,17 +697,6 @@ namespace Nop.Web.Areas.Admin.Controllers
                         _shelfService.UpdateShelf(shelf);
                     }
                     _shelfService.UpdateShelfTotalAmount(shelf.Id.ToString());
-                }
-                _customerActivityService.InsertActivity("DeleteShipmentManual", _localizationService.GetResource("activitylog.DeleteShipmentManual"), shipmentManual.Id);
-
-                foreach (var shipmentManualItem in shipmentManual.ShipmentManualItems)
-                {
-                    var orderItem = _orderService.GetOrderItemById(shipmentManualItem.OrderItemId);
-                    if (orderItem != null)
-                    {
-                        orderItem.DeliveryDateUtc = null;
-                        _orderService.UpdateOrderItem(orderItem);
-                    }
                 }
 
                 _shipmentManualService.DeleteShipmentManual(shipmentManual);

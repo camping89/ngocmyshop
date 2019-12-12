@@ -147,6 +147,7 @@ namespace Nop.Web.Areas.Admin.Models.Orders
 
         public string ShelfCode { get; set; }
         public decimal ItemWeight { get; set; }
+        public decimal ProductWeight { get; set; }
         public string TotalWithoutWeightCost { get; set; }
         public decimal UnitWeightCost { get; set; }
         //public PackageOrderModel PackageOrder { get; set; }

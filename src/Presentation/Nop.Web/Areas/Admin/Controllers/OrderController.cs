@@ -6381,6 +6381,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                         UnitWeightCost = (orderItem.UnitWeightCost == null || orderItem.UnitWeightCost == 0 ) ? (currencyProduct != null ? currencyProduct.UnitWeightCost : 0) : orderItem.UnitWeightCost.Value,
                         IsOrderCheckout = orderItem.IsOrderCheckout,
                         ItemWeight = orderItem.ItemWeight ?? 0,
+                        ProductWeight = orderItem.Product.Weight,
                         CustomerInfo = customerInfo,
                         CustomerLinkFacebook = customerFacebook,
                         CustomerLinkShortFacebook = customerShortFacebook,
