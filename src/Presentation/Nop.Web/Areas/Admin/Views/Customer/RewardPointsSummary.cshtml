@@ -119,8 +119,13 @@
                                         {
                                             field: "CustomerFullName",
                                             title: "@T("Admin.Customer.RewardHistorySummary.Fields.CustomerFullName")",
+                                            width: 200
+                                        },
+                                        {
+                                            field: "DateOfBirth",
+                                            title: "@T("Admin.Customer.RewardHistorySummary.Fields.DateOfBirth")",
                                             width: 200,
-                                            template: "<p><span>#=CustomerFullName  #</span> - Ngày sinh: #= kendo.toString(kendo.parseDate(DateOfBirth, 'yyyy-MM-dd'), 'dd/MM/yyyy') #</p>"
+                                            template: "<p>#= kendo.toString(kendo.parseDate(DateOfBirth, 'yyyy-MM-dd'), 'dd/MM/yyyy') #</p>"
                                         },
                                         {
                                             field: "CustomerPhone",
