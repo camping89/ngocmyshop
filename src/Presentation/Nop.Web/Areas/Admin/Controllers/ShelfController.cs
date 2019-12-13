@@ -696,10 +696,11 @@ namespace Nop.Web.Areas.Admin.Controllers
                         shelf.CustomerId = shipmentManual.CustomerId;
                         _shelfService.UpdateShelf(shelf);
                     }
-                    _shelfService.UpdateShelfTotalAmount(shelf.Id.ToString());
+                    
                 }
-
                 _shipmentManualService.DeleteShipmentManual(shipmentManual);
+                
+                _shelfService.UpdateShelfTotalAmount(shelfCode);
             }
 
             return Json(new { Success = true });
@@ -751,6 +752,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                     orderItem.DeliveryDateUtc = null;
                     _orderService.UpdateOrderItem(orderItem);
                     _shipmentManualService.UpdateTotalShipmentManual(shipmentManualId);
+                    _shelfService.UpdateShelfTotalAmount(orderItem.ShelfId.ToString());
                 }
             }
             return Json(new { Success = true });
