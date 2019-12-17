@@ -537,7 +537,7 @@
                         <nop-label asp-for="CreatedOn" />
                     </div>
                     <div class="col-md-9">
-                        <div class="form-text-row">@Model.CreatedOn.ToString(CultureInfo.InvariantCulture)</div>
+                        <div class="form-text-row">@Model.CreatedOn.ToString("dd/MM/yyyy")</div>
                     </div>
                 </div>
             }
@@ -548,7 +548,7 @@
                         <nop-label asp-for="LastActivityDate" />
                     </div>
                     <div class="col-md-9">
-                        <div class="form-text-row">@Model.LastActivityDate.ToString(CultureInfo.InvariantCulture)</div>
+                        <div class="form-text-row">@Model.LastActivityDate.ToString("dd/MM/yyyy")</div>
                     </div>
                 </div>
             }
