@@ -1002,9 +1002,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                     model.Email = StringExtensions.GenerateEmailAddress(customerFirstLastName.FirstName, customerFirstLastName.LastName);
                 }
             }
-
-
-
+            
             //validate customer roles
             var allCustomerRoles = _customerService.GetAllCustomerRoles(true);
             var newCustomerRoles = new List<CustomerRole>();
@@ -1245,7 +1243,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 model.Phone = model.Phone.Replace(" ", "").Trim();
                 model.Username = model.Phone;
             }
-
+            
             if (!string.IsNullOrEmpty(model.FullName))
             {
                 var customerFirstLastName = StringExtensions.GetFirstLastNameFromFullName(model.FullName);
@@ -1905,7 +1903,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                 {
                     item.CustomerFullName = customer.FullName;
                     item.CustomerPhone = customer.Phone;
-                    item.DateOfBirth = customer.GetAttribute<DateTime>(SystemCustomerAttributeNames.DateOfBirth);
+                    item.DateOfBirth = customer.GetAttribute<DateTime?>(SystemCustomerAttributeNames.DateOfBirth);
                 }
             }
             var gridModel = new DataSourceResult

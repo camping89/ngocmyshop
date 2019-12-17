@@ -6378,6 +6378,7 @@ namespace Nop.Web.Areas.Admin.Controllers
                         PackageOrderId = orderItem.PackageOrderId ?? 0,
                         EstimatedTimeArrival = orderItem.EstimatedTimeArrival,
                         PackageItemProcessedDatetime = orderItem.PackageItemProcessedDatetime,
+                        ProductWeightCost = orderItem.Product.WeightCost,
                         UnitWeightCost = (orderItem.UnitWeightCost == null || orderItem.UnitWeightCost == 0 ) ? (currencyProduct != null ? currencyProduct.UnitWeightCost : 0) : orderItem.UnitWeightCost.Value,
                         IsOrderCheckout = orderItem.IsOrderCheckout,
                         ItemWeight = orderItem.ItemWeight ?? 0,

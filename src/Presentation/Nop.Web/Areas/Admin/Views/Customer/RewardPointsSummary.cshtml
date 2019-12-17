@@ -125,7 +125,11 @@
                                             field: "DateOfBirth",
                                             title: "@T("Admin.Customer.RewardHistorySummary.Fields.DateOfBirth")",
                                             width: 200,
-                                            template: "<p>#= kendo.toString(kendo.parseDate(DateOfBirth, 'yyyy-MM-dd'), 'dd/MM/yyyy') #</p>"
+                                            template:"# if (DateOfBirth != null) { #" +
+                                                "<p>#= kendo.toString(kendo.parseDate(DateOfBirth, 'yyyy-MM-dd'), 'dd/MM/yyyy') #</p>" +
+                                                "#} else {#" +
+                                                "<p></p>" +
+                                                "# } #"
                                         },
                                         {
                                             field: "CustomerPhone",

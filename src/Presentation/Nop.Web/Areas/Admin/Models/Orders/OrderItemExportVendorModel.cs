@@ -150,6 +150,8 @@ namespace Nop.Web.Areas.Admin.Models.Orders
         public decimal ProductWeight { get; set; }
         public string TotalWithoutWeightCost { get; set; }
         public decimal UnitWeightCost { get; set; }
+        
+        public decimal ProductWeightCost { get; set; }
         //public PackageOrderModel PackageOrder { get; set; }
         public string CustomerInfo { get; set; }
         public string CustomerLinkFacebook { get; set; }
