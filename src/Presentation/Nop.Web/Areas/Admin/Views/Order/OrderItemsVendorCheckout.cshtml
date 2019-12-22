@@ -470,7 +470,8 @@
                                         field: "UnitWeightCost",
                                         title: "@T("Admin.Orders.Products.UnitWeightCost")",
                                         width: 70,
-                                        template: "# if(ItemWeight > 0 || WeightCostDec == 0 ) { #" +
+                                        //editor: editUnitWeightCost,
+                                        template: "# if(ProductWeight > 0 || WeightCostDec == 0 || (ProductWeightCost == 0 && ProductWeight == 0)) { #" +
                                             "<p>#=UnitWeightCost#</p>" +
                                             " #} else {#" +
                                             "<p></p>" +
@@ -713,6 +714,33 @@
                                 '" />');
 
                             element.appendTo(container);
+                        }
+
+                        function editUnitWeightCost(container, options) {
+                            if (options.model.ProductWeight > 0 || options.model.WeightCostDec == 0) {
+                                var element = $('<input name="' +
+                                    options.field +
+                                    '" class="k-input k-textbox" data-text-field="' +
+                                    options.field +
+                                    '" data-value-field="' +
+                                    options.field +
+                                    '" data-bind="value:' +
+                                    options.field +
+                                    '" />');
+
+                                element.appendTo(container);
+                            } else {
+                                var element = $('<input readonly name="' +
+                                    options.field +
+                                    '" class="k-input k-textbox" data-text-field="' +
+                                    options.field +
+                                    '" data-value-field="' +
+                                    options.field +
+                                    '" data-bind="value:' +
+                                    options.field +
+                                    '" />');
+                                element.appendTo(container);
+                            }
                         }
 
                         function editItemWeight(container, options) {
