@@ -33,6 +33,7 @@ using System.IO;
 using System.Linq;
 using System.Xml;
 using System.Xml.Serialization;
+using Microsoft.AspNetCore.Hosting;
 
 namespace Nop.Services.Common
 {
@@ -69,6 +70,8 @@ namespace Nop.Services.Common
         private readonly AddressSettings _addressSettings;
         private readonly IProductAttributeService _productAttributeService;
         private readonly IShelfService _shelfService;
+        
+        private readonly IHostingEnvironment _hostingEnvironment;
         #endregion
 
         #region Ctor
@@ -119,7 +122,7 @@ namespace Nop.Services.Common
             MeasureSettings measureSettings,
             PdfSettings pdfSettings,
             TaxSettings taxSettings,
-            AddressSettings addressSettings, ICustomerService customerService, IVendorService vendorService, IProductAttributeService productAttributeService, IShelfService shelfService)
+            AddressSettings addressSettings, ICustomerService customerService, IVendorService vendorService, IProductAttributeService productAttributeService, IShelfService shelfService, IHostingEnvironment hostingEnvironment)
         {
             this._localizationService = localizationService;
             this._languageService = languageService;
@@ -147,6 +150,7 @@ namespace Nop.Services.Common
             _vendorService = vendorService;
             _productAttributeService = productAttributeService;
             _shelfService = shelfService;
+            _hostingEnvironment = hostingEnvironment;
         }
 
         #endregion
@@ -2182,12 +2186,25 @@ namespace Nop.Services.Common
                     if (picBinary != null && picBinary.Length > 0)
                     {
                         var pictureLocalPath = _pictureService.GetThumbLocalPath(picture, 70, false);
-                        var cellPic = new PdfPCell(Image.GetInstance(pictureLocalPath))
+                        if (File.Exists(pictureLocalPath))
                         {
-                            HorizontalAlignment = Element.ALIGN_LEFT,
-                            Border = Rectangle.NO_BORDER
-                        };
-                        productAttribTable.AddCell(cellPic);
+                            var cellPic = new PdfPCell(Image.GetInstance(pictureLocalPath))
+                            {
+                                HorizontalAlignment = Element.ALIGN_LEFT,
+                                Border = Rectangle.NO_BORDER
+                            };
+                            productAttribTable.AddCell(cellPic);
+                        }
+                        else
+                        {
+                            var imageDirectoryPath = Path.Combine(_hostingEnvironment.WebRootPath, "images\\thumbs");
+                            var cellPic = new PdfPCell(Image.GetInstance($"{imageDirectoryPath}\\default-image.png"))
+                            {
+                                HorizontalAlignment = Element.ALIGN_LEFT,
+                                Border = Rectangle.NO_BORDER
+                            };
+                            productAttribTable.AddCell(cellPic);
+                        }
                     }
                 }
 

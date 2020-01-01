@@ -5251,9 +5251,6 @@ namespace Nop.Web.Areas.Admin.Controllers
         [HttpPost]
         public virtual IActionResult PdfShipmentManualDetailsSelected(string selectedIds)
         {
-            if (!_permissionService.Authorize(StandardPermissionProvider.ManageOrders))
-                return AccessDeniedView();
-
             var shipments = new List<ShipmentManual>();
             if (selectedIds != null)
             {
