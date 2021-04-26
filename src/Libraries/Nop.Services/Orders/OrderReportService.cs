@@ -555,6 +555,135 @@ namespace Nop.Services.Orders
             return profit;
         }
 
+        public OrderAverageReportLine GetOrderItemsAverageReportLineVendorCheckout(string vendorProductUrl, string orderId = null, string orderItemId = null, DateTime? startDate = null, DateTime? endDate = null, string customerPhone = null, string packageOrderCode = null, int vendorId = 0, bool? isSetPackageOrderId = null, bool? hasShelf = null, int orderItemStatusId = -1, bool? isPackageItemProcessedDatetime = null, bool? isOrderCheckout = null, bool isWeightCostZero = false, string productSku = null)
+        {
+            var query = from oi in _orderItemRepository.Table
+                        join o in _orderRepository.Table on oi.OrderId equals o.Id
+                        where !o.Deleted
+                        select oi;
+
+            if (string.IsNullOrEmpty(productSku) == false)
+            {
+                query = from q in query
+                        join p in _productRepository.Table on q.ProductId equals p.Id
+                        where p.Sku == productSku
+                        select q;
+            }
+            if (isWeightCostZero)
+            {
+                query = query.Where(_ => _.WeightCost == Decimal.Zero);
+            }
+            if (string.IsNullOrEmpty(vendorProductUrl) == false)
+            {
+                query = query.Where(_ => string.IsNullOrEmpty(_.Product.VendorProductUrl) == false
+                                         && _.Product.VendorProductUrl.Contains(vendorProductUrl));
+            }
+
+            if (string.IsNullOrEmpty(orderItemId) == false)
+            {
+                orderItemId = orderItemId.TrimStart().TrimEnd().Trim();
+                query = query.Where(_ => _.Id.ToString().Contains(orderItemId));
+            }
+
+            if (string.IsNullOrEmpty(orderId) == false)
+            {
+                orderId = orderId.TrimStart().TrimEnd().Trim();
+                query = query.Where(_ => _.OrderId.ToString().Contains(orderId));
+            }
+
+            if (string.IsNullOrEmpty(packageOrderCode) == false)
+            {
+                packageOrderCode = packageOrderCode.TrimStart().TrimEnd().Trim();
+                query = query.Where(_ => _.PackageOrder.PackageCode.Contains(packageOrderCode));
+            }
+            else
+            {
+                if (isSetPackageOrderId.HasValue)
+                {
+                    if (isSetPackageOrderId.Value)
+                    {
+                        query = query.Where(_ => _.PackageOrderId != null && _.PackageOrderId > 0);
+                    }
+                    else
+                    {
+                        query = query.Where(_ => _.PackageOrderId == null || _.PackageOrderId == 0);
+                    }
+                }
+            }
+
+            // TODO Huy: need to merge order item and shelf order item to one entity later
+            if (hasShelf.HasValue)
+            {
+                //var orderItemIds = _orderItemRepository.Table.Select(_ => _.OrderItemId).ToList();
+                //if (isSetShelfId.Value)
+                //{
+                //    query = query.Where(_ => orderItemIds.Contains(_.Id));
+                //}
+                //else
+                //{
+                //    query = query.Where(_ => orderItemIds.Contains(_.Id) == false);
+                //}
+
+                //query = hasShelf.Value ? query.Where(_ => _.OrderItem !=  null) : query.Where(_ => _.OrderItem ==  null);
+            }
+
+            if (isPackageItemProcessedDatetime.HasValue)
+            {
+                query = query.Where(_ => _.PackageItemProcessedDatetime != null == isPackageItemProcessedDatetime.Value);
+            }
+
+            if (vendorId > 0)
+            {
+                query = query.Where(_ => _.Product.VendorId == vendorId);
+            }
+
+            if (isOrderCheckout.HasValue)
+            {
+                query = query.Where(_ => _.IsOrderCheckout == isOrderCheckout.Value);
+            }
+
+            if (startDate != null)
+            {
+                query = query.Where(_ => _.Order.CreatedOnUtc != null && _.Order.CreatedOnUtc >= startDate.Value);
+            }
+
+            if (endDate != null)
+            {
+                query = query.Where(_ => _.Order.CreatedOnUtc != null && _.Order.CreatedOnUtc <= endDate.Value);
+            }
+
+            if (!string.IsNullOrWhiteSpace(customerPhone))
+            {
+                customerPhone = customerPhone.TrimStart().TrimEnd().Trim();
+                //query = query
+                //    .Join(_customerRepository.Table, x => x.Order.CustomerId, y => y.Id, (x, y) => new { OrderItem = x, Customer = y })
+                //    .Where(z => z.Customer.Phone.Contains(customerPhone))
+                //    .Select(z => z.OrderItem);
+                query = query.Where(_ => _.Order.Customer.Phone.Contains(customerPhone));
+            }
+
+            var item = (from oq in query
+                    group oq by 1
+                    into result
+                    select new
+                    {
+                        OrderTotalSum = result.Sum(o => o.UnitPriceUsd)
+                    }
+                ).Select(r => new OrderAverageReportLine
+                {
+                    SumOrders = r.OrderTotalSum
+                }).FirstOrDefault();
+
+            item = item ?? new OrderAverageReportLine
+            {
+                CountOrders = 0,
+                SumShippingExclTax = decimal.Zero,
+                SumTax = decimal.Zero,
+                SumOrders = decimal.Zero,
+            };
+            return item;
+        }
+
         #endregion
     }
 }

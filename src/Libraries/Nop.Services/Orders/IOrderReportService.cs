@@ -138,5 +138,12 @@ namespace Nop.Services.Orders
             List<int> osIds = null, List<int> psIds = null, List<int> ssIds = null,
             DateTime? startTimeUtc = null, DateTime? endTimeUtc = null,
             string billingEmail = null, string billingLastName = "", string orderNotes = null);
+
+        OrderAverageReportLine GetOrderItemsAverageReportLineVendorCheckout(string vendorProductUrl, string orderId = null,
+            string orderItemId = null,
+            DateTime? startDate = null, DateTime? endDate = null,
+            string customerPhone = null, string packageOrderCode = null,
+            int vendorId = 0, bool? isSetPackageOrderId = null,
+            bool? hasShelf = null, int orderItemStatusId = -1, bool? isPackageItemProcessedDatetime = null, bool? isOrderCheckout = null, bool isWeightCostZero = false, string productSku = null);
     }
 }

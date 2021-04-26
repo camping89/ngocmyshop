@@ -1826,46 +1826,46 @@ namespace Nop.Web.Areas.Admin.Controllers
 
             //summary report
             //currently we do not support productId and warehouseId parameters for this report
-            var reportSummary = _orderReportService.GetOrderAverageReportLine(
-                model.StoreId,
-                model.VendorId,
-                orderId: 0,
-                paymentMethodSystemName: model.PaymentMethodSystemName,
-                osIds: orderStatusIds,
-                psIds: paymentStatusIds,
-                ssIds: shippingStatusIds,
-                startTimeUtc: startDateValue,
-                endTimeUtc: endDateValue,
-                billingEmail: model.BillingEmail,
-                billingLastName: model.BillingFullName,
-                billingCountryId: model.BillingCountryId,
-                orderNotes: model.OrderNotes);
+            //var reportSummary = _orderReportService.GetOrderAverageReportLine(
+            //    model.StoreId,
+            //    model.VendorId,
+            //    orderId: 0,
+            //    paymentMethodSystemName: model.PaymentMethodSystemName,
+            //    osIds: orderStatusIds,
+            //    psIds: paymentStatusIds,
+            //    ssIds: shippingStatusIds,
+            //    startTimeUtc: startDateValue,
+            //    endTimeUtc: endDateValue,
+            //    billingEmail: model.BillingEmail,
+            //    billingLastName: model.BillingFullName,
+            //    billingCountryId: model.BillingCountryId,
+            //    orderNotes: model.OrderNotes);
 
-            var profit = _orderReportService.ProfitReport(
-                model.StoreId,
-                model.VendorId,
-                paymentMethodSystemName: model.PaymentMethodSystemName,
-                osIds: orderStatusIds,
-                psIds: paymentStatusIds,
-                ssIds: shippingStatusIds,
-                startTimeUtc: startDateValue,
-                endTimeUtc: endDateValue,
-                billingEmail: model.BillingEmail,
-                billingLastName: model.BillingFullName,
-                billingCountryId: model.BillingCountryId,
-                orderNotes: model.OrderNotes);
+            //var profit = _orderReportService.ProfitReport(
+            //    model.StoreId,
+            //    model.VendorId,
+            //    paymentMethodSystemName: model.PaymentMethodSystemName,
+            //    osIds: orderStatusIds,
+            //    psIds: paymentStatusIds,
+            //    ssIds: shippingStatusIds,
+            //    startTimeUtc: startDateValue,
+            //    endTimeUtc: endDateValue,
+            //    billingEmail: model.BillingEmail,
+            //    billingLastName: model.BillingFullName,
+            //    billingCountryId: model.BillingCountryId,
+            //    orderNotes: model.OrderNotes);
 
-            var primaryStoreCurrency = _currencyService.GetCurrencyById(_currencySettings.PrimaryStoreCurrencyId);
-            if (primaryStoreCurrency == null)
-                throw new Exception("Cannot load primary store currency");
+            //var primaryStoreCurrency = _currencyService.GetCurrencyById(_currencySettings.PrimaryStoreCurrencyId);
+            //if (primaryStoreCurrency == null)
+            //    throw new Exception("Cannot load primary store currency");
 
-            gridModel.ExtraData = new OrderAggreratorModel
-            {
-                aggregatorprofit = _priceFormatter.FormatPrice(profit, true, false),
-                aggregatorshipping = _priceFormatter.FormatShippingPrice(reportSummary.SumShippingExclTax, true, primaryStoreCurrency, _workContext.WorkingLanguage, false),
-                aggregatortax = _priceFormatter.FormatPrice(reportSummary.SumTax, true, false),
-                aggregatortotal = _priceFormatter.FormatPrice(reportSummary.SumOrders, true, false)
-            };
+            //gridModel.ExtraData = new OrderAggreratorModel
+            //{
+            //    aggregatorprofit = _priceFormatter.FormatPrice(profit, true, false),
+            //    aggregatorshipping = _priceFormatter.FormatShippingPrice(reportSummary.SumShippingExclTax, true, primaryStoreCurrency, _workContext.WorkingLanguage, false),
+            //    aggregatortax = _priceFormatter.FormatPrice(reportSummary.SumTax, true, false),
+            //    aggregatortotal = _priceFormatter.FormatPrice(reportSummary.SumOrders, true, false)
+            //};
 
             return Json(gridModel);
         }
@@ -6423,6 +6423,21 @@ namespace Nop.Web.Areas.Admin.Controllers
                 }),
                 Total = orderItems.TotalCount
                 //TotalIds = orderItems.TotalIds
+            };
+
+            //summary report
+           // currently we do not support productId and warehouseId parameters for this report
+            var reportSummary = _orderReportService.GetOrderItemsAverageReportLineVendorCheckout(
+                model.VendorProductUrl, model.OrderId, model.OrderItemId, 
+                startDate: model.StartDate, endDate: model.EndDate,
+                customerPhone: model.CustomerPhone, packageOrderCode: model.PackageOrderCode,
+                vendorId: model.VendorId, isSetPackageOrderId: model.IsSetPackageOrderId,
+                hasShelf: model.HasShelf, orderItemStatusId: model.OrderItemStatusId,
+                isPackageItemProcessedDatetime: model.IsPackageItemProcessedDatetime, isOrderCheckout: model.IsOrderCheckout, isWeightCostZero: model.IsWeightCostZero, productSku: model.ProductSku);
+
+            gridModel.ExtraData = new OrderAggreratorModel
+            {
+                aggregatortotal = _priceFormatter.FormatPrice(reportSummary.SumOrders, true, false)
             };
 
             return Json(gridModel);

@@ -254,272 +254,292 @@
                                 <div id="order-items-grid"></div>
 
                                 <script>
-                    $(function() {
-                            $("#order-items-grid").kendoGrid({
-                                dataSource: {
-                                    transport: {
-                                        read: {
-                                            url:
-                                                "@Html.Raw(Url.Action("ListOrderItemsVendorCheckout", "Order"))",
-                                            type: "POST",
-                                            data: additionalData
-                                        },
-                                        update: {
-                                            url:
-                                                "@Html.Raw(Url.Action("UpdateOrderItemCheckout", "Order"))",
-                                            type: "POST",
-                                            data: addAntiForgeryToken
-                                        },
-                                        destroy: {
-                                            url: "@Html.Raw(Url.Action("DeleteOrderItemVendorCheckout", "Order"))",
-                                            type: "POST",
-                                            data: additionalData
-                                        }
-                                    },
-                                    schema: {
-                                        data: "Data",
-                                        total: "Total",
-                                        errors: "Errors",
-                                        model: {
-                                            id: "Id",
-                                            fields: {
-                                                OrderId: { editable: false, type: "number" },
-                                                Quantity: { editable: true, type: "number" },
-                                                PackageId: { editable: false, type: "string" },
-                                                AssignedByCustomerId: { editable: true, type: "number" },
-                                                CustomerAssignShelfInfo: {
-                                                    editable: false,
-                                                    type: "string"
+                                    var reportAggregates = "";
+                                    $(function() {
+                                        $("#order-items-grid").kendoGrid({
+                                            dataSource: {
+                                                transport: {
+                                                    read: {
+                                                        url:
+                                                            "@Html.Raw(Url.Action("ListOrderItemsVendorCheckout", "Order"))",
+                                                        type: "POST",
+                                                        data: additionalData
+                                                    },
+                                                    update: {
+                                                        url:
+                                                            "@Html.Raw(Url.Action("UpdateOrderItemCheckout", "Order"))",
+                                                        type: "POST",
+                                                        data: addAntiForgeryToken
+                                                    },
+                                                    destroy: {
+                                                        url: "@Html.Raw(Url.Action("DeleteOrderItemVendorCheckout", "Order"))",
+                                                        type: "POST",
+                                                        data: additionalData
+                                                    }
                                                 },
-                                                CustomerInfo: { editable: false, type: "string" },
-                                                CreatedDate: { editable: false, type: "string" },
-                                                VendorName: { editable: false, type: "string" },
-                                                PackageOrderId: { editable: false, type: "string" },
-                                                PackageOrderCode: { editable: true, type: "string" },
-                                                EstimatedTimeArrival: {
-                                                    editable: true,
-                                                    type: "date"
+                                                schema: {
+                                                    data: "Data",
+                                                    total: "Total",
+                                                    errors: "Errors",
+                                                    model: {
+                                                        id: "Id",
+                                                        fields: {
+                                                            OrderId: { editable: false, type: "number" },
+                                                            Quantity: { editable: true, type: "number" },
+                                                            PackageId: { editable: false, type: "string" },
+                                                            AssignedByCustomerId: { editable: true, type: "number" },
+                                                            CustomerAssignShelfInfo: {
+                                                                editable: false,
+                                                                type: "string"
+                                                            },
+                                                            CustomerInfo: { editable: false, type: "string" },
+                                                            CreatedDate: { editable: false, type: "string" },
+                                                            VendorName: { editable: false, type: "string" },
+                                                            PackageOrderId: { editable: false, type: "string" },
+                                                            PackageOrderCode: { editable: true, type: "string" },
+                                                            EstimatedTimeArrival: {
+                                                                editable: true,
+                                                                type: "date"
+                                                            },
+                                                            PackageItemProcessedDatetime: {
+                                                                editable: true,
+                                                                type: "date"
+                                                            },
+                                                            DeliveryDateUtc: {
+                                                                editable: false,
+                                                                type: "date"
+                                                            },
+                                                            PictureThumbnailUrl: { editable: false, type: "string" },
+                                                            ProductName: { editable: false, type: "string" },
+                                                            TotalWithoutWeightCost: { editable: false, type: "string" },
+                                                            WeightCostDec: { editable: true, type: "string" },
+                                                            UnitWeightCost: { editable: true, type: "string" },
+                                                            UnitPriceBase: { editable: false, type: "string" },
+                                                            ItemWeight: { editable: true, type: "string" },
+                                                            SubTotalInclTax: { editable: false, type: "string" },
+                                                            IsOrderCheckout: { editable: true, type: "boolean" },
+                                                            ExistShipment: { editable: false, type: "boolean" },
+                                                            ShelfCode: { editable: true, type: "string" },
+                                                            Note: { editable: true, type: "string" },
+                                                            Deposit: { editable: true, type: "string" }
+                                                        }
+                                                    }
+
                                                 },
-                                                PackageItemProcessedDatetime: {
-                                                    editable: true,
-                                                    type: "date"
+                                                requestEnd: function(e) {
+                                                    if (e.response !== null &&
+                                                        e.response !== undefined &&
+                                                        e.response.errors !== undefined) {
+
+                                                        alert(e.response.errors);
+                                                    }
+                                                    if (e.type !== "read") {
+
+                                                        var grid = $("#order-items-grid").data('kendoGrid');
+                                                        grid.dataSource.read();
+                                                    }
+                                                    if (e.type === "read") {
+                                                        var response = e.response;
+                                                        if (response) {
+                                                            //store extra data
+                                                            reportAggregates = e.response["ExtraData"];
+                                                        }
+
+                                                    }
                                                 },
-                                                DeliveryDateUtc: {
-                                                    editable: false,
-                                                    type: "date"
+                                                error: function(e) {
+
+                                                    display_kendoui_grid_error(e);
+                                                    // Cancel the changes
+                                                    this.cancelChanges();
                                                 },
-                                                PictureThumbnailUrl: { editable: false, type: "string" },
-                                                ProductName: { editable: false, type: "string" },
-                                                TotalWithoutWeightCost: { editable: false, type: "string" },
-                                                WeightCostDec: { editable: true, type: "string" },
-                                                UnitWeightCost: { editable: true, type: "string" },
-                                                UnitPriceBase: { editable: false, type: "string" },
-                                                ItemWeight: { editable: true, type: "string" },
-                                                SubTotalInclTax: { editable: false, type: "string" },
-                                                IsOrderCheckout: { editable: true, type: "boolean" },
-                                                ExistShipment: { editable: false, type: "boolean" },
-                                                ShelfCode: { editable: true, type: "string" },
-                                                Note: { editable: true, type: "string" },
-                                                Deposit: { editable: true, type: "string" }
-                                            }
-                                        }
+                                                pageSize: @(defaultGridPageSize),
+                                                serverPaging: true,
+                                                serverFiltering: true,
+                                                //serverSorting: true
+                                            },
+                                            edit: grid_edit,
+                                            editable: {
+                                                confirmation: "@T("Admin.Common.DeleteConfirmation")",
+                                                mode: "inline"
+                                            },
+                                            //height: 540,
+                                            dataBound: function(e) {
+                                                var dataElement = $(e.sender.element).find(".k-grid-content");
+                                                var fakeScroll = document.getElementById("dummyScroll");
+                                                fakeScroll.style.width = dataElement.children(0).width() + "px";
 
-                                    },
-                                    requestEnd: function(e) {
-                                        if (e.response !== null &&
-                                            e.response !== undefined &&
-                                            e.response.errors !== undefined) {
+                                                dataElement.scroll(function() {
+                                                    $("#dummyScrollWrapper").scrollLeft(dataElement.scrollLeft());
+                                                });
+                                                $("#dummyScrollWrapper").scroll(function() {
+                                                    dataElement.scrollLeft($("#dummyScrollWrapper").scrollLeft());
+                                                });
 
-                                            alert(e.response.errors);
-                                        }
-                                        if (e.type !== "read") {
-                                            var grid = $("#order-items-grid").data('kendoGrid');
-                                            grid.dataSource.read();
-                                        }
-                                    },
-                                    error: function(e) {
 
-                                        display_kendoui_grid_error(e);
-                                        // Cancel the changes
-                                        this.cancelChanges();
-                                    },
-                                    pageSize: @(defaultGridPageSize),
-                                    serverPaging: true,
-                                    serverFiltering: true,
-                                    //serverSorting: true
-                                },
-                                edit: grid_edit,
-                                editable: {
-                                    confirmation: "@T("Admin.Common.DeleteConfirmation")",
-                                    mode: "inline"
-                                },
-                                //height: 540,
-                                dataBound: function(e) {
-                                    var dataElement = $(e.sender.element).find(".k-grid-content");
-                                    var fakeScroll = document.getElementById("dummyScroll");
-                                    fakeScroll.style.width = dataElement.children(0).width() + "px";
+                                                if (reportAggregates != "") {
+                                                    for (var key in reportAggregates) {
+                                                        $('#aggregator-total-block').text(reportAggregates['aggregatortotal']);
+                                                    }
+                                                }
+                                            },
 
-                                    dataElement.scroll(function() {
-                                        $("#dummyScrollWrapper").scrollLeft(dataElement.scrollLeft());
-                                    });
-                                    $("#dummyScrollWrapper").scroll(function() {
-                                        dataElement.scrollLeft($("#dummyScrollWrapper").scrollLeft());
-                                    });
-                                },
-                                scrollable: true,
-                                pageable: {
-                                    refresh: true,
-                                    pageSizes: [@(gridPageSizes)],
-                                    @await Html.PartialAsync("_GridPagerMessages")
-                                },
-                                columns: [
-                                    {
-                                        field: "Id",
-                                        headerTemplate: "<input id='mastercheckbox' type='checkbox'/>",
-                                        headerAttributes: { style: "text-align:center" },
-                                        attributes: { style: "text-align:center" },
-                                        template:
-                                            "<div style='display:block;padding: 100% 40%;' onclick='setChecked(#=Id#);'><input onclick='setChecked(#=Id#);' id='ckb#=Id#' type='checkbox' value='#=Id#' class='checkboxGroups'/></div>",
-                                        width: 60,
-                                        sortable: false,
-                                        editor: hideOnEditor
-                                    },
-                                    {
-                                        field: "PackageOrderCode",
-                                        title: "@T("admin.orders.products.packagecode")",
-                                        width: 100,
-                                        editor: editPackageOrderId,
-                                        template: "# if (PackageOrderCode != null) { #" +
-                                            "<p>#=PackageOrderCode#</p>" +
-                                            "#} else {#" +
-                                            "<p></p>" +
-                                            "# } #"
+                                            scrollable: true,
+                                            pageable: {
+                                                refresh: true,
+                                                pageSizes: [@(gridPageSizes)],
+                                                @await Html.PartialAsync("_GridPagerMessages")
+                                            },
+                                            columns: [
+                                                {
+                                                    field: "Id",
+                                                    headerTemplate: "<input id='mastercheckbox' type='checkbox'/>",
+                                                    headerAttributes: { style: "text-align:center" },
+                                                    attributes: { style: "text-align:center" },
+                                                    template:
+                                                        "<div style='display:block;padding: 100% 40%;' onclick='setChecked(#=Id#);'><input onclick='setChecked(#=Id#);' id='ckb#=Id#' type='checkbox' value='#=Id#' class='checkboxGroups'/></div>",
+                                                    width: 60,
+                                                    sortable: false,
+                                                    editor: hideOnEditor
+                                                },
+                                                {
+                                                    field: "PackageOrderCode",
+                                                    title: "@T("admin.orders.products.packagecode")",
+                                                    width: 100,
+                                                    editor: editPackageOrderId,
+                                                    template: "# if (PackageOrderCode != null) { #" +
+                                                        "<p>#=PackageOrderCode#</p>" +
+                                                        "#} else {#" +
+                                                        "<p></p>" +
+                                                        "# } #"
 
-                                    }, {
-                                        field: "OrderId",
-                                        title: "@T("Admin.Orders.OrderItemId")",
-                                        width: 120,
-                                        template: "#=OrderId#.#=Id#"
-                                    }, {
-                                        field: "CreatedDate",
-                                        title: "@T("Admin.Orders.Fields.OrderCreatedDate")",
-                                        width: 80,
-                                        type: "date",
-                                        //format: "{0:G}",
-                                        template: "# if (CreatedDate != null) { #" +
-                                            "<p>#= kendo.toString(kendo.parseDate(CreatedDate, 'yyyy-MM-dd'), 'dd/MM/yyyy') #</p>" +
-                                            "#} else {#" +
-                                            "<p></p>" +
-                                            "# } #"
-                                    },
-                                    {
-                                        field: "ExistShipment",
-                                        title: "@T("Admin.Orders.ExistShipment")",
-                                        width: 50,
-                                        hidden: true
-                                    },
-                                    {
-                                        field: "CustomerInfo",
-                                        title: "@T("Admin.Orders.Products.CustomerInfo")",
-                                        width: 150,
-                                        template: '<p>#=CustomerInfo#</p>' +
-                                            '<p><a target="_blank" href="#=CustomerLinkFacebook#">#=CustomerLinkShortFacebook#</a></p>'
-                                    },
-                                    {
-                                        field: "PictureThumbnailUrl",
-                                        title: "@T("Admin.Orders.Products.Picture")",
-                                        template: '<img src="#=PictureThumbnailUrl#" />',
-                                        width: 100
-                                    }, {
-                                        field: "VendorName",
-                                        title: "@T("Admin.Orders.Products.VendorName")",
-                                        width: 100,
-                                        hidden: true
-                                    }, {
-                                        field: "ProductName",
-                                        title: "@T("Admin.Orders.Products.ProductName")",
-                                        template: '@T("Admin.Products.ProductName") #=ProductName#' +
-                                            '<p>#=AttributeInfo#</p>' +
-                                            '<p>@T("Admin.Common.Vendor") #=VendorName#</p>' +
-                                            '<p>@T("Admin.Products.Sku") #=Sku#</p>',
-                                        width: 250
-                                    }, {
-                                        field: "UnitPriceBase",
-                                        title: "@T("Admin.Orders.Products.UnitPriceBase")",
-                                        width: 70
-                                    }, {
-                                        field: "Quantity",
-                                        title: "@T("Admin.Orders.Products.Quantity")",
-                                        width: 70,
-                                        editor: addExtendCustom
-                                    }, {
-                                        field: "TotalWithoutWeightCost",
-                                        title: "@T("Admin.Orders.Products.TotalWithoutWeightCost")",
-                                        width: 100
-                                    }, {
-                                        field: "WeightCostDec",
-                                        title: "@T("Admin.Orders.Products.WeightCost")",
-                                        width: 70,
-                                        template: "# if (WeightCostDec > 0) { #" +
-                                            "#=WeightCost#" +
-                                            "#} else {#" +
-                                            @*"<p>@(T("orderitem.includeweightcost.false"))</p>" +*@
-                                            "# } #",
-                                        //editor: addExtendCustom
-                                    }, {
-                                        field: "UnitWeightCost",
-                                        title: "@T("Admin.Orders.Products.UnitWeightCost")",
-                                        width: 70,
-                                        //editor: editUnitWeightCost,
-                                        template: "# if(ProductWeight > 0 || WeightCostDec == 0 || (ProductWeightCost == 0 && ProductWeight == 0)) { #" +
-                                            "<p>#=UnitWeightCost#</p>" +
-                                            " #} else {#" +
-                                            "<p></p>" +
-                                            "# } #"
-                            //hidden: true,
-                            //editor: addExtendCustom
-                        }, {
-                                    field: "ItemWeight",
-                                    title: "@T("Admin.Orders.Products.ItemWeight")",
-                                    width: 70,
-                                    template: "#= ItemWeight #",
-                                    editor: editItemWeight
-                                    //hidden: true
-                                }, {
-                                    field: "ProductWeight",
-                                    editor: hiddenField,
-                                    hidden: true
-                                }, {
-                                    field: "ProductWeightCost",
-                                    editor: hiddenField,
-                                    hidden: true
-                                }, {
-                                    field: "Deposit",
-                                    title: "@T("Admin.Orders.Products.Deposit")",
-                                    width: 70,
-                                    editor: readonlyField,
-                                    template: '#= DepositStr #'
-                                }, {
-                                    field: "SubTotalInclTax",
-                                    title: "@T("Admin.Orders.Products.Total")",
-                                    width: 100
-                                }, {
-                                    field: "PackageOrderId",
-                                    title: "@T("Admin.Orders.Products.PackageOrderId")",
-                                    hidden: true,
-                                    editor: hideOnEditor
-                                },
-                                {
-                                    command: [
-                                        {
-                                            name: "edit",
-                                            text: {
-                                                edit: "@T("Admin.Common.Edit")",
-                                                update: "@T("Admin.Common.Update")",
-                                                cancel: "@T("Admin.Common.Cancel")"
-                                            }
-                                        },
-                                        @{
+                                                }, {
+                                                    field: "OrderId",
+                                                    title: "@T("Admin.Orders.OrderItemId")",
+                                                    width: 120,
+                                                    template: "#=OrderId#.#=Id#"
+                                                }, {
+                                                    field: "CreatedDate",
+                                                    title: "@T("Admin.Orders.Fields.OrderCreatedDate")",
+                                                    width: 80,
+                                                    type: "date",
+                                                    //format: "{0:G}",
+                                                    template: "# if (CreatedDate != null) { #" +
+                                                        "<p>#= kendo.toString(kendo.parseDate(CreatedDate, 'yyyy-MM-dd'), 'dd/MM/yyyy') #</p>" +
+                                                        "#} else {#" +
+                                                        "<p></p>" +
+                                                        "# } #"
+                                                },
+                                                {
+                                                    field: "ExistShipment",
+                                                    title: "@T("Admin.Orders.ExistShipment")",
+                                                    width: 50,
+                                                    hidden: true
+                                                },
+                                                {
+                                                    field: "CustomerInfo",
+                                                    title: "@T("Admin.Orders.Products.CustomerInfo")",
+                                                    width: 150,
+                                                    template: '<p>#=CustomerInfo#</p>' +
+                                                        '<p><a target="_blank" href="#=CustomerLinkFacebook#">#=CustomerLinkShortFacebook#</a></p>'
+                                                },
+                                                {
+                                                    field: "PictureThumbnailUrl",
+                                                    title: "@T("Admin.Orders.Products.Picture")",
+                                                    template: '<img src="#=PictureThumbnailUrl#" />',
+                                                    width: 100
+                                                }, {
+                                                    field: "VendorName",
+                                                    title: "@T("Admin.Orders.Products.VendorName")",
+                                                    width: 100,
+                                                    hidden: true
+                                                }, {
+                                                    field: "ProductName",
+                                                    title: "@T("Admin.Orders.Products.ProductName")",
+                                                    template: '@T("Admin.Products.ProductName") #=ProductName#' +
+                                                        '<p>#=AttributeInfo#</p>' +
+                                                        '<p>@T("Admin.Common.Vendor") #=VendorName#</p>' +
+                                                        '<p>@T("Admin.Products.Sku") #=Sku#</p>',
+                                                    width: 250
+                                                }, {
+                                                    field: "UnitPriceBase",
+                                                    title: "@T("Admin.Orders.Products.UnitPriceBase")",
+                                                    width: 150,
+                                                    footerTemplate:
+                                                        '<div>@T("Admin.Orders.Report.Total") <span id=\"aggregator-total-block\"></span></div>'
+                                                }, {
+                                                    field: "Quantity",
+                                                    title: "@T("Admin.Orders.Products.Quantity")",
+                                                    width: 70,
+                                                    editor: addExtendCustom
+                                                }, {
+                                                    field: "TotalWithoutWeightCost",
+                                                    title: "@T("Admin.Orders.Products.TotalWithoutWeightCost")",
+                                                    width: 100
+                                                }, {
+                                                    field: "WeightCostDec",
+                                                    title: "@T("Admin.Orders.Products.WeightCost")",
+                                                    width: 70,
+                                                    template: "# if (WeightCostDec > 0) { #" +
+                                                        "#=WeightCost#" +
+                                                        "#} else {#" +
+                                                        @*"<p>@(T("orderitem.includeweightcost.false"))</p>" +*@
+                                                        "# } #",
+                                                    //editor: addExtendCustom
+                                                }, {
+                                                    field: "UnitWeightCost",
+                                                    title: "@T("Admin.Orders.Products.UnitWeightCost")",
+                                                    width: 70,
+                                                    //editor: editUnitWeightCost,
+                                                    template: "# if(ProductWeight > 0 || WeightCostDec == 0 || (ProductWeightCost == 0 && ProductWeight == 0)) { #" +
+                                                        "<p>#=UnitWeightCost#</p>" +
+                                                        " #} else {#" +
+                                                        "<p></p>" +
+                                                        "# } #"
+                                                    //hidden: true,
+                                                    //editor: addExtendCustom
+                                                }, {
+                                                    field: "ItemWeight",
+                                                    title: "@T("Admin.Orders.Products.ItemWeight")",
+                                                    width: 70,
+                                                    template: "#= ItemWeight #",
+                                                    editor: editItemWeight
+                                                    //hidden: true
+                                                }, {
+                                                    field: "ProductWeight",
+                                                    editor: hiddenField,
+                                                    hidden: true
+                                                }, {
+                                                    field: "ProductWeightCost",
+                                                    editor: hiddenField,
+                                                    hidden: true
+                                                }, {
+                                                    field: "Deposit",
+                                                    title: "@T("Admin.Orders.Products.Deposit")",
+                                                    width: 70,
+                                                    editor: readonlyField,
+                                                    template: '#= DepositStr #'
+                                                }, {
+                                                    field: "SubTotalInclTax",
+                                                    title: "@T("Admin.Orders.Products.Total")",
+                                                    width: 100
+                                                }, {
+                                                    field: "PackageOrderId",
+                                                    title: "@T("Admin.Orders.Products.PackageOrderId")",
+                                                    hidden: true,
+                                                    editor: hideOnEditor
+                                                },
+                                                {
+                                                    command: [
+                                                        {
+                                                            name: "edit",
+                                                            text: {
+                                                                edit: "@T("Admin.Common.Edit")",
+                                                                update: "@T("Admin.Common.Update")",
+                                                                cancel: "@T("Admin.Common.Cancel")"
+                                                            }
+                                                        },
+                                                        @{
                                             if (Model.IsAdmin)
                                             {
                                                 <text>
@@ -534,43 +554,43 @@
                                                 </text>
                                             }
                                         }
-                                        
-                                        @*,
+
+                                                        @*,
                                                         {
                                                             template: "<a class='k-grid-decreaseIndent btn btn-primary' onclick='showDetails($(this))' ><span class='fa fa-plus'> @T("Admin.Shipments.AddNewShipment")</span></a>"
                                                         }*@
-                                    ],
-                                    title: "@T("Admin.Common.Function")",
-                                    width: 120
-                                },
-                                {
-                                    field: "Note",
-                                    title: "@T("Admin.OrderItem.Note")",
-                                    width: 100
-                                }, {
-                                    field: "ShelfCode",
-                                    title: "@T("Admin.Orders.Shelf.ShelfCode")",
-                                    width: 100,
-                                    editor: editShelfOrderId,
-                                    template: "# if (ShelfCode != null) { #" +
-                                        "<p>#=ShelfCode# </p>" +
-                                        "#} else {#" +
-                                        "<p></p>" +
-                                        "# } #"
-                                }, {
-                                    field: "AssignedByCustomerId",
-                                    title: "@T("admin.orders.shelfassignerinfo")",
-                                    width: 120,
-                                    editor: editAssignCustomerId,
-                                    template: "# if (CustomerAssignShelfInfo != null) { #" +
-                                        "<p>#=CustomerAssignShelfInfo#</p>" +
-                                        "#} else {#" +
-                                        "<p></p>" +
-                                        "# } #"
-                                },
+                                                    ],
+                                                    title: "@T("Admin.Common.Function")",
+                                                    width: 120
+                                                },
+                                                {
+                                                    field: "Note",
+                                                    title: "@T("Admin.OrderItem.Note")",
+                                                    width: 100
+                                                }, {
+                                                    field: "ShelfCode",
+                                                    title: "@T("Admin.Orders.Shelf.ShelfCode")",
+                                                    width: 100,
+                                                    editor: editShelfOrderId,
+                                                    template: "# if (ShelfCode != null) { #" +
+                                                        "<p>#=ShelfCode# </p>" +
+                                                        "#} else {#" +
+                                                        "<p></p>" +
+                                                        "# } #"
+                                                }, {
+                                                    field: "AssignedByCustomerId",
+                                                    title: "@T("admin.orders.shelfassignerinfo")",
+                                                    width: 120,
+                                                    editor: editAssignCustomerId,
+                                                    template: "# if (CustomerAssignShelfInfo != null) { #" +
+                                                        "<p>#=CustomerAssignShelfInfo#</p>" +
+                                                        "#} else {#" +
+                                                        "<p></p>" +
+                                                        "# } #"
+                                                },
 
 
-                                @*{
+                                                @*{
                                                     field: "EstimatedTimeArrival",
                                                     title: "@T("Admin.Orders.Products.EstimatedTimeArrival")",
                                                     width: 150,
@@ -581,289 +601,289 @@
                                                         "<p></p>" +
                                                         "# } #"
                                                 },*@
-                                {
-                                    field: "PackageItemProcessedDatetime",
-                                    title: "@T("Admin.Orders.Products.PackageItemProcessedDatetime")",
-                                    width: 150,
-                                    editor: dateTimeEditorCustom,
-                                    template: "# if (PackageItemProcessedDatetime != null) { #" +
-                                        "<p>#= kendo.toString(kendo.parseDate(PackageItemProcessedDatetime, 'yyyy-MM-dd'), 'dd/MM/yyyy') #</p>" +
-                                        "#} else {#" +
-                                        "<p></p>" +
-                                        "# } #"
-                                },
-                                {
-                                    field: "DeliveryDateUtc",
-                                    title: "@T("Admin.Orders.Products.DeliveryDateUtc")",
-                                    width: 150,
-                                    editor: dateTimeEditorCustom,
-                                    template: "# if (DeliveryDateUtc != null) { #" +
-                                        "<p>#= kendo.toString(kendo.parseDate(DeliveryDateUtc, 'yyyy-MM-dd'), 'dd/MM/yyyy') #</p>" +
-                                        "#} else {#" +
-                                        "<p></p>" +
-                                        "# } #"
-                                },
-                                {
-                                    field: "IsOrderCheckout",
-                                    title: "@T("Admin.Orders.Products.IsOrderCheckout")",
-                                    width: 100,
-                                    template: '<span class="grid-report-item ' +
-                                        '# if(!IsOrderCheckout) {# red #} #' +
-                                        '# if(IsOrderCheckout) {# green #} #' +
-                                        '">' +
-                                        "# if (IsOrderCheckout) { #" +
-                                        "@T("Admin.Orders.Products.IsOrderCheckout.True")" +
-                                        "#} else {#" +
-                                        "@T("Admin.Orders.Products.IsOrderCheckout.False")" +
-                                        "# } #" +
-                                        '</span>'
-                                }
-                            ]
-                        });
+                                                {
+                                                    field: "PackageItemProcessedDatetime",
+                                                    title: "@T("Admin.Orders.Products.PackageItemProcessedDatetime")",
+                                                    width: 150,
+                                                    editor: dateTimeEditorCustom,
+                                                    template: "# if (PackageItemProcessedDatetime != null) { #" +
+                                                        "<p>#= kendo.toString(kendo.parseDate(PackageItemProcessedDatetime, 'yyyy-MM-dd'), 'dd/MM/yyyy') #</p>" +
+                                                        "#} else {#" +
+                                                        "<p></p>" +
+                                                        "# } #"
+                                                },
+                                                {
+                                                    field: "DeliveryDateUtc",
+                                                    title: "@T("Admin.Orders.Products.DeliveryDateUtc")",
+                                                    width: 150,
+                                                    editor: dateTimeEditorCustom,
+                                                    template: "# if (DeliveryDateUtc != null) { #" +
+                                                        "<p>#= kendo.toString(kendo.parseDate(DeliveryDateUtc, 'yyyy-MM-dd'), 'dd/MM/yyyy') #</p>" +
+                                                        "#} else {#" +
+                                                        "<p></p>" +
+                                                        "# } #"
+                                                },
+                                                {
+                                                    field: "IsOrderCheckout",
+                                                    title: "@T("Admin.Orders.Products.IsOrderCheckout")",
+                                                    width: 100,
+                                                    template: '<span class="grid-report-item ' +
+                                                        '# if(!IsOrderCheckout) {# red #} #' +
+                                                        '# if(IsOrderCheckout) {# green #} #' +
+                                                        '">' +
+                                                        "# if (IsOrderCheckout) { #" +
+                                                        "@T("Admin.Orders.Products.IsOrderCheckout.True")" +
+                                                        "#} else {#" +
+                                                        "@T("Admin.Orders.Products.IsOrderCheckout.False")" +
+                                                        "# } #" +
+                                                        '</span>'
+                                                }
+                                            ]
+                                        });
 
 
-                        function grid_edit(e) {
-                            //$(e.container).parent().css({
-                            //    width: '500px',
-                            //    height: 'auto'
-                            //});
+                                        function grid_edit(e) {
+                                            //$(e.container).parent().css({
+                                            //    width: '500px',
+                                            //    height: 'auto'
+                                            //});
 
-                            var weightCostElement = $("input[name=WeightCostDec]");
-                            var orderItemQty = parseInt($("input[name=Quantity]").val());
-                            $("input[name=ItemWeight]").on('input',
-                                function() {
-                                    $('input[name=WeightCostDec]').prop('readonly', false);
-                                    var itemWeight = parseFloat($(this).val());
-                                    var productWeight = parseFloat($('input[name=ProductWeight]').val());
-                                    var productWeightCost = parseFloat($('input[name=ProductWeightCost]').val());
-                                    var unitWeightCost = $("input[name=UnitWeightCost]").val();
-                                    var weightCostDec = (productWeight > 0 || (productWeight === 0 && productWeightCost === 0)) ? parseFloat(unitWeightCost) * itemWeight * orderItemQty : (parseFloat(unitWeightCost) * orderItemQty);
-                                    //need trigger change update data to model
-                                    weightCostElement.val(weightCostDec).change();
-                                    $('input[name=WeightCostDec]').prop('readonly', true);
-                                });
+                                            var weightCostElement = $("input[name=WeightCostDec]");
+                                            var orderItemQty = parseInt($("input[name=Quantity]").val());
+                                            $("input[name=ItemWeight]").on('input',
+                                                function() {
+                                                    $('input[name=WeightCostDec]').prop('readonly', false);
+                                                    var itemWeight = parseFloat($(this).val());
+                                                    var productWeight = parseFloat($('input[name=ProductWeight]').val());
+                                                    var productWeightCost = parseFloat($('input[name=ProductWeightCost]').val());
+                                                    var unitWeightCost = $("input[name=UnitWeightCost]").val();
+                                                    var weightCostDec = (productWeight > 0 || (productWeight === 0 && productWeightCost === 0)) ? parseFloat(unitWeightCost) * itemWeight * orderItemQty : (parseFloat(unitWeightCost) * orderItemQty);
+                                                    //need trigger change update data to model
+                                                    weightCostElement.val(weightCostDec).change();
+                                                    $('input[name=WeightCostDec]').prop('readonly', true);
+                                                });
 
-                            $("input[name=UnitWeightCost]").on('input',
-                                function() {
-                                    $('input[name=WeightCostDec]').prop('readonly', false);
-                                    var unitWeightCost = parseFloat($(this).val());
-                                    if (unitWeightCost > 0) {
-                                        var itemWeight = $("input[name=ItemWeight]").val();
-                                        var productWeight = parseFloat($('input[name=ProductWeight]').val());
-                                        var productWeightCost = parseFloat($('input[name=ProductWeightCost]').val());
-                                        var weightCostDec = (productWeight > 0 || (productWeight === 0 && productWeightCost === 0)) ? parseFloat(itemWeight) * unitWeightCost * orderItemQty : unitWeightCost * orderItemQty ;
-                                        //need trigger change update data to model
-                                        weightCostElement.val(weightCostDec).change();
-                                    }
-                                    $('input[name=WeightCostDec]').prop('readonly', true);
-                                });
+                                            $("input[name=UnitWeightCost]").on('input',
+                                                function() {
+                                                    $('input[name=WeightCostDec]').prop('readonly', false);
+                                                    var unitWeightCost = parseFloat($(this).val());
+                                                    if (unitWeightCost > 0) {
+                                                        var itemWeight = $("input[name=ItemWeight]").val();
+                                                        var productWeight = parseFloat($('input[name=ProductWeight]').val());
+                                                        var productWeightCost = parseFloat($('input[name=ProductWeightCost]').val());
+                                                        var weightCostDec = (productWeight > 0 || (productWeight === 0 && productWeightCost === 0)) ? parseFloat(itemWeight) * unitWeightCost * orderItemQty : unitWeightCost * orderItemQty ;
+                                                        //need trigger change update data to model
+                                                        weightCostElement.val(weightCostDec).change();
+                                                    }
+                                                    $('input[name=WeightCostDec]').prop('readonly', true);
+                                                });
 
-                            $("input[name=WeightCostDec]").on('input',
-                                function () {
-                                    $('input[name=UnitWeightCost]').prop('readonly', false);
-                                    $("input[name=ItemWeight]").prop('readonly', false);
+                                            $("input[name=WeightCostDec]").on('input',
+                                                function () {
+                                                    $('input[name=UnitWeightCost]').prop('readonly', false);
+                                                    $("input[name=ItemWeight]").prop('readonly', false);
 
-                                    $('input[name=UnitWeightCost]').val(0).change();
-                                    
-                                });
+                                                    $('input[name=UnitWeightCost]').val(0).change();
 
-                        }
+                                                });
 
-                        function disableTextbox(container, options) {
+                                        }
 
-                            $('<input class="k-input k-textbox" data-text-field="' +
-                                    options.field +
-                                    '" data-value-field="' +
-                                    options.field +
-                                    '" data-bind="value:' +
-                                    options.field +
-                                    '" />')
-                                .prop("disabled", true).appendTo(container);
-                        }
+                                        function disableTextbox(container, options) {
 
-                        function editAssignCustomerId(container, options) {
-                            var jsonCustomers =
-                                jQuery.parseJSON(
-                                    '@Json.Serialize(Model.AvailableStaffs.Select(_ => new {AssignedByCustomerId = _.Value, CustomerAssignShelfInfo = _.Text}))');
-                            $(
-                                    '<input id="CustomerNameEditor" data-text-field="CustomerAssignShelfInfo" data-value-field="' +
-                                    options.field +
-                                    '" data-bind="value:' +
-                                    options.field +
-                                    '" />')
-                                .appendTo(container)
-                                .kendoDropDownList({
-                                    autoBind: true,
-                                    dataTextField: "CustomerAssignShelfInfo",
-                                    dataValueField: "AssignedByCustomerId",
-                                    dataSource: jsonCustomers,
-                                    filter: "contains"
-                                });
-                        }
+                                            $('<input class="k-input k-textbox" data-text-field="' +
+                                                    options.field +
+                                                    '" data-value-field="' +
+                                                    options.field +
+                                                    '" data-bind="value:' +
+                                                    options.field +
+                                                    '" />')
+                                                .prop("disabled", true).appendTo(container);
+                                        }
 
-                        function addExtendCustom(container, options) {
+                                        function editAssignCustomerId(container, options) {
+                                            var jsonCustomers =
+                                                jQuery.parseJSON(
+                                                    '@Json.Serialize(Model.AvailableStaffs.Select(_ => new {AssignedByCustomerId = _.Value, CustomerAssignShelfInfo = _.Text}))');
+                                            $(
+                                                    '<input id="CustomerNameEditor" data-text-field="CustomerAssignShelfInfo" data-value-field="' +
+                                                    options.field +
+                                                    '" data-bind="value:' +
+                                                    options.field +
+                                                    '" />')
+                                                .appendTo(container)
+                                                .kendoDropDownList({
+                                                    autoBind: true,
+                                                    dataTextField: "CustomerAssignShelfInfo",
+                                                    dataValueField: "AssignedByCustomerId",
+                                                    dataSource: jsonCustomers,
+                                                    filter: "contains"
+                                                });
+                                        }
 
-                            var element = $('<input readonly name="' +
-                                options.field +
-                                '" class="k-input k-textbox" data-text-field="' +
-                                options.field +
-                                '" data-value-field="' +
-                                options.field +
-                                '" data-bind="value:' +
-                                options.field +
-                                '" />');
+                                        function addExtendCustom(container, options) {
 
-                            element.appendTo(container);
-                        }
+                                            var element = $('<input readonly name="' +
+                                                options.field +
+                                                '" class="k-input k-textbox" data-text-field="' +
+                                                options.field +
+                                                '" data-value-field="' +
+                                                options.field +
+                                                '" data-bind="value:' +
+                                                options.field +
+                                                '" />');
 
-                        function editUnitWeightCost(container, options) {
-                            if (options.model.ProductWeight > 0 || options.model.WeightCostDec == 0) {
-                                var element = $('<input name="' +
-                                    options.field +
-                                    '" class="k-input k-textbox" data-text-field="' +
-                                    options.field +
-                                    '" data-value-field="' +
-                                    options.field +
-                                    '" data-bind="value:' +
-                                    options.field +
-                                    '" />');
+                                            element.appendTo(container);
+                                        }
 
-                                element.appendTo(container);
-                            } else {
-                                var element = $('<input readonly name="' +
-                                    options.field +
-                                    '" class="k-input k-textbox" data-text-field="' +
-                                    options.field +
-                                    '" data-value-field="' +
-                                    options.field +
-                                    '" data-bind="value:' +
-                                    options.field +
-                                    '" />');
-                                element.appendTo(container);
-                            }
-                        }
+                                        function editUnitWeightCost(container, options) {
+                                            if (options.model.ProductWeight > 0 || options.model.WeightCostDec == 0) {
+                                                var element = $('<input name="' +
+                                                    options.field +
+                                                    '" class="k-input k-textbox" data-text-field="' +
+                                                    options.field +
+                                                    '" data-value-field="' +
+                                                    options.field +
+                                                    '" data-bind="value:' +
+                                                    options.field +
+                                                    '" />');
 
-                        function editItemWeight(container, options) {
-                            var itemWeight = options.model.ItemWeight;
-                            if (itemWeight === 0) {
-                                options.model.ItemWeight = '';
-                            }
-                            var element = $('<input placeholder="0.00" name="' +
-                                options.field +
-                                '" class="k-input k-textbox ItemWeight" data-text-field="' +
-                                options.field +
-                                '" data-value-field="' +
-                                options.field +
-                                '" data-bind="value:' +
-                                options.field +
-                                '" />');
-                            element.appendTo(container);
+                                                element.appendTo(container);
+                                            } else {
+                                                var element = $('<input readonly name="' +
+                                                    options.field +
+                                                    '" class="k-input k-textbox" data-text-field="' +
+                                                    options.field +
+                                                    '" data-value-field="' +
+                                                    options.field +
+                                                    '" data-bind="value:' +
+                                                    options.field +
+                                                    '" />');
+                                                element.appendTo(container);
+                                            }
+                                        }
 
-                            $('.ItemWeight').on("focus",
-                                function() {
+                                        function editItemWeight(container, options) {
+                                            var itemWeight = options.model.ItemWeight;
+                                            if (itemWeight === 0) {
+                                                options.model.ItemWeight = '';
+                                            }
+                                            var element = $('<input placeholder="0.00" name="' +
+                                                options.field +
+                                                '" class="k-input k-textbox ItemWeight" data-text-field="' +
+                                                options.field +
+                                                '" data-value-field="' +
+                                                options.field +
+                                                '" data-bind="value:' +
+                                                options.field +
+                                                '" />');
+                                            element.appendTo(container);
 
-                                    $(this).removeAttr('placeholder');
+                                            $('.ItemWeight').on("focus",
+                                                function() {
 
-                                });
+                                                    $(this).removeAttr('placeholder');
 
-                            $('.ItemWeight').on("focusout",
-                                function() {
+                                                });
 
-                                    if ($(this).val() === '') {
-                                        $(this).attr('placeholder', 'Chọn ngăn');
-                                    }
-                                });
-                        }
+                                            $('.ItemWeight').on("focusout",
+                                                function() {
 
-                        function hideOnEditor(container, options) {
-                            container.prevObject.find("div[data-container-for='" + options.field + "']")
-                                .hide();
-                            container.prevObject.find("label[for='" + options.field + "']").parent()
-                                .hide();
-                        }
+                                                    if ($(this).val() === '') {
+                                                        $(this).attr('placeholder', 'Chọn ngăn');
+                                                    }
+                                                });
+                                        }
 
-                        function readonlyField(container, options) {
+                                        function hideOnEditor(container, options) {
+                                            container.prevObject.find("div[data-container-for='" + options.field + "']")
+                                                .hide();
+                                            container.prevObject.find("label[for='" + options.field + "']").parent()
+                                                .hide();
+                                        }
 
-                            $('<input class="k-input k-textbox" readonly data-text-field="' +
-                                    options.field +
-                                    '" data-value-field="' +
-                                    options.field +
-                                    '" data-bind="value:' +
-                                    options.field +
-                                    '" />')
-                                .appendTo(container);
-                        }
+                                        function readonlyField(container, options) {
 
-
-                        function hiddenField(container, options) {
-
-                            $('<input class="k-input k-textbox" type="hidden" name="' +
-                                    options.field +
-                                    '" data-text-field="' +
-                                    options.field +
-                                    '" data-value-field="' +
-                                    options.field +
-                                    '" data-bind="value:' +
-                                    options.field +
-                                    '" />')
-                                .appendTo(container);
-                        }
+                                            $('<input class="k-input k-textbox" readonly data-text-field="' +
+                                                    options.field +
+                                                    '" data-value-field="' +
+                                                    options.field +
+                                                    '" data-bind="value:' +
+                                                    options.field +
+                                                    '" />')
+                                                .appendTo(container);
+                                        }
 
 
-                        function dateTimeEditorCustom(container, options) {
+                                        function hiddenField(container, options) {
 
-                            $('<input style="width:120px !important;" data-text-field="' +
-                                    options.field +
-                                    '" data-value-field="' +
-                                    options.field +
-                                    '" data-bind="value:' +
-                                    options.field +
-                                    '" />')
-                                .appendTo(container)
-                                .kendoDatePicker({
-                                    value: kendo.toString(
-                                        kendo.parseDate(options.model.PackageItemProcessedDatetime,
-                                            'yyyy-MM-dd'),
-                                        'dd/MM/yyyy'),
-                                    format: 'dd/MM/yyyy'
-                                });
+                                            $('<input class="k-input k-textbox" type="hidden" name="' +
+                                                    options.field +
+                                                    '" data-text-field="' +
+                                                    options.field +
+                                                    '" data-value-field="' +
+                                                    options.field +
+                                                    '" data-bind="value:' +
+                                                    options.field +
+                                                    '" />')
+                                                .appendTo(container);
+                                        }
 
 
-                        }
+                                        function dateTimeEditorCustom(container, options) {
+
+                                            $('<input style="width:120px !important;" data-text-field="' +
+                                                    options.field +
+                                                    '" data-value-field="' +
+                                                    options.field +
+                                                    '" data-bind="value:' +
+                                                    options.field +
+                                                    '" />')
+                                                .appendTo(container)
+                                                .kendoDatePicker({
+                                                    value: kendo.toString(
+                                                        kendo.parseDate(options.model.PackageItemProcessedDatetime,
+                                                            'yyyy-MM-dd'),
+                                                        'dd/MM/yyyy'),
+                                                    format: 'dd/MM/yyyy'
+                                                });
 
 
-                        function editPackageOrderId(container, options) {
-                            $(
-                                    '<input id="PackageOrderCode" class="k-input k-textbox" data-text-field="PackageOrderCode" data-value-field="' +
-                                    options.field +
-                                    '" data-bind="value:' +
-                                    options.field +
-                                    '" />')
-                                .appendTo(container);
+                                        }
 
-                            var model = options.model;
-                            if (model.PackageOrderId === "0") {
-                                $.ajax({
-                                    cache: false,
-                                    url: "@(Url.Action("GetsPackageOrderCodeAvailable", "Order"))",
-                                    type: "GET",
-                                    complete: function(data) {
-                                        var jsonData = data.responseJSON;
-                                        //options.model.set("PackageOrderCode", makeRandomPackageCode());
-                                        //$('#PackageOrderCode').val(data);
-                                        //$('#PackageOrderCode').trigger("change");
-                                    },
-                                    error: function(xhr, ajaxOptions, thrownError) {
-                                        alert(thrownError);
-                                    },
-                                    traditional: true
-                                });
 
-                            }
+                                        function editPackageOrderId(container, options) {
+                                            $(
+                                                    '<input id="PackageOrderCode" class="k-input k-textbox" data-text-field="PackageOrderCode" data-value-field="' +
+                                                    options.field +
+                                                    '" data-bind="value:' +
+                                                    options.field +
+                                                    '" />')
+                                                .appendTo(container);
 
-                        }
+                                            var model = options.model;
+                                            if (model.PackageOrderId === "0") {
+                                                $.ajax({
+                                                    cache: false,
+                                                    url: "@(Url.Action("GetsPackageOrderCodeAvailable", "Order"))",
+                                                    type: "GET",
+                                                    complete: function(data) {
+                                                        var jsonData = data.responseJSON;
+                                                        //options.model.set("PackageOrderCode", makeRandomPackageCode());
+                                                        //$('#PackageOrderCode').val(data);
+                                                        //$('#PackageOrderCode').trigger("change");
+                                                    },
+                                                    error: function(xhr, ajaxOptions, thrownError) {
+                                                        alert(thrownError);
+                                                    },
+                                                    traditional: true
+                                                });
 
-                        @*function editPackageOrderId(container, options) {
+                                            }
+
+                                        }
+
+                                        @*function editPackageOrderId(container, options) {
                                             $('<input data-text-field="PackageOrderName" data-value-field="' +
                                                     options.field +
                                                     '" data-bind="value:' +
@@ -890,57 +910,57 @@
                                         }*@
 
 
-                        function editShelfOrderId(container, options) {
+                                        function editShelfOrderId(container, options) {
 
-                            if (options.model.ExistShipment) {
-                                var element = $('<input readonly name="' +
-                                    options.field +
-                                    '" class="k-input k-textbox" data-text-field="' +
-                                    options.field +
-                                    '" data-value-field="' +
-                                    options.field +
-                                    '" data-bind="value:' +
-                                    options.field +
-                                    '" />' + '<p>@T("OrderItem.HasShipment")</p>');
+                                            if (options.model.ExistShipment) {
+                                                var element = $('<input readonly name="' +
+                                                    options.field +
+                                                    '" class="k-input k-textbox" data-text-field="' +
+                                                    options.field +
+                                                    '" data-value-field="' +
+                                                    options.field +
+                                                    '" data-bind="value:' +
+                                                    options.field +
+                                                    '" />' + '<p>@T("OrderItem.HasShipment")</p>');
 
-                                element.appendTo(container);
-                            } else {
-                                var orderItemId = options.model.Id;
-                                if (options.model.ShelfCode === '' || options.model.ShelfCode == null || options.model.ShelfCode == undefined) {
-                                    options.model.ShelfCode = '@T("shelf.edit.chooseself")';
-                                }
-                                var dataModel = { orderItemId: orderItemId };
-                                var existShelf = false;
-                                var postData = { orderItemId: orderItemId };
-                                var $dropDown = $(
-                                        '<input class="ShelfCode" data-text-field="ShelfCode" placeholder="@T("shelf.edit.chooseself")" data-value-field="' +
-                                        options.field +
-                                        '" data-bind="value:ShelfCode" />')
-                                    .appendTo(container);
-                                addAntiForgeryToken(postData);
-                                $.ajax({
-                                    cache: false,
-                                    type: "POST",
-                                    url: "@(Url.Action("GetCustShelf", "Shelf"))",
-                                    data: postData,
-                                    complete: function(data) {
-                                        var jsonData = data.responseJSON;
-                                        existShelf = jsonData.Exist;
-                                        console.log(existShelf);
-                                        if (existShelf === true) {
-                                            $dropDown.appendTo(container)
-                                                .kendoDropDownList({
-                                                    dataTextField: "ShelfCode",
-                                                    dataValueField: "ShelfCode",
-                                                    dataSource: data.responseJSON.Shelfs
-                                                });
-                                        } else {
+                                                element.appendTo(container);
+                                            } else {
+                                                var orderItemId = options.model.Id;
+                                                if (options.model.ShelfCode === '' || options.model.ShelfCode == null || options.model.ShelfCode == undefined) {
+                                                    options.model.ShelfCode = '@T("shelf.edit.chooseself")';
+                                                }
+                                                var dataModel = { orderItemId: orderItemId };
+                                                var existShelf = false;
+                                                var postData = { orderItemId: orderItemId };
+                                                var $dropDown = $(
+                                                        '<input class="ShelfCode" data-text-field="ShelfCode" placeholder="@T("shelf.edit.chooseself")" data-value-field="' +
+                                                        options.field +
+                                                        '" data-bind="value:ShelfCode" />')
+                                                    .appendTo(container);
+                                                addAntiForgeryToken(postData);
+                                                $.ajax({
+                                                    cache: false,
+                                                    type: "POST",
+                                                    url: "@(Url.Action("GetCustShelf", "Shelf"))",
+                                                    data: postData,
+                                                    complete: function(data) {
+                                                        var jsonData = data.responseJSON;
+                                                        existShelf = jsonData.Exist;
+                                                        console.log(existShelf);
+                                                        if (existShelf === true) {
+                                                            $dropDown.appendTo(container)
+                                                                .kendoDropDownList({
+                                                                    dataTextField: "ShelfCode",
+                                                                    dataValueField: "ShelfCode",
+                                                                    dataSource: data.responseJSON.Shelfs
+                                                                });
+                                                        } else {
 
-                                            options.model.ShelfCode = '';
-                                            $dropDown.kendoAutoComplete({
-                                                filtering: function(e) {
-                                                    //check model valid
-                                                    @*if (
+                                                            options.model.ShelfCode = '';
+                                                            $dropDown.kendoAutoComplete({
+                                                                filtering: function(e) {
+                                                                    //check model valid
+                                                                    @*if (
                                                                         options.model.PackageItemProcessedDatetime == null
                                                                         ||
                                                                         options.model.PackageItemProcessedDatetime === ''
@@ -956,231 +976,237 @@
                                                                         e.preventDefault();
                                                                     }*@
 
-                                                    var filter = e.filter;
+                                                                    var filter = e.filter;
 
-                                                    if (!filter.value) {
-                                                        //prevent filtering if the filter does not value
-                                                        e.preventDefault();
-                                                    }
-                                                },
-                                                dataTextField: "ShelfCode",
-                                                dataValueField: "ShelfCode",
-                                                dataSource: {
-                                                    type: "json",
-                                                    serverFiltering: true,
-                                                    transport: {
-                                                        read: {
-                                                            url:
-                                                                "@Html.Raw(Url.Action("GetShelfAvailable", "Shelf"))",
-                                                            type: "GET",
-                                                            dataType: "json",
-                                                            data: dataModel
+                                                                    if (!filter.value) {
+                                                                        //prevent filtering if the filter does not value
+                                                                        e.preventDefault();
+                                                                    }
+                                                                },
+                                                                dataTextField: "ShelfCode",
+                                                                dataValueField: "ShelfCode",
+                                                                dataSource: {
+                                                                    type: "json",
+                                                                    serverFiltering: true,
+                                                                    transport: {
+                                                                        read: {
+                                                                            url:
+                                                                                "@Html.Raw(Url.Action("GetShelfAvailable", "Shelf"))",
+                                                                            type: "GET",
+                                                                            dataType: "json",
+                                                                            data: dataModel
+                                                                        }
+                                                                    }
+                                                                },
+                                                                minLength: 3,
+                                                                filter: "contains"
+                                                            });
                                                         }
+                                                    },
+                                                    error: function(xhr, ajaxOptions, thrownError) {
+                                                        alert(thrownError);
                                                     }
-                                                },
-                                                minLength: 3,
-                                                filter: "contains"
-                                            });
+                                                });
+
+                                                $('.ShelfCode').on("focus",
+                                                    function() {
+
+                                                        $(this).removeAttr('placeholder');
+
+                                                    });
+
+                                                $('.ShelfCode').on("focusout",
+                                                    function() {
+
+                                                        if ($(this).val() === '') {
+                                                            $(this).attr('placeholder', 'Chọn ngăn');
+                                                        }
+
+                                                    });
+                                            }
+
+
                                         }
-                                    },
-                                    error: function(xhr, ajaxOptions, thrownError) {
-                                        alert(thrownError);
+                                    });
+
+                                    function showDetails(e) {
+                                        var row = e.select().closest("tr");
+                                        var grid = $('#order-items-grid').data('kendoGrid');
+                                        var dataItem = grid.dataItem(row);
+
+                                        window.location.href = "@Url.Action("AddShipment", "Order")?orderId=" +
+                                            dataItem.OrderId +
+                                            "&orderItemId=" +
+                                            dataItem.Id;
                                     }
-                                });
 
-                                $('.ShelfCode').on("focus",
-                                    function() {
 
-                                        $(this).removeAttr('placeholder');
-
-                                    });
-
-                                $('.ShelfCode').on("focusout",
-                                    function() {
-
-                                        if ($(this).val() === '') {
-                                            $(this).attr('placeholder', 'Chọn ngăn');
+                                    function setChecked(ckbId) {
+                                        var status = $('#ckb' + ckbId).is(':checked');
+                                        if (status) {
+                                            status = false;
+                                        } else {
+                                            status = true;
                                         }
-
-                                    });
-                            }
-
-
-                        }
-                    });
-
-                    function showDetails(e) {
-                        var row = e.select().closest("tr");
-                        var grid = $('#order-items-grid').data('kendoGrid');
-                        var dataItem = grid.dataItem(row);
-
-                        window.location.href = "@Url.Action("AddShipment", "Order")?orderId=" +
-                            dataItem.OrderId +
-                            "&orderItemId=" +
-                            dataItem.Id;
-                    }
-
-
-                    function setChecked(ckbId) {
-                        var status = $('#ckb' + ckbId).is(':checked');
-                        if (status) {
-                            status = false;
-                        } else {
-                            status = true;
-                        }
-                        $('#ckb' + ckbId).attr('checked', status).change();
-                    }
+                                        $('#ckb' + ckbId).attr('checked', status).change();
+                                    }
                                 </script>
                                 <script type="text/javascript">
 
 
-                    var selectedIds = [];
+                                    var selectedIds = [];
 
-                    $(document).ready(function() {
+                                    $(document).ready(function() {
 
-                        $('#@Html.IdFor(model => model.TodayFilter)').click(function() {
-                            if ($(this).is(':checked')) {
-                                var start = new Date();
-                                start.setHours(0, 0, 0, 0);
-                                var end = new Date();
-                                end.setHours(23, 59, 59, 999);
-                                var startDate = kendo.toString(kendo.parseDate(start),
-                                    'dd/MM/yyyy HH:mm tt');
-                                var endDate = kendo.toString(kendo.parseDate(end),
-                                    'dd/MM/yyyy HH:mm tt');
-                                $('#@Html.IdFor(model => model.StartDate)').val(startDate);
-                                $('#@Html.IdFor(model => model.EndDate)').val(endDate);
-                            } else {
-                                $('#@Html.IdFor(model => model.StartDate)').val('');
-                                $('#@Html.IdFor(model => model.EndDate)').val('');
-                            }
-                        });
-
-
-                        $("#clear-filter").click(function() {
-                            $('#@Html.IdFor(model => model.OrderId)').val('');
-                            $('#@Html.IdFor(model => model.ProductSku)').val('');
-                            $('#@Html.IdFor(model => model.OrderItemId)').val('');
-                            $('#@Html.IdFor(model => model.VendorProductUrl)').val('');
-                            $('#@Html.IdFor(model => model.VendorId)').val(0);
-                            $('#@Html.IdFor(model => model.VendorId)').trigger("chosen:updated");
-                            $('#@Html.IdFor(model => model.PackageOrderCode)').val('');
-                            $('#@Html.IdFor(model => model.CustomerPhone)').val('');
-                            $('#@Html.IdFor(model => model.StartDate)').val('');
-                            $('#@Html.IdFor(model => model.EndDate)').val('');
-
-                            $('#@Html.IdFor(model => model.TodayFilter)').prop('checked', false);
-                            $('#@Html.IdFor(model => model.IsWeightCostZero)').prop('checked', false);
-                            $('#@Html.IdFor(model => model.IsOrderCheckout)').val(0);
-                            $('#@Html.IdFor(model => model.IsSetPackageOrderIdStatus)').val(0);
-                            $('#@Html.IdFor(model => model.IsSetShelfIdStatus)').val(0);
-                            $('#@Html.IdFor(model => model.IsPackageItemProcessedDatetime)').val(0);
-
-                            $("#search-orders").click();
-                        });
+                                        $('#@Html.IdFor(model => model.TodayFilter)').click(function() {
+                                            if ($(this).is(':checked')) {
+                                                var start = new Date();
+                                                start.setHours(0, 0, 0, 0);
+                                                var end = new Date();
+                                                end.setHours(23, 59, 59, 999);
+                                                var startDate = kendo.toString(kendo.parseDate(start),
+                                                    'dd/MM/yyyy HH:mm tt');
+                                                var endDate = kendo.toString(kendo.parseDate(end),
+                                                    'dd/MM/yyyy HH:mm tt');
+                                                $('#@Html.IdFor(model => model.StartDate)').val(startDate);
+                                                $('#@Html.IdFor(model => model.EndDate)').val(endDate);
+                                            } else {
+                                                $('#@Html.IdFor(model => model.StartDate)').val('');
+                                                $('#@Html.IdFor(model => model.EndDate)').val('');
+                                            }
+                                        });
 
 
-                        //search button
-                        $('#search-orders').click(function() {
-                            //search
-                            var grid = $('#order-items-grid').data('kendoGrid');
-                            grid.dataSource.page(1); //new search. Set page size to 1
-                            //grid.dataSource.read(); we already loaded the grid above using "page" function
-                            //clear selected checkboxes
-                            $('.checkboxGroups').attr('checked', false).change();
-                            selectedIds = [];
-                            return false;
-                        });
+                                        $("#clear-filter").click(function() {
+                                            $('#@Html.IdFor(model => model.OrderId)').val('');
+                                            $('#@Html.IdFor(model => model.ProductSku)').val('');
+                                            $('#@Html.IdFor(model => model.OrderItemId)').val('');
+                                            $('#@Html.IdFor(model => model.VendorProductUrl)').val('');
+                                            $('#@Html.IdFor(model => model.VendorId)').val(0);
+                                            $('#@Html.IdFor(model => model.VendorId)').trigger("chosen:updated");
+                                            $('#@Html.IdFor(model => model.PackageOrderCode)').val('');
+                                            $('#@Html.IdFor(model => model.CustomerPhone)').val('');
+                                            $('#@Html.IdFor(model => model.StartDate)').val('');
+                                            $('#@Html.IdFor(model => model.EndDate)').val('');
 
-                        $('#mastercheckbox').click(function() {
-                            $('.checkboxGroups').attr('checked', $(this).is(':checked')).change();
-                        });
+                                            $('#@Html.IdFor(model => model.TodayFilter)').prop('checked', false);
+                                            $('#@Html.IdFor(model => model.IsWeightCostZero)').prop('checked', false);
+                                            $('#@Html.IdFor(model => model.IsOrderCheckout)').val(0);
+                                            $('#@Html.IdFor(model => model.IsSetPackageOrderIdStatus)').val(0);
+                                            $('#@Html.IdFor(model => model.IsSetShelfIdStatus)').val(0);
+                                            $('#@Html.IdFor(model => model.IsPackageItemProcessedDatetime)').val(0);
 
-                        //wire up checkboxes.
-                        $('#order-items-grid').on('change',
-                            'input[type=checkbox][id!=mastercheckbox][class=checkboxGroups]',
-                            function(e) {
-                                var $check = $(this);
-                                if ($check.is(":checked") == true) {
-                                    var checked = jQuery.inArray($check.val(), selectedIds);
-                                    if (checked == -1) {
-                                        //add id to selectedIds.
-                                        selectedIds.push($check.val());
-                                    }
-                                } else {
-                                    var checked = jQuery.inArray($check.val(), selectedIds);
-                                    if (checked > -1) {
-                                        //remove id from selectedIds.
-                                        selectedIds = $.grep(selectedIds,
-                                            function(item, index) {
-                                                return item != $check.val();
+                                            $("#search-orders").click();
+                                        });
+
+
+                                        //search button
+                                        $('#search-orders').click(function() {
+                                            //search
+                                            var grid = $('#order-items-grid').data('kendoGrid');
+                                            grid.dataSource.page(1); //new search. Set page size to 1
+                                            //grid.dataSource.read(); we already loaded the grid above using "page" function
+                                            //clear selected checkboxes
+                                            $('.checkboxGroups').attr('checked', false).change();
+                                            selectedIds = [];
+                                            return false;
+                                        });
+
+                                        $('#mastercheckbox').click(function() {
+                                            $('.checkboxGroups').attr('checked', $(this).is(':checked')).change();
+                                        });
+
+                                        //wire up checkboxes.
+                                        $('#order-items-grid').on('change',
+                                            'input[type=checkbox][id!=mastercheckbox][class=checkboxGroups]',
+                                            function(e) {
+                                                var $check = $(this);
+                                                if ($check.is(":checked") == true) {
+                                                    var checked = jQuery.inArray($check.val(), selectedIds);
+                                                    if (checked == -1) {
+                                                        //add id to selectedIds.
+                                                        selectedIds.push($check.val());
+                                                    }
+                                                } else {
+                                                    var checked = jQuery.inArray($check.val(), selectedIds);
+                                                    if (checked > -1) {
+                                                        //remove id from selectedIds.
+                                                        selectedIds = $.grep(selectedIds,
+                                                            function(item, index) {
+                                                                return item != $check.val();
+                                                            });
+                                                    }
+                                                }
+                                                updateMasterCheckbox();
                                             });
+                                    });
+
+                                    function additionalData() {
+                                        var startDate = kendo.toString(
+                                            kendo.parseDate($('#@Html.IdFor(model => model.StartDate)').val(),
+                                                'dd/MM/yyyy HH:mm tt'),
+                                            'MM/dd/yyyy HH:mm tt');
+                                        var endDate = kendo.toString(
+                                            kendo.parseDate($('#@Html.IdFor(model => model.EndDate)').val(),
+                                                'dd/MM/yyyy HH:mm tt'),
+                                            'MM/dd/yyyy HH:mm tt');
+
+                                        var data = {
+                                            VendorProductUrl: $('#@Html.IdFor(model => model.VendorProductUrl)').val(),
+                                            ProductSku: $('#@Html.IdFor(model => model.ProductSku)').val(),
+                                            OrderId: $('#@Html.IdFor(model => model.OrderId)').val(),
+                                            OrderItemId: $('#@Html.IdFor(model => model.OrderItemId)').val(),
+                                            IsOrderCheckout: $('#@Html.IdFor(model => model.IsOrderCheckout)').val(),
+                                            IsSetPackageOrderId: $('#@Html.IdFor(model => model.IsSetPackageOrderId)')
+                                                .val(),
+                                            IsWeightCostZero: $('#@Html.IdFor(model => model.IsWeightCostZero)')
+                                                .is(":checked"),
+                                            HasShelf: $('#@Html.IdFor(model => model.HasShelf)').val(),
+                                            StartDate: startDate,
+                                            EndDate: endDate,
+                                            TodayFilter: $('#@Html.IdFor(model => model.TodayFilter)').is(":checked"),
+                                            CustomerPhone: $('#@Html.IdFor(model => model.CustomerPhone)').val(),
+                                            PackageOrderCode: $('#@Html.IdFor(model => model.PackageOrderCode)').val(),
+                                            IsPackageItemProcessedDatetime: $(
+                                                '#@Html.IdFor(model => model.IsPackageItemProcessedDatetime)').val(),
+                                            VendorId: $('#@Html.IdFor(model => model.VendorId)').val()
+                                        };
+                                        addAntiForgeryToken(data);
+                                        return data;
                                     }
-                                }
-                                updateMasterCheckbox();
-                            });
-                    });
 
-                    function additionalData() {
-                        var startDate = kendo.toString(
-                            kendo.parseDate($('#@Html.IdFor(model => model.StartDate)').val(),
-                                'dd/MM/yyyy HH:mm tt'),
-                            'MM/dd/yyyy HH:mm tt');
-                        var endDate = kendo.toString(
-                            kendo.parseDate($('#@Html.IdFor(model => model.EndDate)').val(),
-                                'dd/MM/yyyy HH:mm tt'),
-                            'MM/dd/yyyy HH:mm tt');
+                                    function onDataBound(e) {
+                                        //this.expandRow(this.tbody.find("tr.k-master-row").first());
+                                        $(
+                                                '#order-items-grid input[type=checkbox][id!=mastercheckbox][class=checkboxGroups]')
+                                            .each(function() {
+                                                var currentId = $(this).val();
+                                                var checked = jQuery.inArray(currentId, selectedIds);
+                                                //set checked based on if current checkbox's value is in selectedIds.
+                                                $(this).attr('checked', checked > -1);
+                                            });
 
-                        var data = {
-                            VendorProductUrl: $('#@Html.IdFor(model => model.VendorProductUrl)').val(),
-                            ProductSku: $('#@Html.IdFor(model => model.ProductSku)').val(),
-                            OrderId: $('#@Html.IdFor(model => model.OrderId)').val(),
-                            OrderItemId: $('#@Html.IdFor(model => model.OrderItemId)').val(),
-                            IsOrderCheckout: $('#@Html.IdFor(model => model.IsOrderCheckout)').val(),
-                            IsSetPackageOrderId: $('#@Html.IdFor(model => model.IsSetPackageOrderId)')
-                                .val(),
-                            IsWeightCostZero: $('#@Html.IdFor(model => model.IsWeightCostZero)')
-                                .is(":checked"),
-                            HasShelf: $('#@Html.IdFor(model => model.HasShelf)').val(),
-                            StartDate: startDate,
-                            EndDate: endDate,
-                            TodayFilter: $('#@Html.IdFor(model => model.TodayFilter)').is(":checked"),
-                            CustomerPhone: $('#@Html.IdFor(model => model.CustomerPhone)').val(),
-                            PackageOrderCode: $('#@Html.IdFor(model => model.PackageOrderCode)').val(),
-                            IsPackageItemProcessedDatetime: $(
-                                '#@Html.IdFor(model => model.IsPackageItemProcessedDatetime)').val(),
-                            VendorId: $('#@Html.IdFor(model => model.VendorId)').val()
-                        };
-                        addAntiForgeryToken(data);
-                        return data;
-                    }
+                                        updateMasterCheckbox();
 
-                    function onDataBound(e) {
-                        //this.expandRow(this.tbody.find("tr.k-master-row").first());
-                        $(
-                                '#order-items-grid input[type=checkbox][id!=mastercheckbox][class=checkboxGroups]')
-                            .each(function() {
-                                var currentId = $(this).val();
-                                var checked = jQuery.inArray(currentId, selectedIds);
-                                //set checked based on if current checkbox's value is in selectedIds.
-                                $(this).attr('checked', checked > -1);
-                            });
+                                        if (reportAggregates != "") {
+                                            for (var key in reportAggregates) {
+                                                $('#aggregator-total-block').text(reportAggregates['aggregatortotal']);
+                                            }
+                                        }
+                                    }
 
-                        updateMasterCheckbox();
-                    }
-
-                    function updateMasterCheckbox() {
-                        var numChkBoxes =
-                            $(
-                                    '#order-items-grid input[type=checkbox][id!=mastercheckbox][class=checkboxGroups]')
-                                .length;
-                        var numChkBoxesChecked =
-                            $(
-                                    '#order-items-grid input[type=checkbox][id!=mastercheckbox][class=checkboxGroups]:checked')
-                                .length;
-                        $('#mastercheckbox').attr('checked',
-                            numChkBoxes == numChkBoxesChecked && numChkBoxes > 0);
-                    }
+                                    function updateMasterCheckbox() {
+                                        var numChkBoxes =
+                                            $(
+                                                    '#order-items-grid input[type=checkbox][id!=mastercheckbox][class=checkboxGroups]')
+                                                .length;
+                                        var numChkBoxesChecked =
+                                            $(
+                                                    '#order-items-grid input[type=checkbox][id!=mastercheckbox][class=checkboxGroups]:checked')
+                                                .length;
+                                        $('#mastercheckbox').attr('checked',
+                                            numChkBoxes == numChkBoxesChecked && numChkBoxes > 0);
+                                    }
                                 </script>
                             </div>
                         </div>
